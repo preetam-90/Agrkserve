@@ -1,0 +1,256 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  Calendar,
+  Clock,
+  ChevronRight,
+  Tractor,
+  Filter,
+  Search
+} from 'lucide-react';
+import { Header, Footer, Sidebar } from '@/components/layout';
+import {
+  Button,
+  Card,
+  CardContent,
+  Badge,
+  Spinner,
+  EmptyState,
+  Input,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from '@/components/ui';
+import { bookingService } from '@/lib/services';
+import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
+import { formatCurrency, cn } from '@/lib/utils';
+import { useAppStore } from '@/lib/store';
+
+export default function RenterBookingsPage() {
+  const { sidebarOpen } = useAppStore();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
+  const loadBookings = async () => {
+    setIsLoading(true);
+    try {
+      const data = await bookingService.getRenterBookings();
+      setBookings(data);
+    } catch (err) {
+      console.error('Failed to load bookings:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: BookingStatus) => {
+    const variants: Record<BookingStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+      pending: 'warning',
+      confirmed: 'success',
+      in_progress: 'default',
+      completed: 'success',
+      cancelled: 'destructive',
+      disputed: 'destructive',
+      approved: 'success',
+      rejected: 'destructive',
+    };
+     
+    const labels: Record<BookingStatus, string> = {
+      pending: 'Pending',
+      confirmed: 'Confirmed',
+      in_progress: 'In Progress',
+      completed: 'Completed',
+      cancelled: 'Cancelled',
+      disputed: 'Disputed',
+      approved: 'Approved',
+      rejected: 'Rejected',
+    };
+
+    return (
+      <Badge variant={variants[status]}>
+        {labels[status]}
+      </Badge>
+    );
+  };
+
+  const filterBookings = (status: string) => {
+    let filtered = bookings;
+    
+    if (status === 'active') {
+      filtered = bookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status));
+    } else if (status === 'completed') {
+      filtered = bookings.filter(b => b.status === 'completed');
+    } else if (status === 'cancelled') {
+      filtered = bookings.filter(b => ['cancelled', 'disputed'].includes(b.status));
+    }
+    
+    if (searchQuery) {
+      filtered = filtered.filter(b => {
+        const equipment = (b as Booking & { equipment?: Equipment }).equipment;
+        return equipment?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+    }
+    
+    return filtered;
+  };
+
+  const filteredBookings = filterBookings(activeTab);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      
+      <div className="flex">
+        <Sidebar role="renter" />
+        
+        <main className={cn("flex-1 p-4 lg:p-6 transition-all duration-300", sidebarOpen ? "ml-64" : "ml-0")}>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
+                <p className="text-gray-600">Track and manage your equipment bookings</p>
+              </div>
+              <Button asChild>
+                <Link href="/renter/equipment">
+                  Book Equipment
+                </Link>
+              </Button>
+            </div>
+
+            {/* Search */}
+            <div className="mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search bookings..."
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+              <TabsList className="mb-6">
+                <TabsTrigger value="all">
+                  All ({bookings.length})
+                </TabsTrigger>
+                <TabsTrigger value="active">
+                  Active ({bookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status)).length})
+                </TabsTrigger>
+                <TabsTrigger value="completed">
+                  Completed ({bookings.filter(b => b.status === 'completed').length})
+                </TabsTrigger>
+                <TabsTrigger value="cancelled">
+                  Cancelled ({bookings.filter(b => ['cancelled', 'disputed'].includes(b.status)).length})
+                </TabsTrigger>
+              </TabsList>
+
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <Spinner size="lg" />
+                </div>
+              ) : filteredBookings.length === 0 ? (
+                <EmptyState
+                  icon={<Calendar className="h-12 w-12" />}
+                  title="No bookings found"
+                  description={
+                    activeTab === 'all' 
+                      ? "You haven't made any bookings yet"
+                      : `No ${activeTab} bookings found`
+                  }
+                  action={
+                    activeTab === 'all' && (
+                      <Button asChild>
+                        <Link href="/renter/equipment">Browse Equipment</Link>
+                      </Button>
+                    )
+                  }
+                />
+              ) : (
+                <div className="space-y-4">
+                  {filteredBookings.map((booking) => {
+                    const equipment = (booking as Booking & { equipment?: Equipment }).equipment;
+                    const provider = (booking as Booking & { provider?: UserProfile }).provider;
+                    
+                    return (
+                      <Link key={booking.id} href={`/renter/bookings/${booking.id}`}>
+                        <Card className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex gap-4">
+                              {/* Equipment Image */}
+                              <div className="w-24 h-24 rounded-lg bg-gray-100 flex-shrink-0 relative overflow-hidden">
+                                {equipment?.images?.[0] ? (
+                                  <Image
+                                    src={equipment.images[0]}
+                                    alt={equipment.name || 'Equipment'}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Tractor className="h-10 w-10 text-gray-300" />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Booking Details */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <h3 className="font-semibold text-gray-900 truncate">
+                                      {equipment?.name || 'Equipment'}
+                                    </h3>
+                                    <p className="text-sm text-gray-500">
+                                      by {provider?.name || 'Provider'}
+                                    </p>
+                                  </div>
+                                  {getStatusBadge(booking.status)}
+                                </div>
+
+                                <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="h-4 w-4" />
+                                    {new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    {booking.start_time} - {booking.end_time}
+                                  </span>
+                                </div>
+
+                                <div className="mt-2 flex items-center justify-between">
+                                  <span className="font-bold text-green-600">
+                                    {formatCurrency(booking.total_amount)}
+                                  </span>
+                                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </Tabs>
+          </div>
+        </main>
+      </div>
+
+      <Footer />
+    </div>
+  );
+}
