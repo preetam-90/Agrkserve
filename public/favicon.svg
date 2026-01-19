@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#14b8a6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d9488;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bgGrad)"/>
+  <!-- Tractor body -->
+  <rect x="120" y="220" width="200" height="100" rx="15" fill="#ffffff"/>
+  <rect x="280" y="180" width="80" height="140" rx="10" fill="#ffffff"/>
+  <!-- Tractor cabin -->
+  <rect x="290" y="190" width="60" height="60" rx="5" fill="#0d9488" opacity="0.3"/>
+  <!-- Large rear wheel -->
+  <circle cx="170" cy="340" r="70" fill="#1f2937"/>
+  <circle cx="170" cy="340" r="50" fill="#4b5563"/>
+  <circle cx="170" cy="340" r="20" fill="#9ca3af"/>
+  <!-- Small front wheel -->
+  <circle cx="320" cy="340" r="45" fill="#1f2937"/>
+  <circle cx="320" cy="340" r="30" fill="#4b5563"/>
+  <circle cx="320" cy="340" r="12" fill="#9ca3af"/>
+  <!-- Exhaust pipe -->
+  <rect x="130" y="180" width="15" height="50" rx="5" fill="#6b7280"/>
+  <!-- Leaf accent -->
+  <path d="M380 80 Q420 120 400 180 Q380 140 340 140 Q380 100 380 80" fill="url(#leafGrad)"/>
+  <path d="M380 80 Q370 130 340 140" stroke="#16a34a" stroke-width="3" fill="none"/>
+</svg>
