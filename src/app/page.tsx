@@ -767,8 +767,8 @@ export default function HomePage() {
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6 rounded-xl" asChild>
-                <Link href="/become-provider">
+              <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-teal-700 text-lg px-8 py-6 rounded-xl transition-colors" asChild>
+                <Link href="/onboarding">
                   List Your Equipment
                   <Users className="ml-2 h-5 w-5" />
                 </Link>
