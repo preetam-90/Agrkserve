@@ -16,13 +16,23 @@ export const bookingService = {
       .from('bookings')
       .select(`
         *,
-        equipment:equipment(*),
-        renter:user_profiles!renter_id(*)
+        equipment:equipment(*)
       `)
       .eq('id', id)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
+    
+    // Fetch renter profile separately
+    if (data && data.renter_id) {
+      const { data: renter } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.renter_id)
+        .single();
+      return { ...data, renter };
+    }
+    
     return data;
   },
 
@@ -79,8 +89,7 @@ export const bookingService = {
       .from('bookings')
       .select(`
         *,
-        equipment:equipment!inner(id, name, images, category, price_per_day, owner_id),
-        renter:user_profiles!renter_id(id, name, profile_image, phone)
+        equipment:equipment!inner(id, name, images, category, price_per_day, owner_id)
       `, { count: 'exact' })
       .eq('equipment.owner_id', ownerId);
 
@@ -98,8 +107,23 @@ export const bookingService = {
 
     if (error) throw error;
 
+    // Fetch renter profiles separately
+    const bookings = data || [];
+    if (bookings.length > 0) {
+      const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+      const { data: renters } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image, phone')
+        .in('id', renterIds);
+      
+      const renterMap = new Map((renters || []).map(r => [r.id, r]));
+      bookings.forEach(booking => {
+        booking.renter = renterMap.get(booking.renter_id);
+      });
+    }
+
     return {
-      data: data || [],
+      data: bookings,
       count: count || 0,
       page,
       limit,
@@ -114,10 +138,7 @@ export const bookingService = {
   ): Promise<Booking[]> {
     let query = supabase
       .from('bookings')
-      .select(`
-        *,
-        renter:user_profiles!renter_id(id, name, profile_image)
-      `)
+      .select('*')
       .eq('equipment_id', equipmentId);
 
     if (status) {
@@ -131,7 +152,23 @@ export const bookingService = {
     const { data, error } = await query.order('start_date', { ascending: true });
 
     if (error) throw error;
-    return data || [];
+    
+    // Fetch renter profiles separately
+    const bookings = data || [];
+    if (bookings.length > 0) {
+      const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+      const { data: renters } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image')
+        .in('id', renterIds);
+      
+      const renterMap = new Map((renters || []).map(r => [r.id, r]));
+      bookings.forEach(booking => {
+        booking.renter = renterMap.get(booking.renter_id);
+      });
+    }
+    
+    return bookings;
   },
 
   // Create a new booking
@@ -161,12 +198,22 @@ export const bookingService = {
       })
       .select(`
         *,
-        equipment:equipment(*),
-        renter:user_profiles!renter_id(*)
+        equipment:equipment(*)
       `)
       .single();
 
     if (error) throw error;
+    
+    // Fetch renter profile separately
+    if (data && data.renter_id) {
+      const { data: renter } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.renter_id)
+        .single();
+      return { ...data, renter };
+    }
+    
     return data;
   },
 
@@ -198,12 +245,22 @@ export const bookingService = {
       .eq('id', id)
       .select(`
         *,
-        equipment:equipment(*),
-        renter:user_profiles!renter_id(*)
+        equipment:equipment(*)
       `)
       .single();
 
     if (error) throw error;
+    
+    // Fetch renter profile separately
+    if (data && data.renter_id) {
+      const { data: renter } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.renter_id)
+        .single();
+      return { ...data, renter };
+    }
+    
     return data;
   },
 
@@ -245,8 +302,7 @@ export const bookingService = {
       .from('bookings')
       .select(`
         *,
-        equipment:equipment!inner(id, name, images, category, owner_id, owner:user_profiles!owner_id(id, name, profile_image)),
-        renter:user_profiles!renter_id(id, name, profile_image)
+        equipment:equipment!inner(id, name, images, category, owner_id)
       `)
       .eq(column, userId)
       .in('status', ['confirmed', 'in_progress'])
@@ -255,7 +311,30 @@ export const bookingService = {
       .limit(limit);
 
     if (error) throw error;
-    return data || [];
+    
+    // Fetch user profiles separately
+    const bookings = data || [];
+    if (bookings.length > 0) {
+      const userIds = [...new Set([
+        ...bookings.map(b => b.renter_id),
+        ...bookings.map(b => b.equipment?.owner_id)
+      ].filter(Boolean))];
+      
+      const { data: users } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image')
+        .in('id', userIds);
+      
+      const userMap = new Map((users || []).map(u => [u.id, u]));
+      bookings.forEach(booking => {
+        booking.renter = userMap.get(booking.renter_id);
+        if (booking.equipment) {
+          booking.equipment.owner = userMap.get(booking.equipment.owner_id);
+        }
+      });
+    }
+    
+    return bookings;
   },
 
   // Get pending booking requests for owner
@@ -264,15 +343,30 @@ export const bookingService = {
       .from('bookings')
       .select(`
         *,
-        equipment:equipment!inner(id, name, images, category, price_per_day, owner_id),
-        renter:user_profiles!renter_id(id, name, profile_image, phone)
+        equipment:equipment!inner(id, name, images, category, price_per_day, owner_id)
       `)
       .eq('equipment.owner_id', ownerId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Fetch renter profiles separately
+    const bookings = data || [];
+    if (bookings.length > 0) {
+      const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+      const { data: renters } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image, phone')
+        .in('id', renterIds);
+      
+      const renterMap = new Map((renters || []).map(r => [r.id, r]));
+      bookings.forEach(booking => {
+        booking.renter = renterMap.get(booking.renter_id);
+      });
+    }
+    
+    return bookings;
   },
 
   // Get booking statistics
@@ -321,57 +415,29 @@ export const bookingService = {
     return stats;
   },
 
-  // Convenience method - Get current user's renter bookings
-  async getRenterBookings(): Promise<Booking[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        equipment:equipment(*),
-        renter:user_profiles!renter_id(*)
-      `)
-      .eq('renter_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  },
-
-  // Convenience method - Get current user's provider bookings
-  async getProviderBookings(): Promise<Booking[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from('bookings')
-      .select(`
-        *,
-        equipment:equipment!inner(*),
-        renter:user_profiles!renter_id(*)
-      `)
-      .eq('equipment.owner_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  },
-
   // Get a single booking by ID
   async getBookingById(id: string): Promise<Booking | null> {
     const { data, error } = await supabase
       .from('bookings')
       .select(`
         *,
-        equipment:equipment(*),
-        renter:user_profiles!renter_id(*)
+        equipment:equipment(*)
       `)
       .eq('id', id)
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
+    
+    // Fetch renter profile separately if booking exists
+    if (data && data.renter_id) {
+      const { data: renter } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.renter_id)
+        .single();
+      return { ...data, renter };
+    }
+    
     return data;
   },
 
