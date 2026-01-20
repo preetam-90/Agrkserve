@@ -29,6 +29,9 @@ export function Header() {
 
   // Close mobile menu on route change
   useEffect(() => {
+    // Close the menu when the pathname changes
+    // This is intentionally setting state based on external navigation
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileMenuOpen(false);
   }, [pathname]);
 
@@ -36,11 +39,11 @@ export function Header() {
     if (!activeRole) return '/dashboard';
     switch (activeRole) {
       case 'admin':
-        return '/admin';
+        return '/admin/dashboard';
       case 'provider':
-        return '/provider';
+        return '/provider/dashboard';
       default:
-        return '/renter';
+        return '/renter/dashboard';
     }
   };
 
@@ -205,7 +208,7 @@ export function Header() {
                       : 'text-[#5C5C5C] hover:bg-[#1B5E20]/5'
                   )}
                 >
-                  {item.label} <span className="text-xs text-[#8D6E63]">({item.labelEn})</span>
+                  {item.label}
                 </Link>
               ))}
               {user && (

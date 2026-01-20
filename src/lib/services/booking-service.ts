@@ -6,6 +6,8 @@ import type {
 } from '@/lib/types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 import { calculateDaysBetween } from '@/lib/utils';
+import { notificationService } from './notification-service';
+import { auditLogService } from './audit-log-service';
 
 const supabase = createClient();
 
@@ -493,32 +495,117 @@ export const bookingService = {
   },
 
   // Update booking status
-  async updateBookingStatus(id: string, status: BookingStatus): Promise<Booking> {
+  async updateBookingStatus(id: string, status: BookingStatus, userId?: string): Promise<Booking> {
     const { data, error } = await supabase
       .from('bookings')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select()
+      .select(`
+        *,
+        equipment:equipment(*)
+      `)
       .single();
 
     if (error) throw error;
+    
+    // Create notification for renter (optional - won't fail if notification service fails)
+    if (data.renter_id) {
+      try {
+        const title = status === 'confirmed' ? 'Booking Confirmed' : 'Booking Updated';
+        const body = status === 'confirmed' 
+          ? 'Your equipment booking has been confirmed by the provider.'
+          : `Your booking status has been updated to ${status}.`;
+        
+        await notificationService.create({
+          user_id: data.renter_id,
+          title,
+          body,
+          type: 'booking',
+          data: { booking_id: id, status },
+        });
+      } catch (notificationError) {
+        console.warn('Failed to create notification:', notificationError);
+        // Continue execution - notification failure shouldn't block booking update
+      }
+    }
+    
+    // Create audit log (optional - won't fail if audit log service fails)
+    if (userId) {
+      try {
+        await auditLogService.create({
+          user_id: userId,
+          action: `booking_${status}`,
+          entity_type: 'booking',
+          entity_id: id,
+          details: {
+            previous_status: data.status,
+            new_status: status,
+            renter_id: data.renter_id,
+            equipment_id: data.equipment_id,
+          },
+        });
+      } catch (auditError) {
+        console.warn('Failed to create audit log:', auditError);
+        // Continue execution - audit log failure shouldn't block booking update
+      }
+    }
+    
     return data;
   },
 
   // Cancel booking
-  async cancelBooking(id: string, reason?: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    const { error } = await supabase
+  async cancelBooking(id: string, reason?: string, userId?: string): Promise<void> {
+    const { data, error } = await supabase
       .from('bookings')
       .update({
         status: 'cancelled',
         cancellation_reason: reason,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', id);
+      .eq('id', id)
+      .select(`
+        *,
+        equipment:equipment(*)
+      `)
+      .single();
 
     if (error) throw error;
+    
+    // Create notification for renter (optional)
+    if (data?.renter_id) {
+      try {
+        await notificationService.create({
+          user_id: data.renter_id,
+          title: 'Booking Cancelled',
+          body: `Your equipment booking has been cancelled. ${reason ? `Reason: ${reason}` : ''}`,
+          type: 'booking',
+          data: { booking_id: id, status: 'cancelled', reason },
+        });
+      } catch (notificationError) {
+        console.warn('Failed to create notification:', notificationError);
+      }
+    }
+    
+    // Create audit log (optional)
+    if (userId) {
+      try {
+        await auditLogService.create({
+          user_id: userId,
+          action: 'booking_cancelled',
+          entity_type: 'booking',
+          entity_id: id,
+          details: {
+            previous_status: data.status,
+            new_status: 'cancelled',
+            cancellation_reason: reason,
+            renter_id: data.renter_id,
+            equipment_id: data.equipment_id,
+          },
+        });
+      } catch (auditError) {
+        console.warn('Failed to create audit log:', auditError);
+      }
+    }
   },
 
   // Convenience method for current user's bookings as renter

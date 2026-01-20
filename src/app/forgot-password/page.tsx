@@ -28,9 +28,10 @@ export default function ForgotPasswordPage() {
       await authService.resetPassword(email);
       setEmailSent(true);
       toast.success('Password reset email sent!');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error('Failed to send reset email:', err);
-      setError(err.message || 'Failed to send reset email. Please try again.');
+      setError(error.message || 'Failed to send reset email. Please try again.');
       toast.error('Failed to send reset email');
     } finally {
       setIsLoading(false);
@@ -62,7 +63,7 @@ export default function ForgotPasswordPage() {
             <CardDescription>
               {emailSent
                 ? `We've sent a password reset link to ${email}`
-                : 'Enter your email address and we\'ll send you a link to reset your password'}
+                : "Enter your email address and we'll send you a link to reset your password"}
             </CardDescription>
           </CardHeader>
 
@@ -77,7 +78,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600 text-center">
-                    Didn't receive the email?
+                    Didn&apos;t receive the email?
                   </p>
                   <Button
                     type="button"

@@ -136,9 +136,29 @@ export default function OnboardingPage() {
       (error) => {
         console.error('Geolocation error:', error);
         setIsLocating(false);
-        toast.error('Failed to get location. Please enter manually.');
+        
+        // Provide specific error messages
+        let errorMessage = 'Failed to get location. Please enter manually.';
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location permission denied. Please enable location access in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable. Please enter manually.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out. Please try again or enter manually.';
+            break;
+        }
+        
+        toast.error(errorMessage);
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { 
+        enableHighAccuracy: true, 
+        timeout: 15000,
+        maximumAge: 0
+      }
     );
   };
 
@@ -215,9 +235,10 @@ export default function OnboardingPage() {
           : '/renter/dashboard';
       
       router.push(dashboardPath);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error('Failed to update profile:', err);
-      toast.error(err.message || 'Failed to create profile. Please try again.');
+      toast.error(error.message || 'Failed to create profile. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -385,7 +406,7 @@ export default function OnboardingPage() {
                 Where are you located?
               </h1>
               <p className="text-gray-600 mt-2">
-                We'll show you equipment and services nearby
+                We&apos;ll show you equipment and services nearby
               </p>
             </div>
 

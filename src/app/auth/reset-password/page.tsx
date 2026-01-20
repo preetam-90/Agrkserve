@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Tractor, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -48,9 +48,10 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push('/dashboard');
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error('Failed to update password:', err);
-      setError(err.message || 'Failed to update password. Please try again.');
+      setError(error.message || 'Failed to update password. Please try again.');
       toast.error('Failed to update password');
     } finally {
       setIsLoading(false);

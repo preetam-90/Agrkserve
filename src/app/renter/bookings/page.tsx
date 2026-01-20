@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -8,7 +8,6 @@ import {
   Clock,
   ChevronRight,
   Tractor,
-  Filter,
   Search
 } from 'lucide-react';
 import { Header, Footer, Sidebar } from '@/components/layout';
@@ -22,13 +21,14 @@ import {
   Input,
   Tabs,
   TabsList,
-  TabsTrigger,
-  TabsContent
+  TabsTrigger
 } from '@/components/ui';
 import { bookingService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, useAuthStore } from '@/lib/store';
+import { createClient } from '@/lib/supabase/client';
+import toast from 'react-hot-toast';
 
 export default function RenterBookingsPage() {
   const { sidebarOpen } = useAppStore();
@@ -39,17 +39,129 @@ export default function RenterBookingsPage() {
 
   useEffect(() => {
     loadBookings();
+
+    // Set up real-time subscription
+    const supabase = createClient();
+    let channel: any = null;
+    
+    const setupRealtimeSubscription = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          console.log('No user found for real-time subscription');
+          return;
+        }
+
+        console.log('Setting up renter real-time subscription for user:', currentUser.id);
+
+        // Subscribe to bookings table changes for this renter
+        channel = supabase
+          .channel('renter-bookings-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'bookings',
+              filter: `renter_id=eq.${currentUser.id}`
+            },
+            async (payload) => {
+              console.log('Real-time booking update:', payload);
+              
+              if (payload.eventType === 'INSERT') {
+                console.log('New booking created');
+                // Fetch the new booking with full details
+                try {
+                  const bookingData = payload.new as any;
+                  const newBooking = await bookingService.getById(bookingData.id);
+                  if (newBooking) {
+                    setBookings(prev => [newBooking, ...prev]);
+                  }
+                } catch (err) {
+                  console.error('Failed to fetch new booking:', err);
+                  refreshBookings();
+                }
+              } else if (payload.eventType === 'UPDATE') {
+                const newStatus = (payload.new as any).status;
+                const oldStatus = (payload.old as any)?.status;
+                const bookingData = payload.new as any;
+                
+                // Update existing booking in place
+                setBookings(prev => prev.map(booking => 
+                  booking.id === bookingData.id 
+                    ? { ...booking, ...bookingData }
+                    : booking
+                ));
+                
+                // Only show notification if status actually changed
+                if (newStatus !== oldStatus) {
+                  if (newStatus === 'confirmed') {
+                    toast.success('Your booking has been confirmed!', {
+                      duration: 4000,
+                      icon: '✅'
+                    });
+                  } else if (newStatus === 'rejected' || newStatus === 'cancelled') {
+                    toast.error('Your booking was declined', {
+                      duration: 4000
+                    });
+                  } else if (newStatus === 'in_progress') {
+                    toast('Your booking is now in progress', {
+                      icon: '🚜'
+                    });
+                  } else if (newStatus === 'completed') {
+                    toast.success('Your booking is complete!', {
+                      icon: '✅'
+                    });
+                  }
+                }
+              } else if (payload.eventType === 'DELETE') {
+                // Remove deleted booking
+                setBookings(prev => prev.filter(booking => booking.id !== payload.old.id));
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('Renter subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Successfully subscribed to renter booking changes');
+            } else if (status === 'TIMED_OUT') {
+              console.error('❌ Subscription timed out');
+            }
+          });
+      } catch (error) {
+        console.error('Failed to setup real-time subscription:', error);
+      }
+    };
+
+    setupRealtimeSubscription();
+    
+    return () => {
+      if (channel) {
+        console.log('Cleaning up renter real-time subscription');
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const loadBookings = async () => {
     setIsLoading(true);
     try {
-      const data = await bookingService.getRenterBookings();
+      const data = await bookingService.getMyBookings();
       setBookings(data);
     } catch (err) {
       console.error('Failed to load bookings:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Silent refresh without loading state (for real-time updates)
+  const refreshBookings = async () => {
+    try {
+      const data = await bookingService.getMyBookings();
+      setBookings(data);
+    } catch (err) {
+      console.error('Failed to refresh bookings:', err);
     }
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -13,15 +13,10 @@ import {
   Calendar,
   MessageCircle,
   User,
-  Clock,
-  IndianRupee,
   RefreshCw,
   Loader2,
-  Phone,
   Briefcase,
-  Award,
-  CheckCircle,
-  Filter
+  Award
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { 
@@ -43,11 +38,10 @@ import {
   DialogTitle,
   Textarea,
 } from '@/components/ui';
-import { labourService, messageService } from '@/lib/services';
+import { labourService } from '@/lib/services';
 import { useAppStore, useAuthStore } from '@/lib/store';
 import { LabourProfile, LabourAvailability } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
-import { createClient } from '@/lib/supabase/client';
 
 // Common skills for agricultural labour
 const LABOUR_SKILLS = [
@@ -260,7 +254,7 @@ function LabourCard({
   );
 }
 
-export default function LabourPage() {
+function LabourPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
@@ -277,7 +271,7 @@ export default function LabourPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -300,6 +294,11 @@ export default function LabourPage() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const limit = 12;
+
+  // Initialize lastUpdated on client side only to avoid hydration mismatch
+  useEffect(() => {
+    setLastUpdated(new Date());
+  }, []);
 
   // Generate cache key
   const getCacheKey = useCallback(() => {
@@ -390,6 +389,7 @@ export default function LabourPage() {
   // Initial load
   useEffect(() => {
     loadLabour(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSkill, selectedAvailability, sortBy, userLocation]);
 
   // Infinite scroll observer
@@ -543,7 +543,7 @@ export default function LabourPage() {
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="hidden sm:inline">
-                  Last updated: {lastUpdated.toLocaleTimeString()}
+                  Last updated: {lastUpdated ? lastUpdated.toLocaleTimeString() : '...'}
                 </span>
               </button>
             </div>
@@ -933,5 +933,13 @@ export default function LabourPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function LabourPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" /></div>}>
+      <LabourPageContent />
+    </Suspense>
   );
 }

@@ -31,8 +31,10 @@ interface SidebarProps {
 
 const renterNavItems = [
   { href: '/renter', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/renter/search', label: 'Find Equipment', icon: Search },
+  { href: '/renter/equipment', label: 'Find Equipment', icon: Search },
+  { href: '/renter/labour', label: 'Find Labour', icon: Users },
   { href: '/renter/bookings', label: 'My Bookings', icon: CalendarDays },
+  { href: '/renter/labour/bookings', label: 'Labour Bookings', icon: CalendarDays },
   { href: '/renter/messages', label: 'Messages', icon: MessageSquare },
   { href: '/renter/favorites', label: 'Favorites', icon: Heart },
   { href: '/renter/reviews', label: 'My Reviews', icon: Star },
@@ -41,6 +43,7 @@ const renterNavItems = [
 const providerNavItems = [
   { href: '/provider', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/provider/equipment', label: 'My Equipment', icon: Tractor },
+  { href: '/provider/labour', label: 'Labour Profile', icon: Users },
   { href: '/provider/bookings', label: 'Booking Requests', icon: CalendarDays },
   { href: '/provider/messages', label: 'Messages', icon: MessageSquare },
   { href: '/provider/earnings', label: 'Earnings', icon: CreditCard },

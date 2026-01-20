@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Coordinates, EquipmentSearchFilters } from '@/lib/types';
+import type { Coordinates, EquipmentFilters } from '@/lib/types';
 import { DEFAULT_LOCATION } from '@/lib/utils/constants';
 
 interface AppState {
@@ -9,7 +9,7 @@ interface AppState {
   locationError: string | null;
   
   // Search filters
-  searchFilters: EquipmentSearchFilters;
+  searchFilters: EquipmentFilters;
   
   // UI
   sidebarOpen: boolean;
@@ -25,7 +25,7 @@ interface AppActions {
   setLocationError: (error: string | null) => void;
   requestLocation: () => Promise<Coordinates | null>;
   
-  setFilters: (filters: Partial<EquipmentSearchFilters>) => void;
+  setFilters: (filters: Partial<EquipmentFilters>) => void;
   clearFilters: () => void;
   
   toggleSidebar: () => void;
@@ -36,7 +36,7 @@ interface AppActions {
   setLanguage: (lang: 'en' | 'hi') => void;
 }
 
-export const useAppStore = create<AppState & AppActions>()((set, get) => ({
+export const useAppStore = create<AppState & AppActions>()((set) => ({
   // Initial state
   userLocation: null,
   isLocating: false,

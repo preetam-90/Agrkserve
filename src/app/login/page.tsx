@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Tractor, Mail, Lock, Chrome, Eye, EyeOff } from 'lucide-react';
+import { Tractor, Mail, Chrome, Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui';
 import { authService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/dashboard';
@@ -61,9 +61,10 @@ export default function LoginPage() {
         toast.success('Account created! Please check your email to verify.');
       }
       router.push(redirect);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error('Authentication error:', err);
-      setError(err.message || 'Authentication failed. Please try again.');
+      setError(error.message || 'Authentication failed. Please try again.');
       toast.error(mode === 'signin' ? 'Login failed' : 'Signup failed');
     } finally {
       setIsLoading(false);
@@ -77,9 +78,10 @@ export default function LoginPage() {
     try {
       await authService.signInWithGoogle();
       // User will be redirected to Google and back to the app
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as Error;
       console.error('Google sign-in error:', err);
-      setError(err.message || 'Google sign-in failed');
+      setError(error.message || 'Google sign-in failed');
       toast.error('Google sign-in failed');
       setIsLoading(false);
     }
@@ -261,5 +263,13 @@ export default function LoginPage() {
         © {new Date().getFullYear()} AgriServe. All rights reserved.
       </footer>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" /></div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

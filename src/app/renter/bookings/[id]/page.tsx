@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -17,15 +17,13 @@ import {
   XCircle,
   Tractor,
   CreditCard,
-  FileText,
-  Download
+  FileText
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { 
   Button, 
   Card, 
   CardContent, 
-  Badge, 
   Spinner, 
   Avatar,
   Dialog,
@@ -40,9 +38,8 @@ import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
-export default function BookingDetailPage() {
+function BookingDetailPageContent() {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = params.id as string;
   const isSuccess = searchParams.get('success') === 'true';
@@ -66,6 +63,7 @@ export default function BookingDetailPage() {
     if (isSuccess) {
       toast.success('Booking confirmed successfully!');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId, isSuccess]);
 
   const loadBooking = async () => {
@@ -542,5 +540,13 @@ export default function BookingDetailPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function BookingDetailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" /></div>}>
+      <BookingDetailPageContent />
+    </Suspense>
   );
 }

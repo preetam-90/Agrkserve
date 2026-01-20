@@ -12,40 +12,93 @@ import {
   ChevronRight,
   Filter,
   Star,
-  Clock
+  Clock,
+  Users
 } from 'lucide-react';
 import { Header, Footer, Sidebar } from '@/components/layout';
 import { Button, Input, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
-import { equipmentService, bookingService } from '@/lib/services';
+import { equipmentService, bookingService, labourService } from '@/lib/services';
 import { useAuthStore, useAppStore } from '@/lib/store';
 import { Equipment, Booking } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 export default function RenterDashboard() {
   const { profile } = useAuthStore();
-  const { userLocation, searchFilters, setFilters, sidebarOpen } = useAppStore();
+  const { userLocation, sidebarOpen } = useAppStore();
   
   const [nearbyEquipment, setNearbyEquipment] = useState<Equipment[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
+  const [recentLabourBookings, setRecentLabourBookings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadDashboardData();
+
+    // Set up real-time subscription
+    const supabase = createClient();
+    let channel: any = null;
+    
+    const setupRealtimeSubscription = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          console.log('No user found for renter dashboard subscription');
+          return;
+        }
+
+        console.log('Setting up renter dashboard subscription');
+
+        // Subscribe to bookings changes for this renter
+        channel = supabase
+          .channel('renter-dashboard-bookings')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'bookings',
+              filter: `renter_id=eq.${currentUser.id}`
+            },
+            async (payload) => {
+              console.log('Renter dashboard real-time update:', payload);
+              // Reload dashboard data to get updated bookings
+              loadDashboardData();
+            }
+          )
+          .subscribe((status) => {
+            console.log('Renter dashboard subscription status:', status);
+          });
+      } catch (error) {
+        console.error('Failed to setup renter dashboard subscription:', error);
+      }
+    };
+
+    setupRealtimeSubscription();
+    
+    return () => {
+      if (channel) {
+        console.log('Cleaning up renter dashboard subscription');
+        supabase.removeChannel(channel);
+      }
+    };
   }, [userLocation]);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [equipmentResult, bookingsResult] = await Promise.all([
+      const [equipmentResult, bookingsResult, labourBookingsResult] = await Promise.all([
         equipmentService.getEquipment({ limit: 8 }),
         bookingService.getMyBookings(),
+        labourService.getMyEmployerBookings(),
       ]);
       
       setNearbyEquipment(equipmentResult.data);
       setRecentBookings(bookingsResult.slice(0, 3));
+      setRecentLabourBookings(labourBookingsResult.slice(0, 3));
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -55,7 +108,6 @@ export default function RenterDashboard() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setFilters({ search: searchQuery });
     window.location.href = `/renter/equipment?search=${encodeURIComponent(searchQuery)}`;
   };
 
@@ -161,9 +213,36 @@ export default function RenterDashboard() {
           {/* Categories */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Browse Categories</h2>
-              <Link href="/renter/equipment" className="text-sm text-green-600 hover:underline flex items-center">
-                View All <ChevronRight className="h-4 w-4" />
+              <h2 className="text-lg font-semibold text-gray-900">Browse Services</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <Link href="/renter/equipment">
+                <Card className="hover:shadow-lg hover:border-teal-500 transition-all cursor-pointer">
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-teal-100">
+                      <Tractor className="h-8 w-8 text-teal-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">Find Equipment</h3>
+                      <p className="text-sm text-gray-600">Browse tractors, harvesters & more</p>
+                    </div>
+                    <ChevronRight className="h-6 w-6 text-gray-400 ml-auto" />
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/renter/labour">
+                <Card className="hover:shadow-lg hover:border-teal-500 transition-all cursor-pointer">
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-blue-100">
+                      <Users className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg text-gray-900">Find Labour</h3>
+                      <p className="text-sm text-gray-600">Hire skilled farm workers</p>
+                    </div>
+                    <ChevronRight className="h-6 w-6 text-gray-400 ml-auto" />
+                  </CardContent>
+                </Card>
               </Link>
             </div>
             <div className="grid grid-cols-4 lg:grid-cols-8 gap-3">
@@ -184,7 +263,7 @@ export default function RenterDashboard() {
           {recentBookings.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Your Bookings</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Equipment Bookings</h2>
                 <Link href="/renter/bookings" className="text-sm text-green-600 hover:underline flex items-center">
                   View All <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -200,6 +279,44 @@ export default function RenterDashboard() {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900 truncate">
                             {(booking as Booking & { equipment?: Equipment }).equipment?.name || 'Equipment'}
+                          </p>
+                          <p className="text-sm text-gray-500 flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge variant={getStatusColor(booking.status)}>
+                          {booking.status.replace('_', ' ')}
+                        </Badge>
+                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Recent Labour Bookings */}
+          {recentLabourBookings.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Labour Bookings</h2>
+                <Link href="/renter/labour/bookings" className="text-sm text-green-600 hover:underline flex items-center">
+                  View All <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {recentLabourBookings.map((booking) => (
+                  <Link key={booking.id} href={`/renter/labour/bookings`}>
+                    <Card className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4 flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <Users className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">
+                            {booking.labour?.user?.full_name || 'Labour'}
                           </p>
                           <p className="text-sm text-gray-500 flex items-center gap-1">
                             <Clock className="h-3 w-3" />

@@ -9,14 +9,12 @@ import {
   MapPin, 
   Star, 
   Calendar, 
-  Clock, 
   Phone,
   MessageSquare,
   Share2,
   Heart,
   ChevronLeft,
   ChevronRight,
-  User,
   Tractor,
   Shield,
   CheckCircle
@@ -54,6 +52,7 @@ export default function EquipmentDetailPage() {
 
   useEffect(() => {
     loadEquipmentDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equipmentId]);
 
   const loadEquipmentDetails = async () => {
@@ -104,7 +103,7 @@ export default function EquipmentDetailPage() {
         text: equipment?.description || undefined,
         url: window.location.href,
       });
-    } catch (err) {
+    } catch {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
     }
@@ -129,7 +128,7 @@ export default function EquipmentDetailPage() {
           <Tractor className="h-16 w-16 mx-auto text-gray-300 mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Equipment Not Found</h1>
           <p className="text-gray-600 mb-6">
-            The equipment you're looking for doesn't exist or has been removed.
+            The equipment you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Button asChild>
             <Link href="/renter/equipment">Browse Equipment</Link>

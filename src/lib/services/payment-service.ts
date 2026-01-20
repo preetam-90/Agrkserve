@@ -191,33 +191,46 @@ export const paymentService = {
     return stats;
   },
 
-  // Create a Razorpay order for payment
+  // Create a Razorpay order for payment (Mock version for development)
   async createOrder(bookingId: string, amount: number): Promise<{
     order_id: string;
     amount: number;
     currency: string;
+    payment_id: string;
+    is_mock: boolean;
   }> {
-    // In a real implementation, this would call your backend API
-    // which would then call Razorpay's Create Order API
-    const response = await fetch('/api/payments/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookingId, amount }),
-    });
+    // Mock payment for development (bypass Razorpay)
+    try {
+      const response = await fetch('/api/payments/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId, amount }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to create payment order');
+      if (!response.ok) {
+        throw new Error('Failed to create payment order');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Payment API error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
-  // Verify payment signature
+  // Verify payment signature (Mock version for development)
   async verifyPayment(data: {
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?: string;
+    payment_id?: string;
+    is_mock?: boolean;
   }): Promise<boolean> {
+    // Mock payment verification for development
+    if (data.is_mock) {
+      return true;
+    }
+
     const response = await fetch('/api/payments/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

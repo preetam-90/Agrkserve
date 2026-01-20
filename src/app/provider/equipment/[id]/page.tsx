@@ -88,6 +88,7 @@ export default function EquipmentFormPage() {
     if (isEdit && equipmentId) {
       loadEquipment();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, equipmentId]);
 
   const loadEquipment = async () => {
@@ -259,7 +260,7 @@ export default function EquipmentFormPage() {
           }));
           
           toast.success('Location detected');
-        } catch (err) {
+        } catch {
           setFormData(prev => ({ ...prev, latitude, longitude }));
           toast.success('Coordinates captured');
         }

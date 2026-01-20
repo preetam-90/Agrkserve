@@ -12,22 +12,24 @@ import {
   ChevronRight,
   Clock,
   Eye,
-  Package
+  Package,
+  Users
 } from 'lucide-react';
 import { Header, Footer, Sidebar } from '@/components/layout';
 import { Button, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
-import { equipmentService, bookingService } from '@/lib/services';
-import { useAuthStore, useAppStore } from '@/lib/store';
+import { equipmentService, bookingService, labourService } from '@/lib/services';
+import { useAppStore } from '@/lib/store';
 import { Equipment, Booking } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 export default function ProviderDashboard() {
-  const { profile } = useAuthStore();
   const { sidebarOpen } = useAppStore();
   
   const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
   const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
+  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalEquipment: 0,
     activeBookings: 0,
@@ -38,20 +40,94 @@ export default function ProviderDashboard() {
 
   useEffect(() => {
     loadDashboardData();
+
+    // Set up real-time subscription for bookings
+    const supabase = createClient();
+    let channel: any = null;
+    
+    const setupRealtimeSubscription = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          console.log('No user found for dashboard subscription');
+          return;
+        }
+
+        console.log('Setting up dashboard real-time subscription');
+
+        // Fetch user's equipment IDs
+        const { data: equipmentData, error: equipError } = await supabase
+          .from('equipment')
+          .select('id')
+          .eq('owner_id', currentUser.id);
+        
+        if (equipError) {
+          console.error('Error fetching equipment:', equipError);
+          return;
+        }
+        
+        const equipmentIds = equipmentData?.map(e => e.id) || [];
+        
+        if (equipmentIds.length === 0) {
+          console.log('No equipment found for dashboard subscription');
+          return;
+        }
+
+        // Subscribe to bookings changes
+        channel = supabase
+          .channel('dashboard-bookings-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'bookings'
+            },
+            async (payload) => {
+              console.log('Dashboard real-time update:', payload);
+              
+              // Filter client-side
+              const bookingData = payload.new as any;
+              if (bookingData && equipmentIds.includes(bookingData.equipment_id)) {
+                console.log('Reloading dashboard data...');
+                loadDashboardData();
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('Dashboard subscription status:', status);
+          });
+      } catch (error) {
+        console.error('Failed to setup dashboard subscription:', error);
+      }
+    };
+
+    setupRealtimeSubscription();
+    
+    return () => {
+      if (channel) {
+        console.log('Cleaning up dashboard subscription');
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [equipmentResult, bookingsResult] = await Promise.all([
+      const [equipmentResult, bookingsResult, labourBookingsResult] = await Promise.all([
         equipmentService.getMyEquipment(),
         bookingService.getProviderBookings(),
+        labourService.getMyBookings(),
       ]);
       
       setMyEquipment(equipmentResult.slice(0, 4));
       
       const pending = bookingsResult.filter(b => b.status === 'pending');
       setPendingBookings(pending.slice(0, 5));
+      
+      const pendingLabour = labourBookingsResult.filter(b => b.status === 'pending');
+      setPendingLabourBookings(pendingLabour.slice(0, 5));
       
       // Calculate stats
       const totalEarnings = bookingsResult
@@ -75,17 +151,6 @@ export default function ProviderDashboard() {
       console.error('Failed to load dashboard data:', err);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'success';
-      case 'pending': return 'warning';
-      case 'in_progress': return 'default';
-      case 'completed': return 'success';
-      case 'cancelled': return 'destructive';
-      default: return 'secondary';
     }
   };
 
@@ -188,7 +253,7 @@ export default function ProviderDashboard() {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                Pending Requests ({pendingBookings.length})
+                Equipment Requests ({pendingBookings.length})
               </h2>
               <Link href="/provider/bookings" className="text-sm text-green-600 hover:underline flex items-center">
                 View All <ChevronRight className="h-4 w-4" />
@@ -199,7 +264,7 @@ export default function ProviderDashboard() {
               <Card>
                 <CardContent className="p-6 text-center">
                   <Clock className="h-12 w-12 mx-auto text-gray-300 mb-2" />
-                  <p className="text-gray-600">No pending booking requests</p>
+                  <p className="text-gray-600">No pending equipment requests</p>
                 </CardContent>
               </Card>
             ) : (
@@ -230,6 +295,63 @@ export default function ProviderDashboard() {
                             <Badge variant="warning">Pending</Badge>
                           </div>
                           <Link href={`/provider/bookings/${booking.id}`}>
+                            <Button size="sm">Review</Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pending Labour Bookings */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Labour Requests ({pendingLabourBookings.length})
+              </h2>
+              <Link href="/provider/labour" className="text-sm text-green-600 hover:underline flex items-center">
+                View All <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+            
+            {pendingLabourBookings.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Clock className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+                  <p className="text-gray-600">No pending labour requests</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {pendingLabourBookings.map((booking) => (
+                  <Card key={booking.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                            <Users className="h-6 w-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {booking.employer?.full_name || 'Employer'}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {booking.total_days} days
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-right">
+                            <p className="font-bold text-green-600">{formatCurrency(booking.total_amount)}</p>
+                            <Badge variant="warning">Pending</Badge>
+                          </div>
+                          <Link href={`/provider/labour`}>
                             <Button size="sm">Review</Button>
                           </Link>
                         </div>
@@ -332,7 +454,17 @@ export default function ProviderDashboard() {
                   <div className="p-2 rounded-lg bg-blue-100">
                     <Calendar className="h-5 w-5 text-blue-600" />
                   </div>
-                  <span className="font-medium">All Bookings</span>
+                  <span className="font-medium">Equipment Bookings</span>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/provider/labour">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-100">
+                    <Users className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <span className="font-medium">Labour Bookings</span>
                 </CardContent>
               </Card>
             </Link>
@@ -343,16 +475,6 @@ export default function ProviderDashboard() {
                     <TrendingUp className="h-5 w-5 text-purple-600" />
                   </div>
                   <span className="font-medium">Earnings</span>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/provider/reviews">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-yellow-100">
-                    <Star className="h-5 w-5 text-yellow-600" />
-                  </div>
-                  <span className="font-medium">Reviews</span>
                 </CardContent>
               </Card>
             </Link>

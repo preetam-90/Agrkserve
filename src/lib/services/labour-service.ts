@@ -8,6 +8,8 @@ import type {
   UserProfile 
 } from '@/lib/types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
+import { notificationService } from './notification-service';
+import { auditLogService } from './audit-log-service';
 
 const supabase = createClient();
 
@@ -32,16 +34,17 @@ async function fetchUserProfiles(userIds: string[]): Promise<Map<string, UserPro
 }
 
 // Helper to attach user profiles to labour profiles
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function attachUserToLabourProfiles(profiles: any[]): Promise<LabourProfile[]> {
   if (profiles.length === 0) return [];
   
-  const userIds = profiles.map(p => p.user_id).filter(Boolean);
+  const userIds = profiles.map(p => p.user_id).filter(Boolean) as string[];
   const profileMap = await fetchUserProfiles(userIds);
   
   return profiles.map(profile => ({
     ...profile,
-    user: profileMap.get(profile.user_id) || undefined,
-  }));
+    user: profileMap.get(profile.user_id as string) || undefined,
+  })) as LabourProfile[];
 }
 
 export const labourService = {
@@ -131,10 +134,18 @@ export const labourService = {
     let query = supabase
       .from('labour_profiles')
       .select('*', { count: 'exact' })
-      .eq('availability', filters.availability || 'available');
+      .eq('is_active', true);
+
+    if (filters.availability) {
+      query = query.eq('availability', filters.availability);
+    }
 
     if (filters.skills && filters.skills.length > 0) {
       query = query.overlaps('skills', filters.skills);
+    }
+
+    if (filters.search) {
+      query = query.or(`bio.ilike.%${filters.search}%,location_name.ilike.%${filters.search}%`);
     }
 
     if (filters.minRate !== undefined) {
@@ -241,7 +252,8 @@ export const labourService = {
       return data;
     }
 
-    // Regular update
+    // Regular update - exclude latitude/longitude since they can't be directly updated
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { latitude, longitude, ...updateData } = profile;
     const { data, error } = await supabase
       .from('labour_profiles')
@@ -396,5 +408,130 @@ export const labourService = {
     
     // Attach user profiles
     return attachUserToLabourProfiles(data || []);
+  },
+
+  // Update labour booking status
+  async updateBookingStatus(id: string, status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled', userId?: string): Promise<LabourBooking> {
+    const { data, error } = await supabase
+      .from('labour_bookings')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // Create notification for employer
+    if (data.employer_id) {
+      const title = status === 'confirmed' ? 'Labour Booking Confirmed' : 'Labour Booking Updated';
+      const body = status === 'confirmed' 
+        ? 'Your labour booking has been confirmed by the labour provider.'
+        : `Your labour booking status has been updated to ${status}.`;
+      
+      await notificationService.create({
+        user_id: data.employer_id,
+        title,
+        body,
+        type: 'booking',
+        data: { booking_id: id, status },
+      });
+    }
+    
+    // Create audit log
+    if (userId) {
+      await auditLogService.create({
+        user_id: userId,
+        action: `labour_booking_${status}`,
+        entity_type: 'labour_booking',
+        entity_id: id,
+        details: {
+          previous_status: data.status,
+          new_status: status,
+          employer_id: data.employer_id,
+          labour_id: data.labour_id,
+        },
+      });
+    }
+    
+    // Fetch related data
+    const [labourProfile] = await attachUserToLabourProfiles([
+      await supabase.from('labour_profiles').select('*').eq('id', data.labour_id).single().then(r => r.data)
+    ].filter(Boolean));
+    
+    const employerProfiles = await fetchUserProfiles([data.employer_id]);
+    
+    return {
+      ...data,
+      labour: labourProfile,
+      employer: employerProfiles.get(data.employer_id),
+    };
+  },
+
+  // Cancel labour booking
+  async cancelBooking(id: string, reason?: string, userId?: string): Promise<void> {
+    const { data, error } = await supabase
+      .from('labour_bookings')
+      .update({
+        status: 'cancelled',
+        cancellation_reason: reason,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // Create notification for employer
+    if (data?.employer_id) {
+      await notificationService.create({
+        user_id: data.employer_id,
+        title: 'Labour Booking Cancelled',
+        body: `Your labour booking has been cancelled. ${reason ? `Reason: ${reason}` : ''}`,
+        type: 'booking',
+        data: { booking_id: id, status: 'cancelled', reason },
+      });
+    }
+    
+    // Create audit log
+    if (userId) {
+      await auditLogService.create({
+        user_id: userId,
+        action: 'labour_booking_cancelled',
+        entity_type: 'labour_booking',
+        entity_id: id,
+        details: {
+          previous_status: data.status,
+          new_status: 'cancelled',
+          cancellation_reason: reason,
+          employer_id: data.employer_id,
+          labour_id: data.labour_id,
+        },
+      });
+    }
+  },
+
+  // Get labour bookings for current user (labour perspective)
+  async getMyBookings(status?: ('pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')[]): Promise<LabourBooking[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    
+    const result = await this.getBookings(user.id, 'labour');
+    if (status) {
+      return result.data.filter(b => status.includes(b.status as any));
+    }
+    return result.data;
+  },
+
+  // Get employer bookings for current user (employer perspective)
+  async getMyEmployerBookings(status?: ('pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')[]): Promise<LabourBooking[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    
+    const result = await this.getBookings(user.id, 'employer');
+    if (status) {
+      return result.data.filter(b => status.includes(b.status as any));
+    }
+    return result.data;
   },
 };

@@ -39,3 +39,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Supabase local development
+.supabase/
+
+# Documentation files (not needed in production)
+BOOKING_ACCEPT_REJECT_FEATURE.md
+ENABLE_REALTIME_NOW.md
+REALTIME_FEATURES.md
+REALTIME_TROUBLESHOOTING.md
+SUPABASE_REPLICATION_GUIDE.md
+
+# Scripts directory (development utilities)
+scripts/
+
+# Test pages (development only)
+src/app/test-realtime/
+src/app/test-connection/
+
+# Realtime status component (development only)
+src/components/realtime-status.tsx

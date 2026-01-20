@@ -17,17 +17,11 @@ import {
   CreditCard,
   Headphones,
   Search,
-  Calendar,
-  Home,
   Wrench,
   Settings,
   Video,
   Gift,
-  ShoppingBag,
   Camera,
-  Tent,
-  Heart,
-  Briefcase,
   Box,
   Phone,
   Mail,
@@ -36,7 +30,7 @@ import {
 import { useEffect, useState } from 'react';
 import { equipmentService } from '@/lib/services';
 import { Equipment } from '@/lib/types';
-import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
+import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 
 const categoryIcons: Record<string, React.ElementType> = {
   tractor: Tractor,
@@ -53,45 +47,10 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 export default function HomePage() {
-  const [screenSize, setScreenSize] = useState({ width: 0, height: 0 });
-  const [breakpoint, setBreakpoint] = useState('detecting');
   const [featuredEquipment, setFeaturedEquipment] = useState<Equipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ totalEquipment: 0, totalUsers: 0 });
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    // Function to update screen size and detect breakpoint
-    const updateScreenInfo = () => {
-      if (typeof window !== 'undefined') {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        setScreenSize({ width, height });
-        
-        // Detect Tailwind breakpoints
-        let currentBreakpoint = 'xs';
-        if (width >= 1536) currentBreakpoint = '2xl';
-        else if (width >= 1280) currentBreakpoint = 'xl';
-        else if (width >= 1024) currentBreakpoint = 'lg';
-        else if (width >= 768) currentBreakpoint = 'md';
-        else if (width >= 640) currentBreakpoint = 'sm';
-        else currentBreakpoint = 'xs';
-        
-        setBreakpoint(currentBreakpoint);
-      }
-    };
-
-    // Initial update
-    updateScreenInfo();
-    
-    // Add resize listener
-    window.addEventListener('resize', updateScreenInfo);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', updateScreenInfo);
-    };
-  }, []);
 
   // Fetch real data
   useEffect(() => {
@@ -132,21 +91,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      {/* Responsive debug indicators - visible only in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 left-4 z-50 bg-black text-white p-2 rounded text-xs opacity-50">
-          <div>Screen: {screenSize.width}x{screenSize.height}</div>
-          <div>Breakpoint: {breakpoint}</div>
-          <div>Testing: Landing Page Responsiveness</div>
-        </div>
-      )}
-      
-      {/* Responsive Test Markers - visible only in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 z-50 bg-yellow-400 text-black p-2 rounded text-xs font-bold">
-          RESPONSIVE TEST MODE
-        </div>
-      )}
       
       <main className="flex-1">
         {/* Hero Section */}
@@ -562,7 +506,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-gray-800 font-medium">"Great service! The equipment was delivered on time and in excellent condition."</p>
+                      <p className="text-gray-800 font-medium">&ldquo;Great service! The equipment was delivered on time and in excellent condition.&rdquo;</p>
                       <p className="text-sm text-gray-500 mt-2">- Farmer from Punjab</p>
                     </div>
                   </div>
@@ -576,7 +520,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-gray-800 font-medium">"Easy to use platform. Found exactly what I needed for my farm."</p>
+                      <p className="text-gray-800 font-medium">&ldquo;Easy to use platform. Found exactly what I needed for my farm.&rdquo;</p>
                       <p className="text-sm text-gray-500 mt-2">- Farmer from Maharashtra</p>
                     </div>
                   </div>
@@ -681,7 +625,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                We're Here to Help
+                We&apos;re Here to Help
               </h2>
               <p className="text-gray-600 text-lg max-w-2xl mx-auto">
                 Our dedicated support team is available 24/7 to assist you

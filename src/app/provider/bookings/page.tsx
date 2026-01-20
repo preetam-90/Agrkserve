@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -10,8 +10,7 @@ import {
   Tractor,
   CheckCircle,
   XCircle,
-  Search,
-  User
+  Search
 } from 'lucide-react';
 import { Header, Footer, Sidebar } from '@/components/layout';
 import {
@@ -35,11 +34,13 @@ import {
 import { bookingService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, useAuthStore } from '@/lib/store';
+import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 
 export default function ProviderBookingsPage() {
   const { sidebarOpen } = useAppStore();
+  const { user } = useAuthStore();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pending' | 'confirmed' | 'completed' | 'all'>('pending');
@@ -50,73 +51,229 @@ export default function ProviderBookingsPage() {
 
   useEffect(() => {
     loadBookings();
+
+    // Set up real-time subscription
+    const supabase = createClient();
+    let channel: any = null;
+    
+    // Get current user's equipment IDs to filter bookings
+    const setupRealtimeSubscription = async () => {
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) {
+          console.log('No user found for real-time subscription');
+          return;
+        }
+
+        console.log('Setting up real-time subscription for user:', currentUser.id);
+
+        // Fetch user's equipment IDs
+        const { data: equipmentData, error: equipError } = await supabase
+          .from('equipment')
+          .select('id')
+          .eq('owner_id', currentUser.id);
+        
+        if (equipError) {
+          console.error('Error fetching equipment:', equipError);
+          return;
+        }
+        
+        const equipmentIds = equipmentData?.map(e => e.id) || [];
+        console.log('Monitoring equipment IDs:', equipmentIds);
+        
+        if (equipmentIds.length === 0) {
+          console.log('No equipment found, skipping real-time subscription');
+          return;
+        }
+
+        // Subscribe to bookings table changes (listen to ALL bookings, filter client-side)
+        channel = supabase
+          .channel('provider-bookings-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'bookings'
+            },
+            (payload) => {
+              console.log('Real-time booking event received:', payload);
+              
+              // Filter client-side to only process bookings for our equipment
+              const bookingData = payload.new as any;
+              if (!bookingData || !equipmentIds.includes(bookingData.equipment_id)) {
+                console.log('Booking not for our equipment, ignoring');
+                return;
+              }
+              
+              console.log('Processing booking update for our equipment');
+              
+              if (payload.eventType === 'INSERT') {
+                // Show notification for new booking
+                toast.success('New booking request received!', {
+                  duration: 4000,
+                  icon: '🔔'
+                });
+                
+                // Fetch the new booking with full details, then add it
+                bookingService.getById(bookingData.id).then(newBooking => {
+                  if (newBooking) {
+                    setBookings(current => {
+                      // Check if it already exists
+                      if (current.some(b => b.id === newBooking.id)) {
+                        return current;
+                      }
+                      return [newBooking, ...current];
+                    });
+                  }
+                }).catch(err => {
+                  console.error('Failed to fetch new booking details:', err);
+                });
+              } else if (payload.eventType === 'UPDATE') {
+                // Update existing booking in place
+                setBookings(prev => prev.map(booking => 
+                  booking.id === bookingData.id 
+                    ? { ...booking, status: bookingData.status, updated_at: bookingData.updated_at }
+                    : booking
+                ));
+              } else if (payload.eventType === 'DELETE') {
+                // Remove deleted booking
+                setBookings(prev => prev.filter(booking => booking.id !== payload.old.id));
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('Subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ Successfully subscribed to booking changes');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('❌ Channel error in subscription');
+            } else if (status === 'TIMED_OUT') {
+              console.error('❌ Subscription timed out');
+            }
+          });
+      } catch (error) {
+        console.error('Failed to setup real-time subscription:', error);
+      }
+    };
+
+    setupRealtimeSubscription();
+    
+    return () => {
+      if (channel) {
+        console.log('Cleaning up real-time subscription');
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const loadBookings = async () => {
+    console.log('loadBookings called - setting isLoading true');
     setIsLoading(true);
     try {
       const data = await bookingService.getProviderBookings();
+      console.log('loadBookings received:', data.length, 'bookings');
       setBookings(data);
     } catch (err) {
       console.error('Failed to load bookings:', err);
     } finally {
+      console.log('loadBookings complete - setting isLoading false');
       setIsLoading(false);
     }
   };
 
   const handleConfirmBooking = async () => {
-    if (!selectedBooking) return;
+    if (!selectedBooking || !user) return;
     
+    const bookingId = selectedBooking.id;
     setIsProcessing(true);
+    
+    // Optimistic update - update UI immediately
+    setBookings(prev => prev.map(b => 
+      b.id === bookingId ? { ...b, status: 'confirmed' as BookingStatus } : b
+    ));
+    setSelectedBooking(null);
+    
     try {
-      await bookingService.updateBookingStatus(selectedBooking.id, 'confirmed');
+      await bookingService.updateBookingStatus(bookingId, 'confirmed', user.id);
       toast.success('Booking confirmed!');
-      setSelectedBooking(null);
-      loadBookings();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to confirm booking:', err);
-      toast.error('Failed to confirm booking');
+      const errorMessage = err?.message || 'Failed to confirm booking';
+      toast.error(errorMessage);
+      // Revert optimistic update on error
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: 'pending' as BookingStatus } : b
+      ));
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleRejectBooking = async () => {
-    if (!selectedBooking) return;
+    if (!selectedBooking || !user) return;
     
+    const bookingId = selectedBooking.id;
+    const previousStatus = selectedBooking.status;
     setIsProcessing(true);
+    
+    // Optimistic update - update UI immediately
+    setBookings(prev => prev.map(b => 
+      b.id === bookingId ? { ...b, status: 'cancelled' as BookingStatus } : b
+    ));
+    setSelectedBooking(null);
+    
     try {
-      await bookingService.cancelBooking(selectedBooking.id, 'Rejected by provider');
+      await bookingService.cancelBooking(bookingId, 'Rejected by provider', user.id);
       toast.success('Booking rejected');
-      setSelectedBooking(null);
-      loadBookings();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to reject booking:', err);
-      toast.error('Failed to reject booking');
+      const errorMessage = err?.message || 'Failed to reject booking';
+      toast.error(errorMessage);
+      // Revert optimistic update on error
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: previousStatus } : b
+      ));
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleStartBooking = async (bookingId: string) => {
+    // Optimistic update - update UI immediately
+    setBookings(prev => prev.map(b => 
+      b.id === bookingId ? { ...b, status: 'in_progress' as BookingStatus } : b
+    ));
+    
     try {
       await bookingService.updateBookingStatus(bookingId, 'in_progress');
       toast.success('Booking started');
-      loadBookings();
     } catch (err) {
       console.error('Failed to start booking:', err);
       toast.error('Failed to start booking');
+      // Revert optimistic update on error
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: 'confirmed' as BookingStatus } : b
+      ));
     }
   };
 
   const handleCompleteBooking = async (bookingId: string) => {
+    // Optimistic update - update UI immediately
+    setBookings(prev => prev.map(b => 
+      b.id === bookingId ? { ...b, status: 'completed' as BookingStatus } : b
+    ));
+    
     try {
       await bookingService.updateBookingStatus(bookingId, 'completed');
       toast.success('Booking completed');
-      loadBookings();
     } catch (err) {
       console.error('Failed to complete booking:', err);
       toast.error('Failed to complete booking');
+      // Revert optimistic update on error
+      setBookings(prev => prev.map(b => 
+        b.id === bookingId ? { ...b, status: 'in_progress' as BookingStatus } : b
+      ));
     }
   };
 
@@ -138,6 +295,8 @@ export default function ProviderBookingsPage() {
   const filterBookings = (tab: string) => {
     let filtered = bookings;
     
+    console.log('filterBookings called:', { tab, totalBookings: bookings.length, isLoading });
+    
     if (tab === 'pending') {
       filtered = bookings.filter(b => b.status === 'pending');
     } else if (tab === 'confirmed') {
@@ -157,6 +316,7 @@ export default function ProviderBookingsPage() {
       });
     }
     
+    console.log('filterBookings result:', { filteredCount: filtered.length });
     return filtered;
   };
 

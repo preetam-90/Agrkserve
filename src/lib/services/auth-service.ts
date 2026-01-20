@@ -1,6 +1,11 @@
 import { createClient } from '@/lib/supabase/client';
 import type { UserProfile, UserRole } from '@/lib/types';
 
+interface PostgresError {
+  code?: string;
+  message?: string;
+}
+
 const supabase = createClient();
 
 export const authService = {
@@ -95,9 +100,10 @@ export const authService = {
 
       if (error && error.code !== 'PGRST116' && error.code !== '42P01') throw error;
       return data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const pgError = error as PostgresError;
       // Return null if table doesn't exist or other non-critical errors
-      if (error.code === '42P01') {
+      if (pgError.code === '42P01') {
         console.warn('user_profiles table does not exist yet');
         return null;
       }
@@ -126,8 +132,9 @@ export const authService = {
         throw error;
       }
       return data;
-    } catch (error: any) {
-      if (error.code === '42P01') {
+    } catch (error: unknown) {
+      const pgError = error as PostgresError;
+      if (pgError.code === '42P01') {
         console.warn('user_profiles table does not exist yet');
         return null;
       }
@@ -178,8 +185,9 @@ export const authService = {
       
       const roles = data?.map((r) => r.role as UserRole) || [];
       return roles.length > 0 ? roles : ['renter'];
-    } catch (error: any) {
-      if (error.code === '42P01') {
+    } catch (error: unknown) {
+      const pgError = error as PostgresError;
+      if (pgError.code === '42P01') {
         console.warn('user_roles table does not exist yet, returning default role');
         return ['renter'];
       }
@@ -202,8 +210,9 @@ export const authService = {
       if (error?.code === '42P01') {
         console.warn('user_roles table does not exist yet');
       }
-    } catch (error: any) {
-      if (error.code === '42P01') {
+    } catch (error: unknown) {
+      const pgError = error as PostgresError;
+      if (pgError.code === '42P01') {
         console.warn('user_roles table does not exist yet');
         return;
       }
@@ -224,8 +233,9 @@ export const authService = {
       if (error?.code === '42P01') {
         console.warn('user_roles table does not exist yet');
       }
-    } catch (error: any) {
-      if (error.code === '42P01') {
+    } catch (error: unknown) {
+      const pgError = error as PostgresError;
+      if (pgError.code === '42P01') {
         console.warn('user_roles table does not exist yet');
         return;
       }
@@ -263,8 +273,9 @@ export const authService = {
         throw error;
       }
       return data;
-    } catch (error: any) {
-      if (error.code === '42P01') {
+    } catch (error: unknown) {
+      const pgError = error as PostgresError;
+      if (pgError.code === '42P01') {
         console.warn('user_profiles table does not exist yet');
         return null;
       }

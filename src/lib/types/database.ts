@@ -139,6 +139,8 @@ export interface LabourProfile {
   experience_years: number;
   daily_rate: number;
   hourly_rate: number | null;
+  city: string;
+  address: string | null;
   location_name: string | null;
   latitude: number | null;
   longitude: number | null;

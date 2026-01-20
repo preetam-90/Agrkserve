@@ -7,13 +7,10 @@ import Image from 'next/image';
 import { 
   ArrowLeft,
   Calendar, 
-  Clock, 
   MapPin, 
   AlertCircle,
-  CheckCircle,
   Tractor,
-  CreditCard,
-  IndianRupee
+  CreditCard
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { 
@@ -52,9 +49,12 @@ export default function BookEquipmentPage() {
 
   const [pricing, setPricing] = useState({
     days: 0,
-    baseAmount: 0,
-    platformFee: 0,
-    total: 0,
+    rentalAmount: 0,        // Base rental amount (goes to owner)
+    platformFee: 0,         // Platform fee charged to renter (5% of rental)
+    gstOnPlatformFee: 0,    // 18% GST on platform fee only
+    ownerCommission: 0,     // 3% commission deducted from owner payout
+    totalPayable: 0,        // Total amount renter pays
+    ownerPayout: 0,         // Amount owner receives after commission
   });
 
   useEffect(() => {
@@ -63,10 +63,12 @@ export default function BookEquipmentPage() {
       return;
     }
     loadEquipment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equipmentId, user]);
 
   useEffect(() => {
     calculatePricing();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.startDate, formData.endDate, equipment]);
 
   const loadEquipment = async () => {
@@ -88,7 +90,15 @@ export default function BookEquipmentPage() {
 
   const calculatePricing = () => {
     if (!formData.startDate || !formData.endDate || !equipment) {
-      setPricing({ days: 0, baseAmount: 0, platformFee: 0, total: 0 });
+      setPricing({ 
+        days: 0, 
+        rentalAmount: 0, 
+        platformFee: 0, 
+        gstOnPlatformFee: 0,
+        ownerCommission: 0,
+        totalPayable: 0,
+        ownerPayout: 0,
+      });
       return;
     }
 
@@ -97,11 +107,33 @@ export default function BookEquipmentPage() {
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const days = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
     
-    const baseAmount = days * equipment.price_per_day;
-    const platformFee = Math.round(baseAmount * 0.05); // 5% platform fee
-    const total = baseAmount + platformFee;
+    // Base rental amount (what goes to owner before commission)
+    const rentalAmount = days * equipment.price_per_day;
+    
+    // Platform fee charged to renter (5% of rental amount)
+    const platformFee = Math.round(rentalAmount * 0.05);
+    
+    // GST on platform fee only (18% of platform fee as per Indian tax law)
+    const gstOnPlatformFee = Math.round(platformFee * 0.18);
+    
+    // Total amount renter pays
+    const totalPayable = rentalAmount + platformFee + gstOnPlatformFee;
+    
+    // Owner commission (3% of rental amount, deducted from owner's payout)
+    const ownerCommission = Math.round(rentalAmount * 0.03);
+    
+    // Amount owner receives after commission
+    const ownerPayout = rentalAmount - ownerCommission;
 
-    setPricing({ days, baseAmount, platformFee, total });
+    setPricing({ 
+      days, 
+      rentalAmount, 
+      platformFee, 
+      gstOnPlatformFee,
+      ownerCommission,
+      totalPayable,
+      ownerPayout,
+    });
   };
 
   const handleInputChange = (
@@ -141,8 +173,15 @@ export default function BookEquipmentPage() {
     if (!validateForm() || !equipment) return;
     
     setIsSubmitting(true);
+    
+    // Show processing toast
+    const processingToast = toast.loading('Processing payment...');
+    
     try {
-      // Create booking
+      // Simulate payment processing delay (1.5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Create booking (pretend payment is already successful)
       const booking = await bookingService.createBooking({
         equipment_id: equipment.id,
         start_date: formData.startDate,
@@ -151,14 +190,44 @@ export default function BookEquipmentPage() {
         end_time: formData.endTime,
         delivery_address: formData.deliveryAddress,
         notes: formData.notes || undefined,
-        total_amount: pricing.total,
+        total_amount: pricing.totalPayable,
         platform_fee: pricing.platformFee,
       });
 
-      // Create payment order
-      const paymentOrder = await paymentService.createOrder(booking.id, pricing.total);
+      // Dismiss processing toast and show success
+      toast.dismiss(processingToast);
+      toast.success('Payment successful! Booking created.');
+      
+      // Redirect to booking details or bookings list
+      router.push(`/renter/bookings?success=true`);
+      
+    } catch (err) {
+      toast.dismiss(processingToast);
+      console.error('Failed to create booking:', err);
+      toast.error('Failed to create booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
 
-      // Initialize Razorpay
+    /* 
+    // Razorpay Integration (Disabled - Enable when API keys are available)
+    // To enable: uncomment this code block and add NEXT_PUBLIC_RAZORPAY_KEY_ID to .env.local
+    
+    try {
+      const booking = await bookingService.createBooking({
+        equipment_id: equipment.id,
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+        delivery_address: formData.deliveryAddress,
+        notes: formData.notes || undefined,
+        total_amount: pricing.totalPayable,
+        platform_fee: pricing.platformFee,
+      });
+
+      const paymentOrder = await paymentService.createOrder(booking.id, pricing.totalPayable);
+
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: paymentOrder.amount,
@@ -166,21 +235,15 @@ export default function BookEquipmentPage() {
         name: 'AgriServe',
         description: `Booking for ${equipment.name}`,
         order_id: paymentOrder.order_id,
-        handler: async function (response: {
-          razorpay_payment_id: string;
-          razorpay_order_id: string;
-          razorpay_signature: string;
-        }) {
+        handler: async function (response: any) {
           try {
-            // Verify payment
             await paymentService.verifyPayment({
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
             });
-            
             toast.success('Booking confirmed!');
-            router.push(`/renter/bookings/${booking.id}?success=true`);
+            router.push(`/renter/bookings?success=true`);
           } catch (err) {
             console.error('Payment verification failed:', err);
             toast.error('Payment verification failed');
@@ -195,14 +258,13 @@ export default function BookEquipmentPage() {
         },
       };
 
-      // Load Razorpay script if not loaded
-      const windowWithRazorpay = window as unknown as { Razorpay?: new (options: object) => { open: () => void } };
+      const windowWithRazorpay = window as any;
       if (!windowWithRazorpay.Razorpay) {
         const script = document.createElement('script');
         script.src = 'https://checkout.razorpay.com/v1/checkout.js';
         script.async = true;
         script.onload = () => {
-          const razorpay = new windowWithRazorpay.Razorpay!(options);
+          const razorpay = new windowWithRazorpay.Razorpay(options);
           razorpay.open();
         };
         document.body.appendChild(script);
@@ -216,6 +278,7 @@ export default function BookEquipmentPage() {
     } finally {
       setIsSubmitting(false);
     }
+    */
   };
 
   if (isLoading) {
@@ -362,16 +425,6 @@ export default function BookEquipmentPage() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Button 
-                type="submit" 
-                className="w-full" 
-                size="lg"
-                loading={isSubmitting}
-              >
-                <CreditCard className="h-5 w-5 mr-2" />
-                Proceed to Payment
-              </Button>
             </form>
           </div>
 
@@ -407,18 +460,25 @@ export default function BookEquipmentPage() {
                 </div>
 
                 {/* Pricing Breakdown */}
-                <div className="py-4 space-y-2">
+                <div className="py-4 space-y-3">
                   {pricing.days > 0 ? (
                     <>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
                           {formatCurrency(equipment.price_per_day)} × {pricing.days} {pricing.days === 1 ? 'day' : 'days'}
                         </span>
-                        <span>{formatCurrency(pricing.baseAmount)}</span>
+                        <span className="font-medium">{formatCurrency(pricing.rentalAmount)}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Platform fee (5%)</span>
                         <span>{formatCurrency(pricing.platformFee)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">GST (18% on platform fee)</span>
+                        <span>{formatCurrency(pricing.gstOnPlatformFee)}</span>
+                      </div>
+                      <div className="pt-2 border-t text-xs text-gray-500">
+                        <p>💡 Owner receives {formatCurrency(pricing.ownerPayout)} after 3% commission</p>
                       </div>
                     </>
                   ) : (
@@ -434,7 +494,7 @@ export default function BookEquipmentPage() {
                     <div className="flex justify-between items-center">
                       <span className="font-semibold">Total</span>
                       <span className="text-xl font-bold text-green-600">
-                        {formatCurrency(pricing.total)}
+                        {formatCurrency(pricing.totalPayable)}
                       </span>
                     </div>
                   </div>
@@ -445,10 +505,22 @@ export default function BookEquipmentPage() {
                   <div className="flex gap-2 text-sm text-blue-800">
                     <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                     <p>
-                      Payment is held securely until the booking is confirmed by the provider.
+                      Payment will be held securely in escrow until delivery is confirmed.
                     </p>
                   </div>
                 </div>
+                
+                {/* Proceed to Payment Button */}
+                <Button 
+                  type="submit" 
+                  className="w-full mt-4" 
+                  size="lg"
+                  loading={isSubmitting}
+                  onClick={handleSubmit}
+                >
+                  <CreditCard className="h-5 w-5 mr-2" />
+                  Proceed to Payment
+                </Button>
               </CardContent>
             </Card>
           </div>

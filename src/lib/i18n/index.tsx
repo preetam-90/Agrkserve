@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import en from './locales/en.json';
 import hi from './locales/hi.json';
 
@@ -38,16 +38,18 @@ function interpolate(template: string, params: Record<string, string | number>):
   });
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en');
-
-  useEffect(() => {
-    // Check localStorage for saved locale
+function getInitialLocale(): Locale {
+  if (typeof window !== 'undefined') {
     const savedLocale = localStorage.getItem('locale') as Locale;
     if (savedLocale && (savedLocale === 'en' || savedLocale === 'hi')) {
-      setLocaleState(savedLocale);
+      return savedLocale;
     }
-  }, []);
+  }
+  return 'en';
+}
+
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);

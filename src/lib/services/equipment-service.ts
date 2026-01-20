@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import type { 
   Equipment, 
-  EquipmentFilters,
   PaginatedResponse,
   EquipmentCategory 
 } from '@/lib/types';

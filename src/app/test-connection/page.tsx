@@ -15,7 +15,7 @@ export default function TestConnectionPage() {
         const supabase = createClient();
         
         // Try to get the current session
-        const { data, error } = await supabase.auth.getSession();
+        const { error } = await supabase.auth.getSession();
         
         if (error) {
           setStatus('error');
@@ -23,9 +23,10 @@ export default function TestConnectionPage() {
         } else {
           setStatus('connected');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as Error;
         setStatus('error');
-        setError(err.message || 'Unknown error occurred');
+        setError(error.message || 'Unknown error occurred');
       }
     };
 

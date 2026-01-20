@@ -201,7 +201,7 @@ export default function ProviderEquipmentPage() {
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
-                                <Link href={`/provider/equipment/${item.id}/edit`}>
+                                <Link href={`/provider/equipment/${item.id}`}>
                                   <Edit className="h-4 w-4 mr-2" />
                                   Edit
                                 </Link>
@@ -245,7 +245,7 @@ export default function ProviderEquipmentPage() {
                             <span>{item.total_bookings || 0} bookings</span>
                           </div>
                           
-                          <Link href={`/provider/equipment/${item.id}/edit`}>
+                          <Link href={`/provider/equipment/${item.id}`}>
                             <Button size="sm" variant="outline">
                               <Edit className="h-3 w-3 mr-1" />
                               Edit
