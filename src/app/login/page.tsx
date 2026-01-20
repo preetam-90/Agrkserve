@@ -44,7 +44,25 @@ function LoginPageContent() {
       return;
     }
 
-    if (password.length < 6) {
+    // Enhanced password validation for signup
+    if (mode === 'signup') {
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters long');
+        return;
+      }
+      if (!/[A-Z]/.test(password)) {
+        setError('Password must contain at least one uppercase letter');
+        return;
+      }
+      if (!/[a-z]/.test(password)) {
+        setError('Password must contain at least one lowercase letter');
+        return;
+      }
+      if (!/[0-9]/.test(password)) {
+        setError('Password must contain at least one number');
+        return;
+      }
+    } else if (password.length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
@@ -56,15 +74,47 @@ function LoginPageContent() {
       if (mode === 'signin') {
         await authService.signInWithEmail(email, password);
         toast.success('Login successful!');
+        
+        // Check if user has phone number
+        const user = await authService.getUser();
+        const profile = user ? await authService.getProfile(user.id) : null;
+        
+        if (user && !profile?.phone) {
+          router.push('/phone-setup');
+        } else if (!profile?.is_profile_complete) {
+          router.push('/onboarding');
+        } else {
+          router.push(redirect);
+        }
       } else {
-        await authService.signUpWithEmail(email, password, name);
-        toast.success('Account created! Please check your email to verify.');
+        const signupResult = await authService.signUpWithEmail(email, password, name);
+        
+        // Check if email confirmation is required
+        if (signupResult.user && !signupResult.user.email_confirmed_at) {
+          toast.success('Account created! Please check your email to confirm your account before logging in.', { duration: 6000 });
+          setMode('signin');
+          setPassword('');
+          setError('Please confirm your email before logging in. Check your inbox for the confirmation link.');
+        } else {
+          toast.success('Account created successfully!');
+          // After signup, automatically go to phone setup
+          router.push('/phone-setup');
+        }
       }
-      router.push(redirect);
     } catch (err: unknown) {
       const error = err as Error;
       console.error('Authentication error:', err);
-      setError(error.message || 'Authentication failed. Please try again.');
+      
+      // Provide better error messages
+      let errorMessage = error.message || 'Authentication failed. Please try again.';
+      
+      if (errorMessage.includes('Email not confirmed')) {
+        errorMessage = 'Please confirm your email before logging in. Check your inbox for the confirmation link.';
+      } else if (errorMessage.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. If you just signed up, please confirm your email first.';
+      }
+      
+      setError(errorMessage);
       toast.error(mode === 'signin' ? 'Login failed' : 'Signup failed');
     } finally {
       setIsLoading(false);
@@ -194,7 +244,7 @@ function LoginPageContent() {
                       setPassword(e.target.value);
                       setError('');
                     }}
-                    placeholder="Enter your password"
+                    placeholder={mode === 'signup' ? 'Create a strong password' : 'Enter your password'}
                     disabled={isLoading}
                   />
                   <button
@@ -209,6 +259,11 @@ function LoginPageContent() {
                     )}
                   </button>
                 </div>
+                {mode === 'signup' && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Password must be 8+ characters with uppercase, lowercase, and number
+                  </p>
+                )}
                 {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
               </div>
 

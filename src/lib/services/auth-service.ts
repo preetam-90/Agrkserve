@@ -22,10 +22,28 @@ export const authService = {
 
   // Sign up with email and password
   async signUpWithEmail(email: string, password: string, name?: string) {
+    // Validate password strength
+    if (password.length < 8) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+      throw new Error('Password must contain at least one uppercase letter');
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      throw new Error('Password must contain at least one lowercase letter');
+    }
+    
+    if (!/[0-9]/.test(password)) {
+      throw new Error('Password must contain at least one number');
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           full_name: name,
         },
@@ -254,6 +272,11 @@ export const authService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
+    // Validate phone number if provided
+    if (profile.phone && !/^[6-9]\d{9}$/.test(profile.phone)) {
+      throw new Error('Invalid phone number. Please enter a valid 10-digit number');
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -280,6 +303,16 @@ export const authService = {
         return null;
       }
       throw error;
+    }
+  },
+
+  // Update last login time
+  async updateLastLogin(userId: string): Promise<void> {
+    try {
+      await supabase.rpc('update_last_login', { user_id: userId });
+    } catch (error) {
+      console.error('Failed to update last login:', error);
+      // Don't throw - this is not critical
     }
   },
 

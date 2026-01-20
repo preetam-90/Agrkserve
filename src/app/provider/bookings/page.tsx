@@ -86,6 +86,10 @@ export default function ProviderBookingsPage() {
           return;
         }
 
+        // Clean up any existing channel first
+        const existingChannel = supabase.channel('provider-bookings-changes');
+        await supabase.removeChannel(existingChannel);
+
         // Subscribe to bookings table changes (listen to ALL bookings, filter client-side)
         channel = supabase
           .channel('provider-bookings-changes')
@@ -148,8 +152,12 @@ export default function ProviderBookingsPage() {
               console.log('✅ Successfully subscribed to booking changes');
             } else if (status === 'CHANNEL_ERROR') {
               console.error('❌ Channel error in subscription');
+              // Channel errors often mean realtime is not enabled in Supabase
+              console.log('💡 Please enable Realtime in Supabase Dashboard:');
+              console.log('   Database → Replication → Enable realtime for "bookings" table');
             } else if (status === 'TIMED_OUT') {
               console.error('❌ Subscription timed out');
+              console.log('💡 Check your internet connection and Supabase project status');
             }
           });
       } catch (error) {

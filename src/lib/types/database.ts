@@ -40,6 +40,7 @@ export interface UserProfile {
   is_profile_complete: boolean;
   preferred_language: 'en' | 'hi';
   is_verified: boolean;
+  last_login: string | null;
   created_at: string;
   updated_at: string;
 }

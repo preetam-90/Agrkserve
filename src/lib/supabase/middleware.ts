@@ -37,12 +37,43 @@ export async function updateSession(request: NextRequest) {
   // Define protected routes
   const protectedRoutes = ['/dashboard', '/provider', '/renter', '/admin', '/profile', '/settings', '/bookings', '/equipment/new', '/messages'];
   const authRoutes = ['/login', '/verify'];
+  const setupRoutes = ['/phone-setup', '/onboarding'];
   
   const pathname = request.nextUrl.pathname;
 
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  const isSetupRoute = setupRoutes.some(route => pathname.startsWith(route));
+
+  // For authenticated users, check if they need to complete phone setup
+  if (user && !isSetupRoute && !isAuthRoute) {
+    // Check if user has phone number
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('phone, is_profile_complete')
+      .eq('id', user.id)
+      .single();
+
+    // Redirect to phone setup if no phone number
+    if (!profile?.phone && pathname !== '/phone-setup') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/phone-setup';
+      return NextResponse.redirect(url);
+    }
+
+    // Redirect to onboarding if profile is not complete (but has phone)
+    if (profile?.phone && !profile?.is_profile_complete && pathname !== '/onboarding' && !isProtectedRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/onboarding';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Allow setup routes for authenticated users
+  if (isSetupRoute && user) {
+    return supabaseResponse;
+  }
 
   // Redirect unauthenticated users from protected routes
   if (isProtectedRoute && !user) {

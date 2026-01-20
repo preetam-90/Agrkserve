@@ -23,6 +23,7 @@ interface AuthActions {
   initialize: () => Promise<void>;
   fetchProfile: () => Promise<void>;
   fetchRoles: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   switchRole: (role: UserRole) => void;
   signOut: () => Promise<void>;
   reset: () => void;
@@ -99,6 +100,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 is_profile_complete: false,
                 preferred_language: 'en',
                 is_verified: false,
+                last_login: null,
                 created_at: user.created_at,
                 updated_at: new Date().toISOString(),
               };
@@ -165,6 +167,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         if (roles.includes(role)) {
           set({ activeRole: role });
         }
+      },
+
+      refreshProfile: async () => {
+        await get().fetchProfile();
+        await get().fetchRoles();
       },
 
       signOut: async () => {
