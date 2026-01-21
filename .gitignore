@@ -68,9 +68,6 @@ DATABASE_SETUP.md
 # Design files (not needed in production)
 design/
 
-# Scripts directory (development utilities)
-scripts/
-
 # Test pages (development only)
 src/app/test-realtime/
 src/app/test-connection/
