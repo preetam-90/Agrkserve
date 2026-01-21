@@ -1,0 +1,327 @@
+import { create } from 'zustand';
+import { dmService } from '@/lib/services';
+import type { DirectMessage, DMConversation } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
+
+interface MessagesState {
+  // Conversations list (inbox)
+  conversations: DMConversation[];
+  conversationsLoading: boolean;
+  
+  // Active conversation
+  activeConversation: DMConversation | null;
+  activeConversationId: string | null;
+  
+  // Messages for active conversation
+  messages: DirectMessage[];
+  messagesLoading: boolean;
+  hasMoreMessages: boolean;
+  
+  // Unread count
+  unreadCount: number;
+  
+  // Realtime subscription channels
+  conversationsChannel: ReturnType<ReturnType<typeof createClient>['channel']> | null;
+  messagesChannel: ReturnType<ReturnType<typeof createClient>['channel']> | null;
+  readStatusChannel: ReturnType<ReturnType<typeof createClient>['channel']> | null;
+}
+
+interface MessagesActions {
+  // Conversations
+  fetchConversations: () => Promise<void>;
+  setActiveConversation: (conversationId: string | null) => Promise<void>;
+  startConversation: (otherUserId: string) => Promise<string>;
+  
+  // Messages
+  fetchMessages: (conversationId: string, loadMore?: boolean) => Promise<void>;
+  sendMessage: (content: string) => Promise<void>;
+  markAsRead: () => Promise<void>;
+  addMessage: (message: DirectMessage) => void;
+  updateMessageReadStatus: (messageId: string, isRead: boolean) => void;
+  
+  // Unread count
+  fetchUnreadCount: () => Promise<void>;
+  
+  // Realtime
+  subscribeToConversations: (userId: string) => void;
+  subscribeToActiveConversation: () => void;
+  unsubscribeAll: () => void;
+  
+  // Reset
+  reset: () => void;
+}
+
+const initialState: MessagesState = {
+  conversations: [],
+  conversationsLoading: false,
+  activeConversation: null,
+  activeConversationId: null,
+  messages: [],
+  messagesLoading: false,
+  hasMoreMessages: true,
+  unreadCount: 0,
+  conversationsChannel: null,
+  messagesChannel: null,
+  readStatusChannel: null,
+};
+
+export const useMessagesStore = create<MessagesState & MessagesActions>((set, get) => ({
+  ...initialState,
+
+  fetchConversations: async () => {
+    set({ conversationsLoading: true });
+    try {
+      const conversations = await dmService.getConversations();
+      set({ conversations, conversationsLoading: false });
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+      set({ conversationsLoading: false });
+    }
+  },
+
+  setActiveConversation: async (conversationId: string | null) => {
+    const { messagesChannel, readStatusChannel, unsubscribeAll } = get();
+    
+    // Cleanup previous subscriptions
+    if (messagesChannel) {
+      dmService.unsubscribe(messagesChannel);
+    }
+    if (readStatusChannel) {
+      dmService.unsubscribe(readStatusChannel);
+    }
+
+    if (!conversationId) {
+      set({ 
+        activeConversation: null, 
+        activeConversationId: null, 
+        messages: [], 
+        hasMoreMessages: true,
+        messagesChannel: null,
+        readStatusChannel: null,
+      });
+      return;
+    }
+
+    set({ activeConversationId: conversationId, messagesLoading: true });
+
+    try {
+      // Fetch conversation details
+      const conversation = await dmService.getConversation(conversationId);
+      set({ activeConversation: conversation });
+
+      // Fetch initial messages
+      await get().fetchMessages(conversationId);
+
+      // Mark messages as read
+      await get().markAsRead();
+
+      // Subscribe to new messages and read status
+      get().subscribeToActiveConversation();
+    } catch (error) {
+      console.error('Failed to set active conversation:', error);
+      set({ messagesLoading: false });
+    }
+  },
+
+  startConversation: async (otherUserId: string) => {
+    try {
+      const conversationId = await dmService.getOrCreateConversation(otherUserId);
+      
+      // Refresh conversations list
+      await get().fetchConversations();
+      
+      return conversationId;
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+      throw error;
+    }
+  },
+
+  fetchMessages: async (conversationId: string, loadMore = false) => {
+    const { messages } = get();
+    
+    set({ messagesLoading: true });
+    
+    try {
+      const beforeId = loadMore && messages.length > 0 ? messages[0].id : undefined;
+      const newMessages = await dmService.getMessages(conversationId, 50, beforeId);
+      
+      if (loadMore) {
+        // Prepend older messages
+        set({ 
+          messages: [...newMessages, ...messages],
+          hasMoreMessages: newMessages.length === 50,
+          messagesLoading: false,
+        });
+      } else {
+        // Replace messages
+        set({ 
+          messages: newMessages,
+          hasMoreMessages: newMessages.length === 50,
+          messagesLoading: false,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+      set({ messagesLoading: false });
+    }
+  },
+
+  sendMessage: async (content: string) => {
+    const { activeConversationId } = get();
+    
+    if (!activeConversationId || !content.trim()) return;
+
+    try {
+      const message = await dmService.sendMessage(activeConversationId, content);
+      
+      // Optimistically add the message if not already present
+      const { messages } = get();
+      if (!messages.find(m => m.id === message.id)) {
+        set({ messages: [...messages, message] });
+      }
+      
+      // Refresh conversations to update last message
+      get().fetchConversations();
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      throw error;
+    }
+  },
+
+  markAsRead: async () => {
+    const { activeConversationId } = get();
+    
+    if (!activeConversationId) return;
+
+    try {
+      await dmService.markAsRead(activeConversationId);
+      
+      // Update local state
+      set(state => ({
+        messages: state.messages.map(m => ({
+          ...m,
+          is_read: true,
+          read_at: m.read_at || new Date().toISOString(),
+        })),
+        conversations: state.conversations.map(c => 
+          c.id === activeConversationId 
+            ? { ...c, unread_count: 0 }
+            : c
+        ),
+      }));
+      
+      // Refresh unread count
+      get().fetchUnreadCount();
+    } catch (error) {
+      console.error('Failed to mark messages as read:', error);
+    }
+  },
+
+  addMessage: (message: DirectMessage) => {
+    const { messages, activeConversationId } = get();
+    
+    // Only add if it's for the active conversation and not duplicate
+    if (message.conversation_id === activeConversationId) {
+      if (!messages.find(m => m.id === message.id)) {
+        set({ messages: [...messages, message] });
+      }
+    }
+  },
+
+  updateMessageReadStatus: (messageId: string, isRead: boolean) => {
+    set(state => ({
+      messages: state.messages.map(m =>
+        m.id === messageId ? { ...m, is_read: isRead } : m
+      ),
+    }));
+  },
+
+  fetchUnreadCount: async () => {
+    try {
+      const count = await dmService.getUnreadCount();
+      set({ unreadCount: count });
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  },
+
+  subscribeToConversations: (userId: string) => {
+    const { conversationsChannel } = get();
+    
+    // Cleanup existing subscription
+    if (conversationsChannel) {
+      dmService.unsubscribe(conversationsChannel);
+    }
+
+    const channel = dmService.subscribeToConversations(userId, () => {
+      // Refresh conversations and unread count on any update
+      get().fetchConversations();
+      get().fetchUnreadCount();
+    });
+
+    set({ conversationsChannel: channel });
+  },
+
+  subscribeToActiveConversation: () => {
+    const { activeConversationId, messagesChannel, readStatusChannel } = get();
+    
+    if (!activeConversationId) return;
+
+    // Cleanup existing subscriptions
+    if (messagesChannel) {
+      dmService.unsubscribe(messagesChannel);
+    }
+    if (readStatusChannel) {
+      dmService.unsubscribe(readStatusChannel);
+    }
+
+    // Subscribe to new messages
+    const msgChannel = dmService.subscribeToConversation(
+      activeConversationId,
+      (message) => {
+        get().addMessage(message);
+        // Mark as read if this is the active conversation
+        get().markAsRead();
+      }
+    );
+
+    // Subscribe to read status updates
+    const readChannel = dmService.subscribeToReadStatus(
+      activeConversationId,
+      (messageId, isRead) => {
+        get().updateMessageReadStatus(messageId, isRead);
+      }
+    );
+
+    set({ 
+      messagesChannel: msgChannel, 
+      readStatusChannel: readChannel,
+    });
+  },
+
+  unsubscribeAll: () => {
+    const { conversationsChannel, messagesChannel, readStatusChannel } = get();
+    
+    if (conversationsChannel) {
+      dmService.unsubscribe(conversationsChannel);
+    }
+    if (messagesChannel) {
+      dmService.unsubscribe(messagesChannel);
+    }
+    if (readStatusChannel) {
+      dmService.unsubscribe(readStatusChannel);
+    }
+
+    set({ 
+      conversationsChannel: null, 
+      messagesChannel: null, 
+      readStatusChannel: null,
+    });
+  },
+
+  reset: () => {
+    get().unsubscribeAll();
+    set(initialState);
+  },
+}));

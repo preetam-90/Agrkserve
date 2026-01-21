@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, MessageSquare, ChevronDown, LogOut, User, Settings, Tractor } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut, User, Settings, Tractor } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
 import { Avatar, Button, Badge } from '@/components/ui';
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { cn, formatStatus } from '@/lib/utils';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { MessageBadge } from '@/components/messages';
 
 const publicNav = [
   { href: '/', label: 'Home' },
@@ -86,10 +87,7 @@ export function Header() {
                 <NotificationBell />
 
                 {/* Messages */}
-                <Link href="/messages" className="relative p-2 text-gray-600 hover:text-gray-900">
-                  <MessageSquare className="h-5 w-5" />
-                  {/* TODO: Add message count badge */}
-                </Link>
+                <MessageBadge iconOnly />
 
                 {/* User Menu */}
                 <DropdownMenu>

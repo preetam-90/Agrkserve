@@ -178,7 +178,46 @@ export interface LabourBooking {
   employer?: UserProfile;
 }
 
-// Message
+// User Profile (minimal for joins)
+export interface UserProfileMinimal {
+  id: string;
+  name: string | null;
+  profile_image: string | null;
+}
+
+// Direct Message
+export interface DirectMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  sender?: UserProfileMinimal | null;
+}
+
+// DM Conversation
+export interface DMConversation {
+  id: string;
+  participant_1_id: string;
+  participant_2_id: string;
+  last_message: string | null;
+  last_message_at: string | null;
+  last_message_sender_id: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined/computed fields
+  other_user_id?: string;
+  other_user_name?: string;
+  other_user_avatar?: string | null;
+  unread_count?: number;
+  other_participant?: UserProfileMinimal | null;
+}
+
+// Legacy Message type (for booking-related messages - keep for backwards compatibility)
 export interface Message {
   id: string;
   sender_id: string;
@@ -192,7 +231,7 @@ export interface Message {
   receiver?: UserProfile;
 }
 
-// Conversation
+// Legacy Conversation type (keep for backwards compatibility)
 export interface Conversation {
   id: string;
   participant_1_id: string;

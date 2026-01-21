@@ -16,7 +16,9 @@ import {
   Phone,
   User as UserIcon,
   Calendar,
-  IndianRupee
+  IndianRupee,
+  MessageSquare,
+  Loader2
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -33,6 +35,7 @@ import {
   TabsContent
 } from '@/components/ui';
 import { equipmentService, labourService, authService } from '@/lib/services';
+import { useAuthStore, useMessagesStore } from '@/lib/store';
 import { Equipment, LabourProfile, UserProfile } from '@/lib/types';
 import { formatCurrency, EQUIPMENT_CATEGORIES } from '@/lib/utils';
 
@@ -41,11 +44,18 @@ export default function PublicUserProfilePage() {
   const router = useRouter();
   const userId = params.id as string;
 
+  const { user: currentUser } = useAuthStore();
+  const { startConversation } = useMessagesStore();
+
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [labourProfile, setLabourProfile] = useState<LabourProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isStartingChat, setIsStartingChat] = useState(false);
   const [activeTab, setActiveTab] = useState<'equipment' | 'labour'>('equipment');
+
+  // Check if viewing own profile
+  const isOwnProfile = currentUser?.id === userId;
 
   useEffect(() => {
     loadUserData();
@@ -79,6 +89,24 @@ export default function PublicUserProfilePage() {
       console.error('Failed to load user data:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleStartChat = async () => {
+    if (!currentUser) {
+      // Redirect to login with return URL
+      router.push(`/login?redirect=/user/${userId}`);
+      return;
+    }
+
+    setIsStartingChat(true);
+    try {
+      const conversationId = await startConversation(userId);
+      router.push(`/messages?conversation=${conversationId}`);
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+    } finally {
+      setIsStartingChat(false);
     }
   };
 
@@ -197,6 +225,24 @@ export default function PublicUserProfilePage() {
                     </Badge>
                   )}
                 </div>
+
+                {/* Message Button */}
+                {!isOwnProfile && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={handleStartChat}
+                      disabled={isStartingChat}
+                      className="flex items-center gap-2"
+                    >
+                      {isStartingChat ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MessageSquare className="h-4 w-4" />
+                      )}
+                      {isStartingChat ? 'Starting chat...' : 'Message'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
