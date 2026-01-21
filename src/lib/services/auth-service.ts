@@ -129,6 +129,11 @@ export const authService = {
     }
   },
 
+  // Get public user profile (alias for public access)
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
+    return this.getProfile(userId);
+  },
+
   // Create or update user profile
   async upsertProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile | null> {
     try {

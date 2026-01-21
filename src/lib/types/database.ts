@@ -63,6 +63,7 @@ export interface Equipment {
   latitude: number | null;
   longitude: number | null;
   images: string[] | null;
+  video_url: string | null;
   features: string[] | null;
   is_available: boolean;
   rating: number | null;

@@ -2,6 +2,13 @@
 
 A modern Next.js application for connecting farmers with agricultural equipment providers and labour services.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-green)](https://supabase.com/)
+
+---
+
 ## 🎯 Features
 
 ### ✅ Complete Authentication System
@@ -92,11 +99,14 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## 📖 Documentation
 
-- **[QUICK_START.md](./QUICK_START.md)** - Get started in 5 minutes
-- **[AUTH_PROFILE_GUIDE.md](./AUTH_PROFILE_GUIDE.md)** - Complete authentication guide
-- **[USER_FLOWS.md](./USER_FLOWS.md)** - Visual user flow diagrams
-- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - What was built
-- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
+- **[QUICK_START.md](./docs/QUICK_START.md)** - Get started in 5 minutes
+- **[AUTH_PROFILE_GUIDE.md](./docs/AUTH_PROFILE_GUIDE.md)** - Complete authentication guide
+- **[USER_FLOWS.md](./docs/USER_FLOWS.md)** - Visual user flow diagrams
+- **[IMPLEMENTATION_SUMMARY.md](./docs/IMPLEMENTATION_SUMMARY.md)** - What was built
+- **[DEPLOYMENT_CHECKLIST.md](./docs/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
+- **[PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md)** - Architecture & coding standards
+- **[CONTRIBUTING.md](./docs/CONTRIBUTING.md)** - How to contribute
+- **[CODE_OF_CONDUCT.md](./docs/CODE_OF_CONDUCT.md)** - Community guidelines
 
 ---
 
@@ -263,7 +273,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 3. Verify storage uploads work
 4. Check error logs
 
-See [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) for complete checklist.
+See [DEPLOYMENT_CHECKLIST.md](./docs/DEPLOYMENT_CHECKLIST.md) for complete checklist.
 
 ---
 
@@ -290,7 +300,7 @@ See [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) for complete checklist.
 - Check file size < 5MB
 - Run migration 008
 
-More troubleshooting: [AUTH_PROFILE_GUIDE.md](./AUTH_PROFILE_GUIDE.md)
+More troubleshooting: [AUTH_PROFILE_GUIDE.md](./docs/AUTH_PROFILE_GUIDE.md)
 
 ---
 
@@ -314,17 +324,33 @@ pnpm type-check       # Run TypeScript check
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions from developers of all skill levels! Please read our [Contributing Guidelines](./docs/CONTRIBUTING.md) before submitting a pull request.
+
+### Quick Contribution Steps
+
+1. **Fork the repository**
+2. **Clone your fork**: `git clone <your-fork-url>`
+3. **Install dependencies**: `pnpm install`
+4. **Create a branch**: `git checkout -b feature/your-feature`
+5. **Make changes and commit**: `git commit -m 'feat: add feature'`
+6. **Push**: `git push origin feature/your-feature`
+7. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow the existing code style
+- Write clear commit messages (Conventional Commits)
+- Update documentation for new features
+- Test your changes thoroughly
+- Run `pnpm lint` and `pnpm type-check` before committing
+
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ---
 
@@ -341,7 +367,7 @@ This project is licensed under the MIT License.
 ## 📞 Support
 
 For questions or issues:
-- Check the [documentation](./AUTH_PROFILE_GUIDE.md)
+- Check the [documentation](./docs/AUTH_PROFILE_GUIDE.md)
 - Open an issue on GitHub
 - Contact the development team
 

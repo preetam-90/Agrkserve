@@ -165,6 +165,18 @@ export const equipmentService = {
     };
   },
 
+  // Get equipment by owner ID (returns array for public profile page)
+  async getByOwnerId(ownerId: string): Promise<Equipment[]> {
+    const { data, error } = await supabase
+      .from('equipment')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
   // Create new equipment
   async create(
     ownerId: string,
@@ -176,6 +188,7 @@ export const equipmentService = {
       daily_rate: number;
       city: string;
       images: string[];
+      video_url?: string;
       specifications?: Record<string, unknown>;
       latitude: number;
       longitude: number;
@@ -198,6 +211,7 @@ export const equipmentService = {
         latitude: equipment.latitude || null,
         longitude: equipment.longitude || null,
         images: equipment.images,
+        video_url: equipment.video_url || null,
         features: features || null,
         is_available: true,
       })
@@ -219,6 +233,7 @@ export const equipmentService = {
       daily_rate: number;
       city: string;
       images: string[];
+      video_url?: string;
       specifications: Record<string, unknown>;
       status: EquipmentStatus;
       latitude: number;
@@ -243,6 +258,9 @@ export const equipmentService = {
     if (equipment.latitude !== undefined) updateData.latitude = equipment.latitude;
     if (equipment.longitude !== undefined) updateData.longitude = equipment.longitude;
     if (equipment.images !== undefined) updateData.images = equipment.images;
+    if ((equipment as { video_url?: string }).video_url !== undefined) {
+      updateData.video_url = (equipment as { video_url?: string }).video_url;
+    }
     if (equipment.specifications !== undefined) {
       const features = Array.isArray((equipment.specifications as { features?: string[] }).features)
         ? (equipment.specifications as { features?: string[] }).features
@@ -416,6 +434,7 @@ export const equipmentService = {
       latitude: number;
       longitude: number;
       images: string[];
+      video_url?: string;
       features: string[];
       is_available: boolean;
     }>
@@ -432,6 +451,7 @@ export const equipmentService = {
     if (data.latitude !== undefined) updateData.latitude = data.latitude;
     if (data.longitude !== undefined) updateData.longitude = data.longitude;
     if (data.images !== undefined) updateData.images = data.images;
+    if (data.video_url !== undefined) updateData.video_url = data.video_url;
     if (data.features !== undefined) updateData.specifications = { features: data.features };
     if (data.is_available !== undefined) {
       updateData.status = data.is_available ? 'available' : 'unavailable';
@@ -463,6 +483,7 @@ export const equipmentService = {
       latitude?: number;
       longitude?: number;
       images?: string[];
+      video_url?: string;
       features?: string[];
       is_available?: boolean;
     }
@@ -488,6 +509,7 @@ export const equipmentService = {
         latitude: equipment.latitude || null,
         longitude: equipment.longitude || null,
         images: equipment.images || [],
+        video_url: equipment.video_url || null,
         features: equipment.features || null,
         is_available: equipment.is_available ?? true,
       })

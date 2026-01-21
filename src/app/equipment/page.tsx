@@ -301,7 +301,11 @@ function EquipmentCard({
         
         <CardContent className="p-4">
           {/* Owner Info */}
-          <div className="flex items-center gap-2 mb-3">
+          <Link 
+            href={`/user/${equipment.owner_id}`}
+            className="flex items-center gap-2 mb-3 hover:opacity-80 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
             {equipment.owner?.profile_image ? (
               <Image
                 src={equipment.owner.profile_image}
@@ -315,10 +319,10 @@ function EquipmentCard({
                 <User className="h-4 w-4 text-gray-500" />
               </div>
             )}
-            <span className="text-sm text-gray-600 truncate">
+            <span className="text-sm text-gray-600 truncate hover:text-green-600">
               {equipment.owner?.name || 'Equipment Owner'}
             </span>
-          </div>
+          </Link>
           
           {/* Equipment Name */}
           <Link href={`/renter/equipment/${equipment.id}`}>

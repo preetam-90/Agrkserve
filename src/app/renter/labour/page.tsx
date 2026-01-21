@@ -243,9 +243,15 @@ function LabourListPageContent() {
                       <div className="mb-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                              {labour.user?.name || 'Farm Worker'}
-                            </h3>
+                            <Link 
+                              href={`/user/${labour.user_id}`}
+                              className="hover:text-green-600 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                                {labour.user?.name || 'Farm Worker'}
+                              </h3>
+                            </Link>
                             {labour.location_name && (
                               <div className="flex items-center text-sm text-gray-600">
                                 <MapPin className="h-3 w-3 mr-1" />

@@ -210,6 +210,7 @@ export default function OnboardingPage() {
         bio: null,
         preferred_language: 'en' as const,
         is_verified: false,
+        last_login: null,
         created_at: user.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

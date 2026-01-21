@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Tractor,
   Shield,
-  CheckCircle
+  CheckCircle,
+  Play
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { 
@@ -47,8 +48,18 @@ export default function EquipmentDetailPage() {
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+
+  // Create media array combining images and video
+  const mediaItems: Array<{ type: 'image' | 'video'; url: string }> = [];
+  if (equipment?.images && equipment.images.length > 0) {
+    mediaItems.push(...equipment.images.map(url => ({ type: 'image' as const, url })));
+  }
+  if (equipment?.video_url) {
+    mediaItems.push({ type: 'video' as const, url: equipment.video_url });
+  }
+  const currentMedia = mediaItems[currentMediaIndex];
 
   useEffect(() => {
     loadEquipmentDetails();
@@ -73,17 +84,17 @@ export default function EquipmentDetailPage() {
   };
 
   const handlePrevImage = () => {
-    if (equipment?.images) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? equipment.images!.length - 1 : prev - 1
+    if (mediaItems.length > 0) {
+      setCurrentMediaIndex((prev) => 
+        prev === 0 ? mediaItems.length - 1 : prev - 1
       );
     }
   };
 
   const handleNextImage = () => {
-    if (equipment?.images) {
-      setCurrentImageIndex((prev) => 
-        prev === equipment.images!.length - 1 ? 0 : prev + 1
+    if (mediaItems.length > 0) {
+      setCurrentMediaIndex((prev) => 
+        prev === mediaItems.length - 1 ? 0 : prev + 1
       );
     }
   };
@@ -157,39 +168,54 @@ export default function EquipmentDetailPage() {
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Image Gallery */}
+          {/* Media Gallery */}
           <div className="space-y-4">
             <div className="relative aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden">
-              {equipment.images && equipment.images.length > 0 ? (
+              {mediaItems.length > 0 ? (
                 <>
-                  <Image
-                    src={equipment.images[currentImageIndex]}
-                    alt={equipment.name}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                  {equipment.images.length > 1 && (
+                  {currentMedia.type === 'image' ? (
+                    <Image
+                      src={currentMedia.url}
+                      alt={equipment.name}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  ) : (
+                    <div className="relative w-full h-full">
+                      <video
+                        src={currentMedia.url}
+                        controls
+                        className="w-full h-full object-cover"
+                        playsInline
+                      />
+                      <div className="absolute top-4 left-4 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                        <Play className="h-3 w-3" />
+                        Video
+                      </div>
+                    </div>
+                  )}
+                  {mediaItems.length > 1 && (
                     <>
                       <button
                         onClick={handlePrevImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all hover:scale-110"
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
                       <button
                         onClick={handleNextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow-md transition-all hover:scale-110"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
                       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-                        {equipment.images.map((_, i) => (
+                        {mediaItems.map((_, i) => (
                           <button
                             key={i}
-                            onClick={() => setCurrentImageIndex(i)}
+                            onClick={() => setCurrentMediaIndex(i)}
                             className={`w-2 h-2 rounded-full transition-colors ${
-                              i === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                              i === currentMediaIndex ? 'bg-white' : 'bg-white/50'
                             }`}
                           />
                         ))}
@@ -205,17 +231,26 @@ export default function EquipmentDetailPage() {
             </div>
 
             {/* Thumbnail Strip */}
-            {equipment.images && equipment.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {equipment.images.map((img, i) => (
+            {mediaItems.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                {mediaItems.map((media, i) => (
                   <button
                     key={i}
-                    onClick={() => setCurrentImageIndex(i)}
-                    className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden ${
-                      i === currentImageIndex ? 'ring-2 ring-green-500' : ''
+                    onClick={() => setCurrentMediaIndex(i)}
+                    className={`relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden transition-all ${
+                      i === currentMediaIndex ? 'ring-2 ring-green-500 scale-105' : 'hover:scale-105'
                     }`}
                   >
-                    <Image src={img} alt="" fill className="object-cover" />
+                    {media.type === 'image' ? (
+                      <Image src={media.url} alt="" fill className="object-cover" />
+                    ) : (
+                      <div className="relative w-full h-full">
+                        <video src={media.url} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Play className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -316,25 +351,28 @@ export default function EquipmentDetailPage() {
             {owner && (
               <Card>
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
+                  <Link 
+                    href={`/user/${equipment.owner_id}`}
+                    className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                  >
                     <Avatar src={owner.profile_image} name={owner.name} size="lg" />
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900">{owner.name}</p>
+                      <p className="font-semibold text-gray-900 hover:text-green-600">{owner.name}</p>
                       <p className="text-sm text-gray-500 flex items-center gap-1">
                         <CheckCircle className="h-3 w-3 text-green-500" />
                         Verified Provider
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Phone className="h-4 w-4 mr-1" />
-                        Call
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageSquare className="h-4 w-4 mr-1" />
-                        Chat
-                      </Button>
-                    </div>
+                  </Link>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Phone className="h-4 w-4 mr-1" />
+                      Call
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <MessageSquare className="h-4 w-4 mr-1" />
+                      Chat
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

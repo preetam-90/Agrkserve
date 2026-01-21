@@ -10,7 +10,8 @@ import {
   X,
   MapPin,
   Plus,
-  Loader2
+  Loader2,
+  Video
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { 
@@ -24,13 +25,16 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Spinner
+  Spinner,
+  VideoTrimmer,
+  ImageCropper
 } from '@/components/ui';
 import { equipmentService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { EquipmentCategory } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 import { IMAGE_UPLOAD } from '@/lib/utils/constants';
+import { trimVideo, getVideoDuration } from '@/lib/utils/ffmpeg-trimmer';
 import toast from 'react-hot-toast';
 
 interface EquipmentFormData {
@@ -49,6 +53,7 @@ interface EquipmentFormData {
   longitude: number;
   features: string[];
   images: string[];
+  video_url: string | null;
   is_available: boolean;
 }
 
@@ -64,6 +69,10 @@ export default function EquipmentFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [newFeature, setNewFeature] = useState('');
+  const [showVideoTrimmer, setShowVideoTrimmer] = useState(false);
+  const [videoToTrim, setVideoToTrim] = useState<File | null>(null);
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<File | null>(null);
   
   const [formData, setFormData] = useState<EquipmentFormData>({
     name: '',
@@ -81,6 +90,7 @@ export default function EquipmentFormPage() {
     longitude: profile?.longitude || 0,
     features: [],
     images: [],
+    video_url: null,
     is_available: true,
   });
 
@@ -115,6 +125,7 @@ export default function EquipmentFormPage() {
         longitude: data.longitude || 0,
         features: data.features || [],
         images: data.images || [],
+        video_url: (data as { video_url?: string | null }).video_url || null,
         is_available: data.is_available,
       });
     } catch (err) {
@@ -162,25 +173,50 @@ export default function EquipmentFormPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setIsUploading(true);
     try {
       const selectedFiles = Array.from(files);
-      const totalCount = formData.images.length + selectedFiles.length;
+      
+      // Check if we need to crop any images
+      for (const file of selectedFiles) {
+        const isSquare = await checkIfImageIsSquare(file);
+        if (!isSquare) {
+          // Show cropper for non-square image
+          setImageToCrop(file);
+          setShowImageCropper(true);
+          // Store remaining files for later (if needed)
+          return;
+        }
+      }
+      
+      // All images are square, proceed with upload
+      await uploadImagesToCloudinary(selectedFiles);
+    } catch (err) {
+      console.error('Failed to process images:', err);
+      toast.error('Failed to process images');
+    }
+  };
+
+  const checkIfImageIsSquare = (file: File): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+        resolve(img.width === img.height);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        reject(new Error('Failed to load image'));
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const uploadImagesToCloudinary = async (files: File[]) => {
+    setIsUploading(true);
+    try {
+      const totalCount = formData.images.length + files.length;
       if (totalCount > IMAGE_UPLOAD.MAX_FILES) {
         toast.error(`You can upload up to ${IMAGE_UPLOAD.MAX_FILES} images`);
-        return;
-      }
-
-      const invalidType = selectedFiles.find(file => !IMAGE_UPLOAD.ALLOWED_TYPES.includes(file.type));
-      if (invalidType) {
-        toast.error('Only JPG, PNG, or WebP images are allowed');
-        return;
-      }
-
-      const maxSizeBytes = IMAGE_UPLOAD.MAX_SIZE_MB * 1024 * 1024;
-      const tooLarge = selectedFiles.find(file => file.size > maxSizeBytes);
-      if (tooLarge) {
-        toast.error(`Each image must be under ${IMAGE_UPLOAD.MAX_SIZE_MB}MB`);
         return;
       }
 
@@ -204,15 +240,14 @@ export default function EquipmentFormPage() {
         });
 
         if (!response.ok) {
-          const error = await response.json().catch(() => ({}));
-          throw new Error(error?.error?.message || 'Upload failed');
+          throw new Error('Upload failed');
         }
 
         const data = await response.json();
         return data.secure_url as string;
       };
 
-      const uploadedUrls = await Promise.all(selectedFiles.map(uploadFile));
+      const uploadedUrls = await Promise.all(files.map(uploadFile));
 
       setFormData(prev => ({
         ...prev,
@@ -228,10 +263,132 @@ export default function EquipmentFormPage() {
     }
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Check video duration
+      const duration = await getVideoDuration(file);
+      
+      if (duration > 15) {
+        // Always show trimmer for videos longer than 15 seconds
+        setVideoToTrim(file);
+        setShowVideoTrimmer(true);
+        toast('Please select a 15-second segment from your video');
+      } else {
+        // Show trimmer even for short videos to allow user to select the segment
+        setVideoToTrim(file);
+        setShowVideoTrimmer(true);
+        toast('Select the portion of video you want to upload');
+      }
+    } catch (err) {
+      console.error('Failed to read video:', err);
+      toast.error('Failed to read video file');
+    }
+  };
+
+  const uploadVideoToCloudinary = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+      if (!cloudName || !uploadPreset) {
+        toast.error('Cloudinary is not configured');
+        return;
+      }
+
+      const body = new FormData();
+      body.append('file', file);
+      body.append('upload_preset', uploadPreset);
+      body.append('folder', 'agri-serve/equipment');
+      body.append('resource_type', 'video');
+
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
+        method: 'POST',
+        body,
+      });
+
+      if (!response.ok) {
+        throw new Error('Video upload failed');
+      }
+
+      const data = await response.json();
+      
+      setFormData(prev => ({
+        ...prev,
+        video_url: data.secure_url,
+      }));
+
+      toast.success('Video uploaded successfully');
+    } catch (err) {
+      console.error('Failed to upload video:', err);
+      toast.error('Failed to upload video');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleVideoTrim = async (startTime: number, endTime: number) => {
+    if (!videoToTrim) return;
+
+    try {
+      setShowVideoTrimmer(false);
+      setIsUploading(true);
+      
+      // Show progress toast
+      const toastId = toast.loading('Processing video... 0%');
+
+      // Trim video using FFmpeg with progress callback
+      const trimmedFile = await trimVideo(videoToTrim, startTime, endTime, (progress) => {
+        toast.loading(`Processing video... ${progress}%`, { id: toastId });
+      });
+      
+      toast.loading('Uploading video...', { id: toastId });
+      
+      setVideoToTrim(null);
+      
+      // Upload the trimmed video
+      await uploadVideoToCloudinary(trimmedFile);
+      
+      toast.success('Video uploaded successfully!', { id: toastId });
+    } catch (err) {
+      console.error('Failed to trim video:', err);
+      toast.error('Failed to process video. Please try again.');
+      setIsUploading(false);
+    }
+  };
+
+  const handleVideoTrimCancel = () => {
+    setShowVideoTrimmer(false);
+    setVideoToTrim(null);
+  };
+
+  const handleImageCrop = async (croppedFile: File) => {
+    setShowImageCropper(false);
+    setImageToCrop(null);
+    
+    // Upload the cropped image
+    await uploadImagesToCloudinary([croppedFile]);
+  };
+
+  const handleImageCropCancel = () => {
+    setShowImageCropper(false);
+    setImageToCrop(null);
+  };
+
   const handleRemoveImage = (index: number) => {
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleRemoveVideo = () => {
+    setFormData(prev => ({
+      ...prev,
+      video_url: null,
     }));
   };
 
@@ -315,6 +472,7 @@ export default function EquipmentFormPage() {
         longitude: formData.longitude || undefined,
         features: formData.features.length > 0 ? formData.features : undefined,
         images: formData.images.length > 0 ? formData.images : undefined,
+        video_url: formData.video_url || undefined,
         is_available: formData.is_available,
       };
 
@@ -608,7 +766,7 @@ export default function EquipmentFormPage() {
             </CardContent>
           </Card>
 
-          {/* Images */}
+          {/* Photos */}
           <Card>
             <CardContent className="p-6">
               <h2 className="font-semibold text-lg mb-4">Photos</h2>
@@ -651,7 +809,55 @@ export default function EquipmentFormPage() {
                 </div>
                 
                 <p className="text-xs text-gray-500">
-                  Add up to 10 photos. First photo will be the cover image.
+                  Add up to {IMAGE_UPLOAD.MAX_FILES} photos. Images will be cropped to square format. First photo will be the cover image.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Video */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="font-semibold text-lg mb-4">Video (Optional)</h2>
+              
+              <div className="space-y-4">
+                {formData.video_url ? (
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
+                    <video
+                      src={formData.video_url}
+                      controls
+                      className="w-full h-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveVideo}
+                      className="absolute top-2 right-2 p-2 rounded-full bg-white shadow-md hover:bg-gray-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="aspect-video rounded-lg border-2 border-dashed border-gray-300 hover:border-green-500 cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-green-600 transition-colors">
+                    {isUploading ? (
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                    ) : (
+                      <>
+                        <Video className="h-8 w-8 mb-1" />
+                        <span className="text-xs">Add Video</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                      disabled={isUploading}
+                    />
+                  </label>
+                )}
+                
+                <p className="text-xs text-gray-500">
+                  Add one video to showcase your equipment in action. Maximum 15 seconds. You'll be able to select which portion to use.
                 </p>
               </div>
             </CardContent>
@@ -700,6 +906,27 @@ export default function EquipmentFormPage() {
           </div>
         </form>
       </main>
+
+      {/* Video Trimmer Modal */}
+      {showVideoTrimmer && videoToTrim && (
+        <VideoTrimmer
+          open={showVideoTrimmer}
+          videoFile={videoToTrim}
+          maxDuration={15}
+          onTrim={handleVideoTrim}
+          onCancel={handleVideoTrimCancel}
+        />
+      )}
+
+      {/* Image Cropper Modal */}
+      {showImageCropper && imageToCrop && (
+        <ImageCropper
+          open={showImageCropper}
+          imageFile={imageToCrop}
+          onCrop={handleImageCrop}
+          onCancel={handleImageCropCancel}
+        />
+      )}
 
       <Footer />
     </div>

@@ -112,8 +112,12 @@ function LabourCard({
         {/* Profile Header */}
         <div className="relative bg-gradient-to-br from-green-500 to-teal-600 p-6">
           <div className="flex items-start gap-4">
-            {/* Avatar */}
-            <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
+            {/* Avatar - Clickable */}
+            <Link 
+              href={`/user/${labour.user_id}`}
+              className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg flex-shrink-0 hover:opacity-90 transition-opacity"
+              onClick={(e) => e.stopPropagation()}
+            >
               {labour.user?.profile_image ? (
                 <Image
                   src={labour.user.profile_image}
@@ -131,13 +135,19 @@ function LabourCard({
                 labour.availability === 'available' ? 'bg-green-500' : 
                 labour.availability === 'busy' ? 'bg-yellow-500' : 'bg-red-500'
               }`} />
-            </div>
+            </Link>
             
-            {/* Name and Rating */}
+            {/* Name and Rating - Clickable */}
             <div className="flex-1 text-white">
-              <h3 className="text-xl font-bold">
-                {labour.user?.name || 'Agricultural Worker'}
-              </h3>
+              <Link 
+                href={`/user/${labour.user_id}`}
+                className="hover:opacity-80 transition-opacity inline-block"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-xl font-bold">
+                  {labour.user?.name || 'Agricultural Worker'}
+                </h3>
+              </Link>
               <div className="flex items-center gap-2 mt-1">
                 {labour.rating && (
                   <div className="flex items-center gap-1">

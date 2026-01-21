@@ -24,6 +24,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui';
+import { useState, useEffect } from 'react';
 
 interface SidebarProps {
   role: 'renter' | 'provider' | 'admin';
@@ -68,6 +69,11 @@ export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const { profile, signOut } = useAuthStore();
   const { sidebarOpen, setSidebarOpen } = useAppStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const navItems = role === 'admin'
     ? adminNavItems
@@ -131,7 +137,7 @@ export function Sidebar({ role }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto p-4">
         <div className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const isActive = isClient && (pathname === item.href || pathname.startsWith(`${item.href}/`));
             return (
               <Link
                 key={item.href}

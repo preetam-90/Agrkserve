@@ -28,7 +28,11 @@ export async function GET(request: Request) {
                          data.user.user_metadata?.phone_number;
 
       // Update last login
-      await supabase.rpc('update_last_login', { user_id: data.user.id }).catch(() => {});
+      try {
+        await supabase.rpc('update_last_login', { user_id: data.user.id });
+      } catch (error) {
+        console.error('Failed to update last login:', error);
+      }
 
       // If no phone number in profile, redirect to phone setup
       if (!profile?.phone && !googlePhone) {

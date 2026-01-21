@@ -1,5 +1,6 @@
 // Re-export all types
 export * from './database';
+export * from './media';
 
 // Auth types
 export interface AuthState {
@@ -49,6 +50,7 @@ export interface EquipmentFormData {
   latitude?: number;
   longitude?: number;
   images?: string[];
+  video_url?: string;
   features?: string[];
   is_available?: boolean;
 }

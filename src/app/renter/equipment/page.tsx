@@ -9,7 +9,10 @@ import {
   MapPin,
   Star,
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Play,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { 
@@ -35,6 +38,135 @@ import { useAppStore } from '@/lib/store';
 import { Equipment, EquipmentCategory } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
+
+type MediaItem = { type: 'image' | 'video'; url: string };
+
+function EquipmentCard({ item, mediaItems }: { item: Equipment; mediaItems: MediaItem[] }) {
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
+  const currentMedia = mediaItems[currentMediaIndex];
+
+  const handlePrevMedia = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentMediaIndex((prev) => (prev === 0 ? mediaItems.length - 1 : prev - 1));
+  };
+
+  const handleNextMedia = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentMediaIndex((prev) => (prev === mediaItems.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <Link href={`/renter/equipment/${item.id}`}>
+      <Card className="h-full hover:shadow-lg transition-shadow overflow-hidden">
+        <div className="aspect-[4/3] bg-gray-100 relative group">
+          {mediaItems.length > 0 ? (
+            <>
+              {currentMedia.type === 'image' ? (
+                <Image
+                  src={currentMedia.url}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="relative w-full h-full">
+                  <video
+                    src={currentMedia.url}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <div className="bg-white/90 rounded-full p-3">
+                      <Play className="h-8 w-8 text-gray-700" />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {mediaItems.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePrevMedia}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={handleNextMedia}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                    {mediaItems.map((media, i) => (
+                      <div
+                        key={i}
+                        className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                          i === currentMediaIndex ? 'bg-white' : 'bg-white/50'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Tractor className="h-12 w-12 text-gray-300" />
+            </div>
+          )}
+          {item.is_available ? (
+            <Badge className="absolute top-2 right-2" variant="success">
+              Available
+            </Badge>
+          ) : (
+            <Badge className="absolute top-2 right-2" variant="secondary">
+              Booked
+            </Badge>
+          )}
+        </div>
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
+          
+          <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+            <MapPin className="h-3 w-3" />
+            {item.location_name || 'Location not specified'}
+          </p>
+          
+          <div className="flex items-center justify-between mt-3">
+            <div>
+              <span className="text-lg font-bold text-green-600">
+                {formatCurrency(item.price_per_day)}
+              </span>
+              <span className="text-sm text-gray-500">/day</span>
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-sm font-medium">
+                {item.rating?.toFixed(1) || 'New'}
+              </span>
+              {item.review_count && item.review_count > 0 && (
+                <span className="text-xs text-gray-500">
+                  ({item.review_count})
+                </span>
+              )}
+            </div>
+          </div>
+          
+          {item.category && (
+            <Badge variant="outline" className="mt-2">
+              {EQUIPMENT_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 function EquipmentListPageContent() {
   const searchParams = useSearchParams();
@@ -240,70 +372,20 @@ function EquipmentListPageContent() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {equipment.map((item) => (
-                <Link key={item.id} href={`/renter/equipment/${item.id}`}>
-                  <Card className="h-full hover:shadow-lg transition-shadow overflow-hidden">
-                    <div className="aspect-[4/3] bg-gray-100 relative">
-                      {item.images?.[0] ? (
-                        <Image
-                          src={item.images[0]}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Tractor className="h-12 w-12 text-gray-300" />
-                        </div>
-                      )}
-                      {item.is_available ? (
-                        <Badge className="absolute top-2 right-2" variant="success">
-                          Available
-                        </Badge>
-                      ) : (
-                        <Badge className="absolute top-2 right-2" variant="secondary">
-                          Booked
-                        </Badge>
-                      )}
-                    </div>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
-                      
-                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                        <MapPin className="h-3 w-3" />
-                        {item.location_name || 'Location not specified'}
-                      </p>
-                      
-                      <div className="flex items-center justify-between mt-3">
-                        <div>
-                          <span className="text-lg font-bold text-green-600">
-                            {formatCurrency(item.price_per_day)}
-                          </span>
-                          <span className="text-sm text-gray-500">/day</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">
-                            {item.rating?.toFixed(1) || 'New'}
-                          </span>
-                          {item.review_count && item.review_count > 0 && (
-                            <span className="text-xs text-gray-500">
-                              ({item.review_count})
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {item.category && (
-                        <Badge variant="outline" className="mt-2">
-                          {EQUIPMENT_CATEGORIES.find(c => c.value === item.category)?.label || item.category}
-                        </Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+              {equipment.map((item) => {
+                // Create media array with both images and video
+                const mediaItems = [];
+                if (item.images && item.images.length > 0) {
+                  mediaItems.push(...item.images.map(url => ({ type: 'image' as const, url })));
+                }
+                if (item.video_url) {
+                  mediaItems.push({ type: 'video' as const, url: item.video_url });
+                }
+
+                return (
+                  <EquipmentCard key={item.id} item={item} mediaItems={mediaItems} />
+                );
+              })}
             </div>
 
             {/* Pagination */}

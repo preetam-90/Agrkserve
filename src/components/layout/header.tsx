@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Bell, MessageSquare, ChevronDown, LogOut, User, Settings, Tractor } from 'lucide-react';
+import { Menu, X, MessageSquare, ChevronDown, LogOut, User, Settings, Tractor } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/lib/store';
 import { Avatar, Button, Badge } from '@/components/ui';
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui';
 import { cn, formatStatus } from '@/lib/utils';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 
 const publicNav = [
   { href: '/', label: 'Home' },
@@ -81,11 +82,8 @@ export function Header() {
               <div className="h-10 w-24 animate-pulse bg-gray-200 rounded-lg" />
             ) : user ? (
               <>
-                {/* Notifications */}
-                <Link href="/notifications" className="relative p-2 text-gray-600 hover:text-gray-900">
-                  <Bell className="h-5 w-5" />
-                  {/* TODO: Add notification count badge */}
-                </Link>
+                {/* Notifications - Click opens dropdown, can navigate to full page */}
+                <NotificationBell />
 
                 {/* Messages */}
                 <Link href="/messages" className="relative p-2 text-gray-600 hover:text-gray-900">

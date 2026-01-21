@@ -112,9 +112,14 @@ export default function LabourDetailPage() {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold text-gray-900">
-                        {labour.user?.name || 'Farm Worker'}
-                      </h1>
+                      <Link 
+                        href={`/user/${labour.user_id}`}
+                        className="hover:opacity-80 transition-opacity"
+                      >
+                        <h1 className="text-3xl font-bold text-gray-900 hover:text-green-600">
+                          {labour.user?.name || 'Farm Worker'}
+                        </h1>
+                      </Link>
                       {labour.user?.is_verified && (
                         <Badge variant="default" className="bg-green-500 flex items-center gap-1">
                           <CheckCircle className="h-3 w-3" />
