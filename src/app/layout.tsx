@@ -1,7 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
+import { NetworkStatus } from '@/components/system-pages/NetworkStatus';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -32,12 +33,15 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     siteName: 'AgriServe',
   },
-  themeColor: '#14b8a6',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'AgriServe',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#14b8a6',
 };
 
 export default function RootLayout({
@@ -48,7 +52,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <NetworkStatus />
+          {children}
+        </Providers>
       </body>
     </html>
   );

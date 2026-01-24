@@ -46,7 +46,6 @@ const providerNavItems = [
   { href: '/provider/equipment', label: 'My Equipment', icon: Tractor },
   { href: '/provider/labour', label: 'Labour Profile', icon: Users },
   { href: '/provider/bookings', label: 'Booking Requests', icon: CalendarDays },
-  { href: '/provider/messages', label: 'Messages', icon: MessageSquare },
   { href: '/provider/earnings', label: 'Earnings', icon: CreditCard },
   { href: '/provider/reviews', label: 'Reviews', icon: Star },
 ];

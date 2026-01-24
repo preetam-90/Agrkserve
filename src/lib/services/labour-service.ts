@@ -193,6 +193,8 @@ export const labourService = {
     latitude: number;
     longitude: number;
   }): Promise<LabourProfile> {
+    console.log('Creating labour profile with data:', profile);
+    
     const { data, error } = await supabase.rpc('create_labour_profile', {
       p_user_id: profile.user_id,
       p_skills: profile.skills,
@@ -208,7 +210,16 @@ export const labourService = {
       p_longitude: profile.longitude,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase RPC error:', error);
+      throw new Error(error.message || 'Failed to create labour profile');
+    }
+    
+    if (!data) {
+      throw new Error('No data returned from create_labour_profile');
+    }
+    
+    console.log('Labour profile created successfully:', data);
     return data;
   },
 
