@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { equipmentService, labourService } from '@/lib/services';
 import { createClient } from '@/lib/supabase/client';
-import { PremiumHeroSection } from '@/components/landing/PremiumHeroSection';
+import { HeroSection } from '@/components/landing/HeroSection';
 import { StatsSection } from '@/components/landing/StatsSection';
 import { CategoriesSection } from '@/components/landing/CategoriesSection';
-import { FeaturedRentalsGallery } from '@/components/landing/FeaturedRentalsGallery';
+import { FeaturedEquipmentSection } from '@/components/landing/FeaturedEquipmentSection';
 import { TimelineSection } from '@/components/landing/TimelineSection';
 import { TestimonialsCarousel } from '@/components/landing/TestimonialsCarousel';
 import { FinalCTASection } from '@/components/landing/FinalCTASection';
@@ -49,7 +49,7 @@ export default function HomePage() {
         const supabase = createClient();
 
         // Fetch featured equipment (available, sorted by rating and bookings)
-        const equipmentResult = await equipmentService.getEquipment({ 
+        const equipmentResult = await equipmentService.getEquipment({
           limit: 12,
           minRating: 0,
         });
@@ -87,12 +87,12 @@ export default function HomePage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-br from-emerald-950 via-slate-900 to-amber-950 min-h-screen">
+    <div className="relative bg-black min-h-screen">
       {/* Ambient Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
@@ -100,7 +100,7 @@ export default function HomePage() {
       </div>
 
       <PremiumHeader />
-      
+
       <motion.main
         initial="hidden"
         animate="visible"
@@ -114,15 +114,15 @@ export default function HomePage() {
           },
         }}
       >
-        <PremiumHeroSection />
+        <HeroSection />
         <StatsSection stats={stats} />
         <CategoriesSection />
-        <FeaturedRentalsGallery equipment={featuredEquipment} isLoading={isLoading} />
+        <FeaturedEquipmentSection equipment={featuredEquipment} isLoading={isLoading} />
         <TimelineSection />
         <TestimonialsCarousel />
         <FinalCTASection />
       </motion.main>
-      
+
       <PremiumFooter />
     </div>
   );

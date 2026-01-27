@@ -1,0 +1,18 @@
+ M debug_git.sh
+ D debug_git_out.txt
+ D debug_git_push.sh
+ D debug_git_push_out.txt
+ D do_git.sh
+ D git_op.log
+ D git_resolve.log
+ D remote_log.txt
+ D resolve_git.sh
+ M src/app/page.tsx
+ D src/middleware.ts
+ D test_output.txt
+?? git_output.txt
+?? src/middleware.ts.bak
+* main
+origin	https://github.com/preetam-90/Agrkserve.git (fetch)
+origin	https://github.com/preetam-90/Agrkserve.git (push)
+7374a85 Merge remote changes and resolve conflicts favoring local version

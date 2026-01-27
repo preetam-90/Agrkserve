@@ -1,7 +1,5 @@
 #!/bin/bash
-echo "--- GIT STATUS ---"
-git status
-echo "--- GIT REMOTE ---"
-git remote -v
-echo "--- GIT LOG ---"
-git log -n 5 --oneline
+git status --short > git_output.txt 2>&1
+git branch >> git_output.txt 2>&1
+git remote -v >> git_output.txt 2>&1
+git log -n 1 --oneline >> git_output.txt 2>&1

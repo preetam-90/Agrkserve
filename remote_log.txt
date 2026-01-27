@@ -1,1 +1,0 @@
-6e6129e fix: labour profile creation and UI improvements
