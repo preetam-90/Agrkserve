@@ -1,0 +1,110 @@
+/* AgriServe Admin Theme - Glassmorphism & Premium Dark Mode Support */
+
+:root {
+    /* Success/Error Colors */
+    --admin-success: 34 197 94;
+    --admin-warning: 245 158 11;
+    --admin-error: 239 68 68;
+    --admin-info: 59 130 246;
+
+    /* Primary Brand Colors (Deep Green & Gold) */
+    --admin-primary: 20 83 45;
+    /* green-900 */
+    --admin-primary-light: 34 197 94;
+    /* green-500 */
+    --admin-accent: 250 204 21;
+    /* yellow-400 */
+
+    /* Surface Colors */
+    --admin-bg: 248 250 252;
+    /* slate-50 */
+    --admin-surface: 255 255 255;
+    --admin-surface-glass: 255 255 255 / 0.8;
+
+    /* Text Colors */
+    --admin-text-primary: 15 23 42;
+    /* slate-900 */
+    --admin-text-secondary: 100 116 139;
+    /* slate-500 */
+
+    /* Borders & Shadows */
+    --admin-border: 226 232 240;
+    /* slate-200 */
+    --admin-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --admin-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Spacing & Radius */
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+}
+
+.dark {
+    /* Dark Mode Surfaces */
+    --admin-bg: 15 23 42;
+    /* slate-900 */
+    --admin-surface: 30 41 59;
+    /* slate-800 */
+    --admin-surface-glass: 30 41 59 / 0.8;
+
+    --admin-text-primary: 248 250 252;
+    /* slate-50 */
+    --admin-text-secondary: 148 163 184;
+    /* slate-400 */
+
+    --admin-border: 51 65 85;
+    /* slate-700 */
+}
+
+/* Glassmorphism Utility */
+.glass-panel {
+    background-color: rgba(var(--admin-surface), 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(var(--admin-border), 0.5);
+    box-shadow: var(--admin-shadow);
+}
+
+.glass-card {
+    background: linear-gradient(135deg, rgba(var(--admin-surface), 0.9) 0%, rgba(var(--admin-surface), 0.7) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(var(--admin-border), 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--admin-shadow-hover);
+    border-color: rgba(var(--admin-primary-light), 0.3);
+}
+
+/* Admin Specific Layout */
+.admin-layout-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+    .admin-layout-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Scrollbar */
+.admin-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(var(--admin-text-secondary), 0.2);
+    border-radius: 99px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--admin-text-secondary), 0.4);
+}

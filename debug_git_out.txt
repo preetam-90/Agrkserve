@@ -1,0 +1,23 @@
+--- GIT STATUS ---
+On branch main
+Your branch and 'origin/main' have diverged,
+and have 3 and 1 different commits each, respectively.
+  (use "git pull" if you want to integrate the remote branch with yours)
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	debug_git.sh
+	debug_git_out.txt
+	debug_git_push.sh
+	debug_git_push_out.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+--- GIT REMOTE ---
+origin	https://github.com/preetam-90/Agrkserve.git (fetch)
+origin	https://github.com/preetam-90/Agrkserve.git (push)
+--- GIT LOG ---
+8120828 Update agro project files
+d4e6a39 Create .env.local
+f0d09d3 feat: Add direct messaging (DM) system
+bd72a53 fix: Add scripts directory needed for CI preinstall hook
+1e6b6ea fix: Update CI workflow to fallback to --no-frozen-lockfile if lockfile is missing
