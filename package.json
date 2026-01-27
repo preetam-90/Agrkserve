@@ -5,10 +5,9 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "preinstall": "node scripts/only-pnpm.js && bash scripts/check-pm.sh install",
-    "dev": "bash $PWD/scripts/dev-enhanced.sh",
-    "dev:pretty": "bash $PWD/scripts/dev-enhanced.sh",
-    "dev:simple": "bash $PWD/scripts/dev-with-banner.sh",
-    "dev:basic": "bash scripts/check-pm.sh dev && next dev -p 3001",
+    "dev": "node scripts/dev.js",
+    "dev:manual": "next dev",
+    "check-ports": "node scripts/check-ports.js",
     "prebuild": "bash scripts/check-pm.sh build",
     "build": "next build",
     "prestart": "bash scripts/check-pm.sh start",
@@ -47,6 +46,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "fluent-ffmpeg": "^2.1.3",
+    "framer-motion": "^11.15.0",
     "lucide-react": "^0.562.0",
     "multer": "^2.0.2",
     "next": "16.1.3",
@@ -64,6 +64,7 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "@fast-check/jest": "^2.0.4",
     "@tailwindcss/postcss": "^4",
     "@types/fluent-ffmpeg": "^2.1.28",
     "@types/multer": "^2.0.0",

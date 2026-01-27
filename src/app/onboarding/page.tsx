@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Tractor, 
-  User, 
-  Wrench, 
-  Users, 
-  MapPin, 
-  Check,
-  ArrowRight,
-  ArrowLeft
-} from 'lucide-react';
+import { Tractor, User, Wrench, Users, MapPin, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button, Input, Card, CardContent, Spinner } from '@/components/ui';
 import { authService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
@@ -72,7 +63,7 @@ export default function OnboardingPage() {
   // Initialize form data with user information
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         name: user.user_metadata?.full_name || profile?.name || '',
         email: user.email || profile?.email || '',
@@ -86,7 +77,7 @@ export default function OnboardingPage() {
       if (!user) {
         router.push('/login');
       } else if (profile?.is_profile_complete) {
-        const dashboardPath = profile.roles?.includes('provider') 
+        const dashboardPath = profile.roles?.includes('provider')
           ? '/provider/dashboard'
           : profile.roles?.includes('labour')
             ? '/labour/dashboard'
@@ -98,7 +89,7 @@ export default function OnboardingPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleGetLocation = () => {
@@ -111,8 +102,8 @@ export default function OnboardingPage() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        setFormData(prev => ({ ...prev, latitude, longitude }));
-        
+        setFormData((prev) => ({ ...prev, latitude, longitude }));
+
         // Try to get address from coordinates
         try {
           const response = await fetch(
@@ -120,7 +111,7 @@ export default function OnboardingPage() {
           );
           const data = await response.json();
           if (data.display_name) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               address: data.display_name,
               pincode: data.address?.postcode || prev.pincode,
@@ -129,20 +120,21 @@ export default function OnboardingPage() {
         } catch (err) {
           console.error('Failed to get address:', err);
         }
-        
+
         setIsLocating(false);
         toast.success('Location detected successfully!');
       },
       (error) => {
         console.error('Geolocation error:', error);
         setIsLocating(false);
-        
+
         // Provide specific error messages
         let errorMessage = 'Failed to get location. Please enter manually.';
-        
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Location permission denied. Please enable location access in your browser settings.';
+            errorMessage =
+              'Location permission denied. Please enable location access in your browser settings.';
             break;
           case error.POSITION_UNAVAILABLE:
             errorMessage = 'Location information is unavailable. Please enter manually.';
@@ -151,13 +143,13 @@ export default function OnboardingPage() {
             errorMessage = 'Location request timed out. Please try again or enter manually.';
             break;
         }
-        
+
         toast.error(errorMessage);
       },
-      { 
-        enableHighAccuracy: true, 
+      {
+        enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 0
+        maximumAge: 0,
       }
     );
   };
@@ -194,10 +186,17 @@ export default function OnboardingPage() {
       // First, add the user role
       await authService.addUserRole(user.id, selectedRole);
 
+      // Check if phone exists
+      if (!profile?.phone) {
+        toast.error('Phone number is required. Redirecting to phone setup...');
+        router.push('/phone-setup');
+        return;
+      }
+
       // Then update the profile
       const profileData = {
         id: user.id,
-        phone: user.phone || '',
+        phone: profile.phone, // Use phone from profile, not user
         name: formData.name,
         email: formData.email || user.email || '',
         address: formData.address,
@@ -227,14 +226,15 @@ export default function OnboardingPage() {
       }
 
       toast.success('Profile created successfully!');
-      
+
       // Redirect to appropriate dashboard
-      const dashboardPath = selectedRole === 'provider' 
-        ? '/provider/dashboard'
-        : selectedRole === 'labour'
-          ? '/labour/dashboard'
-          : '/renter/dashboard';
-      
+      const dashboardPath =
+        selectedRole === 'provider'
+          ? '/provider/dashboard'
+          : selectedRole === 'labour'
+            ? '/labour/dashboard'
+            : '/renter/dashboard';
+
       router.push(dashboardPath);
     } catch (err: unknown) {
       const error = err as Error;
@@ -247,7 +247,7 @@ export default function OnboardingPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Spinner size="lg" />
       </div>
     );
@@ -256,20 +256,20 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100">
       {/* Header */}
-      <header className="p-4 flex items-center justify-between">
+      <header className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-green-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600">
             <Tractor className="h-6 w-6 text-white" />
           </div>
-          <span className="font-bold text-xl text-gray-900">AgriServe</span>
+          <span className="text-xl font-bold text-gray-900">AgriServe</span>
         </div>
-        
+
         {/* Progress indicator */}
         <div className="flex items-center gap-2">
           {['role', 'profile', 'location'].map((s, i) => (
             <div
               key={s}
-              className={`w-3 h-3 rounded-full transition-colors ${
+              className={`h-3 w-3 rounded-full transition-colors ${
                 step === s
                   ? 'bg-green-600'
                   : ['role', 'profile', 'location'].indexOf(step) > i
@@ -282,14 +282,14 @@ export default function OnboardingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto p-4">
+      <main className="mx-auto max-w-2xl p-4">
         {step === 'role' && (
           <div className="space-y-6">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900">
                 How do you want to use AgriServe?
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="mt-2 text-gray-600">
                 Choose your primary role. You can switch roles later.
               </p>
             </div>
@@ -299,41 +299,31 @@ export default function OnboardingPage() {
                 <Card
                   key={option.role}
                   className={`cursor-pointer transition-all hover:shadow-md ${
-                    selectedRole === option.role
-                      ? 'ring-2 ring-green-500 bg-green-50'
-                      : ''
+                    selectedRole === option.role ? 'bg-green-50 ring-2 ring-green-500' : ''
                   }`}
                   onClick={() => setSelectedRole(option.role)}
                 >
                   <CardContent className="flex items-center gap-4 p-4">
-                    <div className={`p-3 rounded-lg text-white ${option.color}`}>
-                      {option.icon}
-                    </div>
+                    <div className={`rounded-lg p-3 text-white ${option.color}`}>{option.icon}</div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{option.title}</h3>
                       <p className="text-sm text-gray-600">{option.description}</p>
                     </div>
                     <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
                         selectedRole === option.role
                           ? 'border-green-500 bg-green-500'
                           : 'border-gray-300'
                       }`}
                     >
-                      {selectedRole === option.role && (
-                        <Check className="h-4 w-4 text-white" />
-                      )}
+                      {selectedRole === option.role && <Check className="h-4 w-4 text-white" />}
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
-            <Button
-              onClick={handleNext}
-              disabled={!selectedRole}
-              className="w-full"
-            >
+            <Button onClick={handleNext} disabled={!selectedRole} className="w-full">
               Continue
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -343,18 +333,14 @@ export default function OnboardingPage() {
         {step === 'profile' && (
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Tell us about yourself
-              </h1>
-              <p className="text-gray-600 mt-2">
-                This helps us personalize your experience
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900">Tell us about yourself</h1>
+              <p className="mt-2 text-gray-600">This helps us personalize your experience</p>
             </div>
 
             <Card>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Full Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -366,7 +352,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Email (optional)
                   </label>
                   <Input
@@ -388,11 +374,7 @@ export default function OnboardingPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button
-                onClick={handleNext}
-                disabled={!formData.name}
-                className="flex-1"
-              >
+              <Button onClick={handleNext} disabled={!formData.name} className="flex-1">
                 Continue
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -403,16 +385,14 @@ export default function OnboardingPage() {
         {step === 'location' && (
           <div className="space-y-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Where are you located?
-              </h1>
-              <p className="text-gray-600 mt-2">
+              <h1 className="text-2xl font-bold text-gray-900">Where are you located?</h1>
+              <p className="mt-2 text-gray-600">
                 We&apos;ll show you equipment and services nearby
               </p>
             </div>
 
             <Card>
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <Button
                   variant="outline"
                   onClick={handleGetLocation}
@@ -428,14 +408,12 @@ export default function OnboardingPage() {
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">
-                      Or enter manually
-                    </span>
+                    <span className="bg-white px-2 text-gray-500">Or enter manually</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Address <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -447,9 +425,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Pincode
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Pincode</label>
                   <Input
                     name="pincode"
                     value={formData.pincode}
@@ -460,7 +436,7 @@ export default function OnboardingPage() {
                 </div>
 
                 {formData.latitude !== 0 && formData.longitude !== 0 && (
-                  <p className="text-xs text-green-600 flex items-center gap-1">
+                  <p className="flex items-center gap-1 text-xs text-green-600">
                     <Check className="h-3 w-3" />
                     Location coordinates captured
                   </p>

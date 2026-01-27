@@ -1,1 +1,42 @@
 Adding and committing local changes...
+[main 5c7816f] Local update
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+Fetching...
+From https://github.com/preetam-90/Agrkserve
+ * branch            main       -> FETCH_HEAD
+Merging...
+Auto-merging src/app/admin/bookings/page.tsx
+CONFLICT (add/add): Merge conflict in src/app/admin/bookings/page.tsx
+Auto-merging src/app/admin/equipment/page.tsx
+CONFLICT (add/add): Merge conflict in src/app/admin/equipment/page.tsx
+Auto-merging src/app/admin/users/page.tsx
+CONFLICT (add/add): Merge conflict in src/app/admin/users/page.tsx
+Auto-merging src/app/layout.tsx
+Auto-merging src/app/messages/page.tsx
+CONFLICT (add/add): Merge conflict in src/app/messages/page.tsx
+Auto-merging src/components/landing/CTASection.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/CTASection.tsx
+Auto-merging src/components/landing/FeaturedEquipmentSection.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/FeaturedEquipmentSection.tsx
+Auto-merging src/components/landing/HeroSection.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/HeroSection.tsx
+Auto-merging src/components/landing/HowItWorksSection.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/HowItWorksSection.tsx
+Auto-merging src/components/landing/PremiumFooter.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/PremiumFooter.tsx
+Auto-merging src/components/landing/PremiumHeader.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/PremiumHeader.tsx
+Auto-merging src/components/landing/StatsSection.tsx
+CONFLICT (add/add): Merge conflict in src/components/landing/StatsSection.tsx
+Auto-merging src/components/system-pages/ErrorPageTemplate.tsx
+CONFLICT (add/add): Merge conflict in src/components/system-pages/ErrorPageTemplate.tsx
+Automatic merge failed; fix conflicts and then commit the result.
+Pushing...
+To https://github.com/preetam-90/Agrkserve.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/preetam-90/Agrkserve.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. If you want to integrate the remote changes,
+hint: use 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+Done.

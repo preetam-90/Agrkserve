@@ -26,15 +26,15 @@ export const authService = {
     if (password.length < 8) {
       throw new Error('Password must be at least 8 characters long');
     }
-    
+
     if (!/[A-Z]/.test(password)) {
       throw new Error('Password must contain at least one uppercase letter');
     }
-    
+
     if (!/[a-z]/.test(password)) {
       throw new Error('Password must contain at least one lowercase letter');
     }
-    
+
     if (!/[0-9]/.test(password)) {
       throw new Error('Password must contain at least one number');
     }
@@ -137,6 +137,7 @@ export const authService = {
   // Create or update user profile
   async upsertProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile | null> {
     try {
+      // First, upsert the profile
       const { data, error } = await supabase
         .from('user_profiles')
         .upsert({
@@ -154,6 +155,14 @@ export const authService = {
         }
         throw error;
       }
+
+      // If roles are provided, add them to user_roles table
+      if (profile.roles && Array.isArray(profile.roles)) {
+        for (const role of profile.roles) {
+          await this.addUserRole(userId, role as UserRole);
+        }
+      }
+
       return data;
     } catch (error: unknown) {
       const pgError = error as PostgresError;
@@ -205,7 +214,7 @@ export const authService = {
         }
         throw error;
       }
-      
+
       const roles = data?.map((r) => r.role as UserRole) || [];
       return roles.length > 0 ? roles : ['renter'];
     } catch (error: unknown) {
@@ -218,23 +227,34 @@ export const authService = {
     }
   },
 
-  // Add user role
+  // Add user role to user_roles table (with duplicate handling)
   async addUserRole(userId: string, role: UserRole): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role,
-          is_active: true,
-        });
+      const { error } = await supabase.from('user_roles').insert({
+        user_id: userId,
+        role: role,
+        is_active: true,
+      });
 
-      if (error && error.code !== '42P01') throw error;
-      if (error?.code === '42P01') {
-        console.warn('user_roles table does not exist yet');
+      if (error) {
+        // Ignore duplicate key errors (role already exists)
+        if (error.code === '23505') {
+          console.log(`Role ${role} already exists for user ${userId}`);
+          return;
+        }
+        if (error.code === '42P01') {
+          console.warn('user_roles table does not exist yet');
+          return;
+        }
+        throw error;
       }
     } catch (error: unknown) {
       const pgError = error as PostgresError;
+      // Ignore duplicate key errors
+      if (pgError.code === '23505') {
+        console.log(`Role ${role} already exists for user ${userId}`);
+        return;
+      }
       if (pgError.code === '42P01') {
         console.warn('user_roles table does not exist yet');
         return;
@@ -274,7 +294,9 @@ export const authService = {
 
   // Update user profile
   async updateProfile(profile: Partial<UserProfile>): Promise<UserProfile | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     // Validate phone number if provided

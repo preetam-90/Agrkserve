@@ -1,9 +1,8 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
-  // Port 3001 is enforced via package.json "dev" script and .npmrc
   images: {
     remotePatterns: [
       {

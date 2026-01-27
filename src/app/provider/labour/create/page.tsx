@@ -177,7 +177,7 @@ export default function CreateLabourProfilePage() {
 
     setIsSubmitting(true);
     try {
-      await labourService.create({
+      const result = await labourService.create({
         user_id: user.id,
         skills: formData.skills,
         experience_years: formData.experience_years,
@@ -192,11 +192,16 @@ export default function CreateLabourProfilePage() {
         service_radius_km: formData.service_radius_km,
       });
 
+      console.log('Profile created successfully:', result);
       toast.success('Labour profile created successfully!');
       router.push('/provider/labour');
     } catch (err) {
       console.error('Failed to create profile:', err);
-      toast.error('Failed to create profile');
+      console.error('Error details:', JSON.stringify(err, null, 2));
+      
+      // Show more specific error message
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create profile';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
