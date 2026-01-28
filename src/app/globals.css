@@ -172,8 +172,9 @@ body {
 }
 
 /* Smooth scrolling */
+/* Smooth scrolling handled by Lenis */
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth; */
 }
 
 /* Custom gradient text */

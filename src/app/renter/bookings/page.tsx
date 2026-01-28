@@ -233,7 +233,7 @@ export default function RenterBookingsPage() {
                 <p className="text-gray-600">Track and manage your equipment bookings</p>
               </div>
               <Button asChild>
-                <Link href="/renter/equipment">
+                <Link href="/equipment">
                   Book Equipment
                 </Link>
               </Button>
@@ -285,7 +285,7 @@ export default function RenterBookingsPage() {
                   action={
                     activeTab === 'all' && (
                       <Button asChild>
-                        <Link href="/renter/equipment">Browse Equipment</Link>
+                        <Link href="/equipment">Browse Equipment</Link>
                       </Button>
                     )
                   }

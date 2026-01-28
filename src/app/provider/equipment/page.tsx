@@ -289,7 +289,7 @@ export default function ProviderEquipmentPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="start">
                                   <DropdownMenuItem asChild>
-                                    <Link href={`/renter/equipment/${item.id}`}>
+                                    <Link href={`/equipment/${item.id}`}>
                                       <Eye className="h-4 w-4 mr-2" />
                                       View Listing
                                     </Link>

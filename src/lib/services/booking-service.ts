@@ -1,13 +1,14 @@
 import { createClient } from '@/lib/supabase/client';
-import type { 
-  Booking, 
-  BookingStatus, 
-  PaginatedResponse 
+import type {
+  Booking,
+  BookingStatus,
+  PaginatedResponse
 } from '@/lib/types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 import { calculateDaysBetween } from '@/lib/utils';
 import { notificationService } from './notification-service';
 import { auditLogService } from './audit-log-service';
+import { addDays, isSameDay, parseISO } from 'date-fns';
 
 const supabase = createClient();
 
@@ -24,7 +25,7 @@ export const bookingService = {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    
+
     // Fetch renter profile separately
     if (data && data.renter_id) {
       const { data: renter } = await supabase
@@ -34,7 +35,7 @@ export const bookingService = {
         .single();
       return { ...data, renter };
     }
-    
+
     return data;
   },
 
@@ -117,7 +118,7 @@ export const bookingService = {
         .from('user_profiles')
         .select('id, name, profile_image, phone')
         .in('id', renterIds);
-      
+
       const renterMap = new Map((renters || []).map(r => [r.id, r]));
       bookings.forEach(booking => {
         booking.renter = renterMap.get(booking.renter_id);
@@ -154,23 +155,72 @@ export const bookingService = {
     const { data, error } = await query.order('start_date', { ascending: true });
 
     if (error) throw error;
-    
+
     // Fetch renter profiles separately
     const bookings = data || [];
     if (bookings.length > 0) {
-      const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
-      const { data: renters } = await supabase
-        .from('user_profiles')
-        .select('id, name, profile_image')
-        .in('id', renterIds);
-      
-      const renterMap = new Map((renters || []).map(r => [r.id, r]));
-      bookings.forEach(booking => {
-        booking.renter = renterMap.get(booking.renter_id);
-      });
+      try {
+        const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+        const { data: renters } = await supabase
+          .from('user_profiles')
+          .select('id, name, profile_image')
+          .in('id', renterIds);
+
+        if (renters) {
+          const renterMap = new Map((renters || []).map(r => [r.id, r]));
+          bookings.forEach(booking => {
+            booking.renter = renterMap.get(booking.renter_id);
+          });
+        }
+      } catch (profileErr) {
+        console.warn('Failed to fetch renter profiles for equipment bookings:', profileErr);
+        // Don't throw, return bookings without renter info
+      }
     }
-    
+
     return bookings;
+  },
+
+  // Lightweight fetch for public availability preview
+  async getEquipmentAvailability(equipmentId: string): Promise<Date[]> {
+    console.log(`[bookingService] Fetching availability for: ${equipmentId}`);
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('id, start_date, end_date, status')
+      .eq('equipment_id', equipmentId)
+      .in('status', ['confirmed', 'approved', 'in_progress', 'pending']);
+
+    if (error) {
+      console.error('[bookingService] Supabase error:', error);
+      throw error;
+    }
+
+    console.log(`[bookingService] Raw bookings found: ${data?.length || 0}`);
+
+    const booked: Date[] = [];
+    data?.forEach(booking => {
+      if (!booking.start_date || !booking.end_date) return;
+
+      try {
+        const start = parseISO(booking.start_date);
+        const end = parseISO(booking.end_date);
+
+        let curr = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+        let safety = 0;
+        while (curr <= last && safety < 100) { // Safety cap
+          booked.push(new Date(curr));
+          curr.setDate(curr.getDate() + 1);
+          safety++;
+        }
+      } catch (e) {
+        console.error('[bookingService] Error parsing range:', e);
+      }
+    });
+
+    console.log(`[bookingService] Total expanded busy days: ${booked.length}`);
+    return booked;
   },
 
   // Create a new booking
@@ -205,7 +255,7 @@ export const bookingService = {
       .single();
 
     if (error) throw error;
-    
+
     // Fetch renter profile separately
     if (data && data.renter_id) {
       const { data: renter } = await supabase
@@ -215,7 +265,7 @@ export const bookingService = {
         .single();
       return { ...data, renter };
     }
-    
+
     return data;
   },
 
@@ -229,7 +279,7 @@ export const bookingService = {
   ): Promise<Booking> {
     const normalizedStatus = status === 'approved' ? 'confirmed'
       : status === 'rejected' ? 'cancelled'
-      : status;
+        : status;
 
     const updates: Record<string, unknown> = {
       status: normalizedStatus,
@@ -252,7 +302,7 @@ export const bookingService = {
       .single();
 
     if (error) throw error;
-    
+
     // Fetch renter profile separately
     if (data && data.renter_id) {
       const { data: renter } = await supabase
@@ -262,7 +312,7 @@ export const bookingService = {
         .single();
       return { ...data, renter };
     }
-    
+
     return data;
   },
 
@@ -313,7 +363,7 @@ export const bookingService = {
       .limit(limit);
 
     if (error) throw error;
-    
+
     // Fetch user profiles separately
     const bookings = data || [];
     if (bookings.length > 0) {
@@ -321,12 +371,12 @@ export const bookingService = {
         ...bookings.map(b => b.renter_id),
         ...bookings.map(b => b.equipment?.owner_id)
       ].filter(Boolean))];
-      
+
       const { data: users } = await supabase
         .from('user_profiles')
         .select('id, name, profile_image')
         .in('id', userIds);
-      
+
       const userMap = new Map((users || []).map(u => [u.id, u]));
       bookings.forEach(booking => {
         booking.renter = userMap.get(booking.renter_id);
@@ -335,7 +385,7 @@ export const bookingService = {
         }
       });
     }
-    
+
     return bookings;
   },
 
@@ -352,7 +402,7 @@ export const bookingService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
+
     // Fetch renter profiles separately
     const bookings = data || [];
     if (bookings.length > 0) {
@@ -361,13 +411,13 @@ export const bookingService = {
         .from('user_profiles')
         .select('id, name, profile_image, phone')
         .in('id', renterIds);
-      
+
       const renterMap = new Map((renters || []).map(r => [r.id, r]));
       bookings.forEach(booking => {
         booking.renter = renterMap.get(booking.renter_id);
       });
     }
-    
+
     return bookings;
   },
 
@@ -429,7 +479,7 @@ export const bookingService = {
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
-    
+
     // Fetch renter profile separately if booking exists
     if (data && data.renter_id) {
       const { data: renter } = await supabase
@@ -439,7 +489,7 @@ export const bookingService = {
         .single();
       return { ...data, renter };
     }
-    
+
     return data;
   },
 
@@ -507,15 +557,15 @@ export const bookingService = {
       .single();
 
     if (error) throw error;
-    
+
     // Create notification for renter (optional - won't fail if notification service fails)
     if (data.renter_id) {
       try {
         const title = status === 'confirmed' ? 'Booking Confirmed' : 'Booking Updated';
-        const body = status === 'confirmed' 
+        const body = status === 'confirmed'
           ? 'Your equipment booking has been confirmed by the provider.'
           : `Your booking status has been updated to ${status}.`;
-        
+
         await notificationService.create({
           user_id: data.renter_id,
           title,
@@ -528,7 +578,7 @@ export const bookingService = {
         // Continue execution - notification failure shouldn't block booking update
       }
     }
-    
+
     // Create audit log (optional - won't fail if audit log service fails)
     if (userId) {
       try {
@@ -549,7 +599,7 @@ export const bookingService = {
         // Continue execution - audit log failure shouldn't block booking update
       }
     }
-    
+
     return data;
   },
 
@@ -570,7 +620,7 @@ export const bookingService = {
       .single();
 
     if (error) throw error;
-    
+
     // Create notification for renter (optional)
     if (data?.renter_id) {
       try {
@@ -585,7 +635,7 @@ export const bookingService = {
         console.warn('Failed to create notification:', notificationError);
       }
     }
-    
+
     // Create audit log (optional)
     if (userId) {
       try {

@@ -67,7 +67,7 @@ export function FeaturedRentalsGallery({ equipment, isLoading }: FeaturedRentals
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="group"
               >
-                <Link href={`/renter/equipment/${item.id}`}>
+                <Link href={`/equipment/${item.id}`}>
                   <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:border-emerald-500/30">
                     {/* Image */}
                     <div className="relative aspect-video overflow-hidden">

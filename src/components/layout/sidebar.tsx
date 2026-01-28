@@ -32,7 +32,7 @@ interface SidebarProps {
 
 const renterNavItems = [
   { href: '/renter', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/renter/equipment', label: 'Find Equipment', icon: Search },
+  { href: '/equipment', label: 'Find Equipment', icon: Search },
   { href: '/renter/labour', label: 'Find Labour', icon: Users },
   { href: '/renter/bookings', label: 'My Bookings', icon: CalendarDays },
   { href: '/renter/labour/bookings', label: 'Labour Bookings', icon: CalendarDays },

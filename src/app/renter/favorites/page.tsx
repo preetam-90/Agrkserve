@@ -55,7 +55,7 @@ export default function FavoritesPage() {
           </p>
           <div className="flex gap-4">
             <Button asChild>
-              <Link href="/renter/equipment">Browse Equipment</Link>
+              <Link href="/equipment">Browse Equipment</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href="/renter/labour">Browse Labour</Link>

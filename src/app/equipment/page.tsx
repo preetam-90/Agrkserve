@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  Search, 
-  Tractor, 
+import {
+  Search,
+  Tractor,
   MapPin,
   Star,
   X,
@@ -19,16 +19,20 @@ import {
   IndianRupee,
   RefreshCw,
   Loader2,
-  Phone
+  Phone,
+  ChevronDown,
+  ChevronUp,
+  Settings2,
+  Zap
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
-import { 
-  Button, 
-  Input, 
-  Card, 
-  CardContent, 
-  Badge, 
-  Spinner, 
+import {
+  Button,
+  Input,
+  Card,
+  CardContent,
+  Badge,
+  Spinner,
   EmptyState,
   Select,
   SelectContent,
@@ -41,33 +45,179 @@ import {
   DialogTitle,
   Textarea,
 } from '@/components/ui';
-import { equipmentService } from '@/lib/services';
+import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { Equipment, EquipmentCategory } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { addDays, isSameDay, parseISO } from 'date-fns';
 
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const cache = new Map<string, { data: Equipment[]; count: number; timestamp: number }>();
 
-// Equipment Card Component with all features
-function EquipmentCard({ 
-  equipment, 
-  onMessage, 
+// Simple availability calendar dialog - moved outside to prevent re-mounting issues
+function AvailabilityCalendar({
+  isOpen,
+  onClose,
+  bookedDates,
+  isLoading,
+  equipmentName
+}: {
+  isOpen: boolean;
+  onClose: (open: boolean) => void;
+  bookedDates: Date[];
+  isLoading: boolean;
+  equipmentName: string;
+}) {
+  console.log(`[AvailabilityCalendar] Rendering ${equipmentName} with ${bookedDates.length} booked dates. Loading: ${isLoading}`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const daysInMonth = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth() + 1,
+    0
+  ).getDate();
+
+  const firstDayOfMonth = new Date(
+    currentMonth.getFullYear(),
+    currentMonth.getMonth(),
+    1
+  ).getDay();
+
+  const isBooked = (day: number) => {
+    if (!bookedDates.length) return false;
+    const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    checkDate.setHours(0, 0, 0, 0);
+
+    return bookedDates.some((booked) => {
+      const b = new Date(booked);
+      b.setHours(0, 0, 0, 0);
+      return b.getTime() === checkDate.getTime();
+    });
+  };
+
+  const isPast = (day: number) => {
+    const checkDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate < today;
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md bg-[#0a0a0a] border border-white/10 shadow-2xl p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="text-2xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Availability
+          </DialogTitle>
+          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">{equipmentName}</p>
+        </DialogHeader>
+
+        <div className="px-6 pb-8">
+          <div className="flex items-center justify-between mb-6 bg-white/5 p-2 rounded-2xl border border-white/5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+              className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <span className="font-black text-white tracking-tight">
+              {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+              className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center min-h-[250px] relative">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a]/50 backdrop-blur-[2px] z-20">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+              </div>
+            )}
+
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
+              <div key={day} className="text-[10px] font-black text-gray-600 pb-2">
+                {day}
+              </div>
+            ))}
+
+            {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-square" />
+            ))}
+
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1;
+              const past = isPast(day);
+              const booked = isBooked(day);
+
+              return (
+                <div
+                  key={day}
+                  className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all relative ${past
+                    ? 'text-gray-800'
+                    : booked
+                      ? 'bg-red-500/20 text-red-500 border border-red-500/40 line-through scale-95'
+                      : 'bg-white/5 text-emerald-400/90 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/10 cursor-pointer'
+                    }`}
+                >
+                  {day}
+                  {booked && (
+                    <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,1)] animate-pulse" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 flex items-center gap-4 justify-center">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-md bg-emerald-500/20 border border-emerald-500/30" />
+              <span className="text-[10px] font-bold uppercase text-gray-500">Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-md bg-red-500/20 border border-red-500/30" />
+              <span className="text-[10px] font-bold uppercase text-gray-500">Booked</span>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Equipment Card Component with dark theme and neon yellow accents
+function EquipmentCard({
+  equipment,
+  onMessage,
   onBook,
   isAuthenticated
-}: { 
-  equipment: Equipment; 
+}: {
+  equipment: Equipment;
   onMessage: (equipment: Equipment) => void;
   onBook: (equipment: Equipment) => void;
   isAuthenticated: boolean;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [isLoadingBooked, setIsLoadingBooked] = useState(false);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const images = equipment.images || [];
-  
+
   // Fetch booked dates for calendar
   useEffect(() => {
     if (showCalendar) {
@@ -76,22 +226,18 @@ function EquipmentCard({
   }, [showCalendar, equipment.id]);
 
   const fetchBookedDates = async () => {
+    setIsLoadingBooked(true);
     try {
-      // In a real app, this would fetch from the booking service
-      // For now, we'll simulate some booked dates
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      const booked: Date[] = [];
-      
-      // Simulate some random booked dates
-      for (let i = 0; i < 5; i++) {
-        const date = new Date(startOfMonth);
-        date.setDate(date.getDate() + Math.floor(Math.random() * 30));
-        booked.push(date);
-      }
-      setBookedDates(booked);
-    } catch (error) {
-      console.error('Failed to fetch booked dates:', error);
+      const bookedData = await bookingService.getEquipmentAvailability(equipment.id);
+      console.log(`[Calendar] ${equipment.name}: Found ${bookedData.length} occupied dates`);
+      setBookedDates(bookedData);
+    } catch (error: any) {
+      // Better error logging for Supabase objects
+      const detail = error?.message || error?.details || error?.code ||
+        (typeof error === 'object' ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : String(error));
+      console.error('[Calendar API Error]:', detail);
+    } finally {
+      setIsLoadingBooked(false);
     }
   };
 
@@ -125,286 +271,223 @@ function EquipmentCard({
     setShowCalendar(true);
   };
 
-  // Simple availability calendar component
-  const AvailabilityCalendar = () => {
-    const today = new Date();
-    const [currentMonth, setCurrentMonth] = useState(today);
-    
-    const daysInMonth = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      0
-    ).getDate();
-    
-    const firstDayOfMonth = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      1
-    ).getDay();
 
-    const isBooked = (day: number) => {
-      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      return bookedDates.some(
-        (booked) => booked.toDateString() === date.toDateString()
-      );
-    };
 
-    const isPast = (day: number) => {
-      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      return date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    };
 
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-
-    return (
-      <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Availability Calendar - {equipment.name}</DialogTitle>
-          </DialogHeader>
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="font-medium">
-                {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-7 gap-1 text-center text-sm">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="font-medium text-gray-500 py-2">
-                  {day}
-                </div>
-              ))}
-              
-              {/* Empty cells for days before first of month */}
-              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                <div key={`empty-${i}`} className="py-2" />
-              ))}
-              
-              {/* Days of the month */}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const past = isPast(day);
-                const booked = isBooked(day);
-                
-                return (
-                  <div
-                    key={day}
-                    className={`py-2 rounded-full text-sm ${
-                      past
-                        ? 'text-gray-300'
-                        : booked
-                        ? 'bg-red-100 text-red-600'
-                        : 'bg-green-100 text-green-600'
-                    }`}
-                  >
-                    {day}
-                  </div>
-                );
-              })}
-            </div>
-            
-            <div className="flex items-center gap-4 mt-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-green-100" />
-                <span>Available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-100" />
-                <span>Booked</span>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
 
   return (
     <>
-      <Card className="h-full hover:shadow-lg transition-all duration-300 overflow-hidden group">
-        {/* Image Gallery */}
-        <div className="aspect-[4/3] bg-gray-100 relative">
-          {images.length > 0 ? (
-            <>
-              <Image
-                src={images[currentImageIndex]}
-                alt={equipment.name}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              {/* Image navigation */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                  {/* Image indicators */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                    {images.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                        }`}
+      <div className="group perspective-1000">
+        <Link
+          href={`/equipment/${equipment.id}`}
+          className="block h-full"
+        >
+          <div className="relative h-full rounded-2xl overflow-hidden transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-2 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:translate-y-0">
+            {/* Animated gradient border glow */}
+            <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm motion-reduce:transition-none" />
+
+            {/* Glassmorphism card */}
+            <div className="relative bg-gradient-to-br from-[#1a1a1a]/90 to-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-xl group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] transition-shadow duration-500 h-full motion-reduce:transition-none">
+
+              {/* Image Gallery with parallax effect */}
+              <div className="aspect-[4/3] bg-gradient-to-br from-gray-900 to-gray-950 relative overflow-hidden">
+                {images.length > 0 ? (
+                  <>
+                    <div className="relative w-full h-full overflow-hidden">
+                      <Image
+                        src={images[currentImageIndex]}
+                        alt={equipment.name}
+                        fill
+                        className="object-cover transition-all duration-700 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                       />
-                    ))}
+                      {/* Holographic overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 mix-blend-overlay motion-reduce:transition-none" />
+                    </div>
+
+                    {/* Enhanced image navigation */}
+                    {images.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevImage}
+                          className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cyan-500/80 hover:scale-110 z-10 motion-reduce:transition-none"
+                          aria-label="Previous image"
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={nextImage}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cyan-500/80 hover:scale-110 z-10 motion-reduce:transition-none"
+                          aria-label="Next image"
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
+                        {/* Enhanced image indicators */}
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                          {images.map((_, index) => (
+                            <div
+                              key={index}
+                              className={`h-1.5 rounded-full transition-all duration-300 motion-reduce:transition-none ${index === currentImageIndex
+                                ? 'w-8 bg-gradient-to-r from-cyan-400 to-emerald-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]'
+                                : 'w-1.5 bg-white/40 hover:bg-white/60'
+                                }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Availability badge with glow */}
+                    <div className="absolute top-4 right-4 z-10">
+                      <div className={`px-3 py-1.5 rounded-full backdrop-blur-xl border ${equipment.is_available
+                        ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                        : 'bg-red-500/20 border-red-400/50 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                        }`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${equipment.is_available ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                          <span className="text-xs font-bold uppercase tracking-wide">
+                            {equipment.is_available ? 'Available' : 'Booked'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Category badge */}
+                    <div className="absolute top-4 left-4 z-10">
+                      <div className="px-3 py-1.5 rounded-full backdrop-blur-xl bg-black/40 border border-white/20 text-white/90">
+                        <span className="text-xs font-bold uppercase tracking-wide">
+                          {equipment.category || 'Equipment'}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-950">
+                    <Tractor className="h-16 w-16 text-gray-700/50" />
                   </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Tractor className="h-12 w-12 text-gray-300" />
-            </div>
-          )}
-          
-          {/* Availability Badge */}
-          {equipment.is_available ? (
-            <Badge className="absolute top-2 right-2" variant="success">
-              Available
-            </Badge>
-          ) : (
-            <Badge className="absolute top-2 right-2" variant="secondary">
-              Booked
-            </Badge>
-          )}
-        </div>
-        
-        <CardContent className="p-4">
-          {/* Owner Info */}
-          <Link 
-            href={`/user/${equipment.owner_id}`}
-            className="flex items-center gap-2 mb-3 hover:opacity-80 transition-opacity"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {equipment.owner?.profile_image ? (
-              <Image
-                src={equipment.owner.profile_image}
-                alt={equipment.owner.name || 'Owner'}
-                width={28}
-                height={28}
-                className="rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
-                <User className="h-4 w-4 text-gray-500" />
+                )}
               </div>
-            )}
-            <span className="text-sm text-gray-600 truncate hover:text-green-600">
-              {equipment.owner?.name || 'Equipment Owner'}
-            </span>
-          </Link>
-          
-          {/* Equipment Name */}
-          <Link href={`/renter/equipment/${equipment.id}`}>
-            <h3 className="font-semibold text-gray-900 truncate hover:text-green-600 transition-colors">
-              {equipment.name}
-            </h3>
-          </Link>
-          
-          {/* Location */}
-          <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-            <MapPin className="h-3 w-3 flex-shrink-0" />
-            <span className="truncate">{equipment.location_name || 'Location not specified'}</span>
-          </p>
-          
-          {/* Price and Rating */}
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center">
-              <IndianRupee className="h-4 w-4 text-green-600" />
-              <span className="text-lg font-bold text-green-600">
-                {equipment.price_per_day}
-              </span>
-              <span className="text-sm text-gray-500">/day</span>
-            </div>
-            
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-medium">
-                {equipment.rating?.toFixed(1) || 'New'}
-              </span>
-              {equipment.review_count && equipment.review_count > 0 && (
-                <span className="text-xs text-gray-500">
-                  ({equipment.review_count})
-                </span>
-              )}
+
+              {/* Enhanced content section */}
+              <div className="p-5 flex flex-col flex-grow space-y-4">
+
+                {/* Equipment Name & Brand info */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    {equipment.brand && (
+                      <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">{equipment.brand}</span>
+                    )}
+                    {equipment.model && (
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{equipment.model}</span>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-emerald-400 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 line-clamp-2 motion-reduce:transition-none">
+                    {equipment.name}
+                  </h3>
+                </div>
+
+                {/* Specs Grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  {(equipment.year || equipment.horsepower) && (
+                    <>
+                      {equipment.year && (
+                        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 group-hover:border-white/10 transition-colors">
+                          <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-xs font-medium">{equipment.year}</span>
+                        </div>
+                      )}
+                      {equipment.horsepower && (
+                        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 group-hover:border-white/10 transition-colors">
+                          <Settings2 className="w-3.5 h-3.5 text-cyan-400" />
+                          <span className="text-xs font-medium">{equipment.horsepower} HP</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {equipment.fuel_type && (
+                    <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 group-hover:border-white/10 transition-colors ${(!equipment.year || !equipment.horsepower) ? 'col-span-1' : 'col-span-2'}`}>
+                      <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                      <span className="text-xs font-medium capitalize">{equipment.fuel_type}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Price with gradient background - showing both hourly and daily */}
+                <div className="space-y-2 mt-auto pt-2">
+                  {equipment.price_per_hour && (
+                    <div className="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 border border-purple-500/20">
+                      <IndianRupee className="h-4 w-4 text-purple-400" />
+                      <span className="text-xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                        {equipment.price_per_hour}
+                      </span>
+                      <span className="text-xs text-gray-400 font-medium">/hour</span>
+                    </div>
+                  )}
+                  <div className="inline-flex w-full items-baseline gap-1 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-teal-500/10 border border-cyan-500/20">
+                    <IndianRupee className="h-5 w-5 text-cyan-400" />
+                    <span className="text-3xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                      {equipment.price_per_day}
+                    </span>
+                    <span className="text-sm text-gray-400 font-medium">/day</span>
+                  </div>
+                </div>
+
+                {/* Location & Rating */}
+                <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <MapPin className="h-4 w-4 text-cyan-400" />
+                    <span className="text-sm font-medium truncate max-w-[120px]">{equipment.location_name || 'Location'}</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <span className="text-sm font-bold text-amber-400">
+                      {equipment.rating?.toFixed(1) || '5.0'}
+                    </span>
+                    {equipment.review_count && equipment.review_count > 0 && (
+                      <span className="text-xs text-gray-500">
+                        ({equipment.review_count})
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Floating action buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleBookClick}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 text-white font-bold text-sm uppercase tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transform hover:scale-[1.02] active:scale-95 transition-all duration-300 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                  >
+                    Book Now
+                  </button>
+                  <button
+                    onClick={handleCalendarClick}
+                    className="px-3 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:bg-white/10 hover:border-cyan-400/50 transform hover:scale-105 active:scale-95 transition-all duration-300 motion-reduce:transition-none"
+                    aria-label="View calendar"
+                  >
+                    <Calendar className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={handleMessageClick}
+                    className="px-3 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:bg-white/10 hover:border-emerald-400/50 transform hover:scale-105 active:scale-95 transition-all duration-300 motion-reduce:transition-none"
+                    aria-label="Send message"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {/* Category Badge */}
-          {equipment.category && (
-            <Badge variant="outline" className="mt-2">
-              {EQUIPMENT_CATEGORIES.find(c => c.value === equipment.category)?.label || equipment.category}
-            </Badge>
-          )}
-          
-          {/* Action Buttons */}
-          <div className="flex gap-2 mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={handleCalendarClick}
-            >
-              <Calendar className="h-4 w-4 mr-1" />
-              Calendar
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={handleMessageClick}
-              disabled={!isAuthenticated}
-              title={!isAuthenticated ? 'Login to message' : 'Message owner'}
-            >
-              <MessageCircle className="h-4 w-4 mr-1" />
-              Message
-            </Button>
-          </div>
-          
-          {/* Book Now Button */}
-          <Button
-            className="w-full mt-2"
-            onClick={handleBookClick}
-            disabled={!equipment.is_available}
-          >
-            {equipment.is_available ? 'Book Now' : 'Not Available'}
-          </Button>
-        </CardContent>
-      </Card>
-      
+        </Link>
+      </div>
+
       {/* Calendar Dialog */}
-      <AvailabilityCalendar />
+      <AvailabilityCalendar
+        isOpen={showCalendar}
+        onClose={setShowCalendar}
+        bookedDates={bookedDates}
+        isLoading={isLoadingBooked}
+        equipmentName={equipment.name}
+      />
     </>
   );
 }
@@ -414,10 +497,9 @@ function PublicEquipmentPageContent() {
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
   const supabase = createClient();
-  
-  // Derive authentication state from user
+
   const isAuthenticated = !!user;
-  
+
   // State
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -435,20 +517,44 @@ function PublicEquipmentPageContent() {
   const [hasMore, setHasMore] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
-  
+
+  // Sidebar state
+  const [showPriceFilter, setShowPriceFilter] = useState(true);
+  const [showBrandFilter, setShowBrandFilter] = useState(true);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const [brandSearch, setBrandSearch] = useState('');
+
   // Message dialog state
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [messageContent, setMessageContent] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
-  
-  // Ref for infinite scroll
+
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  
+
   const limit = 12;
 
-  // Generate cache key
+  // Extract unique brands from equipment
+  const brands = useMemo(() => {
+    const uniqueBrands = new Set<string>();
+    equipment.forEach(item => {
+      if (item.brand) {
+        uniqueBrands.add(item.brand);
+      }
+    });
+    return Array.from(uniqueBrands).sort();
+  }, [equipment]);
+
+  const visibleBrands = useMemo(() => {
+    let filtered = brands;
+    if (brandSearch) {
+      filtered = brands.filter(b => b.toLowerCase().includes(brandSearch.toLowerCase()));
+    }
+    return showAllBrands ? filtered : filtered.slice(0, 5);
+  }, [brands, showAllBrands, brandSearch]);
+
   const getCacheKey = useCallback(() => {
     return JSON.stringify({
       search: searchQuery,
@@ -457,15 +563,14 @@ function PublicEquipmentPageContent() {
       maxPrice: priceRange.max,
       minRating,
       sortBy,
+      brands: selectedBrands,
     });
-  }, [searchQuery, selectedCategory, priceRange, minRating, sortBy]);
+  }, [searchQuery, selectedCategory, priceRange, minRating, sortBy, selectedBrands]);
 
-  // Load equipment with caching
   const loadEquipment = useCallback(async (pageNum: number = 1, append: boolean = false) => {
     const cacheKey = getCacheKey();
     const now = Date.now();
-    
-    // Check cache (only for first page and not appending)
+
     if (pageNum === 1 && !append) {
       const cached = cache.get(cacheKey);
       if (cached && (now - cached.timestamp) < CACHE_TTL) {
@@ -493,13 +598,12 @@ function PublicEquipmentPageContent() {
         page: pageNum,
         limit,
       });
-      
+
       const newEquipment = append ? [...equipment, ...result.data] : result.data;
       setEquipment(newEquipment);
       setTotalCount(result.count);
       setHasMore(newEquipment.length < result.count);
-      
-      // Update cache for first page
+
       if (pageNum === 1 && !append) {
         cache.set(cacheKey, {
           data: result.data,
@@ -508,12 +612,10 @@ function PublicEquipmentPageContent() {
         });
       }
     } catch (err: unknown) {
-      // Handle Supabase errors which might come as empty objects
-      const errorMessage = err instanceof Error 
-        ? err.message 
+      const errorMessage = err instanceof Error
+        ? err.message
         : (err as { message?: string })?.message || 'Unknown error occurred';
       console.error('Failed to load equipment:', errorMessage, err);
-      // Set empty state on error so UI doesn't stay in loading state
       if (!append) {
         setEquipment([]);
         setTotalCount(0);
@@ -524,14 +626,12 @@ function PublicEquipmentPageContent() {
     }
   }, [getCacheKey, searchQuery, selectedCategory, priceRange, minRating, equipment]);
 
-  // Initial load and filter changes
   useEffect(() => {
     setPage(1);
     loadEquipment(1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, sortBy, minRating]);
+  }, [selectedCategory, sortBy, minRating, selectedBrands]);
 
-  // Real-time subscription for new equipment
   useEffect(() => {
     const channel = supabase
       .channel('equipment-changes')
@@ -543,9 +643,7 @@ function PublicEquipmentPageContent() {
           table: 'equipment',
         },
         () => {
-          // Auto-refresh when new equipment is added
           setIsAutoRefreshing(true);
-          // Clear cache to get fresh data
           cache.clear();
           loadEquipment(1, false).then(() => {
             setIsAutoRefreshing(false);
@@ -560,7 +658,6 @@ function PublicEquipmentPageContent() {
     };
   }, [supabase, loadEquipment]);
 
-  // Infinite scroll observer
   useEffect(() => {
     if (observerRef.current) {
       observerRef.current.disconnect();
@@ -599,17 +696,13 @@ function PublicEquipmentPageContent() {
     setPage(1);
   };
 
-  const handleSortChange = (value: string) => {
-    setSortBy(value);
-    setPage(1);
-  };
-
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('all');
     setPriceRange({ min: '', max: '' });
     setMinRating(0);
     setSortBy('newest');
+    setSelectedBrands([]);
     setPage(1);
   };
 
@@ -634,25 +727,19 @@ function PublicEquipmentPageContent() {
       router.push('/login?redirect=/equipment');
       return;
     }
-    router.push(`/renter/equipment/${eq.id}/book`);
+    router.push(`/equipment/${eq.id}/book`);
   };
 
   const sendMessage = async () => {
     if (!selectedEquipment || !messageContent.trim() || !user) return;
-    
+
     setIsSendingMessage(true);
     try {
-      // In a real implementation, this would create/get a conversation and send the message
-      // For now, we'll show a success state
-      // await messageService.sendDirectMessage(selectedEquipment.owner_id, messageContent);
-      
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setShowMessageDialog(false);
       setMessageContent('');
       setSelectedEquipment(null);
-      // Show success toast/notification
       alert('Message sent successfully!');
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -662,408 +749,348 @@ function PublicEquipmentPageContent() {
     }
   };
 
-  const hasActiveFilters = searchQuery || (selectedCategory && selectedCategory !== 'all') || priceRange.min || priceRange.max || minRating > 0;
+  const toggleBrand = (brand: string) => {
+    setSelectedBrands(prev =>
+      prev.includes(brand)
+        ? prev.filter(b => b !== brand)
+        : [...prev, brand]
+    );
+  };
+
+  const hasActiveFilters = searchQuery || (selectedCategory && selectedCategory !== 'all') || priceRange.min || priceRange.max || minRating > 0 || selectedBrands.length > 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
       <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* Page Header */}
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+      <main className="max-w-[1600px] mx-auto px-4 py-8">
+        {/* Enhanced Page Header with gradient text */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                Agricultural Equipment
+              <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent mb-3">
+                Premium Equipment
               </h1>
-              <p className="text-gray-600 mt-1">
-                Find and rent farming equipment from local providers
-              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Link href="/" className="hover:text-cyan-400 transition-colors">Home</Link>
+                <span>›</span>
+                <span className="text-white font-medium">Equipment</span>
+              </div>
             </div>
-            
-            {/* Auto-refresh indicator */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              {isAutoRefreshing && (
-                <div className="flex items-center gap-1 text-green-600">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Refreshing...</span>
-                </div>
-              )}
-              <button
-                onClick={handleManualRefresh}
-                className="flex items-center gap-1 hover:text-green-600 transition-colors"
-                title="Refresh listings"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="hidden sm:inline">
-                  Last updated: {lastRefresh.toLocaleTimeString()}
-                </span>
-              </button>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border border-cyan-500/20">
+                <SlidersHorizontal className="h-4 w-4 text-cyan-400" />
+                <span className="text-sm font-medium text-white">Top Rated</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <form onSubmit={handleSearch} className="flex flex-col gap-3">
-            {/* Search row */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search equipment by name or description..."
-                  className="pl-10"
-                />
-              </div>
-              <Button type="submit">
-                <Search className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Search</span>
-              </Button>
-            </div>
-            
-            {/* Filters row */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {EQUIPMENT_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.icon} {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-full sm:w-44">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select 
-                value={minRating.toString()} 
-                onValueChange={(v) => setMinRating(Number(v))}
+        {/* Category Tabs */}
+        <div className="mb-6 border-b border-gray-800">
+          <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-hide">
+            <button
+              onClick={() => handleCategoryChange('all')}
+              className={`text-sm whitespace-nowrap pb-3 border-b-2 transition-colors ${selectedCategory === 'all'
+                ? 'border-[#DFFF00] text-[#DFFF00]'
+                : 'border-transparent text-gray-400 hover:text-white'
+                }`}
+            >
+              All Items
+            </button>
+            {EQUIPMENT_CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => handleCategoryChange(cat.value)}
+                className={`text-sm whitespace-nowrap pb-3 border-b-2 transition-colors ${selectedCategory === cat.value
+                  ? 'border-[#DFFF00] text-[#DFFF00]'
+                  : 'border-transparent text-gray-400 hover:text-white'
+                  }`}
               >
-                <SelectTrigger className="w-full sm:w-36">
-                  <SelectValue placeholder="Any Rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Any Rating</SelectItem>
-                  <SelectItem value="4">4+ Stars</SelectItem>
-                  <SelectItem value="3">3+ Stars</SelectItem>
-                  <SelectItem value="2">2+ Stars</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setShowFilters(true)}
-                className="sm:w-auto"
-              >
-                <SlidersHorizontal className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">More Filters</span>
-              </Button>
-            </div>
-          </form>
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-          {/* Active Filters */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t">
-              <span className="text-sm text-gray-500">Active filters:</span>
-              {searchQuery && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  Search: {searchQuery}
-                  <button onClick={() => setSearchQuery('')} aria-label="Remove search filter">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedCategory && selectedCategory !== 'all' && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  {EQUIPMENT_CATEGORIES.find(c => c.value === selectedCategory)?.icon}{' '}
-                  {EQUIPMENT_CATEGORIES.find(c => c.value === selectedCategory)?.label}
-                  <button onClick={() => setSelectedCategory('all')} aria-label="Remove category filter">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {(priceRange.min || priceRange.max) && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  ₹{priceRange.min || '0'} - ₹{priceRange.max || '∞'}
-                  <button onClick={() => setPriceRange({ min: '', max: '' })} aria-label="Remove price filter">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {minRating > 0 && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  {minRating}+ Stars
-                  <button onClick={() => setMinRating(0)} aria-label="Remove rating filter">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
+        {/* Main Content - Sidebar + Grid */}
+        <div className="flex gap-6">
+          {/* Enhanced Glassmorphism Sidebar Filters */}
+          <aside className="hidden lg:block w-72 flex-shrink-0">
+            <div className="sticky top-6 space-y-4">
+              {/* Reset Filters with gradient */}
               <button
                 onClick={clearFilters}
-                className="text-sm text-red-600 hover:underline"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-500/20 text-red-400 rounded-xl hover:from-red-500/20 hover:to-pink-500/20 hover:border-red-500/40 transition-all duration-300 font-bold text-sm uppercase tracking-wide motion-reduce:transition-none"
               >
-                Clear all
+                <X className="h-4 w-4" />
+                <span>Reset filters</span>
               </button>
-            </div>
-          )}
-        </div>
 
-        {/* Results Count */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-gray-600">
-            {isLoading ? 'Loading...' : `${totalCount} equipment found`}
-          </p>
-          {!isAuthenticated && (
-            <p className="text-sm text-gray-500">
-              <Link href="/login" className="text-green-600 hover:underline">
-                Login
-              </Link>{' '}
-              to message owners and book equipment
-            </p>
-          )}
-        </div>
-
-        {/* Equipment Grid */}
-        {isLoading && page === 1 ? (
-          <div className="flex justify-center py-12">
-            <Spinner size="lg" />
-          </div>
-        ) : equipment.length === 0 ? (
-          <EmptyState
-            icon={<Tractor className="h-12 w-12" />}
-            title="No equipment found"
-            description={
-              hasActiveFilters
-                ? "Try adjusting your filters or search query"
-                : "There's no equipment listed yet. Check back later!"
-            }
-            action={
-              hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              )
-            }
-          />
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {equipment.map((item) => (
-                <EquipmentCard
-                  key={item.id}
-                  equipment={item}
-                  onMessage={handleMessage}
-                  onBook={handleBook}
-                  isAuthenticated={isAuthenticated}
-                />
-              ))}
-            </div>
-
-            {/* Lazy load trigger */}
-            <div ref={loadMoreRef} className="py-8 flex justify-center">
-              {isLoadingMore && (
-                <div className="flex items-center gap-2">
-                  <Spinner size="sm" />
-                  <span className="text-gray-500">Loading more...</span>
-                </div>
-              )}
-              {!hasMore && equipment.length > 0 && (
-                <p className="text-gray-500">You&apos;ve reached the end of the list</p>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Filter Dialog */}
-        <Dialog open={showFilters} onOpenChange={setShowFilters}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Filter Equipment</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {EQUIPMENT_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.icon} {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price Range (per day)
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Min"
-                    value={priceRange.min}
-                    onChange={(e) => setPriceRange(p => ({ ...p, min: e.target.value }))}
-                  />
-                  <span className="flex items-center text-gray-500">to</span>
-                  <Input
-                    type="number"
-                    placeholder="Max"
-                    value={priceRange.max}
-                    onChange={(e) => setPriceRange(p => ({ ...p, max: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Minimum Rating
-                </label>
-                <Select 
-                  value={minRating.toString()} 
-                  onValueChange={(v) => setMinRating(Number(v))}
+              {/* Price Filter with glassmorphism */}
+              <div className="bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xl">
+                <button
+                  onClick={() => setShowPriceFilter(!showPriceFilter)}
+                  className="w-full flex items-center justify-between text-white font-bold mb-4 hover:text-cyan-400 transition-colors motion-reduce:transition-none"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Any Rating</SelectItem>
-                    <SelectItem value="4">4+ Stars</SelectItem>
-                    <SelectItem value="3">3+ Stars</SelectItem>
-                    <SelectItem value="2">2+ Stars</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <span className="text-lg">Price Range</span>
+                  {showPriceFilter ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+
+                {showPriceFilter && (
+                  <div className="space-y-3">
+                    <Input
+                      type="number"
+                      placeholder="Min price"
+                      value={priceRange.min}
+                      onChange={(e) => setPriceRange(p => ({ ...p, min: e.target.value }))}
+                      className="bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50 rounded-xl"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Max price"
+                      value={priceRange.max}
+                      onChange={(e) => setPriceRange(p => ({ ...p, max: e.target.value }))}
+                      className="bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50 rounded-xl"
+                    />
+                    <Button
+                      onClick={() => loadEquipment(1, false)}
+                      className="w-full bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 text-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] font-bold uppercase tracking-wide transition-all duration-300 rounded-xl motion-reduce:transition-none"
+                    >
+                      Apply Filter
+                    </Button>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Sort By
-                </label>
-                <Select value={sortBy} onValueChange={handleSortChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                    <SelectItem value="rating">Highest Rated</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Brand Filter with glassmorphism */}
+              <div className="bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xl">
+                <button
+                  onClick={() => setShowBrandFilter(!showBrandFilter)}
+                  className="w-full flex items-center justify-between text-white font-bold mb-4 hover:text-cyan-400 transition-colors motion-reduce:transition-none"
+                >
+                  <span className="text-lg">Brand</span>
+                  {showBrandFilter ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+
+                {showBrandFilter && (
+                  <div className="space-y-2">
+                    <div className="relative mb-3">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400" />
+                      <Input
+                        placeholder="Search brands"
+                        value={brandSearch}
+                        onChange={(e) => setBrandSearch(e.target.value)}
+                        className="pl-10 bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      {visibleBrands.length > 0 ? (
+                        visibleBrands.map((brand) => (
+                          <label
+                            key={brand}
+                            className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2.5 rounded-lg transition-colors motion-reduce:transition-none"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedBrands.includes(brand)}
+                              onChange={() => toggleBrand(brand)}
+                              className="w-4 h-4 rounded border-cyan-500/30 bg-black/40 text-cyan-500 focus:ring-cyan-400 focus:ring-offset-0"
+                            />
+                            <span className="text-sm text-gray-300 font-medium">{brand}</span>
+                          </label>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 px-2">No brands found</p>
+                      )}
+                    </div>
+                    {!brandSearch && brands.length > 5 && (
+                      <button
+                        onClick={() => setShowAllBrands(!showAllBrands)}
+                        className="w-full text-xs font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest py-2 hover:bg-cyan-500/10 rounded-lg transition-colors mt-2"
+                      >
+                        {showAllBrands ? 'Show Less' : `Show More (${brands.length - 5})`}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={clearFilters} className="flex-1">
-                Clear All
-              </Button>
-              <Button 
-                onClick={() => { 
-                  loadEquipment(1, false); 
-                  setShowFilters(false); 
-                }} 
-                className="flex-1"
-              >
-                Apply Filters
-              </Button>
+          </aside>
+
+          {/* Equipment Grid */}
+          <div className="flex-1">
+            {/* Enhanced Search Bar with glassmorphism */}
+            <form onSubmit={handleSearch} className="mb-8">
+              <div className="relative group">
+                <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 rounded-2xl opacity-0 group-focus-within:opacity-100 blur-sm transition-opacity duration-300 motion-reduce:transition-none" />
+                <div className="relative bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-cyan-400" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search premium equipment..."
+                    className="pl-14 pr-4 bg-transparent border-0 text-white placeholder:text-gray-500 h-14 text-base focus:ring-0 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </form>
+
+            {/* Results Count */}
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-gray-400">
+                {isLoading ? 'Loading...' : `${totalCount} equipment found`}
+              </p>
+              {!isAuthenticated && (
+                <p className="text-sm text-gray-500">
+                  <Link href="/login" className="text-[#DFFF00] hover:underline">
+                    Login
+                  </Link>{' '}
+                  to book equipment
+                </p>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
+
+            {/* Equipment Grid with enhanced loading */}
+            {isLoading && page === 1 ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 animate-pulse">
+                    <div className="aspect-[4/3] bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                    </div>
+                    <div className="p-5 space-y-4">
+                      <div className="h-10 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl w-32" />
+                      <div className="h-6 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg w-full" />
+                      <div className="h-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg w-3/4" />
+                      <div className="flex gap-2">
+                        <div className="flex-1 h-12 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl" />
+                        <div className="h-12 w-12 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl" />
+                        <div className="h-12 w-12 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : equipment.length === 0 ? (
+              <EmptyState
+                icon={<Tractor className="h-12 w-12" />}
+                title="No equipment found"
+                description={
+                  hasActiveFilters
+                    ? 'Try adjusting your filters or search query'
+                    : "There's no equipment listed yet. Check back later!"
+                }
+                action={
+                  hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters}>
+                      Clear Filters
+                    </Button>
+                  )
+                }
+              />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {equipment.map((item) => (
+                    <EquipmentCard
+                      key={item.id}
+                      equipment={item}
+                      onMessage={handleMessage}
+                      onBook={handleBook}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  ))}
+                </div>
+
+                {/* Lazy load trigger */}
+                <div ref={loadMoreRef} className="flex justify-center py-8">
+                  {isLoadingMore && (
+                    <div className="flex items-center gap-2">
+                      <Spinner size="sm" />
+                      <span className="text-gray-500">Loading more...</span>
+                    </div>
+                  )}
+                  {!hasMore && equipment.length > 0 && (
+                    <p className="text-gray-500">You&apos;ve reached the end of the list</p>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Message Dialog */}
         <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-          <DialogContent>
+          <DialogContent className="bg-[#1a1a1a] border-gray-800">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-white">
                 Message to {selectedEquipment?.owner?.name || 'Equipment Owner'}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {selectedEquipment && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden">
+                <div className="flex items-center gap-3 rounded-lg bg-[#0a0a0a] p-3">
+                  <div className="h-12 w-12 overflow-hidden rounded-lg bg-gray-800">
                     {selectedEquipment.images?.[0] ? (
                       <Image
                         src={selectedEquipment.images[0]}
                         alt={selectedEquipment.name}
                         width={48}
                         height={48}
-                        className="object-cover w-full h-full"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Tractor className="h-6 w-6 text-gray-400" />
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Tractor className="h-6 w-6 text-gray-600" />
                       </div>
                     )}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{selectedEquipment.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-white">{selectedEquipment.name}</p>
+                    <p className="text-sm text-gray-400">
                       {formatCurrency(selectedEquipment.price_per_day)}/day
                     </p>
                   </div>
                 </div>
               )}
-              
+
               <Textarea
                 placeholder="Hi, I'm interested in renting this equipment. Is it available for..."
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
                 rows={4}
+                className="bg-[#0a0a0a] border-gray-700 text-white placeholder:text-gray-500"
               />
-              
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+
+              <div className="flex items-center gap-2 text-sm text-gray-400">
                 <Phone className="h-4 w-4" />
-                <span>
-                  Or call: {selectedEquipment?.owner?.phone || 'Not available'}
-                </span>
+                <span>Or call: {selectedEquipment?.owner?.phone || 'Not available'}</span>
               </div>
             </div>
-            
+
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowMessageDialog(false)} 
-                className="flex-1"
+              <Button
+                variant="outline"
+                onClick={() => setShowMessageDialog(false)}
+                className="flex-1 bg-transparent border-gray-700 text-white hover:bg-gray-800"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={sendMessage}
                 disabled={!messageContent.trim() || isSendingMessage}
-                className="flex-1"
+                className="flex-1 bg-[#DFFF00] text-black hover:bg-[#DFFF00]/90"
               >
                 {isSendingMessage ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <MessageCircle className="h-4 w-4 mr-2" />
+                    <MessageCircle className="mr-2 h-4 w-4" />
                     Send Message
                   </>
                 )}
@@ -1080,7 +1107,7 @@ function PublicEquipmentPageContent() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Spinner /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><Spinner size="lg" /></div>}>
       <PublicEquipmentPageContent />
     </Suspense>
   );

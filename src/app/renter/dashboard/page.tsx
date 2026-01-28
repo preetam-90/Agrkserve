@@ -108,7 +108,7 @@ export default function RenterDashboard() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    window.location.href = `/renter/equipment?search=${encodeURIComponent(searchQuery)}`;
+    window.location.href = `/equipment?search=${encodeURIComponent(searchQuery)}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -155,7 +155,7 @@ export default function RenterDashboard() {
               </div>
               <Button type="submit">Search</Button>
               <Button variant="outline" asChild>
-                <Link href="/renter/equipment?filter=true">
+                <Link href="/equipment?filter=true">
                   <Filter className="h-4 w-4" />
                 </Link>
               </Button>
@@ -216,7 +216,7 @@ export default function RenterDashboard() {
               <h2 className="text-lg font-semibold text-gray-900">Browse Services</h2>
             </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <Link href="/renter/equipment">
+              <Link href="/equipment">
                 <Card className="hover:shadow-lg hover:border-teal-500 transition-all cursor-pointer">
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 rounded-lg bg-teal-100">
@@ -249,7 +249,7 @@ export default function RenterDashboard() {
               {EQUIPMENT_CATEGORIES.slice(0, 8).map((category) => (
                 <Link
                   key={category.value}
-                  href={`/renter/equipment?category=${category.value}`}
+                  href={`/equipment?category=${category.value}`}
                   className="flex flex-col items-center p-3 bg-white rounded-lg border hover:border-green-500 hover:shadow-sm transition-all"
                 >
                   <span className="text-2xl mb-1">{category.icon}</span>
@@ -339,7 +339,7 @@ export default function RenterDashboard() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Available Near You</h2>
-              <Link href="/renter/equipment" className="text-sm text-green-600 hover:underline flex items-center">
+              <Link href="/equipment" className="text-sm text-green-600 hover:underline flex items-center">
                 View All <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
@@ -355,14 +355,14 @@ export default function RenterDashboard() {
                 description="There's no equipment available in your area yet. Try expanding your search."
                 action={
                   <Button asChild>
-                    <Link href="/renter/equipment">Browse All Equipment</Link>
+                    <Link href="/equipment">Browse All Equipment</Link>
                   </Button>
                 }
               />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {nearbyEquipment.map((equipment) => (
-                  <Link key={equipment.id} href={`/renter/equipment/${equipment.id}`}>
+                  <Link key={equipment.id} href={`/equipment/${equipment.id}`}>
                     <Card className="h-full hover:shadow-lg transition-shadow overflow-hidden">
                       <div className="aspect-[4/3] bg-gray-100 relative">
                         {equipment.images?.[0] ? (

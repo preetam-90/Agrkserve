@@ -257,7 +257,7 @@ function BookingDetailPageContent() {
                       {equipment?.description?.slice(0, 100)}...
                     </p>
                     <Link 
-                      href={`/renter/equipment/${booking.equipment_id}`}
+                      href={`/equipment/${booking.equipment_id}`}
                       className="text-sm text-green-600 hover:underline mt-2 inline-block"
                     >
                       View Equipment →

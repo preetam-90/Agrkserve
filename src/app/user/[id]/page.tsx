@@ -274,7 +274,7 @@ export default function PublicUserProfilePage() {
                     const category = EQUIPMENT_CATEGORIES.find(c => c.value === item.category);
                     
                     return (
-                      <Link key={item.id} href={`/renter/equipment/${item.id}`}>
+                      <Link key={item.id} href={`/equipment/${item.id}`}>
                         <Card className="hover:shadow-lg transition-shadow h-full">
                           {/* Equipment Image */}
                           <div className="aspect-[4/3] bg-gray-100 relative">

@@ -174,7 +174,7 @@ export function FeaturedEquipmentSection({ equipment, isLoading }: FeaturedEquip
                   onMouseLeave={() => setHoveredId(null)}
                   className="min-w-[380px] md:min-w-[420px] snap-start"
                 >
-                  <Link href={`/renter/equipment/${item.id}`} className="block group">
+                  <Link href={`/equipment/${item.id}`} className="block group">
                     <div className="relative h-[700px] rounded-[2rem] overflow-hidden bg-zinc-950 transition-all duration-700 group-hover:scale-[1.02]">
 
                       {/* Animated Gradient Border */}
