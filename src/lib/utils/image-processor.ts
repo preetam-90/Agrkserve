@@ -1,6 +1,11 @@
 import sharp from 'sharp';
 import { DEFAULT_IMAGE_CONFIG, type ImageUploadConfig } from '@/lib/types/media';
 
+interface ImageFile {
+  mimetype: string;
+  size: number;
+}
+
 /**
  * Process and optimize an image
  * - Resizes to max width while maintaining aspect ratio
@@ -12,12 +17,12 @@ export async function processImage(
   config: Partial<ImageUploadConfig> = {}
 ): Promise<Buffer> {
   const finalConfig = { ...DEFAULT_IMAGE_CONFIG, ...config };
-  
+
   let pipeline = sharp(buffer);
 
   // Get image metadata
   const metadata = await pipeline.metadata();
-  
+
   // Resize if image is wider than max width
   if (metadata.width && metadata.width > finalConfig.maxWidth) {
     pipeline = pipeline.resize(finalConfig.maxWidth, null, {
@@ -52,9 +57,9 @@ export async function getImageMetadata(buffer: Buffer) {
 /**
  * Validate image file
  */
-export function validateImage(file: Express.Multer.File): { valid: boolean; error?: string } {
+export function validateImage(file: ImageFile): { valid: boolean; error?: string } {
   const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-  
+
   if (!allowedMimeTypes.includes(file.mimetype)) {
     return {
       valid: false,

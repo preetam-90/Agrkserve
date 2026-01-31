@@ -352,8 +352,8 @@ function LabourPageContent() {
       sort: sortBy,
       priceMin: priceRange.min,
       priceMax: priceRange.max,
-      lat: userLocation?.latitude,
-      lng: userLocation?.longitude,
+      lat: userLocation?.lat,
+      lng: userLocation?.lng,
     });
   }, [searchQuery, selectedSkill, selectedAvailability, sortBy, priceRange, userLocation]);
 
@@ -392,8 +392,8 @@ function LabourPageContent() {
                 : undefined,
             minRate: priceRange.min ? Number(priceRange.min) : undefined,
             maxRate: priceRange.max ? Number(priceRange.max) : undefined,
-            latitude: userLocation?.latitude,
-            longitude: userLocation?.longitude,
+            latitude: userLocation?.lat,
+            longitude: userLocation?.lng,
             radiusKm: 100,
           },
           pageNum,

@@ -41,13 +41,10 @@ export async function POST(request: NextRequest) {
     const validation = validateImage({
       mimetype: file.type,
       size: buffer.length,
-    } as Express.Multer.File);
+    });
 
     if (!validation.valid) {
-      return NextResponse.json(
-        { success: false, error: validation.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 });
     }
 
     // Process image (resize, compress, convert)
@@ -82,10 +79,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Image upload error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -120,9 +114,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Image delete error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

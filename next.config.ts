@@ -1,9 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  experimental: {
-    reactCompiler: true,
-  },
+  reactCompiler: true,
   images: {
     remotePatterns: [
       {
@@ -23,9 +21,6 @@ const nextConfig: NextConfig = {
         hostname: '*.supabase.co',
       },
     ],
-  },
-  typescript: {
-    ignoreBuildErrors: true, // Temporarily ignore TS errors during dev
   },
 };
 
