@@ -2,8 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { CircularProgress } from '@/components/ui/circular-progress';
 import { VideoTrimmer } from '@/components/ui/video-trimmer';
-import { Upload, X, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Video } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import type { MediaFile, VideoMetadata } from '@/lib/types/media';
 
@@ -32,6 +33,8 @@ export function MediaUpload({
 }: MediaUploadProps) {
   const [uploadedFiles, setUploadedFiles] = useState<MediaFile[]>(value);
   const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadType, setUploadType] = useState<'image' | 'video' | null>(null);
   const [showTrimmer, setShowTrimmer] = useState<boolean>(false);
   const [videoToTrim, setVideoToTrim] = useState<File | null>(null);
   const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null);
@@ -115,48 +118,90 @@ export function MediaUpload({
   const uploadImage = async (file: File) => {
     try {
       setUploading(true);
+      setUploadType('image');
+      setUploadProgress(0);
 
       const formData = new FormData();
       formData.append('file', file);
       if (bucket) formData.append('bucket', bucket);
       formData.append('folder', folder);
 
-      const response = await fetch('/api/upload/image', {
-        method: 'POST',
-        body: formData,
-      });
+      // Use XMLHttpRequest for real upload progress
+      const uploadWithProgress = (): Promise<MediaFile> => {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-      const data = await response.json();
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const progress = (event.loaded / event.total) * 100;
+              setUploadProgress(Math.round(progress));
+            }
+          });
 
-      if (!data.success) {
-        toast.error(data.error || 'Failed to upload image');
-        return;
-      }
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const data = JSON.parse(xhr.responseText);
+              if (data.success) {
+                const newFile: MediaFile = {
+                  id: data.publicId,
+                  type: 'image',
+                  url: data.url,
+                  publicUrl: data.publicUrl,
+                  publicId: data.publicId,
+                  metadata: data.metadata,
+                };
+                resolve(newFile);
+              } else {
+                reject(new Error(data.error || 'Upload failed'));
+              }
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          });
 
-      const newFile: MediaFile = {
-        id: data.publicId,
-        type: 'image',
-        url: data.url,
-        publicUrl: data.publicUrl,
-        publicId: data.publicId,
-        metadata: data.metadata,
+          xhr.addEventListener('error', () => {
+            reject(new Error('Upload failed'));
+          });
+
+          xhr.addEventListener('abort', () => {
+            reject(new Error('Upload aborted'));
+          });
+
+          xhr.open('POST', '/api/upload/image');
+          xhr.send(formData);
+        });
       };
+
+      const newFile = await uploadWithProgress();
 
       const updatedFiles = [...uploadedFiles, newFile];
       setUploadedFiles(updatedFiles);
       onUploadComplete?.(updatedFiles);
       toast.success('Image uploaded successfully');
+
+      // Reset progress after a short delay
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploadType(null);
+        setUploading(false);
+      }, 500);
     } catch (error) {
+      setUploadProgress(0);
       toast.error('Failed to upload image');
       console.error(error);
-    } finally {
       setUploading(false);
     }
   };
 
-  const uploadVideo = async (file: File, trimData?: { startTime: number; endTime: number; duration: number }) => {
+  const uploadVideo = async (
+    file: File,
+    trimData?: { startTime: number; endTime: number; duration: number }
+  ) => {
     try {
       setUploading(true);
+      setUploadType('video');
+      setUploadProgress(0);
 
       const formData = new FormData();
       formData.append('file', file);
@@ -165,42 +210,80 @@ export function MediaUpload({
         formData.append('trim', JSON.stringify(trimData));
       }
 
-      const response = await fetch('/api/upload/video', {
-        method: 'POST',
-        body: formData,
-      });
+      // Use XMLHttpRequest for real upload progress
+      const uploadWithProgress = (): Promise<MediaFile | null> => {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
 
-      const data = await response.json();
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const progress = (event.loaded / event.total) * 100;
+              setUploadProgress(Math.round(progress));
+            }
+          });
 
-      if (!data.success) {
-        if (data.requiresTrim) {
-          // Show trimmer
-          setVideoToTrim(file);
-          setVideoMetadata(data.metadata);
-          setShowTrimmer(true);
-          return;
-        }
-        toast.error(data.error || 'Failed to upload video');
-        return;
-      }
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const data = JSON.parse(xhr.responseText);
+              if (data.success) {
+                const newFile: MediaFile = {
+                  id: data.publicId,
+                  type: 'video',
+                  url: data.url,
+                  publicUrl: data.publicUrl,
+                  publicId: data.publicId,
+                  metadata: data.metadata,
+                };
+                resolve(newFile);
+              } else if (data.requiresTrim) {
+                // Handle trim requirement
+                setVideoToTrim(file);
+                setVideoMetadata(data.metadata);
+                setShowTrimmer(true);
+                resolve(null);
+              } else {
+                reject(new Error(data.error || 'Upload failed'));
+              }
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          });
 
-      const newFile: MediaFile = {
-        id: data.publicId,
-        type: 'video',
-        url: data.url,
-        publicUrl: data.publicUrl,
-        publicId: data.publicId,
-        metadata: data.metadata,
+          xhr.addEventListener('error', () => {
+            reject(new Error('Upload failed'));
+          });
+
+          xhr.addEventListener('abort', () => {
+            reject(new Error('Upload aborted'));
+          });
+
+          xhr.open('POST', '/api/upload/video');
+          xhr.send(formData);
+        });
       };
 
-      const updatedFiles = [...uploadedFiles, newFile];
-      setUploadedFiles(updatedFiles);
-      onUploadComplete?.(updatedFiles);
-      toast.success('Video uploaded successfully');
+      const newFile = await uploadWithProgress();
+
+      if (newFile) {
+        const updatedFiles = [...uploadedFiles, newFile];
+        setUploadedFiles(updatedFiles);
+        onUploadComplete?.(updatedFiles);
+        toast.success('Video uploaded successfully');
+      }
+
+      // Reset progress after a short delay (if not showing trimmer)
+      if (!showTrimmer) {
+        setTimeout(() => {
+          setUploadProgress(0);
+          setUploadType(null);
+          setUploading(false);
+        }, 500);
+      }
     } catch (error) {
+      setUploadProgress(0);
       toast.error('Failed to upload video');
       console.error(error);
-    } finally {
       setUploading(false);
     }
   };
@@ -264,8 +347,8 @@ export function MediaUpload({
         >
           {uploading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Uploading...
+              <CircularProgress progress={uploadProgress} size="sm" />
+              <span className="ml-2">{uploadProgress}%</span>
             </>
           ) : (
             <>
@@ -276,20 +359,24 @@ export function MediaUpload({
         </Button>
 
         <div className="text-sm text-gray-600">
-          {allowImages && <span>{currentImages}/{maxImages} images</span>}
+          {allowImages && (
+            <span>
+              {currentImages}/{maxImages} images
+            </span>
+          )}
           {allowImages && allowVideos && <span className="mx-2">•</span>}
-          {allowVideos && <span>{currentVideos}/{maxVideos} videos</span>}
+          {allowVideos && (
+            <span>
+              {currentVideos}/{maxVideos} videos
+            </span>
+          )}
         </div>
       </div>
 
       {/* Info */}
-      <div className="text-xs text-gray-500 space-y-1">
-        {allowImages && (
-          <p>📸 Images: Auto-resized to max 1080px width, compressed to WebP/JPEG</p>
-        )}
-        {allowVideos && (
-          <p>🎥 Videos: Max 15 seconds, auto-compressed to 690p MP4</p>
-        )}
+      <div className="space-y-1 text-xs text-gray-500">
+        {allowImages && <p>📸 Images: Auto-resized to max 1080px width, compressed to WebP/JPEG</p>}
+        {allowVideos && <p>🎥 Videos: Max 15 seconds, auto-compressed to 690p MP4</p>}
       </div>
 
       {/* Hidden File Input */}
@@ -304,27 +391,30 @@ export function MediaUpload({
 
       {/* Uploaded Files Preview */}
       {uploadedFiles.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {uploadedFiles.map((file) => (
-            <div key={file.id} className="relative group aspect-square rounded-lg overflow-hidden border">
+            <div
+              key={file.id}
+              className="group relative aspect-square overflow-hidden rounded-lg border"
+            >
               {file.type === 'image' ? (
                 <img
                   src={file.publicUrl || file.url}
                   alt="Upload"
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="relative w-full h-full bg-gray-900">
+                <div className="relative h-full w-full bg-gray-900">
                   <video
                     src={file.publicUrl || file.url}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     controls={false}
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                     <Video className="h-12 w-12 text-white" />
                   </div>
                   {file.metadata.duration && (
-                    <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/70 text-white text-xs rounded">
+                    <div className="absolute bottom-2 right-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
                       {file.metadata.duration.toFixed(1)}s
                     </div>
                   )}
@@ -334,13 +424,13 @@ export function MediaUpload({
               {/* Remove Button */}
               <button
                 onClick={() => removeFile(file.id)}
-                className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
               >
                 <X className="h-4 w-4" />
               </button>
 
               {/* File Type Badge */}
-              <div className="absolute top-2 left-2 px-2 py-1 bg-black/70 text-white text-xs rounded flex items-center gap-1">
+              <div className="absolute left-2 top-2 flex items-center gap-1 rounded bg-black/70 px-2 py-1 text-xs text-white">
                 {file.type === 'image' ? (
                   <ImageIcon className="h-3 w-3" />
                 ) : (

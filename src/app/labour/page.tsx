@@ -16,7 +16,7 @@ import {
   RefreshCw,
   Loader2,
   Briefcase,
-  Award
+  Award,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -38,8 +38,9 @@ import {
   DialogTitle,
   Textarea,
 } from '@/components/ui';
-import { labourService } from '@/lib/services';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { labourService, dmService } from '@/lib/services';
+import { useAppStore, useAuthStore, useMessagesStore } from '@/lib/store';
+import toast from 'react-hot-toast';
 import { LabourProfile, LabourAvailability } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 
@@ -81,7 +82,7 @@ function LabourCard({
   labour,
   onMessage,
   onBook,
-  isAuthenticated
+  isAuthenticated,
 }: {
   labour: LabourProfile;
   onMessage: (labour: LabourProfile) => void;
@@ -90,24 +91,32 @@ function LabourCard({
 }) {
   const getAvailabilityColor = (availability: LabourAvailability) => {
     switch (availability) {
-      case 'available': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-      case 'busy': return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-      case 'unavailable': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-slate-800 text-slate-400 border-slate-700';
+      case 'available':
+        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      case 'busy':
+        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      case 'unavailable':
+        return 'bg-red-500/10 text-red-400 border-red-500/20';
+      default:
+        return 'bg-slate-800 text-slate-400 border-slate-700';
     }
   };
 
   const getAvailabilityText = (availability: LabourAvailability) => {
     switch (availability) {
-      case 'available': return 'Available';
-      case 'busy': return 'Busy';
-      case 'unavailable': return 'Unavailable';
-      default: return availability;
+      case 'available':
+        return 'Available';
+      case 'busy':
+        return 'Busy';
+      case 'unavailable':
+        return 'Unavailable';
+      default:
+        return availability;
     }
   };
 
   return (
-    <Card className="group bg-slate-900/50 border-slate-800 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 overflow-hidden backdrop-blur-sm">
+    <Card className="group overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10">
       <CardContent className="p-0">
         {/* Profile Header */}
         <div className="relative h-32 bg-gradient-to-br from-emerald-900/50 via-slate-900 to-slate-900">
@@ -115,12 +124,12 @@ function LabourCard({
           <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-slate-900/90 to-transparent" />
         </div>
 
-        <div className="px-6 relative -mt-16">
-          <div className="flex justify-between items-end">
+        <div className="relative -mt-16 px-6">
+          <div className="flex items-end justify-between">
             {/* Avatar - Clickable */}
             <Link
               href={`/user/${labour.user_id}`}
-              className="relative w-24 h-24 rounded-2xl overflow-hidden border-4 border-slate-900 shadow-xl flex-shrink-0 hover:scale-105 transition-transform duration-300"
+              className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border-4 border-slate-900 shadow-xl transition-transform duration-300 hover:scale-105"
               onClick={(e) => e.stopPropagation()}
             >
               {labour.user?.profile_image ? (
@@ -131,14 +140,20 @@ function LabourCard({
                   className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-800 flex items-center justify-center">
+                <div className="flex h-full w-full items-center justify-center bg-slate-800">
                   <User className="h-10 w-10 text-slate-500" />
                 </div>
               )}
               {/* Availability indicator */}
-              <div className={`absolute bottom-2 right-2 w-4 h-4 rounded-full border-2 border-slate-900 ${labour.availability === 'available' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
-                labour.availability === 'busy' ? 'bg-amber-500' : 'bg-red-500'
-                }`} />
+              <div
+                className={`absolute bottom-2 right-2 h-4 w-4 rounded-full border-2 border-slate-900 ${
+                  labour.availability === 'available'
+                    ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                    : labour.availability === 'busy'
+                      ? 'bg-amber-500'
+                      : 'bg-red-500'
+                }`}
+              />
             </Link>
 
             <div className="mb-1">
@@ -152,25 +167,27 @@ function LabourCard({
           <div className="mt-4">
             <Link
               href={`/user/${labour.user_id}`}
-              className="hover:opacity-80 transition-opacity inline-block group-hover:text-emerald-400 transition-colors"
+              className="inline-block transition-colors transition-opacity hover:opacity-80 group-hover:text-emerald-400"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-xl font-bold text-white">
                 {labour.user?.name || 'Agricultural Worker'}
               </h3>
             </Link>
-            <div className="flex items-center gap-3 mt-1.5">
+            <div className="mt-1.5 flex items-center gap-3">
               {labour.rating && (
-                <div className="flex items-center gap-1.5 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
+                <div className="flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5">
                   <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                  <span className="font-semibold text-yellow-500 text-sm">{labour.rating.toFixed(1)}</span>
+                  <span className="text-sm font-semibold text-yellow-500">
+                    {labour.rating.toFixed(1)}
+                  </span>
                   {labour.review_count && (
-                    <span className="text-slate-500 text-xs">({labour.review_count})</span>
+                    <span className="text-xs text-slate-500">({labour.review_count})</span>
                   )}
                 </div>
               )}
               {labour.total_jobs && labour.total_jobs > 0 && (
-                <div className="flex items-center gap-1.5 text-slate-400 text-sm">
+                <div className="flex items-center gap-1.5 text-sm text-slate-400">
                   <Briefcase className="h-3.5 w-3.5" />
                   <span>{labour.total_jobs} jobs</span>
                 </div>
@@ -180,21 +197,23 @@ function LabourCard({
         </div>
 
         {/* Details */}
-        <div className="p-6 space-y-5">
+        <div className="space-y-5 p-6">
           <div className="grid grid-cols-2 gap-4">
             {/* Location */}
             {labour.location_name && (
               <div className="flex items-center gap-2 text-slate-400">
-                <div className="p-1.5 rounded-lg bg-slate-800">
+                <div className="rounded-lg bg-slate-800 p-1.5">
                   <MapPin className="h-4 w-4 text-emerald-500" />
                 </div>
-                <span className="text-sm truncate" title={labour.location_name}>{labour.location_name}</span>
+                <span className="truncate text-sm" title={labour.location_name}>
+                  {labour.location_name}
+                </span>
               </div>
             )}
 
             {/* Experience */}
             <div className="flex items-center gap-2 text-slate-400">
-              <div className="p-1.5 rounded-lg bg-slate-800">
+              <div className="rounded-lg bg-slate-800 p-1.5">
                 <Award className="h-4 w-4 text-amber-500" />
               </div>
               <span className="text-sm">{labour.experience_years}y exp</span>
@@ -203,15 +222,24 @@ function LabourCard({
 
           {/* Skills */}
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Skills</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+              Skills
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {labour.skills.slice(0, 4).map((skill) => (
-                <Badge key={skill} variant="outline" className="text-xs bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-800 cursor-default">
+                <Badge
+                  key={skill}
+                  variant="outline"
+                  className="cursor-default border-slate-700 bg-slate-800/50 text-xs text-slate-300 hover:bg-slate-800"
+                >
                   {skill.replace(/_/g, ' ')}
                 </Badge>
               ))}
               {labour.skills.length > 4 && (
-                <Badge variant="outline" className="text-xs bg-slate-800/50 border-slate-700 text-slate-400">
+                <Badge
+                  variant="outline"
+                  className="border-slate-700 bg-slate-800/50 text-xs text-slate-400"
+                >
                   +{labour.skills.length - 4}
                 </Badge>
               )}
@@ -220,25 +248,23 @@ function LabourCard({
 
           {/* Bio */}
           {labour.bio && (
-            <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
-              {labour.bio}
-            </p>
+            <p className="line-clamp-2 text-sm leading-relaxed text-slate-400">{labour.bio}</p>
           )}
 
           {/* Pricing */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between border-t border-slate-800 pt-4">
             <div>
               <p className="text-2xl font-bold text-emerald-400">
                 {formatCurrency(labour.daily_rate)}
               </p>
-              <p className="text-xs text-slate-500 font-medium">per day</p>
+              <p className="text-xs font-medium text-slate-500">per day</p>
             </div>
             {labour.hourly_rate && (
               <div className="text-right">
                 <p className="text-lg font-semibold text-slate-300">
                   {formatCurrency(labour.hourly_rate)}
                 </p>
-                <p className="text-xs text-slate-500 font-medium">per hour</p>
+                <p className="text-xs font-medium text-slate-500">per hour</p>
               </div>
             )}
           </div>
@@ -252,16 +278,16 @@ function LabourCard({
               onClick={() => onMessage(labour)}
               disabled={!isAuthenticated}
             >
-              <MessageCircle className="h-4 w-4 mr-2" />
+              <MessageCircle className="mr-2 h-4 w-4" />
               Message
             </Button>
             <Button
               size="sm"
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20"
+              className="flex-1 bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
               onClick={() => onBook(labour)}
               disabled={!isAuthenticated || labour.availability === 'unavailable'}
             >
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="mr-2 h-4 w-4" />
               Hire Now
             </Button>
           </div>
@@ -332,76 +358,92 @@ function LabourPageContent() {
   }, [searchQuery, selectedSkill, selectedAvailability, sortBy, priceRange, userLocation]);
 
   // Load labour profiles
-  const loadLabour = useCallback(async (pageNum: number = 1, append: boolean = false) => {
-    const cacheKey = getCacheKey();
+  const loadLabour = useCallback(
+    async (pageNum: number = 1, append: boolean = false) => {
+      const cacheKey = getCacheKey();
 
-    // Check cache for first page
-    if (pageNum === 1 && !append) {
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        setLabourProfiles(cached.data);
-        setTotalCount(cached.count);
-        setHasMore(cached.data.length < cached.count);
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (pageNum === 1) {
-      setIsLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-    setError(null);
-
-    try {
-      const result = await labourService.search(
-        {
-          search: searchQuery || undefined,
-          skills: selectedSkill !== 'all' ? [selectedSkill] : undefined,
-          availability: selectedAvailability !== 'all' ? selectedAvailability as LabourAvailability : undefined,
-          minRate: priceRange.min ? Number(priceRange.min) : undefined,
-          maxRate: priceRange.max ? Number(priceRange.max) : undefined,
-          latitude: userLocation?.latitude,
-          longitude: userLocation?.longitude,
-          radiusKm: 100,
-        },
-        pageNum,
-        limit
-      );
-
-      const newData = append ? [...labourProfiles, ...result.data] : result.data;
-
-      // Update cache for first page
+      // Check cache for first page
       if (pageNum === 1 && !append) {
-        cache.set(cacheKey, {
-          data: result.data,
-          count: result.count,
-          timestamp: Date.now(),
-        });
+        const cached = cache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+          setLabourProfiles(cached.data);
+          setTotalCount(cached.count);
+          setHasMore(cached.data.length < cached.count);
+          setIsLoading(false);
+          return;
+        }
       }
 
-      setLabourProfiles(newData);
-      setTotalCount(result.count);
-      setHasMore(newData.length < result.count);
-      setPage(pageNum);
-      setLastUpdated(new Date());
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      const errorCode = (err as { code?: string })?.code;
-      console.error('Failed to load labour profiles:', errorMessage, errorCode);
-
-      // Check if it's a table not found error
-      if (errorCode === '42P01' || errorMessage.includes('does not exist')) {
-        setError('Labour profiles feature is not yet available. Please run the database migration.');
+      if (pageNum === 1) {
+        setIsLoading(true);
       } else {
-        setError('Failed to load workers. Please try again.');
+        setIsLoadingMore(true);
       }
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [getCacheKey, searchQuery, selectedSkill, selectedAvailability, priceRange, userLocation, labourProfiles]);
+      setError(null);
+
+      try {
+        const result = await labourService.search(
+          {
+            search: searchQuery || undefined,
+            skills: selectedSkill !== 'all' ? [selectedSkill] : undefined,
+            availability:
+              selectedAvailability !== 'all'
+                ? (selectedAvailability as LabourAvailability)
+                : undefined,
+            minRate: priceRange.min ? Number(priceRange.min) : undefined,
+            maxRate: priceRange.max ? Number(priceRange.max) : undefined,
+            latitude: userLocation?.latitude,
+            longitude: userLocation?.longitude,
+            radiusKm: 100,
+          },
+          pageNum,
+          limit
+        );
+
+        const newData = append ? [...labourProfiles, ...result.data] : result.data;
+
+        // Update cache for first page
+        if (pageNum === 1 && !append) {
+          cache.set(cacheKey, {
+            data: result.data,
+            count: result.count,
+            timestamp: Date.now(),
+          });
+        }
+
+        setLabourProfiles(newData);
+        setTotalCount(result.count);
+        setHasMore(newData.length < result.count);
+        setPage(pageNum);
+        setLastUpdated(new Date());
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        const errorCode = (err as { code?: string })?.code;
+        console.error('Failed to load labour profiles:', errorMessage, errorCode);
+
+        // Check if it's a table not found error
+        if (errorCode === '42P01' || errorMessage.includes('does not exist')) {
+          setError(
+            'Labour profiles feature is not yet available. Please run the database migration.'
+          );
+        } else {
+          setError('Failed to load workers. Please try again.');
+        }
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [
+      getCacheKey,
+      searchQuery,
+      selectedSkill,
+      selectedAvailability,
+      priceRange,
+      userLocation,
+      labourProfiles,
+    ]
+  );
 
   // Initial load
   useEffect(() => {
@@ -471,27 +513,58 @@ function LabourPageContent() {
 
   // Send message
   const handleSendMessage = async () => {
-    if (!selectedLabour || !messageText.trim() || !user) return;
+    if (!selectedLabour || !messageText.trim() || !user) {
+      console.error('Missing required data:', {
+        selectedLabour: !!selectedLabour,
+        messageText: !!messageText.trim(),
+        user: !!user,
+      });
+      toast.error('Unable to send message. Please try again.');
+      return;
+    }
 
     setIsSending(true);
     try {
-      // For labour contacts, we'll first create a booking request,
-      // then the conversation will be created with it
-      // For now, show a message that this feature is coming soon
-      // or redirect to a contact form
-      console.log('Sending message to:', selectedLabour.user_id, messageText.trim());
+      console.log('Creating conversation with labourer:', selectedLabour.user_id);
+
+      // Get or create conversation with the labourer
+      const conversationId = await dmService.getOrCreateConversation(selectedLabour.user_id);
+
+      if (!conversationId) {
+        throw new Error('Failed to create conversation - no conversation ID returned');
+      }
+
+      console.log('Conversation created:', conversationId);
+
+      // Send the message
+      await dmService.sendMessage(conversationId, messageText.trim());
+      console.log('Message sent successfully');
+
+      // Refresh conversations list in the store
+      await useMessagesStore.getState().fetchConversations();
 
       // Close dialog and reset
       setMessageDialogOpen(false);
       setMessageText('');
 
-      // In a real implementation, you would either:
-      // 1. Create a "contact request" system
-      // 2. Use a direct messaging system without bookings
-      // 3. Create a pending booking and start conversation with it
-      alert('Message sent! The labourer will be notified and can respond to you.');
+      // Show success toast
+      toast.success('Message sent! The labourer will be notified.');
+
+      // Redirect to messages page
+      router.push(`/messages?conversation=${conversationId}`);
     } catch (err) {
       console.error('Failed to send message:', err);
+      console.error('Error details:', JSON.stringify(err, null, 2));
+
+      // Extract meaningful error message
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : err && typeof err === 'object' && 'message' in err
+            ? String(err.message)
+            : 'Failed to send message. Please try again.';
+
+      toast.error(errorMessage);
     } finally {
       setIsSending(false);
     }
@@ -534,28 +607,33 @@ function LabourPageContent() {
     setPage(1);
   };
 
-  const hasActiveFilters = searchQuery || selectedSkill !== 'all' || selectedAvailability !== 'all' || priceRange.min || priceRange.max;
+  const hasActiveFilters =
+    searchQuery ||
+    selectedSkill !== 'all' ||
+    selectedAvailability !== 'all' ||
+    priceRange.min ||
+    priceRange.max;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 pb-8 pt-28">
         {/* Page Header */}
-        <div className="mb-8 relative">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+        <div className="relative mb-8">
+          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+              <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
                 Skilled <span className="text-emerald-400">Agricultural Workers</span>
               </h1>
-              <p className="text-slate-400 mt-2 text-lg">
+              <p className="mt-2 text-lg text-slate-400">
                 Find and hire experienced farm workers in your area
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <button
                 onClick={handleRefresh}
-                className="flex items-center gap-2 hover:text-emerald-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-900/50"
+                className="flex items-center gap-2 rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-900/50 hover:text-emerald-400"
                 title="Refresh listings"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -566,38 +644,45 @@ function LabourPageContent() {
             </div>
           </div>
           {/* Background Glow */}
-          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -z-0 pointer-events-none" />
+          <div className="pointer-events-none absolute left-0 top-1/2 -z-0 h-64 w-64 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 p-5 mb-8 shadow-xl">
+        <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900/50 p-5 shadow-xl backdrop-blur-md">
           <form onSubmit={handleSearch} className="flex flex-col gap-4">
             {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
+                <Search className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by name, skill, or location..."
-                  className="pl-11 bg-slate-950 border-slate-800 text-slate-200 placeholder:text-slate-600 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/50 h-12"
+                  className="h-12 border-slate-800 bg-slate-950 pl-11 text-slate-200 placeholder:text-slate-600 focus-visible:border-emerald-500/50 focus-visible:ring-emerald-500/50"
                 />
               </div>
-              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white h-12 px-8 shadow-lg shadow-emerald-900/20">
+              <Button
+                type="submit"
+                className="h-12 bg-emerald-600 px-8 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
+              >
                 <Search className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Search</span>
               </Button>
             </div>
 
             {/* Filter Row */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <Select value={selectedSkill} onValueChange={setSelectedSkill}>
-                <SelectTrigger className="w-full sm:w-48 bg-slate-950 border-slate-800 text-slate-200 focus:ring-emerald-500/50">
+                <SelectTrigger className="w-full border-slate-800 bg-slate-950 text-slate-200 focus:ring-emerald-500/50 sm:w-48">
                   <SelectValue placeholder="All Skills" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                <SelectContent className="border-slate-800 bg-slate-900 text-white">
                   {LABOUR_SKILLS.map((skill) => (
-                    <SelectItem key={skill.value} value={skill.value} className="focus:bg-slate-800 focus:text-white">
+                    <SelectItem
+                      key={skill.value}
+                      value={skill.value}
+                      className="focus:bg-slate-800 focus:text-white"
+                    >
                       <span className="flex items-center gap-2">
                         <span>{skill.icon}</span>
                         <span>{skill.label}</span>
@@ -608,12 +693,16 @@ function LabourPageContent() {
               </Select>
 
               <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
-                <SelectTrigger className="w-full sm:w-48 bg-slate-950 border-slate-800 text-slate-200 focus:ring-emerald-500/50">
+                <SelectTrigger className="w-full border-slate-800 bg-slate-950 text-slate-200 focus:ring-emerald-500/50 sm:w-48">
                   <SelectValue placeholder="Availability" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                <SelectContent className="border-slate-800 bg-slate-900 text-white">
                   {AVAILABILITY_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="focus:bg-slate-800 focus:text-white">
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="focus:bg-slate-800 focus:text-white"
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -621,12 +710,16 @@ function LabourPageContent() {
               </Select>
 
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-48 bg-slate-950 border-slate-800 text-slate-200 focus:ring-emerald-500/50">
+                <SelectTrigger className="w-full border-slate-800 bg-slate-950 text-slate-200 focus:ring-emerald-500/50 sm:w-48">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-white">
+                <SelectContent className="border-slate-800 bg-slate-900 text-white">
                   {SORT_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className="focus:bg-slate-800 focus:text-white">
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="focus:bg-slate-800 focus:text-white"
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -637,7 +730,7 @@ function LabourPageContent() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowFilters(true)}
-                className="bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white"
+                className="border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
               >
                 <SlidersHorizontal className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">More Filters</span>
@@ -647,10 +740,13 @@ function LabourPageContent() {
 
           {/* Active Filters */}
           {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-800">
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-800 pt-4">
               <span className="text-sm text-slate-500">Active filters:</span>
               {searchQuery && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-slate-800 text-slate-200 border border-slate-700">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
+                >
                   Search: {searchQuery}
                   <button onClick={() => setSearchQuery('')} className="hover:text-emerald-400">
                     <X className="h-3 w-3" />
@@ -658,25 +754,43 @@ function LabourPageContent() {
                 </Badge>
               )}
               {selectedSkill !== 'all' && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-slate-800 text-slate-200 border border-slate-700">
-                  {LABOUR_SKILLS.find(s => s.value === selectedSkill)?.label}
-                  <button onClick={() => setSelectedSkill('all')} className="hover:text-emerald-400">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
+                >
+                  {LABOUR_SKILLS.find((s) => s.value === selectedSkill)?.label}
+                  <button
+                    onClick={() => setSelectedSkill('all')}
+                    className="hover:text-emerald-400"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               )}
               {selectedAvailability !== 'all' && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-slate-800 text-slate-200 border border-slate-700">
-                  {AVAILABILITY_OPTIONS.find(a => a.value === selectedAvailability)?.label}
-                  <button onClick={() => setSelectedAvailability('all')} className="hover:text-emerald-400">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
+                >
+                  {AVAILABILITY_OPTIONS.find((a) => a.value === selectedAvailability)?.label}
+                  <button
+                    onClick={() => setSelectedAvailability('all')}
+                    className="hover:text-emerald-400"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               )}
               {(priceRange.min || priceRange.max) && (
-                <Badge variant="secondary" className="flex items-center gap-1 bg-slate-800 text-slate-200 border border-slate-700">
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
+                >
                   ₹{priceRange.min || '0'} - ₹{priceRange.max || '∞'}
-                  <button onClick={() => setPriceRange({ min: '', max: '' })} className="hover:text-emerald-400">
+                  <button
+                    onClick={() => setPriceRange({ min: '', max: '' })}
+                    className="hover:text-emerald-400"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -685,7 +799,7 @@ function LabourPageContent() {
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
               >
                 Clear all
               </Button>
@@ -694,7 +808,7 @@ function LabourPageContent() {
         </div>
 
         {/* Results Count */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <p className="text-slate-400">
             {isLoading ? (
               <span className="flex items-center gap-2">
@@ -702,13 +816,15 @@ function LabourPageContent() {
                 Searching...
               </span>
             ) : (
-              <span className="text-slate-300 font-medium">{totalCount} workers found</span>
+              <span className="font-medium text-slate-300">{totalCount} workers found</span>
             )}
           </p>
           {!isAuthenticated && (
             <p className="text-sm text-slate-500">
-              <Link href="/login" className="text-emerald-400 hover:underline">Login</Link>
-              {' '}to message and hire workers
+              <Link href="/login" className="text-emerald-400 hover:underline">
+                Login
+              </Link>{' '}
+              to message and hire workers
             </p>
           )}
         </div>
@@ -718,18 +834,22 @@ function LabourPageContent() {
           <div className="flex justify-center py-20">
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin" />
+                <div className="h-16 w-16 animate-spin rounded-full border-4 border-slate-800 border-t-emerald-500" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <User className="h-6 w-6 text-slate-700" />
                 </div>
               </div>
-              <p className="text-slate-500 animate-pulse">Finding best matches...</p>
+              <p className="animate-pulse text-slate-500">Finding best matches...</p>
             </div>
           </div>
         ) : error ? (
-          <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-slate-800">
-            <p className="text-red-400 mb-4">{error}</p>
-            <Button onClick={() => loadLabour(1)} variant="outline" className="border-slate-700 text-slate-300">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 py-16 text-center">
+            <p className="mb-4 text-red-400">{error}</p>
+            <Button
+              onClick={() => loadLabour(1)}
+              variant="outline"
+              className="border-slate-700 text-slate-300"
+            >
               Try Again
             </Button>
           </div>
@@ -739,21 +859,24 @@ function LabourPageContent() {
             title="No workers found"
             description={
               hasActiveFilters
-                ? "Try adjusting your filters to find more workers."
-                : "No workers are currently available in your area."
+                ? 'Try adjusting your filters to find more workers.'
+                : 'No workers are currently available in your area.'
             }
             action={
               hasActiveFilters ? (
-                <Button onClick={clearFilters} className="bg-slate-800 hover:bg-slate-700 text-white">
+                <Button
+                  onClick={clearFilters}
+                  className="bg-slate-800 text-white hover:bg-slate-700"
+                >
                   Clear Filters
                 </Button>
               ) : undefined
             }
-            className="bg-slate-900/50 border border-slate-800 text-slate-400"
+            className="border border-slate-800 bg-slate-900/50 text-slate-400"
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {labourProfiles.map((labour) => (
                 <LabourCard
                   key={labour.id}
@@ -766,11 +889,11 @@ function LabourPageContent() {
             </div>
 
             {/* Load More Trigger */}
-            <div ref={loadMoreRef} className="py-12 flex justify-center">
+            <div ref={loadMoreRef} className="flex justify-center py-12">
               {isLoadingMore && <Spinner className="text-emerald-500" />}
               {!hasMore && labourProfiles.length > 0 && (
-                <div className="flex items-center gap-2 text-slate-600 text-sm bg-slate-900/50 px-4 py-2 rounded-full border border-slate-800">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
+                <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 px-4 py-2 text-sm text-slate-600">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500/50" />
                   All workers loaded
                 </div>
               )}
@@ -780,13 +903,13 @@ function LabourPageContent() {
 
         {/* More Filters Dialog */}
         <Dialog open={showFilters} onOpenChange={setShowFilters}>
-          <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800">
+          <DialogContent className="border-slate-800 bg-slate-900 sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white">Filter Workers</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-300">
                   Daily Rate Range
                 </label>
                 <div className="flex gap-2">
@@ -794,16 +917,16 @@ function LabourPageContent() {
                     type="number"
                     placeholder="Min"
                     value={priceRange.min}
-                    onChange={(e) => setPriceRange(p => ({ ...p, min: e.target.value }))}
-                    className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600"
+                    onChange={(e) => setPriceRange((p) => ({ ...p, min: e.target.value }))}
+                    className="border-slate-800 bg-slate-950 text-white placeholder:text-slate-600"
                   />
                   <span className="flex items-center text-slate-500">to</span>
                   <Input
                     type="number"
                     placeholder="Max"
                     value={priceRange.max}
-                    onChange={(e) => setPriceRange(p => ({ ...p, max: e.target.value }))}
-                    className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600"
+                    onChange={(e) => setPriceRange((p) => ({ ...p, max: e.target.value }))}
+                    className="border-slate-800 bg-slate-950 text-white placeholder:text-slate-600"
                   />
                 </div>
               </div>
@@ -817,7 +940,7 @@ function LabourPageContent() {
                   Reset
                 </Button>
                 <Button
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="flex-1 bg-emerald-600 text-white hover:bg-emerald-500"
                   onClick={() => {
                     setShowFilters(false);
                     loadLabour(1);
@@ -832,7 +955,7 @@ function LabourPageContent() {
 
         {/* Message Dialog */}
         <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800">
+          <DialogContent className="border-slate-800 bg-slate-900 sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white">
                 Message {selectedLabour?.user?.name || 'Worker'}
@@ -844,7 +967,7 @@ function LabourPageContent() {
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 rows={4}
-                className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 resize-none"
+                className="resize-none border-slate-800 bg-slate-950 text-white placeholder:text-slate-600"
               />
               <div className="flex gap-2">
                 <Button
@@ -855,11 +978,11 @@ function LabourPageContent() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="flex-1 bg-emerald-600 text-white hover:bg-emerald-500"
                   onClick={handleSendMessage}
                   disabled={!messageText.trim() || isSending}
                 >
-                  {isSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Send Message
                 </Button>
               </div>
@@ -869,7 +992,7 @@ function LabourPageContent() {
 
         {/* Booking Dialog */}
         <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-slate-900 border-slate-800">
+          <DialogContent className="border-slate-800 bg-slate-900 sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white">
                 Hire {selectedLabour?.user?.name || 'Worker'}
@@ -877,9 +1000,9 @@ function LabourPageContent() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               {selectedLabour && (
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
+                <div className="rounded-xl border border-slate-800 bg-slate-800/50 p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-700" >
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-slate-800">
                       {selectedLabour.user?.profile_image ? (
                         <Image
                           src={selectedLabour.user.profile_image}
@@ -894,7 +1017,7 @@ function LabourPageContent() {
                     </div>
                     <div>
                       <p className="font-bold text-white">{selectedLabour.user?.name}</p>
-                      <p className="text-sm text-emerald-400 font-medium">
+                      <p className="text-sm font-medium text-emerald-400">
                         {formatCurrency(selectedLabour.daily_rate)}/day
                       </p>
                     </div>
@@ -904,34 +1027,32 @@ function LabourPageContent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-slate-300">
                     Start Date
                   </label>
                   <Input
                     type="date"
                     value={bookingDates.start}
-                    onChange={(e) => setBookingDates(d => ({ ...d, start: e.target.value }))}
+                    onChange={(e) => setBookingDates((d) => ({ ...d, start: e.target.value }))}
                     min={new Date().toISOString().split('T')[0]}
-                    className="bg-slate-950 border-slate-800 text-white"
+                    className="border-slate-800 bg-slate-950 text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    End Date
-                  </label>
+                  <label className="mb-2 block text-sm font-medium text-slate-300">End Date</label>
                   <Input
                     type="date"
                     value={bookingDates.end}
-                    onChange={(e) => setBookingDates(d => ({ ...d, end: e.target.value }))}
+                    onChange={(e) => setBookingDates((d) => ({ ...d, end: e.target.value }))}
                     min={bookingDates.start || new Date().toISOString().split('T')[0]}
-                    className="bg-slate-950 border-slate-800 text-white"
+                    className="border-slate-800 bg-slate-950 text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="mb-2 block text-sm font-medium text-slate-300">
                   Notes (optional)
                 </label>
                 <Textarea
@@ -939,30 +1060,40 @@ function LabourPageContent() {
                   value={bookingNotes}
                   onChange={(e) => setBookingNotes(e.target.value)}
                   rows={3}
-                  className="bg-slate-950 border-slate-800 text-white placeholder:text-slate-600 resize-none"
+                  className="resize-none border-slate-800 bg-slate-950 text-white placeholder:text-slate-600"
                 />
               </div>
 
               {/* Price Estimate */}
               {selectedLabour && bookingDates.start && bookingDates.end && (
-                <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
-                  <div className="flex justify-between items-center">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                  <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-300">Estimated Total:</span>
                     <span className="text-xl font-bold text-emerald-400">
                       {formatCurrency(
                         selectedLabour.daily_rate *
-                        Math.max(1, Math.ceil(
-                          (new Date(bookingDates.end).getTime() - new Date(bookingDates.start).getTime())
-                          / (1000 * 60 * 60 * 24)
-                        ) + 1)
+                          Math.max(
+                            1,
+                            Math.ceil(
+                              (new Date(bookingDates.end).getTime() -
+                                new Date(bookingDates.start).getTime()) /
+                                (1000 * 60 * 60 * 24)
+                            ) + 1
+                          )
                       )}
                     </span>
                   </div>
-                  <p className="text-xs text-emerald-600/70 mt-1">
-                    Based on {Math.max(1, Math.ceil(
-                      (new Date(bookingDates.end).getTime() - new Date(bookingDates.start).getTime())
-                      / (1000 * 60 * 60 * 24)
-                    ) + 1)} day(s)
+                  <p className="mt-1 text-xs text-emerald-600/70">
+                    Based on{' '}
+                    {Math.max(
+                      1,
+                      Math.ceil(
+                        (new Date(bookingDates.end).getTime() -
+                          new Date(bookingDates.start).getTime()) /
+                          (1000 * 60 * 60 * 24)
+                      ) + 1
+                    )}{' '}
+                    day(s)
                   </p>
                 </div>
               )}
@@ -976,11 +1107,11 @@ function LabourPageContent() {
                   Cancel
                 </Button>
                 <Button
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white"
+                  className="flex-1 bg-emerald-600 text-white hover:bg-emerald-500"
                   onClick={handleSubmitBooking}
                   disabled={!bookingDates.start || !bookingDates.end || isSending}
                 >
-                  {isSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Confirm Booking
                 </Button>
               </div>
@@ -996,7 +1127,13 @@ function LabourPageContent() {
 
 export default function LabourPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-950"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-slate-950">
+          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-emerald-500" />
+        </div>
+      }
+    >
       <LabourPageContent />
     </Suspense>
   );

@@ -9,34 +9,29 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, error, label, id, ...props }, ref) => {
     const generatedId = React.useId();
-    const inputId = id || generatedId;
-    
+    const inputId = id || (label ? generatedId : undefined);
+
     return (
       <div className="w-full">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
+        {label && inputId && (
+          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-gray-300">
             {label}
           </label>
         )}
         <input
           type={type}
-          id={inputId}
+          {...(inputId && { id: inputId })}
           className={cn(
-            'flex h-10 w-full rounded-lg border bg-white px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 transition-colors',
+            'flex h-10 w-full rounded-lg border bg-[#1a1a1a] px-3 py-2 text-sm text-white transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50',
             error
               ? 'border-red-500 focus-visible:ring-red-500'
-              : 'border-gray-300 hover:border-gray-400',
+              : 'border-[#262626] hover:border-[#333333]',
             className
           )}
           ref={ref}
           {...props}
         />
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
       </div>
     );
   }

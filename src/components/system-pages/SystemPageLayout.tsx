@@ -15,7 +15,7 @@ export interface SystemPageLayoutProps {
 /**
  * SystemPageLayout Component
  * Consistent layout wrapper for all system pages
- * 
+ *
  * Features:
  * - Semantic HTML structure (header, main, footer)
  * - Responsive container with mobile-first breakpoints
@@ -32,27 +32,15 @@ export function SystemPageLayout({
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
-      {showHeader && (
-        <Header />
-      )}
+      {showHeader && <Header />}
 
       {/* Main Content */}
-      <main
-        className={cn(
-          'flex-1 w-full',
-          className
-        )}
-        role="main"
-      >
-        <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">
-          {children}
-        </div>
+      <main className={cn('w-full flex-1', showHeader && 'pt-28', className)} role="main">
+        <div className="container mx-auto px-4 py-8 md:py-12 lg:py-16">{children}</div>
       </main>
 
       {/* Footer */}
-      {showFooter && (
-        <Footer />
-      )}
+      {showFooter && <Footer />}
     </div>
   );
 }

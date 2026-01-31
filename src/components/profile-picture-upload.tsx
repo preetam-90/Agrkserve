@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Upload, X, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Camera, Upload, X } from 'lucide-react';
+import { Button, CircularProgressOverlay } from '@/components/ui';
 import Image from 'next/image';
-import { createClient } from '@/lib/supabase/client';
 
 interface ProfilePictureUploadProps {
   currentImage?: string | null;
@@ -13,22 +12,22 @@ interface ProfilePictureUploadProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export function ProfilePictureUpload({ 
-  currentImage, 
-  onUpload, 
+export function ProfilePictureUpload({
+  currentImage,
+  onUpload,
   userId,
-  size = 'md' 
+  size = 'md',
 }: ProfilePictureUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const supabase = createClient();
 
   const sizeClasses = {
     sm: 'w-20 h-20',
     md: 'w-32 h-32',
-    lg: 'w-40 h-40'
+    lg: 'w-40 h-40',
   };
 
   const compressImage = (file: File): Promise<File> => {
@@ -120,8 +119,8 @@ export function ProfilePictureUpload({
 
       // Upload file
       await handleUpload(processedFile);
-    } catch (err: any) {
-      console.error('Image processing error:', err);
+    } catch {
+      console.error('Image processing error');
       setError('Failed to process image. Please try again.');
       setIsUploading(false);
     }
@@ -129,42 +128,70 @@ export function ProfilePictureUpload({
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);
+    setUploadProgress(0);
     setError('');
 
     try {
-      // Create unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `profile-pictures/${fileName}`;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', userId);
+      formData.append('bucket', 'avatars');
+      formData.append('folder', 'profile-pictures');
 
-      // Upload to Supabase Storage
-      const { data, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
+      // Use XMLHttpRequest for real progress tracking
+      const uploadWithProgress = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const progress = (event.loaded / event.total) * 100;
+              setUploadProgress(Math.round(progress));
+            }
+          });
+
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const data = JSON.parse(xhr.responseText);
+              if (data.success) {
+                resolve(data.url);
+              } else {
+                reject(new Error(data.error || 'Upload failed'));
+              }
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          });
+
+          xhr.addEventListener('error', () => {
+            reject(new Error('Upload failed'));
+          });
+
+          xhr.addEventListener('abort', () => {
+            reject(new Error('Upload aborted'));
+          });
+
+          xhr.open('POST', '/api/upload/profile');
+          xhr.send(formData);
         });
+      };
 
-      if (uploadError) {
-        // If bucket doesn't exist, try to create it (this might fail, but it's ok)
-        console.error('Upload error:', uploadError);
-        setError('Failed to upload image. Please try again.');
+      const imageUrl = await uploadWithProgress();
+
+      if (imageUrl) {
+        onUpload(imageUrl);
+      }
+
+      // Reset progress after a short delay
+      setTimeout(() => {
+        setUploadProgress(0);
         setIsUploading(false);
-        return;
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      if (urlData?.publicUrl) {
-        onUpload(urlData.publicUrl);
-      }
-    } catch (err: any) {
-      console.error('Upload error:', err);
-      setError(err.message || 'Failed to upload image');
-    } finally {
+      }, 500);
+    } catch {
+      console.error('Upload error');
+      setUploadProgress(0);
+      setError('Failed to upload image');
       setIsUploading(false);
     }
   };
@@ -180,33 +207,37 @@ export function ProfilePictureUpload({
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative">
-        <div className={`${sizeClasses[size]} rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100 flex items-center justify-center`}>
+        <div
+          className={`${sizeClasses[size]} flex items-center justify-center overflow-hidden rounded-full border-4 border-slate-700 bg-slate-800`}
+        >
           {preview ? (
             <Image
               src={preview}
               alt="Profile"
               width={200}
               height={200}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
             />
           ) : (
-            <Camera className="w-1/3 h-1/3 text-gray-400" />
+            <Camera className="h-1/3 w-1/3 text-slate-500" />
           )}
         </div>
-        
+
         {isUploading && (
-          <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-white animate-spin" />
-          </div>
+          <CircularProgressOverlay
+            progress={uploadProgress}
+            size="lg"
+            label={uploadProgress < 100 ? 'Uploading...' : 'Complete!'}
+          />
         )}
 
         {preview && !isUploading && (
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+            className="absolute right-0 top-0 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-colors hover:bg-red-600"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
@@ -220,27 +251,28 @@ export function ProfilePictureUpload({
           className="hidden"
           disabled={isUploading}
         />
-        
+
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
+          className="border-slate-600 bg-slate-800/50 text-slate-300 transition-all duration-300 hover:bg-slate-700 hover:text-white"
         >
-          <Upload className="w-4 h-4 mr-2" />
+          <Upload className="mr-2 h-4 w-4" />
           {preview ? 'Change Photo' : 'Upload Photo'}
         </Button>
 
         {error && (
-          <p className={`text-sm text-center ${error.includes('Compressing') ? 'text-blue-600' : 'text-red-600'}`}>
+          <p
+            className={`text-center text-sm ${error.includes('Compressing') ? 'text-blue-400' : 'text-red-400'}`}
+          >
             {error}
           </p>
         )}
-        
-        <p className="text-xs text-gray-500 text-center">
-          Any image format • Auto-compressed
-        </p>
+
+        <p className="text-center text-xs text-slate-500">Any image format • Auto-compressed</p>
       </div>
     </div>
   );

@@ -9,9 +9,8 @@ import { StatsSection } from '@/components/landing/StatsSection';
 import { CategoriesSection } from '@/components/landing/CategoriesSection';
 import { FeaturedEquipmentSection } from '@/components/landing/FeaturedEquipmentSection';
 import { TimelineSection } from '@/components/landing/TimelineSection';
-import { TestimonialsCarousel } from '@/components/landing/TestimonialsCarousel';
 import { FinalCTASection } from '@/components/landing/FinalCTASection';
-import { PremiumHeader } from '@/components/landing/PremiumHeader';
+import { FuturisticHeader } from '@/components/landing/FuturisticHeader';
 import { PremiumFooter } from '@/components/landing/PremiumFooter';
 
 interface Equipment {
@@ -92,14 +91,30 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="relative bg-black min-h-screen">
-      {/* Ambient Background Effects */}
+    <div
+      className="relative min-h-screen"
+      style={{ backgroundColor: '#0A0F0C' }}
+    >
+      {/* Ambient Background Effects - Fresh Green Tones */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div
+          className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full blur-[120px] animate-pulse"
+          style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)' }}
+        />
+        <div
+          className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px] animate-pulse"
+          style={{
+            backgroundColor: 'rgba(20, 184, 166, 0.08)',
+            animationDelay: '1s'
+          }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[150px]"
+          style={{ backgroundColor: 'rgba(16, 185, 129, 0.05)' }}
+        />
       </div>
 
-      <PremiumHeader />
+      <FuturisticHeader />
 
       <motion.main
         initial="hidden"
@@ -119,7 +134,6 @@ export default function HomePage() {
         <CategoriesSection />
         <FeaturedEquipmentSection equipment={featuredEquipment} isLoading={isLoading} />
         <TimelineSection />
-        <TestimonialsCarousel />
         <FinalCTASection />
       </motion.main>
 

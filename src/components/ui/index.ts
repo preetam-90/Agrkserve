@@ -26,14 +26,7 @@ export {
 export { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
 export { Avatar, AvatarFallback, AvatarImage, AvatarRoot } from './avatar';
 export { Badge, badgeVariants } from './badge';
-export {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from './card';
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 export {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -52,6 +45,7 @@ export {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 export { Spinner, Loading, PageLoading } from './spinner';
+export { CircularProgress, CircularProgressOverlay } from './circular-progress';
 export { EmptyState, Alert } from './empty-state';
 export { Slider } from './slider';
 export { VideoTrimmer } from './video-trimmer';
@@ -63,3 +57,4 @@ export { Separator } from './separator';
 export { Popover, PopoverContent, PopoverTrigger } from './popover';
 export { ScrollArea, ScrollBar } from './scroll-area';
 export { Switch } from './switch';
+export { Progress } from './progress';

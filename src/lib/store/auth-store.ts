@@ -52,18 +52,28 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
       initialize: async () => {
         const supabase = createClient();
-        
+
         try {
           set({ isLoading: true });
 
-          const { data: { user } } = await supabase.auth.getUser();
-          
+          // Add timeout for getUser call (5 seconds)
+          const getUserPromise = supabase.auth.getUser();
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Auth timeout')), 5000)
+          );
+
+          const {
+            data: { user },
+          } = (await Promise.race([getUserPromise, timeoutPromise])) as any;
+
           if (user) {
             set({ user });
+            // Fetch profile and roles with individual timeouts
             await Promise.all([get().fetchProfile(), get().fetchRoles()]);
           }
         } catch (error) {
           console.error('Failed to initialize auth:', error);
+          // On error, still mark as initialized so the UI can proceed
         } finally {
           set({ isLoading: false, isInitialized: true });
         }
@@ -144,7 +154,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           }
 
           const roles = data?.map((r) => r.role as UserRole) || [];
-          
+
           // If no roles found, default to 'renter'
           if (roles.length === 0) {
             set({ roles: ['renter'], activeRole: 'renter' });

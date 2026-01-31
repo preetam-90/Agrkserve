@@ -145,7 +145,7 @@ async function main() {
     console.log('🚀 Starting development server...\n');
 
     // Start Next.js dev server
-    const nextDev = spawn('pnpm', ['exec', 'next', 'dev', '-p', port.toString()], {
+    const nextDev = spawn('bun', ['next', 'dev', '-p', port.toString()], {
       stdio: 'inherit',
     });
 

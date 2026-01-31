@@ -1,5 +1,0 @@
-9fb36e3 Resolve middleware conflict and restore landing page features
-7374a85 Merge remote changes and resolve conflicts favoring local version
-5c7816f Local update
-aff03de Local update
-6e6129e fix: labour profile creation and UI improvements

@@ -3,13 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  Calendar,
-  Clock,
-  ChevronRight,
-  Tractor,
-  Search
-} from 'lucide-react';
+import { Calendar, Clock, ChevronRight, Tractor, Search } from 'lucide-react';
 import { Header, Footer, Sidebar } from '@/components/layout';
 import {
   Button,
@@ -21,7 +15,7 @@ import {
   Input,
   Tabs,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
 } from '@/components/ui';
 import { bookingService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
@@ -43,10 +37,12 @@ export default function RenterBookingsPage() {
     // Set up real-time subscription
     const supabase = createClient();
     let channel: any = null;
-    
+
     const setupRealtimeSubscription = async () => {
       try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const {
+          data: { user: currentUser },
+        } = await supabase.auth.getUser();
         if (!currentUser) {
           console.log('No user found for real-time subscription');
           return;
@@ -63,11 +59,11 @@ export default function RenterBookingsPage() {
               event: '*',
               schema: 'public',
               table: 'bookings',
-              filter: `renter_id=eq.${currentUser.id}`
+              filter: `renter_id=eq.${currentUser.id}`,
             },
             async (payload) => {
               console.log('Real-time booking update:', payload);
-              
+
               if (payload.eventType === 'INSERT') {
                 console.log('New booking created');
                 // Fetch the new booking with full details
@@ -75,7 +71,7 @@ export default function RenterBookingsPage() {
                   const bookingData = payload.new as any;
                   const newBooking = await bookingService.getById(bookingData.id);
                   if (newBooking) {
-                    setBookings(prev => [newBooking, ...prev]);
+                    setBookings((prev) => [newBooking, ...prev]);
                   }
                 } catch (err) {
                   console.error('Failed to fetch new booking:', err);
@@ -85,38 +81,38 @@ export default function RenterBookingsPage() {
                 const newStatus = (payload.new as any).status;
                 const oldStatus = (payload.old as any)?.status;
                 const bookingData = payload.new as any;
-                
+
                 // Update existing booking in place
-                setBookings(prev => prev.map(booking => 
-                  booking.id === bookingData.id 
-                    ? { ...booking, ...bookingData }
-                    : booking
-                ));
-                
+                setBookings((prev) =>
+                  prev.map((booking) =>
+                    booking.id === bookingData.id ? { ...booking, ...bookingData } : booking
+                  )
+                );
+
                 // Only show notification if status actually changed
                 if (newStatus !== oldStatus) {
                   if (newStatus === 'confirmed') {
                     toast.success('Your booking has been confirmed!', {
                       duration: 4000,
-                      icon: '✅'
+                      icon: '✅',
                     });
                   } else if (newStatus === 'rejected' || newStatus === 'cancelled') {
                     toast.error('Your booking was declined', {
-                      duration: 4000
+                      duration: 4000,
                     });
                   } else if (newStatus === 'in_progress') {
                     toast('Your booking is now in progress', {
-                      icon: '🚜'
+                      icon: '🚜',
                     });
                   } else if (newStatus === 'completed') {
                     toast.success('Your booking is complete!', {
-                      icon: '✅'
+                      icon: '✅',
                     });
                   }
                 }
               } else if (payload.eventType === 'DELETE') {
                 // Remove deleted booking
-                setBookings(prev => prev.filter(booking => booking.id !== payload.old.id));
+                setBookings((prev) => prev.filter((booking) => booking.id !== payload.old.id));
               }
             }
           )
@@ -134,7 +130,7 @@ export default function RenterBookingsPage() {
     };
 
     setupRealtimeSubscription();
-    
+
     return () => {
       if (channel) {
         console.log('Cleaning up renter real-time subscription');
@@ -166,7 +162,10 @@ export default function RenterBookingsPage() {
   };
 
   const getStatusBadge = (status: BookingStatus) => {
-    const variants: Record<BookingStatus, 'default' | 'success' | 'warning' | 'destructive' | 'secondary'> = {
+    const variants: Record<
+      BookingStatus,
+      'default' | 'success' | 'warning' | 'destructive' | 'secondary'
+    > = {
       pending: 'warning',
       confirmed: 'success',
       in_progress: 'default',
@@ -176,7 +175,7 @@ export default function RenterBookingsPage() {
       approved: 'success',
       rejected: 'destructive',
     };
-     
+
     const labels: Record<BookingStatus, string> = {
       pending: 'Pending',
       confirmed: 'Confirmed',
@@ -188,31 +187,27 @@ export default function RenterBookingsPage() {
       rejected: 'Rejected',
     };
 
-    return (
-      <Badge variant={variants[status]}>
-        {labels[status]}
-      </Badge>
-    );
+    return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
   const filterBookings = (status: string) => {
     let filtered = bookings;
-    
+
     if (status === 'active') {
-      filtered = bookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status));
+      filtered = bookings.filter((b) => ['pending', 'confirmed', 'in_progress'].includes(b.status));
     } else if (status === 'completed') {
-      filtered = bookings.filter(b => b.status === 'completed');
+      filtered = bookings.filter((b) => b.status === 'completed');
     } else if (status === 'cancelled') {
-      filtered = bookings.filter(b => ['cancelled', 'disputed'].includes(b.status));
+      filtered = bookings.filter((b) => ['cancelled', 'disputed'].includes(b.status));
     }
-    
+
     if (searchQuery) {
-      filtered = filtered.filter(b => {
+      filtered = filtered.filter((b) => {
         const equipment = (b as Booking & { equipment?: Equipment }).equipment;
         return equipment?.name?.toLowerCase().includes(searchQuery.toLowerCase());
       });
     }
-    
+
     return filtered;
   };
 
@@ -221,28 +216,31 @@ export default function RenterBookingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="flex">
         <Sidebar role="renter" />
-        
-        <main className={cn("flex-1 p-4 lg:p-6 transition-all duration-300", sidebarOpen ? "ml-64" : "ml-0")}>
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
+
+        <main
+          className={cn(
+            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
+            sidebarOpen ? 'ml-64' : 'ml-0'
+          )}
+        >
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-6 flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
                 <p className="text-gray-600">Track and manage your equipment bookings</p>
               </div>
               <Button asChild>
-                <Link href="/equipment">
-                  Book Equipment
-                </Link>
+                <Link href="/equipment">Book Equipment</Link>
               </Button>
             </div>
 
             {/* Search */}
             <div className="mb-6">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -255,17 +253,22 @@ export default function RenterBookingsPage() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
               <TabsList className="mb-6">
-                <TabsTrigger value="all">
-                  All ({bookings.length})
-                </TabsTrigger>
+                <TabsTrigger value="all">All ({bookings.length})</TabsTrigger>
                 <TabsTrigger value="active">
-                  Active ({bookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status)).length})
+                  Active (
+                  {
+                    bookings.filter((b) =>
+                      ['pending', 'confirmed', 'in_progress'].includes(b.status)
+                    ).length
+                  }
+                  )
                 </TabsTrigger>
                 <TabsTrigger value="completed">
-                  Completed ({bookings.filter(b => b.status === 'completed').length})
+                  Completed ({bookings.filter((b) => b.status === 'completed').length})
                 </TabsTrigger>
                 <TabsTrigger value="cancelled">
-                  Cancelled ({bookings.filter(b => ['cancelled', 'disputed'].includes(b.status)).length})
+                  Cancelled (
+                  {bookings.filter((b) => ['cancelled', 'disputed'].includes(b.status)).length})
                 </TabsTrigger>
               </TabsList>
 
@@ -278,7 +281,7 @@ export default function RenterBookingsPage() {
                   icon={<Calendar className="h-12 w-12" />}
                   title="No bookings found"
                   description={
-                    activeTab === 'all' 
+                    activeTab === 'all'
                       ? "You haven't made any bookings yet"
                       : `No ${activeTab} bookings found`
                   }
@@ -295,14 +298,14 @@ export default function RenterBookingsPage() {
                   {filteredBookings.map((booking) => {
                     const equipment = (booking as Booking & { equipment?: Equipment }).equipment;
                     const provider = (booking as Booking & { provider?: UserProfile }).provider;
-                    
+
                     return (
                       <Link key={booking.id} href={`/renter/bookings/${booking.id}`}>
-                        <Card className="hover:shadow-md transition-shadow">
+                        <Card className="transition-shadow hover:shadow-md">
                           <CardContent className="p-4">
                             <div className="flex gap-4">
                               {/* Equipment Image */}
-                              <div className="w-24 h-24 rounded-lg bg-gray-100 flex-shrink-0 relative overflow-hidden">
+                              <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
                                 {equipment?.images?.[0] ? (
                                   <Image
                                     src={equipment.images[0]}
@@ -311,17 +314,17 @@ export default function RenterBookingsPage() {
                                     className="object-cover"
                                   />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
+                                  <div className="flex h-full w-full items-center justify-center">
                                     <Tractor className="h-10 w-10 text-gray-300" />
                                   </div>
                                 )}
                               </div>
 
                               {/* Booking Details */}
-                              <div className="flex-1 min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <div className="flex items-start justify-between">
                                   <div>
-                                    <h3 className="font-semibold text-gray-900 truncate">
+                                    <h3 className="truncate font-semibold text-gray-900">
                                       {equipment?.name || 'Equipment'}
                                     </h3>
                                     <p className="text-sm text-gray-500">
@@ -334,7 +337,8 @@ export default function RenterBookingsPage() {
                                 <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-600">
                                   <span className="flex items-center gap-1">
                                     <Calendar className="h-4 w-4" />
-                                    {new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}
+                                    {new Date(booking.start_date).toLocaleDateString()} -{' '}
+                                    {new Date(booking.end_date).toLocaleDateString()}
                                   </span>
                                   <span className="flex items-center gap-1">
                                     <Clock className="h-4 w-4" />

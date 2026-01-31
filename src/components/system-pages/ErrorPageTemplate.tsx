@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Search, Home, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logError } from '@/lib/system-pages/error-logger';
-import { CountdownTimer } from './CountdownTimer';
 
 export interface ErrorPageAction {
   label: string;
@@ -39,7 +38,7 @@ const popularCategories = [
 /**
  * ErrorPageTemplate Component
  * Reusable template for HTTP error pages
- * 
+ *
  * Features:
  * - Displays error code prominently
  * - Shows culturally appropriate illustration
@@ -61,6 +60,25 @@ export function ErrorPageTemplate({
   className,
 }: ErrorPageTemplateProps) {
   const router = useRouter();
+  const [remainingTime, setRemainingTime] = useState(countdown || 0);
+
+  // Countdown timer for rate limiting
+  useEffect(() => {
+    if (countdown && countdown > 0) {
+      setRemainingTime(countdown);
+      const timer = setInterval(() => {
+        setRemainingTime((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [countdown]);
 
   // Log error on mount (without stack trace) - only for actual errors, not 404s
   useEffect(() => {
@@ -92,45 +110,36 @@ export function ErrorPageTemplate({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center text-center px-4 py-8 md:py-12',
+        'flex flex-col items-center justify-center px-4 py-8 text-center md:py-12',
         className
       )}
     >
       {/* Error Code */}
-      <div className="text-6xl md:text-8xl font-bold text-gray-200 mb-4">
-        {errorCode}
-      </div>
+      <div className="mb-4 text-6xl font-bold text-gray-200 md:text-8xl">{errorCode}</div>
 
       {/* Illustration */}
-      <div className="w-48 h-48 md:w-64 md:h-64 mb-6">
-        {illustration}
-      </div>
+      <div className="mb-6 h-48 w-48 md:h-64 md:w-64">{illustration}</div>
 
       {/* Title */}
-      <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 max-w-2xl">
+      <h1 className="mb-4 max-w-2xl text-2xl font-bold text-gray-900 md:text-3xl lg:text-4xl">
         {title}
       </h1>
 
       {/* Description */}
-      <p className="text-base md:text-lg text-gray-600 mb-8 max-w-xl">
-        {description}
-      </p>
+      <p className="mb-8 max-w-xl text-base text-gray-600 md:text-lg">{description}</p>
 
       {/* Countdown Timer (for 429 errors) */}
-      {countdown && countdown > 0 && (
-        <div className="mb-6">
-          <CountdownTimer
-            initialSeconds={countdown}
-            onComplete={() => {
-              // Enable retry button
-            }}
-          />
+      {remainingTime > 0 && (
+        <div className="mb-6 text-center">
+          <p className="text-lg font-medium text-gray-700">
+            Please wait {remainingTime} second{remainingTime !== 1 ? 's' : ''} before trying again
+          </p>
         </div>
       )}
 
       {/* Search Bar (for 404 pages) */}
       {showSearchBar && (
-        <div className="w-full max-w-md mb-8">
+        <div className="mb-8 w-full max-w-md">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -147,19 +156,19 @@ export function ErrorPageTemplate({
               name="search"
               id="error-search-input"
               placeholder="Search for equipment..."
-              className="pl-10 h-12 text-base"
+              className="h-12 pl-10 text-base"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           </form>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
+      <div className="mb-8 flex flex-col gap-3 sm:flex-row">
         <Button
           onClick={handlePrimaryAction}
           size="lg"
-          className="min-h-[44px] min-w-[120px] bg-green-600 hover:bg-green-700 text-white"
+          className="min-h-[44px] min-w-[120px] bg-green-600 text-white hover:bg-green-700"
         >
           {primaryAction.label}
         </Button>
@@ -179,13 +188,13 @@ export function ErrorPageTemplate({
       {/* Popular Categories (for 404 pages) */}
       {showPopularCategories && (
         <div className="w-full max-w-2xl">
-          <p className="text-sm text-gray-500 mb-4">Popular Categories:</p>
+          <p className="mb-4 text-sm text-gray-500">Popular Categories:</p>
           <div className="flex flex-wrap justify-center gap-2">
             {popularCategories.map((category) => (
               <Link
                 key={category.name}
                 href={category.href}
-                className="px-4 py-2 text-sm font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                className="rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700 transition-colors hover:bg-green-100"
               >
                 {category.name}
               </Link>
@@ -195,17 +204,14 @@ export function ErrorPageTemplate({
       )}
 
       {/* Quick Links */}
-      <div className="flex items-center gap-4 mt-8 text-sm text-gray-500">
-        <Link
-          href="/"
-          className="flex items-center gap-1 hover:text-green-600 transition-colors"
-        >
+      <div className="mt-8 flex items-center gap-4 text-sm text-gray-500">
+        <Link href="/" className="flex items-center gap-1 transition-colors hover:text-green-600">
           <Home className="h-4 w-4" />
           <span>Home</span>
         </Link>
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-1 hover:text-green-600 transition-colors"
+          className="flex items-center gap-1 transition-colors hover:text-green-600"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Go Back</span>

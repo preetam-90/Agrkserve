@@ -4,20 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  ArrowLeft,
-  Upload,
-  X,
-  MapPin,
-  Plus,
-  Loader2,
-  Video
-} from 'lucide-react';
+import { ArrowLeft, Upload, X, MapPin, Plus, Loader2, Video } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
+import {
+  Button,
+  Card,
+  CardContent,
   Input,
   Textarea,
   Select,
@@ -27,7 +19,8 @@ import {
   SelectValue,
   Spinner,
   VideoTrimmer,
-  ImageCropper
+  ImageCropper,
+  CircularProgress,
 } from '@/components/ui';
 import { equipmentService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
@@ -61,19 +54,21 @@ export default function EquipmentFormPage() {
   const router = useRouter();
   const params = useParams();
   const { profile } = useAuthStore();
-  
+
   const isEdit = params.id !== 'new';
   const equipmentId = isEdit ? (params.id as string) : null;
-  
+
   const [isLoading, setIsLoading] = useState(isEdit);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadType, setUploadType] = useState<'image' | 'video' | null>(null);
   const [newFeature, setNewFeature] = useState('');
   const [showVideoTrimmer, setShowVideoTrimmer] = useState(false);
   const [videoToTrim, setVideoToTrim] = useState<File | null>(null);
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<File | null>(null);
-  
+
   const [formData, setFormData] = useState<EquipmentFormData>({
     name: '',
     description: '',
@@ -137,24 +132,22 @@ export default function EquipmentFormPage() {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCategoryChange = (value: string) => {
-    setFormData(prev => ({ ...prev, category: value as EquipmentCategory }));
+    setFormData((prev) => ({ ...prev, category: value as EquipmentCategory }));
   };
 
   const handleFuelTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, fuel_type: value }));
+    setFormData((prev) => ({ ...prev, fuel_type: value }));
   };
 
   const handleAddFeature = () => {
     if (newFeature.trim()) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         features: [...prev.features, newFeature.trim()],
       }));
@@ -163,7 +156,7 @@ export default function EquipmentFormPage() {
   };
 
   const handleRemoveFeature = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index),
     }));
@@ -175,7 +168,7 @@ export default function EquipmentFormPage() {
 
     try {
       const selectedFiles = Array.from(files);
-      
+
       // Check if we need to crop any images
       for (const file of selectedFiles) {
         const isSquare = await checkIfImageIsSquare(file);
@@ -187,7 +180,7 @@ export default function EquipmentFormPage() {
           return;
         }
       }
-      
+
       // All images are square, proceed with upload
       await uploadImagesToCloudinary(selectedFiles);
     } catch (err) {
@@ -213,6 +206,9 @@ export default function EquipmentFormPage() {
 
   const uploadImagesToCloudinary = async (files: File[]) => {
     setIsUploading(true);
+    setUploadType('image');
+    setUploadProgress(0);
+
     try {
       const totalCount = formData.images.length + files.length;
       if (totalCount > IMAGE_UPLOAD.MAX_FILES) {
@@ -228,28 +224,52 @@ export default function EquipmentFormPage() {
         return;
       }
 
-      const uploadFile = async (file: File) => {
-        const body = new FormData();
-        body.append('file', file);
-        body.append('upload_preset', uploadPreset);
-        body.append('folder', 'agri-serve/equipment');
+      const uploadFileWithProgress = (
+        file: File,
+        fileIndex: number,
+        totalFiles: number
+      ): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', uploadPreset);
+          formData.append('folder', 'agri-serve/equipment');
 
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: 'POST',
-          body,
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const fileProgress = (event.loaded / event.total) * 100;
+              const overallProgress = ((fileIndex + fileProgress / 100) / totalFiles) * 100;
+              setUploadProgress(Math.round(overallProgress));
+            }
+          });
+
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data.secure_url as string);
+            } else {
+              reject(new Error('Upload failed'));
+            }
+          });
+
+          xhr.addEventListener('error', () => {
+            reject(new Error('Upload failed'));
+          });
+
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+          xhr.send(formData);
         });
-
-        if (!response.ok) {
-          throw new Error('Upload failed');
-        }
-
-        const data = await response.json();
-        return data.secure_url as string;
       };
 
-      const uploadedUrls = await Promise.all(files.map(uploadFile));
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const url = await uploadFileWithProgress(files[i], i, files.length);
+        uploadedUrls.push(url);
+      }
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         images: [...prev.images, ...uploadedUrls],
       }));
@@ -259,6 +279,8 @@ export default function EquipmentFormPage() {
       console.error('Failed to upload images:', err);
       toast.error('Failed to upload images');
     } finally {
+      setUploadProgress(0);
+      setUploadType(null);
       setIsUploading(false);
     }
   };
@@ -270,7 +292,7 @@ export default function EquipmentFormPage() {
     try {
       // Check video duration
       const duration = await getVideoDuration(file);
-      
+
       if (duration > 15) {
         // Always show trimmer for videos longer than 15 seconds
         setVideoToTrim(file);
@@ -290,6 +312,9 @@ export default function EquipmentFormPage() {
 
   const uploadVideoToCloudinary = async (file: File) => {
     setIsUploading(true);
+    setUploadType('video');
+    setUploadProgress(0);
+
     try {
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
@@ -299,26 +324,46 @@ export default function EquipmentFormPage() {
         return;
       }
 
-      const body = new FormData();
-      body.append('file', file);
-      body.append('upload_preset', uploadPreset);
-      body.append('folder', 'agri-serve/equipment');
-      body.append('resource_type', 'video');
+      const uploadWithProgress = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('upload_preset', uploadPreset);
+          formData.append('folder', 'agri-serve/equipment');
+          formData.append('resource_type', 'video');
 
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
-        method: 'POST',
-        body,
-      });
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const progress = (event.loaded / event.total) * 100;
+              setUploadProgress(Math.round(progress));
+            }
+          });
 
-      if (!response.ok) {
-        throw new Error('Video upload failed');
-      }
+          xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data.secure_url as string);
+            } else {
+              reject(new Error('Video upload failed'));
+            }
+          });
 
-      const data = await response.json();
-      
-      setFormData(prev => ({
+          xhr.addEventListener('error', () => {
+            reject(new Error('Video upload failed'));
+          });
+
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`);
+          xhr.send(formData);
+        });
+      };
+
+      const videoUrl = await uploadWithProgress();
+
+      setFormData((prev) => ({
         ...prev,
-        video_url: data.secure_url,
+        video_url: videoUrl,
       }));
 
       toast.success('Video uploaded successfully');
@@ -326,6 +371,8 @@ export default function EquipmentFormPage() {
       console.error('Failed to upload video:', err);
       toast.error('Failed to upload video');
     } finally {
+      setUploadProgress(0);
+      setUploadType(null);
       setIsUploading(false);
     }
   };
@@ -336,7 +383,7 @@ export default function EquipmentFormPage() {
     try {
       setShowVideoTrimmer(false);
       setIsUploading(true);
-      
+
       // Show progress toast
       const toastId = toast.loading('Processing video... 0%');
 
@@ -344,14 +391,14 @@ export default function EquipmentFormPage() {
       const trimmedFile = await trimVideo(videoToTrim, startTime, endTime, (progress) => {
         toast.loading(`Processing video... ${progress}%`, { id: toastId });
       });
-      
+
       toast.loading('Uploading video...', { id: toastId });
-      
+
       setVideoToTrim(null);
-      
+
       // Upload the trimmed video
       await uploadVideoToCloudinary(trimmedFile);
-      
+
       toast.success('Video uploaded successfully!', { id: toastId });
     } catch (err) {
       console.error('Failed to trim video:', err);
@@ -368,7 +415,7 @@ export default function EquipmentFormPage() {
   const handleImageCrop = async (croppedFile: File) => {
     setShowImageCropper(false);
     setImageToCrop(null);
-    
+
     // Upload the cropped image
     await uploadImagesToCloudinary([croppedFile]);
   };
@@ -379,14 +426,14 @@ export default function EquipmentFormPage() {
   };
 
   const handleRemoveImage = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
     }));
   };
 
   const handleRemoveVideo = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       video_url: null,
     }));
@@ -401,24 +448,24 @@ export default function EquipmentFormPage() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        
+
         // Get address from coordinates
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
           );
           const data = await response.json();
-          
-          setFormData(prev => ({
+
+          setFormData((prev) => ({
             ...prev,
             latitude,
             longitude,
             location_name: data.display_name || prev.location_name,
           }));
-          
+
           toast.success('Location detected');
         } catch {
-          setFormData(prev => ({ ...prev, latitude, longitude }));
+          setFormData((prev) => ({ ...prev, latitude, longitude }));
           toast.success('Coordinates captured');
         }
       },
@@ -451,9 +498,9 @@ export default function EquipmentFormPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
     try {
       const equipmentData = {
@@ -483,7 +530,7 @@ export default function EquipmentFormPage() {
         await equipmentService.createEquipment(equipmentData);
         toast.success('Equipment created successfully');
       }
-      
+
       router.push('/provider/equipment');
     } catch (err) {
       console.error('Failed to save equipment:', err);
@@ -507,17 +554,17 @@ export default function EquipmentFormPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <main className="max-w-3xl mx-auto px-4 py-6">
-        <Link 
+
+      <main className="mx-auto max-w-3xl px-4 pb-6 pt-28">
+        <Link
           href="/provider/equipment"
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6"
+          className="mb-6 inline-flex items-center text-gray-600 hover:text-gray-900"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" />
+          <ArrowLeft className="mr-1 h-4 w-4" />
           Back to equipment
         </Link>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        <h1 className="mb-6 text-2xl font-bold text-gray-900">
           {isEdit ? 'Edit Equipment' : 'Add New Equipment'}
         </h1>
 
@@ -525,11 +572,11 @@ export default function EquipmentFormPage() {
           {/* Basic Info */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Basic Information</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Basic Information</h2>
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Equipment Name <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -542,7 +589,7 @@ export default function EquipmentFormPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Description
                   </label>
                   <Textarea
@@ -555,7 +602,7 @@ export default function EquipmentFormPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Category <span className="text-red-500">*</span>
                   </label>
                   <Select value={formData.category} onValueChange={handleCategoryChange}>
@@ -578,13 +625,11 @@ export default function EquipmentFormPage() {
           {/* Specifications */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Specifications</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Specifications</h2>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Brand
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Brand</label>
                   <Input
                     name="brand"
                     value={formData.brand}
@@ -592,11 +637,9 @@ export default function EquipmentFormPage() {
                     placeholder="e.g., John Deere"
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Model
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Model</label>
                   <Input
                     name="model"
                     value={formData.model}
@@ -604,11 +647,9 @@ export default function EquipmentFormPage() {
                     placeholder="e.g., 5050D"
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Year
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Year</label>
                   <Input
                     name="year"
                     type="number"
@@ -619,11 +660,9 @@ export default function EquipmentFormPage() {
                     max={new Date().getFullYear()}
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Horsepower
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Horsepower</label>
                   <Input
                     name="horsepower"
                     type="number"
@@ -634,9 +673,7 @@ export default function EquipmentFormPage() {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fuel Type
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Fuel Type</label>
                   <Select value={formData.fuel_type} onValueChange={handleFuelTypeChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select fuel type" />
@@ -656,11 +693,11 @@ export default function EquipmentFormPage() {
           {/* Pricing */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Pricing</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Pricing</h2>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Price per Day (₹) <span className="text-red-500">*</span>
                   </label>
                   <Input
@@ -673,9 +710,9 @@ export default function EquipmentFormPage() {
                     required
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Price per Hour (₹)
                   </label>
                   <Input
@@ -694,11 +731,11 @@ export default function EquipmentFormPage() {
           {/* Location */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Location</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Location</h2>
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Equipment Location <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
@@ -711,14 +748,12 @@ export default function EquipmentFormPage() {
                       required
                     />
                     <Button type="button" variant="outline" onClick={handleGetLocation}>
-                      <MapPin className="h-4 w-4 mr-1" />
+                      <MapPin className="mr-1 h-4 w-4" />
                       Detect
                     </Button>
                   </div>
                   {formData.latitude !== 0 && formData.longitude !== 0 && (
-                    <p className="mt-1 text-xs text-green-600">
-                      ✓ GPS coordinates captured
-                    </p>
+                    <p className="mt-1 text-xs text-green-600">✓ GPS coordinates captured</p>
                   )}
                 </div>
               </div>
@@ -728,8 +763,8 @@ export default function EquipmentFormPage() {
           {/* Features */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Features</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Features</h2>
+
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <Input
@@ -742,13 +777,13 @@ export default function EquipmentFormPage() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {formData.features.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {formData.features.map((feature, index) => (
                       <span
                         key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-sm"
+                        className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm"
                       >
                         {feature}
                         <button
@@ -769,31 +804,34 @@ export default function EquipmentFormPage() {
           {/* Photos */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Photos</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Photos</h2>
+
               <div className="space-y-4">
                 {/* Image Grid */}
                 <div className="grid grid-cols-3 gap-4">
                   {formData.images.map((img, index) => (
-                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                    <div
+                      key={index}
+                      className="relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+                    >
                       <Image src={img} alt="" fill className="object-cover" />
                       <button
                         type="button"
                         onClick={() => handleRemoveImage(index)}
-                        className="absolute top-1 right-1 p-1 rounded-full bg-white shadow-md hover:bg-gray-100"
+                        className="absolute right-1 top-1 rounded-full bg-white p-1 shadow-md hover:bg-gray-100"
                       >
                         <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
-                  
+
                   {/* Upload Button */}
-                  <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-green-500 cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-green-600 transition-colors">
-                    {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin" />
+                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-500 transition-colors hover:border-green-500 hover:text-green-600">
+                    {isUploading && uploadType === 'image' ? (
+                      <CircularProgress progress={uploadProgress} size="md" />
                     ) : (
                       <>
-                        <Upload className="h-8 w-8 mb-1" />
+                        <Upload className="mb-1 h-8 w-8" />
                         <span className="text-xs">Add Photo</span>
                       </>
                     )}
@@ -807,9 +845,10 @@ export default function EquipmentFormPage() {
                     />
                   </label>
                 </div>
-                
+
                 <p className="text-xs text-gray-500">
-                  Add up to {IMAGE_UPLOAD.MAX_FILES} photos. Images will be cropped to square format. First photo will be the cover image.
+                  Add up to {IMAGE_UPLOAD.MAX_FILES} photos. Images will be cropped to square
+                  format. First photo will be the cover image.
                 </p>
               </div>
             </CardContent>
@@ -818,31 +857,27 @@ export default function EquipmentFormPage() {
           {/* Video */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="font-semibold text-lg mb-4">Video (Optional)</h2>
-              
+              <h2 className="mb-4 text-lg font-semibold">Video (Optional)</h2>
+
               <div className="space-y-4">
                 {formData.video_url ? (
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
-                    <video
-                      src={formData.video_url}
-                      controls
-                      className="w-full h-full"
-                    />
+                  <div className="relative aspect-video overflow-hidden rounded-lg bg-gray-100">
+                    <video src={formData.video_url} controls className="h-full w-full" />
                     <button
                       type="button"
                       onClick={handleRemoveVideo}
-                      className="absolute top-2 right-2 p-2 rounded-full bg-white shadow-md hover:bg-gray-100"
+                      className="absolute right-2 top-2 rounded-full bg-white p-2 shadow-md hover:bg-gray-100"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
                 ) : (
-                  <label className="aspect-video rounded-lg border-2 border-dashed border-gray-300 hover:border-green-500 cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-green-600 transition-colors">
-                    {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin" />
+                  <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-500 transition-colors hover:border-green-500 hover:text-green-600">
+                    {isUploading && uploadType === 'video' ? (
+                      <CircularProgress progress={uploadProgress} size="md" />
                     ) : (
                       <>
-                        <Video className="h-8 w-8 mb-1" />
+                        <Video className="mb-1 h-8 w-8" />
                         <span className="text-xs">Add Video</span>
                       </>
                     )}
@@ -855,9 +890,10 @@ export default function EquipmentFormPage() {
                     />
                   </label>
                 )}
-                
+
                 <p className="text-xs text-gray-500">
-                  Add one video to showcase your equipment in action. Maximum 15 seconds. You'll be able to select which portion to use.
+                  Add one video to showcase your equipment in action. Maximum 15 seconds. You'll be
+                  able to select which portion to use.
                 </p>
               </div>
             </CardContent>
@@ -873,14 +909,16 @@ export default function EquipmentFormPage() {
                     Turn off to temporarily hide from search results
                   </p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex cursor-pointer items-center">
                   <input
                     type="checkbox"
                     checked={formData.is_available}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_available: e.target.checked }))}
-                    className="sr-only peer"
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, is_available: e.target.checked }))
+                    }
+                    className="peer sr-only"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                  <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-300 rtl:peer-checked:after:-translate-x-full"></div>
                 </label>
               </div>
             </CardContent>
@@ -896,11 +934,7 @@ export default function EquipmentFormPage() {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              loading={isSubmitting}
-              className="flex-1"
-            >
+            <Button type="submit" loading={isSubmitting} className="flex-1">
               {isEdit ? 'Save Changes' : 'Add Equipment'}
             </Button>
           </div>

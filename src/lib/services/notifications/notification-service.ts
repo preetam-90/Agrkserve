@@ -9,7 +9,6 @@ import type {
   NotificationCategory,
   NotificationPriority,
 } from '@/lib/types/notifications';
-import { buildNotificationMessage } from './config';
 
 // =====================================================
 // NOTIFICATION SERVICE
@@ -115,13 +114,16 @@ export class NotificationService {
       throw error;
     }
 
-    const typedData = data as { category: NotificationCategory; priority: NotificationPriority; is_read: boolean }[] | null;
+    const typedData = data as
+      | { category: NotificationCategory; priority: NotificationPriority; is_read: boolean }[]
+      | null;
 
     const stats: NotificationStats = {
       total: typedData?.length || 0,
       unread: typedData?.filter((n) => !n.is_read).length || 0,
       read: typedData?.filter((n) => n.is_read).length || 0,
-      highPriority: typedData?.filter((n) => n.priority === 'high' || n.priority === 'critical').length || 0,
+      highPriority:
+        typedData?.filter((n) => n.priority === 'high' || n.priority === 'critical').length || 0,
       by_category: {
         booking: 0,
         payment: 0,
@@ -158,14 +160,11 @@ export class NotificationService {
     const { context = {}, ...baseParams } = params;
 
     // Build message if not provided
-    let title = baseParams.title;
-    let message = baseParams.message;
+    const title = baseParams.title;
+    const message = baseParams.message;
 
-    if (context && Object.keys(context).length > 0) {
-      const built = buildNotificationMessage(baseParams.event_type, context);
-      title = title || built.title;
-      message = message || built.message;
-    }
+    // Note: Context-based message building removed as config file was deleted
+    // If title/message are not provided, they will use defaults from the database
 
     // Call the database function that respects user preferences
     const { data, error } = await this.supabase.rpc('create_notification', {
@@ -254,10 +253,7 @@ export class NotificationService {
   // DELETE NOTIFICATION
   // =====================================================
   async deleteNotification(notificationId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('notifications')
-      .delete()
-      .eq('id', notificationId);
+    const { error } = await this.supabase.from('notifications').delete().eq('id', notificationId);
 
     if (error) {
       console.error('Error deleting notification:', error);
@@ -269,10 +265,7 @@ export class NotificationService {
   // CLEAR ALL NOTIFICATIONS
   // =====================================================
   async clearAll(userId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('notifications')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await this.supabase.from('notifications').delete().eq('user_id', userId);
 
     if (error) {
       console.error('Error clearing notifications:', error);
@@ -348,10 +341,7 @@ export class NotificationService {
   // =====================================================
   // SUBSCRIBE TO NOTIFICATIONS (Real-time)
   // =====================================================
-  subscribeToNotifications(
-    userId: string,
-    callback: (notification: Notification) => void
-  ) {
+  subscribeToNotifications(userId: string, callback: (notification: Notification) => void) {
     const channel = this.supabase
       .channel(`notifications:${userId}`)
       .on(
@@ -376,10 +366,7 @@ export class NotificationService {
   // =====================================================
   // SUBSCRIBE TO PREFERENCE CHANGES (Real-time)
   // =====================================================
-  subscribeToPreferences(
-    userId: string,
-    callback: (preferences: NotificationPreferences) => void
-  ) {
+  subscribeToPreferences(userId: string, callback: (preferences: NotificationPreferences) => void) {
     const channel = this.supabase
       .channel(`preferences:${userId}`)
       .on(

@@ -11,7 +11,7 @@ export default function ConversationPage() {
   const params = useParams();
   const router = useRouter();
   const conversationId = params.id as string;
-  
+
   const { user, isLoading: authLoading, isInitialized } = useAuthStore();
   const { unsubscribeAll } = useMessagesStore();
 
@@ -35,12 +35,11 @@ export default function ConversationPage() {
 
   if (!isInitialized || authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="flex min-h-screen flex-col bg-[#0a0a0a]">
         <Header />
-        <div className="flex items-center justify-center py-20">
+        <div className="flex flex-1 items-center justify-center">
           <Spinner size="lg" />
         </div>
-        <Footer />
       </div>
     );
   }
@@ -50,11 +49,11 @@ export default function ConversationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex min-h-screen flex-col bg-[#0a0a0a]">
       <Header />
-      
-      <main className="flex-1 container mx-auto px-0 md:px-4 py-0 md:py-6 max-w-4xl">
-        <div className="bg-white rounded-none md:rounded-xl shadow-sm overflow-hidden h-[calc(100vh-64px)] md:h-[calc(100vh-160px)]">
+
+      <main className="w-full flex-1 px-0 pb-0 pt-16 md:px-0 md:pb-0">
+        <div className="h-[calc(100vh-64px)] overflow-hidden bg-[#0a0a0a] md:h-[calc(100vh-64px)]">
           <ChatWindow
             conversationId={conversationId}
             onBack={handleBack}

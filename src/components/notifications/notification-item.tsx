@@ -5,9 +5,76 @@ import type { Notification } from '@/lib/types/notifications';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { X, ExternalLink, LucideIcon } from 'lucide-react';
+import {
+  X,
+  ExternalLink,
+  LucideIcon,
+  Bell,
+  MessageSquare,
+  DollarSign,
+  Info,
+  CheckCircle,
+  XCircle,
+  Star,
+  TrendingUp,
+  Shield,
+  Clock,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { NOTIFICATION_ICONS, EVENT_ICONS, NOTIFICATION_COLORS, CATEGORY_COLORS } from '@/lib/services/notifications/config';
+
+const NOTIFICATION_ICONS: Record<string, LucideIcon> = {
+  booking: Bell,
+  message: MessageSquare,
+  payment: DollarSign,
+  system: Info,
+};
+
+const EVENT_ICONS: Record<string, LucideIcon> = {
+  booking_request: Bell,
+  booking_accepted: CheckCircle,
+  booking_rejected: XCircle,
+  booking_cancelled: XCircle,
+  payment_due: DollarSign,
+  payment_received: DollarSign,
+  new_message: MessageSquare,
+  new_review: Star,
+  new_login: Shield,
+  high_demand: TrendingUp,
+  welcome: CheckCircle,
+};
+
+const NOTIFICATION_STYLES: Record<string, { bg: string; icon: string; border: string }> = {
+  critical: {
+    bg: 'hover:bg-red-50/50',
+    icon: 'text-red-600 bg-red-100',
+    border: 'border-l-red-500',
+  },
+  high: {
+    bg: 'hover:bg-orange-50/50',
+    icon: 'text-orange-600 bg-orange-100',
+    border: 'border-l-orange-500',
+  },
+  normal: {
+    bg: 'hover:bg-blue-50/50',
+    icon: 'text-blue-600 bg-blue-100',
+    border: 'border-l-blue-500',
+  },
+  low: {
+    bg: 'hover:bg-gray-50/50',
+    icon: 'text-gray-600 bg-gray-100',
+    border: 'border-l-gray-300',
+  },
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  booking: 'text-blue-600',
+  message: 'text-emerald-600',
+  payment: 'text-amber-600',
+  system: 'text-slate-600',
+  trust: 'text-purple-600',
+  security: 'text-red-600',
+  insight: 'text-indigo-600',
+};
 
 interface NotificationItemProps {
   notification: Notification;
@@ -26,14 +93,12 @@ export function NotificationItem({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const Icon: LucideIcon =
-    EVENT_ICONS[notification.event_type] ||
-    NOTIFICATION_ICONS[notification.category];
+    EVENT_ICONS[notification.event_type] || NOTIFICATION_ICONS[notification.category] || Info;
 
-  const colors = NOTIFICATION_COLORS[notification.priority];
-  const categoryColor = CATEGORY_COLORS[notification.category];
+  const style = NOTIFICATION_STYLES[notification.priority] || NOTIFICATION_STYLES.normal;
+  const categoryColor = CATEGORY_COLORS[notification.category] || 'text-gray-600';
 
   const handleClick = async () => {
-    // Mark as read if not already
     if (!notification.is_read) {
       try {
         await onMarkRead(notification.id);
@@ -42,7 +107,6 @@ export function NotificationItem({
       }
     }
 
-    // Navigate if action URL exists
     if (notification.action_url) {
       onClose?.();
       router.push(notification.action_url);
@@ -65,90 +129,85 @@ export function NotificationItem({
     <div
       onClick={handleClick}
       className={cn(
-        'group relative flex gap-3 p-3 rounded-lg transition-all duration-200',
-        'hover:bg-accent cursor-pointer',
-        !notification.is_read && 'bg-blue-50/50',
-        isDeleting && 'opacity-50 pointer-events-none'
+        'group relative flex cursor-pointer gap-4 border-l-[3px] p-4 transition-all duration-300',
+        'bg-background border-transparent hover:shadow-md',
+        notification.is_read ? 'opacity-80 hover:opacity-100' : `bg-primary/5 ${style.border}`,
+        isDeleting && 'pointer-events-none origin-center scale-95 opacity-0',
+        style.bg
       )}
     >
-      {/* Icon */}
-      <div className={cn('flex-shrink-0', categoryColor)}>
+      <div className={cn('mt-0.5 flex-shrink-0')}>
         <div
           className={cn(
-            'flex items-center justify-center h-10 w-10 rounded-full',
-            colors.bg
+            'flex h-10 w-10 items-center justify-center rounded-xl shadow-sm transition-transform duration-300 group-hover:scale-110',
+            style.icon
           )}
         >
           <Icon className="h-5 w-5" />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 space-y-1">
-        {/* Title & Time */}
+      <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex items-start justify-between gap-2">
           <h4
             className={cn(
-              'text-sm font-medium leading-tight',
-              !notification.is_read && 'font-semibold'
+              'text-sm leading-tight transition-colors',
+              notification.is_read ? 'text-foreground/80 font-medium' : 'text-foreground font-bold',
+              'group-hover:text-primary'
             )}
           >
             {notification.title}
           </h4>
 
-          {/* Delete Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            <X className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-6 w-6 rounded-full"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              title="Delete notification"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
 
-        {/* Message */}
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p
+          className={cn(
+            'line-clamp-2 text-sm leading-relaxed',
+            notification.is_read ? 'text-muted-foreground' : 'text-foreground/90'
+          )}
+        >
           {notification.message}
         </p>
 
-        {/* Footer: Time & Action */}
         <div className="flex items-center justify-between gap-2 pt-1">
-          <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(notification.created_at), {
-              addSuffix: true,
-            })}
-          </span>
+          <div className="text-muted-foreground group-hover:text-primary/70 flex items-center gap-1.5 text-xs transition-colors">
+            <Clock className="h-3 w-3" />
+            <span>
+              {formatDistanceToNow(new Date(notification.created_at), {
+                addSuffix: true,
+              })}
+            </span>
+          </div>
 
           {notification.action_url && notification.action_label && (
-            <Button
-              variant="link"
-              size="sm"
-              className="h-auto p-0 text-xs font-medium"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClick();
-              }}
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-xs font-semibold hover:underline',
+                categoryColor
+              )}
             >
               {notification.action_label}
-              <ExternalLink className="h-3 w-3 ml-1" />
-            </Button>
+              <ExternalLink className="h-3 w-3" />
+            </span>
           )}
         </div>
       </div>
 
-      {/* Unread Indicator */}
       {!notification.is_read && (
-        <div className="absolute top-3 right-3 h-2 w-2 rounded-full bg-blue-600" />
-      )}
-
-      {/* Priority Indicator */}
-      {notification.priority === 'critical' && (
-        <div className="absolute inset-0 rounded-lg ring-2 ring-red-500 ring-offset-2 pointer-events-none" />
-      )}
-      {notification.priority === 'high' && (
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-500 rounded-l-lg" />
+        <span className="bg-primary absolute right-3 top-3 h-2 w-2 animate-pulse rounded-full" />
       )}
     </div>
   );

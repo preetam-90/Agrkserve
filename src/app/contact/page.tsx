@@ -1,182 +1,417 @@
-import { Metadata } from 'next';
-import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
-import { generateSystemPageMetadata, metadataConfigs } from '@/lib/system-pages/page-metadata';
-import { Mail, Phone, MapPin, Clock, MessageSquare } from 'lucide-react';
+'use client';
 
-export const metadata: Metadata = generateSystemPageMetadata(metadataConfigs.contact);
+import { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { Mail, Phone, MapPin, Clock, MessageSquare, Sparkles } from 'lucide-react';
+import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
 
 /**
  * Contact Us Page
  * Contact information and support options
  */
 export default function ContactPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+
+  // Parallax effects
+  const y1 = useTransform(scrollY, [0, 500], [0, 50]);
+  const opacity1 = useTransform(scrollY, [0, 300], [1, 0]);
+
+  // Animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  };
+
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 60 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  };
+
+  const scaleIn = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
   return (
-    <SystemPageLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            संपर्क करें | Contact Us
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-            हम आपकी मदद के लिए यहां हैं। किसी भी सवाल के लिए हमसे संपर्क करें।
-          </p>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-            We're here to help. Contact us for any questions.
-          </p>
+    <SystemPageLayout className="min-h-screen">
+      <div ref={containerRef} className="relative min-h-screen overflow-hidden">
+        {/* Animated Background */}
+        <div className="pointer-events-none fixed inset-0">
+          <motion.div style={{ y: y1 }} className="absolute inset-0">
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#22c55e08_1px,transparent_1px),linear-gradient(to_bottom,#22c55e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,#22c55e10,transparent)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_600px_at_0%_100%,#22c55e10,transparent)]" />
+          </motion.div>
         </div>
 
-        {/* Contact Methods */}
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          {/* Phone */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Phone className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  फोन | Phone
-                </h3>
-                <p className="text-gray-600 mb-2">
-                  हमें कॉल करें | Call us
-                </p>
-                <a
-                  href="tel:+911800XXXXXX"
-                  className="text-green-600 font-medium hover:text-green-700"
-                >
-                  +91 1800-XXX-XXXX
-                </a>
-                <p className="text-sm text-gray-500 mt-2">
-                  टोल-फ्री | Toll-free
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Email */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Mail className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  ईमेल | Email
-                </h3>
-                <p className="text-gray-600 mb-2">
-                  हमें लिखें | Write to us
-                </p>
-                <a
-                  href="mailto:support@agriserve.in"
-                  className="text-green-600 font-medium hover:text-green-700 break-all"
-                >
-                  support@agriserve.in
-                </a>
-                <p className="text-sm text-gray-500 mt-2">
-                  24 घंटे में जवाब | Reply within 24 hours
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* WhatsApp */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  WhatsApp
-                </h3>
-                <p className="text-gray-600 mb-2">
-                  त्वरित सहायता | Quick support
-                </p>
-                <a
-                  href="https://wa.me/911800XXXXXX"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-600 font-medium hover:text-green-700"
-                >
-                  +91 1800-XXX-XXXX
-                </a>
-                <p className="text-sm text-gray-500 mt-2">
-                  सोमवार - शनिवार | Mon - Sat
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Office */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <MapPin className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  कार्यालय | Office
-                </h3>
-                <p className="text-gray-600 mb-2">
-                  हमसे मिलें | Visit us
-                </p>
-                <address className="text-gray-700 not-italic">
-                  AgriServe Technologies<br />
-                  Bangalore, Karnataka<br />
-                  India - 560001
-                </address>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Business Hours */}
-        <div className="bg-green-50 rounded-lg p-6 mb-12">
-          <div className="flex items-start gap-4">
-            <Clock className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                कार्य समय | Business Hours
-              </h3>
-              <div className="space-y-2 text-gray-700">
-                <div className="flex justify-between">
-                  <span>सोमवार - शुक्रवार | Monday - Friday:</span>
-                  <span className="font-medium">9:00 AM - 6:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>शनिवार | Saturday:</span>
-                  <span className="font-medium">10:00 AM - 4:00 PM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>रविवार | Sunday:</span>
-                  <span className="font-medium text-red-600">बंद | Closed</span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mt-3">
-                * आपातकालीन सहायता 24/7 उपलब्ध | Emergency support available 24/7
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* FAQ Link */}
-        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            अक्सर पूछे जाने वाले प्रश्न | Frequently Asked Questions
-          </h3>
-          <p className="text-gray-600 mb-6">
-            शायद आपका जवाब पहले से ही हमारे FAQ में है।
-          </p>
-          <p className="text-gray-600 mb-6">
-            Your answer might already be in our FAQ.
-          </p>
-          <a
-            href="/help"
-            className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
+        {/* Floating Particles */}
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={`particle-${i}`}
+            className="pointer-events-none absolute"
+            initial={{
+              x: `${Math.random() * 100}%`,
+              y: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
+              opacity: [0.2, 0.6, 0.2],
+              scale: [1, 1.5, 1],
+            }}
+            transition={{
+              duration: 4 + Math.random() * 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
           >
-            FAQ देखें | View FAQ
-          </a>
+            <div className="h-1 w-1 rounded-full bg-emerald-400/40" />
+          </motion.div>
+        ))}
+
+        <div className="relative mx-auto max-w-6xl px-4 py-8 md:py-12 lg:py-16">
+          {/* Hero Section */}
+          <motion.div
+            style={{ opacity: opacity1 }}
+            className="mb-16 text-center md:mb-20"
+            initial="hidden"
+            animate="visible"
+            variants={fadeInUp}
+          >
+            <motion.div
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-2"
+              animate={{
+                scale: [1, 1.05, 1],
+                boxShadow: [
+                  '0 0 20px rgba(34, 197, 94, 0.1)',
+                  '0 0 30px rgba(34, 197, 94, 0.2)',
+                  '0 0 20px rgba(34, 197, 94, 0.1)',
+                ],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+              }}
+            >
+              <Sparkles className="h-4 w-4 text-emerald-400" />
+              <span className="text-sm text-emerald-300">We're Here To Help</span>
+            </motion.div>
+
+            <h1 className="mb-6 text-4xl font-bold md:text-5xl lg:text-6xl">
+              <motion.span
+                className="gradient-text"
+                animate={{
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                }}
+                transition={{
+                  duration: 5,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              >
+                संपर्क करें | Contact Us
+              </motion.span>
+            </h1>
+            <motion.p
+              className="mx-auto max-w-2xl text-lg text-gray-400 md:text-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+            >
+              हम आपकी मदद के लिए यहां हैं। किसी भी सवाल के लिए हमसे संपर्क करें।
+            </motion.p>
+            <motion.p
+              className="mx-auto max-w-2xl text-lg text-gray-400 md:text-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              We're here to help. Contact us for any questions.
+            </motion.p>
+          </motion.div>
+
+          {/* Contact Methods */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={containerVariants}
+            className="mb-16 md:mb-20"
+          >
+            <motion.div variants={containerVariants} className="grid gap-6 md:grid-cols-2">
+              {[
+                {
+                  icon: Phone,
+                  hi: 'फोन',
+                  en: 'Phone',
+                  actionHi: 'हमें कॉल करें',
+                  actionEn: 'Call us',
+                  value: '+91 1800-XXX-XXXX',
+                  link: 'tel:+911800XXXXXX',
+                  extraHi: 'टोल-फ्री',
+                  extraEn: 'Toll-free',
+                },
+                {
+                  icon: Mail,
+                  hi: 'ईमेल',
+                  en: 'Email',
+                  actionHi: 'हमें लिखें',
+                  actionEn: 'Write to us',
+                  value: 'support@agriserve.in',
+                  link: 'mailto:support@agriserve.in',
+                  extraHi: '24 घंटे में जवाब',
+                  extraEn: 'Reply within 24 hours',
+                },
+                {
+                  icon: MessageSquare,
+                  hi: 'WhatsApp',
+                  en: 'WhatsApp',
+                  actionHi: 'त्वरित सहायता',
+                  actionEn: 'Quick support',
+                  value: '+91 1800-XXX-XXXX',
+                  link: 'https://wa.me/911800XXXXXX',
+                  extraHi: 'सोमवार - शनिवार',
+                  extraEn: 'Mon - Sat',
+                  external: true,
+                },
+                {
+                  icon: MapPin,
+                  hi: 'कार्यालय',
+                  en: 'Office',
+                  actionHi: 'हमसे मिलें',
+                  actionEn: 'Visit us',
+                  value: 'AgriServe Technologies\nBangalore, Karnataka\nIndia - 560001',
+                  link: '',
+                  extraHi: '',
+                  extraEn: '',
+                },
+              ].map((method, index) => (
+                <motion.div key={index} variants={scaleIn} whileHover={{ y: -5 }} className="group">
+                  <motion.div
+                    className="glass relative h-full overflow-hidden rounded-2xl p-6 md:p-8"
+                    whileHover={{
+                      boxShadow: '0 0 40px rgba(34, 197, 94, 0.15)',
+                    }}
+                  >
+                    <motion.div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <div className="relative z-10">
+                      <div className="flex items-start gap-4">
+                        <motion.div
+                          className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/10"
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <method.icon className="h-7 w-7 text-emerald-400" />
+                        </motion.div>
+                        <div className="flex-1">
+                          <h3 className="mb-2 text-lg font-semibold text-white">
+                            <span className="gradient-text">{method.hi}</span>
+                          </h3>
+                          <h3 className="mb-2 text-lg font-semibold text-white">{method.en}</h3>
+                          <p className="mb-2 text-gray-400">{method.actionHi}</p>
+                          <p className="mb-2 text-gray-400">{method.actionEn}</p>
+                          {method.link ? (
+                            method.external ? (
+                              <a
+                                href={method.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+                              >
+                                {method.value}
+                              </a>
+                            ) : (
+                              <a
+                                href={method.link}
+                                className="inline-block break-all font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+                              >
+                                {method.value}
+                              </a>
+                            )
+                          ) : (
+                            <address className="whitespace-pre-line not-italic text-gray-300">
+                              {method.value}
+                            </address>
+                          )}
+                          {method.extraHi && (
+                            <>
+                              <p className="mt-2 text-sm text-gray-500">{method.extraHi}</p>
+                              <p className="text-sm text-gray-500">{method.extraEn}</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* Business Hours */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={fadeInLeft}
+            className="mb-16 md:mb-20"
+          >
+            <motion.div className="glass rounded-2xl p-6 md:p-8" whileHover={{ scale: 1.01 }}>
+              <div className="flex items-start gap-4">
+                <motion.div
+                  className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/10"
+                  whileHover={{ rotate: 15, scale: 1.1 }}
+                >
+                  <Clock className="h-6 w-6 text-emerald-400" />
+                </motion.div>
+                <div className="flex-1">
+                  <h3 className="mb-4 text-xl font-semibold text-white">
+                    <span className="gradient-text">कार्य समय | Business Hours</span>
+                  </h3>
+                  <div className="space-y-3">
+                    {[
+                      {
+                        hi: 'सोमवार - शुक्रवार',
+                        en: 'Monday - Friday',
+                        time: '9:00 AM - 6:00 PM',
+                      },
+                      {
+                        hi: 'शनिवार',
+                        en: 'Saturday',
+                        time: '10:00 AM - 4:00 PM',
+                      },
+                      {
+                        hi: 'रविवार',
+                        en: 'Sunday',
+                        time: 'बंद | Closed',
+                        isClosed: true,
+                      },
+                    ].map((schedule, index) => (
+                      <motion.div
+                        key={index}
+                        className={`flex items-center justify-between rounded-lg p-3 ${
+                          schedule.isClosed ? 'bg-red-500/10' : 'bg-white/5'
+                        }`}
+                        whileHover={{ x: 5 }}
+                      >
+                        <div>
+                          <span className="text-gray-300">{schedule.hi}</span>
+                          <span className="ml-2 text-gray-400">{schedule.en}</span>
+                        </div>
+                        <span
+                          className={`font-medium ${
+                            schedule.isClosed ? 'text-red-400' : 'text-emerald-400'
+                          }`}
+                        >
+                          {schedule.time}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <motion.p
+                    className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-gray-400"
+                    animate={{
+                      opacity: [0.7, 1, 0.7],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                    }}
+                  >
+                    * आपातकालीन सहायता 24/7 उपलब्ध | Emergency support available 24/7
+                  </motion.p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* FAQ Link */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={scaleIn}
+          >
+            <motion.div
+              className="glass relative overflow-hidden rounded-2xl p-8 text-center md:p-10"
+              whileHover={{ scale: 1.01 }}
+            >
+              <motion.div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent" />
+              <div className="relative z-10">
+                <motion.h3
+                  className="gradient-text mb-4 text-2xl font-semibold md:text-3xl"
+                  animate={{
+                    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                  }}
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
+                >
+                  अक्सर पूछे जाने वाले प्रश्न | Frequently Asked Questions
+                </motion.h3>
+                <p className="mx-auto mb-8 max-w-xl text-gray-400">
+                  शायद आपका जवाब पहले से ही हमारे FAQ में है।
+                </p>
+                <p className="mx-auto mb-8 max-w-xl text-gray-400">
+                  Your answer might already be in our FAQ.
+                </p>
+                <motion.a
+                  href="/help"
+                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-4 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:from-emerald-600 hover:to-emerald-700"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  FAQ देखें | View FAQ
+                </motion.a>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </SystemPageLayout>

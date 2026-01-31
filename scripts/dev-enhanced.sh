@@ -39,7 +39,7 @@ echo -e "${DIM}━━━━━━━━━━━━━━━━━━━━━�
 # System info with icons
 echo -e "${BOLD}${PURPLE}🚀 Development Environment${RESET}"
 echo -e "${DIM}┌─────────────────────────────────────────────────────────────────┐${RESET}"
-echo -e "${DIM}│${RESET} ${BLUE}📦 Manager:${RESET}    ${BOLD}${WHITE}pnpm v$(pnpm --version)${RESET}"
+echo -e "${DIM}│${RESET} ${BLUE}📦 Manager:${RESET}    ${BOLD}${WHITE}bun v$(bun --version)${RESET}"
 echo -e "${DIM}│${RESET} ${BLUE}⚡ Runtime:${RESET}    ${BOLD}${WHITE}Node $(node --version)${RESET}"
 echo -e "${DIM}│${RESET} ${BLUE}🏗️  Framework:${RESET}  ${BOLD}${WHITE}Next.js 16.1.3${RESET} ${DIM}(with Turbopack)${RESET}"
 echo -e "${DIM}│${RESET} ${BLUE}⚛️  Library:${RESET}    ${BOLD}${WHITE}React 19.2.3${RESET}"
@@ -64,8 +64,8 @@ fi
 echo -e "${BOLD}${YELLOW}⏳ Initializing...${RESET}"
 sleep 0.3
 
-# Start the dev server using pnpm
-pnpm next dev -p 3001 2>&1 | while IFS= read -r line; do
+# Start the dev server using bun
+bun next dev -p 3001 2>&1 | while IFS= read -r line; do
     # Filter and beautify output
     if [[ "$line" =~ "Ready in" ]]; then
         READY_TIME=$(echo "$line" | grep -oP '\d+ms|\d+\.?\d*s')
@@ -85,9 +85,9 @@ pnpm next dev -p 3001 2>&1 | while IFS= read -r line; do
         # Quick tips
         echo -e "${BOLD}${PINK}💡 Quick Tips:${RESET}"
         echo -e "  ${GREEN2}•${RESET} ${DIM}Press${RESET} ${BOLD}Ctrl+C${RESET} ${DIM}to stop the development server${RESET}"
-        echo -e "  ${GREEN2}•${RESET} ${DIM}Run${RESET} ${BOLD}pnpm build${RESET} ${DIM}for production build${RESET}"
-        echo -e "  ${GREEN2}•${RESET} ${DIM}Run${RESET} ${BOLD}pnpm lint${RESET} ${DIM}to check code quality${RESET}"
-        echo -e "  ${GREEN2}•${RESET} ${DIM}Run${RESET} ${BOLD}pnpm format${RESET} ${DIM}to format your code${RESET}\n"
+        echo -e "  ${GREEN2}•${RESET} ${DIM}Run${RESET} ${BOLD}bun run build${RESET} ${DIM}for production build${RESET}"
+        echo -e "  ${GREEN2}•${RESET} ${DIM}Run${RESET} ${BOLD}bun run lint${RESET} ${DIM}to check code quality${RESET}"
+        echo -e "  ${GREEN2}•${RESET} ${DIM}Run${RESET} ${BOLD}bun run format${RESET} ${DIM}to format your code${RESET}\n"
         
         echo -e "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
         echo -e "${BOLD}${PURPLE}🎯 Ready for development! Happy Coding! 🚀${RESET}"

@@ -1,0 +1,87 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store';
+import { Spinner } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+
+const LOADING_TIMEOUT = 8000; // 8 seconds timeout
+
+export default function DashboardRedirect() {
+  const router = useRouter();
+  const { profile, isLoading, initialize, isInitialized } = useAuthStore();
+  const [showTimeoutMessage, setShowTimeoutMessage] = useState(false);
+
+  useEffect(() => {
+    // Trigger auth initialization if not already done
+    if (!isInitialized && !isLoading) {
+      initialize();
+    }
+  }, [isInitialized, isLoading, initialize]);
+
+  useEffect(() => {
+    // Set timeout to show message if loading takes too long
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        setShowTimeoutMessage(true);
+      }
+    }, LOADING_TIMEOUT);
+
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!profile) {
+      router.push('/login');
+      return;
+    }
+
+    // Redirect based on role
+    const activeRole = profile.roles?.[0];
+
+    switch (activeRole) {
+      case 'provider':
+        router.push('/provider/dashboard');
+        break;
+      case 'labour':
+        router.push('/labour/dashboard');
+        break;
+      case 'admin':
+        router.push('/admin/dashboard');
+        break;
+      default:
+        router.push('/renter/dashboard');
+    }
+  }, [profile, isLoading, router]);
+
+  const handleRetry = () => {
+    setShowTimeoutMessage(false);
+    initialize();
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+      <Spinner size="lg" />
+      <p className="text-sm text-gray-500">Loading your dashboard...</p>
+
+      {showTimeoutMessage && (
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <p className="max-w-md text-center text-sm text-gray-600">
+            This is taking longer than expected. Please check your connection or try again.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={handleRetry} variant="outline" size="sm">
+              Retry
+            </Button>
+            <Button onClick={() => router.push('/login')} variant="default" size="sm">
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

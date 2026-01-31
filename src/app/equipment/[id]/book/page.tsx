@@ -13,17 +13,10 @@ import {
   CreditCard,
   Info,
   Clock,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
-import {
-  Button,
-  Card,
-  CardContent,
-  Input,
-  Textarea,
-  Spinner,
-} from '@/components/ui';
+import { Button, Card, CardContent, Input, Textarea, Spinner } from '@/components/ui';
 import { Calendar } from '@/components/ui/calendar';
 import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
@@ -58,12 +51,12 @@ export default function BookEquipmentPage() {
 
   const [pricing, setPricing] = useState({
     days: 0,
-    rentalAmount: 0,        // Base rental amount (goes to owner)
-    platformFee: 0,         // Platform fee charged to renter (5% of rental)
-    gstOnPlatformFee: 0,    // 18% GST on platform fee only
-    ownerCommission: 0,     // 3% commission deducted from owner payout
-    totalPayable: 0,        // Total amount renter pays
-    ownerPayout: 0,         // Amount owner receives after commission
+    rentalAmount: 0, // Base rental amount (goes to owner)
+    platformFee: 0, // Platform fee charged to renter (5% of rental)
+    gstOnPlatformFee: 0, // 18% GST on platform fee only
+    ownerCommission: 0, // 3% commission deducted from owner payout
+    totalPayable: 0, // Total amount renter pays
+    ownerPayout: 0, // Amount owner receives after commission
   });
 
   useEffect(() => {
@@ -97,7 +90,11 @@ export default function BookEquipmentPage() {
       try {
         // Include 'pending' so that requested dates are blocked immediately
         // Only ignore 'cancelled' or 'completed' (if you want completed to be available again)
-        bookingsData = await bookingService.getEquipmentBookings(equipmentId, ['pending', 'confirmed', 'in_progress']);
+        bookingsData = await bookingService.getEquipmentBookings(equipmentId, [
+          'pending',
+          'confirmed',
+          'in_progress',
+        ]);
         console.log('Bookings data fetched:', bookingsData);
       } catch (e) {
         console.error('Failed to fetch bookings:', e);
@@ -110,7 +107,7 @@ export default function BookEquipmentPage() {
       // Calculate all booked dates
       const allBookedDates: Date[] = [];
       if (bookingsData && bookingsData.length > 0) {
-        bookingsData.forEach(booking => {
+        bookingsData.forEach((booking) => {
           if (!booking.start_date || !booking.end_date) return;
 
           // Use startOfDay to ensure we are comparing just the calendar dates
@@ -129,7 +126,7 @@ export default function BookEquipmentPage() {
 
       // Set default delivery address from profile
       if (profile?.address) {
-        setFormData(prev => ({ ...prev, deliveryAddress: profile.address! }));
+        setFormData((prev) => ({ ...prev, deliveryAddress: profile.address! }));
       }
     } catch (err: any) {
       console.error('CRITICAL LOAD ERROR:', err);
@@ -187,11 +184,9 @@ export default function BookEquipmentPage() {
     });
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Check if a range contains any booked dates
@@ -202,7 +197,7 @@ export default function BookEquipmentPage() {
     // Simple check: iterate through the range
     let current = range.from;
     while (current <= range.to) {
-      if (bookedDates.some(bookedDate => isSameDay(bookedDate, current))) {
+      if (bookedDates.some((bookedDate) => isSameDay(bookedDate, current))) {
         return true;
       }
       current = addDays(current, 1);
@@ -244,7 +239,7 @@ export default function BookEquipmentPage() {
     const processingToast = toast.loading('Processing payment...');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       await bookingService.createBooking({
         equipment_id: equipment.id,
@@ -261,7 +256,6 @@ export default function BookEquipmentPage() {
       toast.dismiss(processingToast);
       toast.success('Payment successful! Booking created.');
       router.push(`/renter/bookings?success=true`);
-
     } catch (err: any) {
       toast.dismiss(processingToast);
       console.error('Failed to create booking:', err);
@@ -273,9 +267,9 @@ export default function BookEquipmentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col">
+      <div className="flex min-h-screen flex-col bg-slate-950">
         <Header />
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <Loader2 className="h-10 w-10 animate-spin text-emerald-500" />
         </div>
       </div>
@@ -284,12 +278,12 @@ export default function BookEquipmentPage() {
 
   if (!equipment) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col">
+      <div className="flex min-h-screen flex-col bg-slate-950">
         <Header />
-        <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
-          <AlertCircle className="h-16 w-16 mx-auto text-red-500 mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Equipment Not Found</h1>
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-500 text-white">
+        <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
+          <h1 className="mb-2 text-2xl font-bold text-white">Equipment Not Found</h1>
+          <Button asChild className="bg-emerald-600 text-white hover:bg-emerald-500">
             <Link href="/equipment">Browse Equipment</Link>
           </Button>
         </div>
@@ -304,42 +298,39 @@ export default function BookEquipmentPage() {
     <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-4xl px-4 pb-8 pt-28">
         <Link
           href={`/equipment/${equipmentId}`}
-          className="inline-flex items-center text-slate-400 hover:text-emerald-400 mb-6 transition-colors"
+          className="mb-6 inline-flex items-center text-slate-400 transition-colors hover:text-emerald-400"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to equipment
         </Link>
 
-        <h1 className="text-3xl font-bold text-white mb-8">Book Equipment</h1>
+        <h1 className="mb-8 text-3xl font-bold text-white">Book Equipment</h1>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid gap-8 lg:grid-cols-3">
           {/* Booking Form */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+              <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
                 <CardContent className="p-6">
-                  <h2 className="font-bold text-lg mb-6 flex items-center gap-2 text-white">
+                  <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-white">
                     <CalendarIcon className="h-5 w-5 text-emerald-500" />
                     Select Dates
                   </h2>
 
                   <div className="flex flex-col gap-6">
-                    <div className="bg-slate-900/60 backdrop-blur-2xl rounded-3xl border border-white/10 p-8 shadow-[0_25px_60px_rgba(0,0,0,0.6)] relative overflow-hidden group/calendar">
+                    <div className="group/calendar relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 p-8 shadow-[0_25px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl">
                       {/* Decorative background glow */}
-                      <div className="absolute -top-32 -right-32 w-64 h-64 bg-emerald-500/15 blur-[120px] pointer-events-none" />
-                      <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-emerald-600/10 blur-[120px] pointer-events-none" />
+                      <div className="pointer-events-none absolute -right-32 -top-32 h-64 w-64 bg-emerald-500/15 blur-[120px]" />
+                      <div className="pointer-events-none absolute -bottom-32 -left-32 h-64 w-64 bg-emerald-600/10 blur-[120px]" />
 
                       <Calendar
                         mode="range"
                         selected={dateRange}
                         onSelect={handleDateSelect}
-                        disabled={[
-                          { before: today },
-                          ...bookedDates
-                        ]}
+                        disabled={[{ before: today }, ...bookedDates]}
                         numberOfMonths={1}
                         fromMonth={today}
                         captionLayout="dropdown"
@@ -348,77 +339,91 @@ export default function BookEquipmentPage() {
                         modifiers={{
                           booked: bookedDates,
                         }}
-                        className="rounded-md border-none text-slate-100 w-full"
+                        className="w-full rounded-md border-none text-slate-100"
                         modifiersClassNames={{
-                          booked: "text-red-400 font-bold line-through bg-red-500/20 rounded-xl hover:bg-red-500/30",
+                          booked:
+                            'text-red-400 font-bold line-through bg-red-500/20 rounded-xl hover:bg-red-500/30',
                         }}
                         classNames={{
-                          months: "flex flex-col items-center",
-                          month: "space-y-6 w-full max-w-[340px]",
-                          month_caption: "flex flex-row justify-between items-center mb-8 px-2 w-full",
-                          caption_label: "hidden",
-                          caption_dropdowns: "flex justify-center gap-2 text-emerald-400 font-bold text-lg",
-                          dropdown: "bg-white/10 border border-white/20 rounded-xl px-2 py-1 outline-none appearance-none cursor-pointer text-white text-sm focus:ring-2 focus:ring-emerald-500/30",
-                          nav: "flex items-center gap-2",
-                          chevron: "h-9 w-9 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl flex items-center justify-center hover:bg-white/10 hover:text-emerald-400 transition-all text-white/50 shadow-lg",
-                          day_button: "h-9 w-9 font-semibold aria-selected:opacity-100 hover:bg-emerald-500/20 hover:text-emerald-300 rounded-lg transition-all text-base flex items-center justify-center",
-                          selected: "bg-emerald-500 text-white hover:bg-emerald-400 hover:text-white !rounded-lg shadow-lg scale-105 z-10",
-                          range_start: "bg-emerald-500 text-white !rounded-l-lg",
-                          range_end: "bg-emerald-500 text-white !rounded-r-lg",
-                          range_middle: "bg-emerald-500/20 text-emerald-300 !rounded-none",
-                          today: "bg-white/10 text-white font-bold ring-2 ring-emerald-500/40",
+                          months: 'flex flex-col items-center',
+                          month: 'space-y-6 w-full max-w-[340px]',
+                          month_caption:
+                            'flex flex-row justify-between items-center mb-8 px-2 w-full',
+                          caption_label: 'hidden',
+                          caption_dropdowns:
+                            'flex justify-center gap-2 text-emerald-400 font-bold text-lg',
+                          dropdown:
+                            'bg-white/10 border border-white/20 rounded-xl px-2 py-1 outline-none appearance-none cursor-pointer text-white text-sm focus:ring-2 focus:ring-emerald-500/30',
+                          nav: 'flex items-center gap-2',
+                          chevron:
+                            'h-9 w-9 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl flex items-center justify-center hover:bg-white/10 hover:text-emerald-400 transition-all text-white/50 shadow-lg',
+                          day_button:
+                            'h-9 w-9 font-semibold aria-selected:opacity-100 hover:bg-emerald-500/20 hover:text-emerald-300 rounded-lg transition-all text-base flex items-center justify-center',
+                          selected:
+                            'bg-emerald-500 text-white hover:bg-emerald-400 hover:text-white !rounded-lg shadow-lg scale-105 z-10',
+                          range_start: 'bg-emerald-500 text-white !rounded-l-lg',
+                          range_end: 'bg-emerald-500 text-white !rounded-r-lg',
+                          range_middle: 'bg-emerald-500/20 text-emerald-300 !rounded-none',
+                          today: 'bg-white/10 text-white font-bold ring-2 ring-emerald-500/40',
                         }}
                       />
                     </div>
 
-                    <div className="flex items-center gap-3 text-sm text-slate-400 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
-                      <Info className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                      <p>Dates marked in <span className="text-red-400 font-bold">red</span> are already booked.</p>
+                    <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/50 p-3 text-sm text-slate-400">
+                      <Info className="h-4 w-4 flex-shrink-0 text-emerald-500" />
+                      <p>
+                        Dates marked in <span className="font-bold text-red-400">red</span> are
+                        already booked.
+                      </p>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <span className="text-sm font-medium text-slate-400 block mb-2">Start Date</span>
-                        <div className="h-11 px-4 border border-slate-700 rounded-lg bg-slate-950 text-slate-200 text-sm flex items-center">
+                        <span className="mb-2 block text-sm font-medium text-slate-400">
+                          Start Date
+                        </span>
+                        <div className="flex h-11 items-center rounded-lg border border-slate-700 bg-slate-950 px-4 text-sm text-slate-200">
                           {dateRange?.from ? format(dateRange.from, 'PPP') : 'Select start date'}
                         </div>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-slate-400 block mb-2">End Date</span>
-                        <div className="h-11 px-4 border border-slate-700 rounded-lg bg-slate-950 text-slate-200 text-sm flex items-center">
+                        <span className="mb-2 block text-sm font-medium text-slate-400">
+                          End Date
+                        </span>
+                        <div className="flex h-11 items-center rounded-lg border border-slate-700 bg-slate-950 px-4 text-sm text-slate-200">
                           {dateRange?.to ? format(dateRange.to, 'PPP') : 'Select end date'}
                         </div>
                       </div>
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-slate-400">
                           Pickup Time
                         </label>
                         <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                          <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                           <Input
                             type="time"
                             name="startTime"
                             value={formData.startTime}
                             onChange={handleInputChange}
-                            className="pl-10 bg-slate-950 border-slate-700 text-white focus:border-emerald-500 h-11"
+                            className="h-11 border-slate-700 bg-slate-950 pl-10 text-white focus:border-emerald-500"
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-slate-400">
                           Return Time
                         </label>
                         <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                          <Clock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                           <Input
                             type="time"
                             name="endTime"
                             value={formData.endTime}
                             onChange={handleInputChange}
-                            className="pl-10 bg-slate-950 border-slate-700 text-white focus:border-emerald-500 h-11"
+                            className="h-11 border-slate-700 bg-slate-950 pl-10 text-white focus:border-emerald-500"
                           />
                         </div>
                       </div>
@@ -427,16 +432,16 @@ export default function BookEquipmentPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
+              <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
                 <CardContent className="p-6">
-                  <h2 className="font-bold text-lg mb-6 flex items-center gap-2 text-white">
+                  <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-white">
                     <MapPin className="h-5 w-5 text-emerald-500" />
                     Delivery Details
                   </h2>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-slate-400">
                         Delivery Address <span className="text-red-400">*</span>
                       </label>
                       <Textarea
@@ -446,11 +451,11 @@ export default function BookEquipmentPage() {
                         placeholder="Enter your farm/field address"
                         rows={3}
                         required
-                        className="bg-slate-950 border-slate-700 text-white placeholder:text-slate-600 focus:border-emerald-500 resize-none"
+                        className="resize-none border-slate-700 bg-slate-950 text-white placeholder:text-slate-600 focus:border-emerald-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-400 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-slate-400">
                         Additional Notes
                       </label>
                       <Textarea
@@ -459,7 +464,7 @@ export default function BookEquipmentPage() {
                         onChange={handleInputChange}
                         placeholder="Any special requirements or instructions..."
                         rows={2}
-                        className="bg-slate-950 border-slate-700 text-white placeholder:text-slate-600 focus:border-emerald-500 resize-none"
+                        className="resize-none border-slate-700 bg-slate-950 text-white placeholder:text-slate-600 focus:border-emerald-500"
                       />
                     </div>
                   </div>
@@ -470,13 +475,13 @@ export default function BookEquipmentPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-24 bg-slate-900/50 border-slate-800 backdrop-blur-sm shadow-xl">
+            <Card className="sticky top-24 border-slate-800 bg-slate-900/50 shadow-xl backdrop-blur-sm">
               <CardContent className="p-6">
-                <h2 className="font-bold text-lg mb-6 text-white">Order Summary</h2>
+                <h2 className="mb-6 text-lg font-bold text-white">Order Summary</h2>
 
                 {/* Equipment Preview */}
-                <div className="flex gap-4 pb-6 border-b border-slate-800">
-                  <div className="w-20 h-20 rounded-lg bg-slate-800 flex-shrink-0 relative overflow-hidden border border-slate-700">
+                <div className="flex gap-4 border-b border-slate-800 pb-6">
+                  <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-slate-700 bg-slate-800">
                     {equipment.images?.[0] ? (
                       <Image
                         src={equipment.images[0]}
@@ -485,14 +490,16 @@ export default function BookEquipmentPage() {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="flex h-full w-full items-center justify-center">
                         <Tractor className="h-8 w-8 text-slate-600" />
                       </div>
                     )}
                   </div>
                   <div>
-                    <p className="font-bold text-white line-clamp-1">{equipment.name}</p>
-                    <p className="text-sm text-slate-400 line-clamp-1 mb-1">{equipment.location_name}</p>
+                    <p className="line-clamp-1 font-bold text-white">{equipment.name}</p>
+                    <p className="mb-1 line-clamp-1 text-sm text-slate-400">
+                      {equipment.location_name}
+                    </p>
                     <p className="text-sm font-bold text-emerald-400">
                       {formatCurrency(equipment.price_per_day)}/day
                     </p>
@@ -500,14 +507,17 @@ export default function BookEquipmentPage() {
                 </div>
 
                 {/* Pricing Breakdown */}
-                <div className="py-6 space-y-3">
+                <div className="space-y-3 py-6">
                   {pricing.days > 0 ? (
                     <>
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-400">
-                          {formatCurrency(equipment.price_per_day)} × {pricing.days} {pricing.days === 1 ? 'day' : 'days'}
+                          {formatCurrency(equipment.price_per_day)} × {pricing.days}{' '}
+                          {pricing.days === 1 ? 'day' : 'days'}
                         </span>
-                        <span className="font-medium text-white">{formatCurrency(pricing.rentalAmount)}</span>
+                        <span className="font-medium text-white">
+                          {formatCurrency(pricing.rentalAmount)}
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-400">Platform fee (5%)</span>
@@ -515,14 +525,19 @@ export default function BookEquipmentPage() {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-slate-400">GST (18% on platform fee)</span>
-                        <span className="text-white">{formatCurrency(pricing.gstOnPlatformFee)}</span>
+                        <span className="text-white">
+                          {formatCurrency(pricing.gstOnPlatformFee)}
+                        </span>
                       </div>
-                      <div className="pt-2 border-t border-slate-800 text-xs text-slate-500">
-                        <p>💡 Owner receives {formatCurrency(pricing.ownerPayout)} after 3% commission</p>
+                      <div className="border-t border-slate-800 pt-2 text-xs text-slate-500">
+                        <p>
+                          💡 Owner receives {formatCurrency(pricing.ownerPayout)} after 3%
+                          commission
+                        </p>
                       </div>
                     </>
                   ) : (
-                    <p className="text-sm text-slate-500 text-center italic py-2">
+                    <p className="py-2 text-center text-sm italic text-slate-500">
                       Select dates to see pricing
                     </p>
                   )}
@@ -530,8 +545,8 @@ export default function BookEquipmentPage() {
 
                 {/* Total */}
                 {pricing.days > 0 && (
-                  <div className="pt-4 border-t border-slate-800">
-                    <div className="flex justify-between items-center mb-6">
+                  <div className="border-t border-slate-800 pt-4">
+                    <div className="mb-6 flex items-center justify-between">
                       <span className="font-bold text-white">Total</span>
                       <span className="text-2xl font-bold text-emerald-400">
                         {formatCurrency(pricing.totalPayable)}
@@ -541,7 +556,7 @@ export default function BookEquipmentPage() {
                 )}
 
                 {/* Info */}
-                <div className="mb-6 p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                <div className="mb-6 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                   <div className="flex gap-3 text-sm text-emerald-200">
                     <AlertCircle className="h-5 w-5 flex-shrink-0 text-emerald-500" />
                     <p className="leading-relaxed">
@@ -553,12 +568,12 @@ export default function BookEquipmentPage() {
                 {/* Proceed to Payment Button */}
                 <Button
                   type="submit"
-                  className="w-full h-12 text-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20"
+                  className="h-12 w-full bg-emerald-600 text-lg font-bold text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
                   loading={isSubmitting}
                   disabled={!dateRange}
                   onClick={handleSubmit}
                 >
-                  <CreditCard className="h-5 w-5 mr-2" />
+                  <CreditCard className="mr-2 h-5 w-5" />
                   Proceed to Payment
                 </Button>
               </CardContent>

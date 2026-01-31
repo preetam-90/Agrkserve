@@ -10,7 +10,7 @@ import {
   CheckCircle,
   XCircle,
   Search,
-  User
+  User,
 } from 'lucide-react';
 import { Header, Footer, Sidebar } from '@/components/layout';
 import {
@@ -29,7 +29,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { LabourBooking, LabourProfile, UserProfile } from '@/lib/types';
@@ -42,9 +42,11 @@ export default function RenterLabourBookingsPage() {
   const { user } = useAuthStore();
   const [bookings, setBookings] = useState<LabourBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'pending' | 'confirmed' | 'completed' | 'all'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'confirmed' | 'completed' | 'all'>(
+    'pending'
+  );
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [selectedBooking, setSelectedBooking] = useState<LabourBooking | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -66,7 +68,7 @@ export default function RenterLabourBookingsPage() {
 
   const handleConfirmBooking = async () => {
     if (!selectedBooking || !user) return;
-    
+
     setIsProcessing(true);
     try {
       await labourService.updateBookingStatus(selectedBooking.id, 'confirmed', user.id);
@@ -83,7 +85,7 @@ export default function RenterLabourBookingsPage() {
 
   const handleRejectBooking = async () => {
     if (!selectedBooking || !user) return;
-    
+
     setIsProcessing(true);
     try {
       await labourService.cancelBooking(selectedBooking.id, 'Rejected by employer', user.id);
@@ -99,7 +101,10 @@ export default function RenterLabourBookingsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const config: Record<string, { variant: 'default' | 'success' | 'warning' | 'destructive' | 'secondary'; label: string }> = {
+    const config: Record<
+      string,
+      { variant: 'default' | 'success' | 'warning' | 'destructive' | 'secondary'; label: string }
+    > = {
       pending: { variant: 'warning', label: 'Pending' },
       confirmed: { variant: 'success', label: 'Confirmed' },
       in_progress: { variant: 'default', label: 'In Progress' },
@@ -112,37 +117,42 @@ export default function RenterLabourBookingsPage() {
 
   const filterBookings = (tab: string) => {
     let filtered = bookings;
-    
+
     if (tab === 'pending') {
-      filtered = bookings.filter(b => b.status === 'pending');
+      filtered = bookings.filter((b) => b.status === 'pending');
     } else if (tab === 'confirmed') {
-      filtered = bookings.filter(b => ['confirmed', 'in_progress'].includes(b.status));
+      filtered = bookings.filter((b) => ['confirmed', 'in_progress'].includes(b.status));
     } else if (tab === 'completed') {
-      filtered = bookings.filter(b => ['completed', 'cancelled'].includes(b.status));
+      filtered = bookings.filter((b) => ['completed', 'cancelled'].includes(b.status));
     }
-    
+
     if (searchQuery) {
-      filtered = filtered.filter(b => {
+      filtered = filtered.filter((b) => {
         const labour = (b as LabourBooking & { labour?: LabourProfile }).labour;
         return labour?.user?.name?.toLowerCase().includes(searchQuery.toLowerCase());
       });
     }
-    
+
     return filtered;
   };
 
   const filteredBookings = filterBookings(activeTab);
-  const pendingCount = bookings.filter(b => b.status === 'pending').length;
+  const pendingCount = bookings.filter((b) => b.status === 'pending').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="flex">
         <Sidebar role="renter" />
-        
-        <main className={cn("flex-1 p-4 lg:p-6 transition-all duration-300", sidebarOpen ? "ml-64" : "ml-0")}>
-          <div className="max-w-5xl mx-auto">
+
+        <main
+          className={cn(
+            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
+            sidebarOpen ? 'ml-64' : 'ml-0'
+          )}
+        >
+          <div className="mx-auto max-w-5xl">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Labour Booking Requests</h1>
               <p className="text-gray-600">Manage your labour hiring requests</p>
@@ -151,7 +161,7 @@ export default function RenterLabourBookingsPage() {
             {/* Search */}
             <div className="mb-6">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,7 +177,7 @@ export default function RenterLabourBookingsPage() {
                 <TabsTrigger value="pending" className="relative">
                   Pending
                   {pendingCount > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-orange-500 text-white rounded-full">
+                    <span className="ml-1 rounded-full bg-orange-500 px-1.5 py-0.5 text-xs text-white">
                       {pendingCount}
                     </span>
                   )}
@@ -195,28 +205,28 @@ export default function RenterLabourBookingsPage() {
                 <div className="space-y-4">
                   {filteredBookings.map((booking) => {
                     const labour = (booking as LabourBooking & { labour?: LabourProfile }).labour;
-                    
+
                     return (
                       <Card key={booking.id} className="overflow-hidden">
                         <CardContent className="p-0">
                           <div className="flex flex-col sm:flex-row">
                             {/* Labour Avatar */}
-                            <div className="w-full sm:w-48 h-32 sm:h-auto bg-gray-100 relative flex-shrink-0 flex items-center justify-center">
-                              <Avatar 
-                                src={labour?.user?.profile_image} 
-                                name={labour?.user?.name} 
-                                size="lg" 
+                            <div className="relative flex h-32 w-full flex-shrink-0 items-center justify-center bg-gray-100 sm:h-auto sm:w-48">
+                              <Avatar
+                                src={labour?.user?.profile_image}
+                                name={labour?.user?.name}
+                                size="lg"
                               />
                             </div>
 
                             {/* Booking Details */}
                             <div className="flex-1 p-4">
-                              <div className="flex items-start justify-between mb-2">
+                              <div className="mb-2 flex items-start justify-between">
                                 <div>
                                   <h3 className="font-semibold text-gray-900">
                                     {labour?.user?.name || 'Labour'}
                                   </h3>
-                                  <div className="flex items-center gap-2 mt-1">
+                                  <div className="mt-1 flex items-center gap-2">
                                     <span className="text-sm text-gray-600">
                                       {labour?.skills?.join(', ') || 'General Labour'}
                                     </span>
@@ -225,11 +235,12 @@ export default function RenterLabourBookingsPage() {
                                 {getStatusBadge(booking.status)}
                               </div>
 
-                              <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+                              <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
                                 <div className="flex items-center gap-2 text-gray-600">
                                   <Calendar className="h-4 w-4" />
                                   <span>
-                                    {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
+                                    {formatDate(booking.start_date)} -{' '}
+                                    {formatDate(booking.end_date)}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-600">
@@ -239,21 +250,19 @@ export default function RenterLabourBookingsPage() {
                               </div>
 
                               {booking.notes && (
-                                <p className="mt-2 text-sm text-gray-500">
-                                  📝 {booking.notes}
-                                </p>
+                                <p className="mt-2 text-sm text-gray-500">📝 {booking.notes}</p>
                               )}
 
-                              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                                <span className="font-bold text-green-600 text-lg">
+                              <div className="mt-4 flex items-center justify-between border-t pt-4">
+                                <span className="text-lg font-bold text-green-600">
                                   {formatCurrency(booking.total_amount)}
                                 </span>
-                                
+
                                 <div className="flex gap-2">
                                   {booking.status === 'pending' && (
                                     <>
-                                      <Button 
-                                        size="sm" 
+                                      <Button
+                                        size="sm"
                                         variant="outline"
                                         onClick={() => setSelectedBooking(booking)}
                                       >
@@ -261,11 +270,11 @@ export default function RenterLabourBookingsPage() {
                                       </Button>
                                     </>
                                   )}
-                                  
+
                                   <Link href={`/renter/labour/${booking.labour_id}`}>
                                     <Button size="sm" variant="outline">
                                       Details
-                                      <ChevronRight className="h-4 w-4 ml-1" />
+                                      <ChevronRight className="ml-1 h-4 w-4" />
                                     </Button>
                                   </Link>
                                 </div>
@@ -292,19 +301,21 @@ export default function RenterLabourBookingsPage() {
               {selectedBooking && (
                 <>
                   Request for{' '}
-                  {((selectedBooking as LabourBooking & { labour?: LabourProfile }).labour)?.user?.name || 'Labour'}
+                  {(selectedBooking as LabourBooking & { labour?: LabourProfile }).labour?.user
+                    ?.name || 'Labour'}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedBooking && (
-            <div className="py-4 space-y-4">
+            <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500">Dates</p>
                   <p className="font-medium">
-                    {formatDate(selectedBooking.start_date)} - {formatDate(selectedBooking.end_date)}
+                    {formatDate(selectedBooking.start_date)} -{' '}
+                    {formatDate(selectedBooking.end_date)}
                   </p>
                 </div>
                 <div>
@@ -318,8 +329,8 @@ export default function RenterLabourBookingsPage() {
                   </div>
                 )}
               </div>
-              
-              <div className="p-3 bg-green-50 rounded-lg">
+
+              <div className="rounded-lg bg-green-50 p-3">
                 <p className="text-sm text-gray-600">Total Amount</p>
                 <p className="text-xl font-bold text-green-600">
                   {formatCurrency(selectedBooking.total_amount)}
@@ -329,21 +340,17 @@ export default function RenterLabourBookingsPage() {
           )}
 
           <div className="flex gap-3">
-            <Button 
+            <Button
               variant="outline"
               onClick={handleRejectBooking}
               loading={isProcessing}
               className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
             >
-              <XCircle className="h-4 w-4 mr-2" />
+              <XCircle className="mr-2 h-4 w-4" />
               Reject
             </Button>
-            <Button 
-              onClick={handleConfirmBooking}
-              loading={isProcessing}
-              className="flex-1"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
+            <Button onClick={handleConfirmBooking} loading={isProcessing} className="flex-1">
+              <CheckCircle className="mr-2 h-4 w-4" />
               Confirm
             </Button>
           </div>

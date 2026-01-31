@@ -3,24 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
+import {
   ArrowLeft,
-  Calendar, 
-  MapPin, 
+  Calendar,
+  MapPin,
   AlertCircle,
   CheckCircle,
   Clock,
-  IndianRupee
+  IndianRupee,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
-import { 
-  Button, 
-  Card, 
-  CardContent, 
-  Input,
-  Textarea,
-  Spinner
-} from '@/components/ui';
+import { Button, Card, CardContent, Input, Textarea, Spinner } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { LabourProfile } from '@/lib/types';
@@ -30,13 +23,13 @@ export default function BookLabourPage() {
   const params = useParams();
   const router = useRouter();
   const { user, profile } = useAuthStore();
-  
+
   const labourId = params.id as string;
-  
+
   const [labour, setLabour] = useState<LabourProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     startDate: '',
     endDate: '',
@@ -76,10 +69,10 @@ export default function BookLabourPage() {
         return;
       }
       setLabour(data);
-      
+
       // Set default work location from profile
       if (profile?.address) {
-        setFormData(prev => ({ ...prev, workLocation: profile.address! }));
+        setFormData((prev) => ({ ...prev, workLocation: profile.address! }));
       }
     } catch (err) {
       console.error('Failed to load labour profile:', err);
@@ -99,7 +92,7 @@ export default function BookLabourPage() {
     const end = new Date(formData.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const days = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1);
-    
+
     const baseAmount = days * labour.daily_rate;
     const platformFee = Math.round(baseAmount * 0.05); // 5% platform fee
     const total = baseAmount + platformFee;
@@ -107,11 +100,9 @@ export default function BookLabourPage() {
     setPricing({ days, baseAmount, platformFee, total });
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
@@ -140,9 +131,9 @@ export default function BookLabourPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !labour || !user) return;
-    
+
     setIsSubmitting(true);
     try {
       // Create booking
@@ -167,9 +158,9 @@ export default function BookLabourPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="flex min-h-screen flex-col bg-gray-50">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-8 flex justify-center items-center">
+        <main className="container mx-auto flex flex-1 items-center justify-center px-4 pb-8 pt-28">
           <Spinner size="lg" />
         </main>
         <Footer />
@@ -184,44 +175,44 @@ export default function BookLabourPage() {
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-gray-50">
       <Header />
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto max-w-4xl flex-1 px-4 pb-8 pt-28">
         {/* Back Button */}
-        <Link 
+        <Link
           href={`/renter/labour/${labourId}`}
-          className="inline-flex items-center text-teal-600 hover:text-teal-700 mb-6"
+          className="mb-6 inline-flex items-center text-teal-600 hover:text-teal-700"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Labour Details
         </Link>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Book Labour</h1>
+        <h1 className="mb-8 text-3xl font-bold text-gray-900">Book Labour</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Booking Form */}
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Worker Info */}
-                  <div className="pb-6 border-b">
-                    <h2 className="text-lg font-semibold mb-4">Worker Details</h2>
+                  <div className="border-b pb-6">
+                    <h2 className="mb-4 text-lg font-semibold">Worker Details</h2>
                     <div className="flex items-start gap-4">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">
                           {labour.user?.name || 'Farm Worker'}
                         </h3>
                         {labour.location_name && (
-                          <div className="flex items-center text-sm text-gray-600 mt-1">
-                            <MapPin className="h-3 w-3 mr-1" />
+                          <div className="mt-1 flex items-center text-sm text-gray-600">
+                            <MapPin className="mr-1 h-3 w-3" />
                             {labour.location_name}
                           </div>
                         )}
-                        <div className="flex flex-wrap gap-1 mt-2">
+                        <div className="mt-2 flex flex-wrap gap-1">
                           {labour.skills.slice(0, 3).map((skill, idx) => (
-                            <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                            <span key={idx} className="rounded bg-gray-100 px-2 py-1 text-xs">
                               {skill}
                             </span>
                           ))}
@@ -239,14 +230,17 @@ export default function BookLabourPage() {
 
                   {/* Booking Dates */}
                   <div>
-                    <h2 className="text-lg font-semibold mb-4">Booking Period</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h2 className="mb-4 text-lg font-semibold">Booking Period</h2>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                          htmlFor="startDate"
+                          className="mb-2 block text-sm font-medium text-gray-700"
+                        >
                           Start Date *
                         </label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                          <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                           <Input
                             type="date"
                             id="startDate"
@@ -260,11 +254,14 @@ export default function BookLabourPage() {
                         </div>
                       </div>
                       <div>
-                        <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                          htmlFor="endDate"
+                          className="mb-2 block text-sm font-medium text-gray-700"
+                        >
                           End Date *
                         </label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                          <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                           <Input
                             type="date"
                             id="endDate"
@@ -282,14 +279,17 @@ export default function BookLabourPage() {
 
                   {/* Working Hours */}
                   <div>
-                    <h2 className="text-lg font-semibold mb-4">Working Hours</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h2 className="mb-4 text-lg font-semibold">Working Hours</h2>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                          htmlFor="startTime"
+                          className="mb-2 block text-sm font-medium text-gray-700"
+                        >
                           Start Time
                         </label>
                         <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                          <Clock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                           <Input
                             type="time"
                             id="startTime"
@@ -301,11 +301,14 @@ export default function BookLabourPage() {
                         </div>
                       </div>
                       <div>
-                        <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label
+                          htmlFor="endTime"
+                          className="mb-2 block text-sm font-medium text-gray-700"
+                        >
                           End Time
                         </label>
                         <div className="relative">
-                          <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                          <Clock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                           <Input
                             type="time"
                             id="endTime"
@@ -321,11 +324,14 @@ export default function BookLabourPage() {
 
                   {/* Work Location */}
                   <div>
-                    <label htmlFor="workLocation" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                      htmlFor="workLocation"
+                      className="mb-2 block text-sm font-medium text-gray-700"
+                    >
                       Work Location *
                     </label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
+                      <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Textarea
                         id="workLocation"
                         name="workLocation"
@@ -341,7 +347,7 @@ export default function BookLabourPage() {
 
                   {/* Additional Notes */}
                   <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="notes" className="mb-2 block text-sm font-medium text-gray-700">
                       Additional Notes (Optional)
                     </label>
                     <Textarea
@@ -355,11 +361,11 @@ export default function BookLabourPage() {
                   </div>
 
                   {/* Important Information */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <AlertCircle className="mt-0.5 h-5 w-5 text-blue-600" />
                       <div className="text-sm text-blue-900">
-                        <p className="font-medium mb-1">Important Information:</p>
+                        <p className="mb-1 font-medium">Important Information:</p>
                         <ul className="space-y-1 text-blue-800">
                           <li>• Payment will be processed after worker confirmation</li>
                           <li>• You can cancel up to 24 hours before the start date</li>
@@ -371,8 +377,8 @@ export default function BookLabourPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isSubmitting || !pricing.total}
                     size="lg"
                     className="w-full"
@@ -395,14 +401,15 @@ export default function BookLabourPage() {
           <div>
             <Card className="sticky top-4">
               <CardContent className="p-6">
-                <h2 className="text-lg font-semibold mb-4">Booking Summary</h2>
-                
+                <h2 className="mb-4 text-lg font-semibold">Booking Summary</h2>
+
                 {pricing.days > 0 ? (
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">
-                          ₹{labour.daily_rate} × {pricing.days} {pricing.days === 1 ? 'day' : 'days'}
+                          ₹{labour.daily_rate} × {pricing.days}{' '}
+                          {pricing.days === 1 ? 'day' : 'days'}
                         </span>
                         <span className="font-medium">₹{pricing.baseAmount.toLocaleString()}</span>
                       </div>
@@ -412,9 +419,9 @@ export default function BookLabourPage() {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold text-lg">Total</span>
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-semibold">Total</span>
                         <div className="text-right">
                           <div className="flex items-center text-2xl font-bold text-teal-600">
                             <IndianRupee className="h-6 w-6" />
@@ -424,24 +431,24 @@ export default function BookLabourPage() {
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t text-xs text-gray-600 space-y-1">
+                    <div className="space-y-1 border-t pt-4 text-xs text-gray-600">
                       <div className="flex items-start gap-2">
-                        <CheckCircle className="h-3 w-3 text-green-600 mt-0.5" />
+                        <CheckCircle className="mt-0.5 h-3 w-3 text-green-600" />
                         <span>Secure payment</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <CheckCircle className="h-3 w-3 text-green-600 mt-0.5" />
+                        <CheckCircle className="mt-0.5 h-3 w-3 text-green-600" />
                         <span>Free cancellation</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <CheckCircle className="h-3 w-3 text-green-600 mt-0.5" />
+                        <CheckCircle className="mt-0.5 h-3 w-3 text-green-600" />
                         <span>24/7 support</span>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                  <div className="py-8 text-center text-gray-500">
+                    <Calendar className="mx-auto mb-3 h-12 w-12 text-gray-400" />
                     <p className="text-sm">Select dates to see pricing</p>
                   </div>
                 )}

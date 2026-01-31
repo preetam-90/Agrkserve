@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Eye, Edit, Trash2, Tractor, Plus } from 'lucide-react';
 import { ITEMS_PER_PAGE, EQUIPMENT_CATEGORY_OPTIONS } from '@/lib/utils/admin-constants';
 import DataTable from '@/components/admin/DataTable';
+import toast from 'react-hot-toast';
 
 export default function EquipmentPage() {
     const [equipment, setEquipment] = useState<any[]>([]);
@@ -15,6 +16,9 @@ export default function EquipmentPage() {
     const [categoryFilter, setCategoryFilter] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
+    const [uploadedImages, setUploadedImages] = useState<Record<string, string[]>>({});
+    const [isUploading, setIsUploading] = useState(false);
 
     const supabase = createClient();
 
@@ -166,6 +170,49 @@ export default function EquipmentPage() {
         }
     ];
 
+    // Handle equipment image upload completion
+    const handleEquipmentImageUpload = async (equipmentId: string, files: Array<{ url: string; name: string; size: number }>) => {
+        if (files.length === 0) return;
+        
+        const imageUrls = files.map(f => f.url);
+        
+        // Get current images from the equipment item
+        const equipmentItem = equipment.find(e => e.id === equipmentId);
+        const currentImages = equipmentItem?.images || [];
+        const updatedImages = [...currentImages, ...imageUrls];
+        
+        setIsUploading(true);
+        try {
+            // Update equipment with new images
+            const { error } = await supabase
+                .from('equipment')
+                .update({
+                    images: updatedImages,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', equipmentId);
+            
+            if (error) throw error;
+            
+            // Update local state
+            setEquipment(prev =>
+                prev.map(e => e.id === equipmentId ? { ...e, images: updatedImages } : e)
+            );
+            
+            setUploadedImages(prev => ({
+                ...prev,
+                [equipmentId]: imageUrls
+            }));
+            
+            toast.success('Equipment images uploaded successfully!');
+        } catch (err: any) {
+            console.error('Failed to save equipment images:', err);
+            toast.error('Failed to save equipment images');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -189,6 +236,65 @@ export default function EquipmentPage() {
                         <Tractor className="w-6 h-6" />
                     </div>
                 </div>
+            </div>
+
+            {/* Equipment Image Upload Section */}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Upload Equipment Images</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Select equipment and upload multiple images (max 10)</p>
+                
+                {equipment.length > 0 && (
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Select Equipment
+                        </label>
+                        <select
+                            value={selectedEquipmentId || ''}
+                            onChange={(e) => setSelectedEquipmentId(e.target.value || null)}
+                            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                        >
+                            <option value="">-- Select equipment --</option>
+                            {equipment.map((item) => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name} ({item.category})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+                
+                {selectedEquipmentId && (
+                    <div className="mt-4 max-w-2xl p-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            Image upload is available in the equipment edit page.
+                        </p>
+                        <Link
+                            href={`/admin/equipment/${selectedEquipmentId}`}
+                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Equipment to Upload Images
+                        </Link>
+                    </div>
+                )}
+                
+                {/* Display uploaded images preview */}
+                {selectedEquipmentId && uploadedImages[selectedEquipmentId]?.length > 0 && (
+                    <div className="mt-6">
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Recently Uploaded Images:</p>
+                        <div className="flex flex-wrap gap-2">
+                            {uploadedImages[selectedEquipmentId].map((url, idx) => (
+                                <div key={idx} className="w-20 h-20 rounded-lg overflow-hidden border-2 border-green-200">
+                                    <img
+                                        src={url}
+                                        alt={`Uploaded ${idx + 1}`}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <DataTable

@@ -2,24 +2,25 @@ import { create } from 'zustand';
 import { dmService } from '@/lib/services';
 import type { DirectMessage, DMConversation } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
+import { useAuthStore } from './auth-store';
 
 interface MessagesState {
   // Conversations list (inbox)
   conversations: DMConversation[];
   conversationsLoading: boolean;
-  
+
   // Active conversation
   activeConversation: DMConversation | null;
   activeConversationId: string | null;
-  
+
   // Messages for active conversation
   messages: DirectMessage[];
   messagesLoading: boolean;
   hasMoreMessages: boolean;
-  
+
   // Unread count
   unreadCount: number;
-  
+
   // Realtime subscription channels
   conversationsChannel: ReturnType<ReturnType<typeof createClient>['channel']> | null;
   messagesChannel: ReturnType<ReturnType<typeof createClient>['channel']> | null;
@@ -31,22 +32,23 @@ interface MessagesActions {
   fetchConversations: () => Promise<void>;
   setActiveConversation: (conversationId: string | null) => Promise<void>;
   startConversation: (otherUserId: string) => Promise<string>;
-  
+
   // Messages
   fetchMessages: (conversationId: string, loadMore?: boolean) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   markAsRead: () => Promise<void>;
+  markAsDelivered: (messageIds: string[]) => Promise<void>;
   addMessage: (message: DirectMessage) => void;
-  updateMessageReadStatus: (messageId: string, isRead: boolean) => void;
-  
+  updateMessageDeliveryStatus: (messageId: string, status: 'delivered' | 'read') => void;
+
   // Unread count
   fetchUnreadCount: () => Promise<void>;
-  
+
   // Realtime
   subscribeToConversations: (userId: string) => void;
   subscribeToActiveConversation: () => void;
   unsubscribeAll: () => void;
-  
+
   // Reset
   reset: () => void;
 }
@@ -81,7 +83,7 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   setActiveConversation: async (conversationId: string | null) => {
     const { messagesChannel, readStatusChannel, unsubscribeAll } = get();
-    
+
     // Cleanup previous subscriptions
     if (messagesChannel) {
       dmService.unsubscribe(messagesChannel);
@@ -91,10 +93,10 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
     }
 
     if (!conversationId) {
-      set({ 
-        activeConversation: null, 
-        activeConversationId: null, 
-        messages: [], 
+      set({
+        activeConversation: null,
+        activeConversationId: null,
+        messages: [],
         hasMoreMessages: true,
         messagesChannel: null,
         readStatusChannel: null,
@@ -126,10 +128,10 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
   startConversation: async (otherUserId: string) => {
     try {
       const conversationId = await dmService.getOrCreateConversation(otherUserId);
-      
+
       // Refresh conversations list
       await get().fetchConversations();
-      
+
       return conversationId;
     } catch (error) {
       console.error('Failed to start conversation:', error);
@@ -139,23 +141,23 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   fetchMessages: async (conversationId: string, loadMore = false) => {
     const { messages } = get();
-    
+
     set({ messagesLoading: true });
-    
+
     try {
       const beforeId = loadMore && messages.length > 0 ? messages[0].id : undefined;
       const newMessages = await dmService.getMessages(conversationId, 50, beforeId);
-      
+
       if (loadMore) {
         // Prepend older messages
-        set({ 
+        set({
           messages: [...newMessages, ...messages],
           hasMoreMessages: newMessages.length === 50,
           messagesLoading: false,
         });
       } else {
         // Replace messages
-        set({ 
+        set({
           messages: newMessages,
           hasMoreMessages: newMessages.length === 50,
           messagesLoading: false,
@@ -169,18 +171,18 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   sendMessage: async (content: string) => {
     const { activeConversationId } = get();
-    
+
     if (!activeConversationId || !content.trim()) return;
 
     try {
       const message = await dmService.sendMessage(activeConversationId, content);
-      
+
       // Optimistically add the message if not already present
       const { messages } = get();
-      if (!messages.find(m => m.id === message.id)) {
+      if (!messages.find((m) => m.id === message.id)) {
         set({ messages: [...messages, message] });
       }
-      
+
       // Refresh conversations to update last message
       get().fetchConversations();
     } catch (error) {
@@ -191,26 +193,25 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   markAsRead: async () => {
     const { activeConversationId } = get();
-    
+
     if (!activeConversationId) return;
 
     try {
       await dmService.markAsRead(activeConversationId);
-      
+
       // Update local state
-      set(state => ({
-        messages: state.messages.map(m => ({
+      set((state) => ({
+        messages: state.messages.map((m) => ({
           ...m,
           is_read: true,
+          delivery_status: 'read' as const,
           read_at: m.read_at || new Date().toISOString(),
         })),
-        conversations: state.conversations.map(c => 
-          c.id === activeConversationId 
-            ? { ...c, unread_count: 0 }
-            : c
+        conversations: state.conversations.map((c) =>
+          c.id === activeConversationId ? { ...c, unread_count: 0 } : c
         ),
       }));
-      
+
       // Refresh unread count
       get().fetchUnreadCount();
     } catch (error) {
@@ -220,21 +221,58 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   addMessage: (message: DirectMessage) => {
     const { messages, activeConversationId } = get();
-    
+
     // Only add if it's for the active conversation and not duplicate
     if (message.conversation_id === activeConversationId) {
-      if (!messages.find(m => m.id === message.id)) {
-        set({ messages: [...messages, message] });
+      if (!messages.find((m) => m.id === message.id)) {
+        // Mark incoming messages from others as delivered
+        const updatedMessage = {
+          ...message,
+          delivery_status: message.delivery_status || 'delivered',
+        };
+        set({ messages: [...messages, updatedMessage] });
       }
     }
   },
 
-  updateMessageReadStatus: (messageId: string, isRead: boolean) => {
-    set(state => ({
-      messages: state.messages.map(m =>
-        m.id === messageId ? { ...m, is_read: isRead } : m
+  updateMessageDeliveryStatus: (messageId: string, status: 'delivered' | 'read') => {
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === messageId
+          ? {
+              ...m,
+              delivery_status: status,
+              is_read: status === 'read',
+              read_at: status === 'read' ? new Date().toISOString() : m.read_at,
+            }
+          : m
       ),
     }));
+  },
+
+  markAsDelivered: async (messageIds: string[]) => {
+    const { user } = useAuthStore.getState();
+    if (!user) return;
+
+    try {
+      // Update local state immediately
+      set((state) => ({
+        messages: state.messages.map((m) =>
+          messageIds.includes(m.id) && m.sender_id !== user.id
+            ? {
+                ...m,
+                delivery_status: 'delivered' as const,
+                delivered_at: new Date().toISOString(),
+              }
+            : m
+        ),
+      }));
+
+      // Note: Backend API call to mark as delivered would go here
+      // This would typically be done via a database function or trigger
+    } catch (error) {
+      console.error('Failed to mark messages as delivered:', error);
+    }
   },
 
   fetchUnreadCount: async () => {
@@ -248,7 +286,7 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   subscribeToConversations: (userId: string) => {
     const { conversationsChannel } = get();
-    
+
     // Cleanup existing subscription
     if (conversationsChannel) {
       dmService.unsubscribe(conversationsChannel);
@@ -265,7 +303,7 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
   subscribeToActiveConversation: () => {
     const { activeConversationId, messagesChannel, readStatusChannel } = get();
-    
+
     if (!activeConversationId) return;
 
     // Cleanup existing subscriptions
@@ -277,32 +315,29 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
     }
 
     // Subscribe to new messages
-    const msgChannel = dmService.subscribeToConversation(
-      activeConversationId,
-      (message) => {
-        get().addMessage(message);
-        // Mark as read if this is the active conversation
-        get().markAsRead();
-      }
-    );
+    const msgChannel = dmService.subscribeToConversation(activeConversationId, (message) => {
+      get().addMessage(message);
+      // Mark as read if this is the active conversation
+      get().markAsRead();
+    });
 
     // Subscribe to read status updates
     const readChannel = dmService.subscribeToReadStatus(
       activeConversationId,
       (messageId, isRead) => {
-        get().updateMessageReadStatus(messageId, isRead);
+        get().updateMessageDeliveryStatus(messageId, isRead ? 'read' : 'delivered');
       }
     );
 
-    set({ 
-      messagesChannel: msgChannel, 
+    set({
+      messagesChannel: msgChannel,
       readStatusChannel: readChannel,
     });
   },
 
   unsubscribeAll: () => {
     const { conversationsChannel, messagesChannel, readStatusChannel } = get();
-    
+
     if (conversationsChannel) {
       dmService.unsubscribe(conversationsChannel);
     }
@@ -313,9 +348,9 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
       dmService.unsubscribe(readStatusChannel);
     }
 
-    set({ 
-      conversationsChannel: null, 
-      messagesChannel: null, 
+    set({
+      conversationsChannel: null,
+      messagesChannel: null,
       readStatusChannel: null,
     });
   },

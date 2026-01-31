@@ -18,7 +18,7 @@ import {
   Calendar,
   IndianRupee,
   MessageSquare,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -32,7 +32,7 @@ import {
   Tabs,
   TabsList,
   TabsTrigger,
-  TabsContent
+  TabsContent,
 } from '@/components/ui';
 import { equipmentService, labourService, authService } from '@/lib/services';
 import { useAuthStore, useMessagesStore } from '@/lib/store';
@@ -76,7 +76,7 @@ export default function PublicUserProfilePage() {
       try {
         const labourData = await labourService.getByUserId(userId);
         setLabourProfile(labourData);
-        
+
         // If user has labour profile but no equipment, switch to labour tab
         if (labourData && equipmentData.length === 0) {
           setActiveTab('labour');
@@ -133,7 +133,7 @@ export default function PublicUserProfilePage() {
             description="The user profile you're looking for doesn't exist."
             action={
               <Button onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Go Back
               </Button>
             }
@@ -151,38 +151,34 @@ export default function PublicUserProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <Button
-          variant="outline"
-          onClick={() => router.back()}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+      <main className="container mx-auto px-4 pb-8 pt-28">
+        <Button variant="outline" onClick={() => router.back()} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
 
         {/* User Profile Header */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex flex-col gap-6 md:flex-row">
               {/* Avatar */}
               <div className="flex-shrink-0">
                 <Avatar
                   src={userProfile.profile_image || undefined}
                   name={userProfile.name || 'User'}
                   size="xl"
-                  className="w-32 h-32"
+                  className="h-32 w-32"
                 />
               </div>
 
               {/* User Info */}
               <div className="flex-1">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="mb-3 flex items-start gap-3">
                   <h1 className="text-3xl font-bold text-gray-900">
                     {userProfile.name || 'Anonymous User'}
                   </h1>
                   {userProfile.is_verified && (
-                    <Badge variant="default" className="bg-green-500 flex items-center gap-1">
+                    <Badge variant="default" className="flex items-center gap-1 bg-green-500">
                       <CheckCircle className="h-3 w-3" />
                       Verified
                     </Badge>
@@ -190,23 +186,25 @@ export default function PublicUserProfilePage() {
                 </div>
 
                 {/* Bio */}
-                {userProfile.bio && (
-                  <p className="text-gray-700 mb-4">{userProfile.bio}</p>
-                )}
+                {userProfile.bio && <p className="mb-4 text-gray-700">{userProfile.bio}</p>}
 
                 {/* Location */}
                 {userProfile.address && (
-                  <div className="flex items-center text-gray-600 mb-2">
-                    <MapPin className="h-4 w-4 mr-2" />
+                  <div className="mb-2 flex items-center text-gray-600">
+                    <MapPin className="mr-2 h-4 w-4" />
                     <span>{userProfile.address}</span>
                   </div>
                 )}
 
                 {/* Member Since */}
-                <div className="flex items-center text-gray-600 mb-4">
-                  <Calendar className="h-4 w-4 mr-2" />
+                <div className="mb-4 flex items-center text-gray-600">
+                  <Calendar className="mr-2 h-4 w-4" />
                   <span>
-                    Member since {new Date(userProfile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    Member since{' '}
+                    {new Date(userProfile.created_at).toLocaleDateString('en-US', {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
                   </span>
                 </div>
 
@@ -250,7 +248,10 @@ export default function PublicUserProfilePage() {
 
         {/* Listings Tabs */}
         {(hasEquipment || hasLabourProfile) && (
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'equipment' | 'labour')}>
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as 'equipment' | 'labour')}
+          >
             <TabsList className="mb-6">
               {hasEquipment && (
                 <TabsTrigger value="equipment" className="flex items-center gap-2">
@@ -269,15 +270,15 @@ export default function PublicUserProfilePage() {
             {/* Equipment Tab */}
             {hasEquipment && (
               <TabsContent value="equipment">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {equipment.map((item) => {
-                    const category = EQUIPMENT_CATEGORIES.find(c => c.value === item.category);
-                    
+                    const category = EQUIPMENT_CATEGORIES.find((c) => c.value === item.category);
+
                     return (
                       <Link key={item.id} href={`/equipment/${item.id}`}>
-                        <Card className="hover:shadow-lg transition-shadow h-full">
+                        <Card className="h-full transition-shadow hover:shadow-lg">
                           {/* Equipment Image */}
-                          <div className="aspect-[4/3] bg-gray-100 relative">
+                          <div className="relative aspect-[4/3] bg-gray-100">
                             {item.images?.[0] ? (
                               <Image
                                 src={item.images[0]}
@@ -286,12 +287,12 @@ export default function PublicUserProfilePage() {
                                 className="object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center">
+                              <div className="flex h-full w-full items-center justify-center">
                                 <Tractor className="h-12 w-12 text-gray-300" />
                               </div>
                             )}
                             {!item.is_available && (
-                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                                 <Badge variant="secondary">Unavailable</Badge>
                               </div>
                             )}
@@ -299,20 +300,20 @@ export default function PublicUserProfilePage() {
 
                           <CardContent className="p-4">
                             {/* Equipment Name */}
-                            <h3 className="font-semibold text-gray-900 mb-1 truncate">
+                            <h3 className="mb-1 truncate font-semibold text-gray-900">
                               {item.name}
                             </h3>
 
                             {/* Category */}
                             {category && (
-                              <p className="text-sm text-gray-500 mb-2">
+                              <p className="mb-2 text-sm text-gray-500">
                                 {category.icon} {category.label}
                               </p>
                             )}
 
                             {/* Location */}
                             {item.location_name && (
-                              <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
+                              <p className="mb-3 flex items-center gap-1 text-sm text-gray-500">
                                 <MapPin className="h-3 w-3" />
                                 {item.location_name}
                               </p>
@@ -322,10 +323,8 @@ export default function PublicUserProfilePage() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center text-green-600">
                                 <IndianRupee className="h-4 w-4" />
-                                <span className="text-lg font-bold">
-                                  {item.price_per_day}
-                                </span>
-                                <span className="text-sm text-gray-500 ml-1">/day</span>
+                                <span className="text-lg font-bold">{item.price_per_day}</span>
+                                <span className="ml-1 text-sm text-gray-500">/day</span>
                               </div>
 
                               <div className="flex items-center gap-1">
@@ -348,12 +347,12 @@ export default function PublicUserProfilePage() {
             {hasLabourProfile && labourProfile && (
               <TabsContent value="labour">
                 <Link href={`/renter/labour/${labourProfile.id}`}>
-                  <Card className="hover:shadow-lg transition-shadow">
+                  <Card className="transition-shadow hover:shadow-lg">
                     <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row gap-6">
+                      <div className="flex flex-col gap-6 md:flex-row">
                         {/* Profile Header */}
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-4">
+                          <div className="mb-4 flex items-center gap-3">
                             <h2 className="text-2xl font-bold text-gray-900">
                               {userProfile.name || 'Labour Profile'}
                             </h2>
@@ -362,8 +361,8 @@ export default function PublicUserProfilePage() {
                                 labourProfile.availability === 'available'
                                   ? 'success'
                                   : labourProfile.availability === 'busy'
-                                  ? 'warning'
-                                  : 'secondary'
+                                    ? 'warning'
+                                    : 'secondary'
                               }
                             >
                               {labourProfile.availability}
@@ -372,11 +371,11 @@ export default function PublicUserProfilePage() {
 
                           {/* Bio */}
                           {labourProfile.bio && (
-                            <p className="text-gray-700 mb-4">{labourProfile.bio}</p>
+                            <p className="mb-4 text-gray-700">{labourProfile.bio}</p>
                           )}
 
                           {/* Experience and Stats */}
-                          <div className="flex flex-wrap gap-4 mb-4">
+                          <div className="mb-4 flex flex-wrap gap-4">
                             <div className="flex items-center gap-2 text-gray-600">
                               <Briefcase className="h-4 w-4" />
                               <span>{labourProfile.experience_years} years experience</span>
@@ -384,9 +383,13 @@ export default function PublicUserProfilePage() {
                             {labourProfile.rating && (
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                <span className="font-medium">{labourProfile.rating.toFixed(1)}</span>
+                                <span className="font-medium">
+                                  {labourProfile.rating.toFixed(1)}
+                                </span>
                                 {labourProfile.review_count && (
-                                  <span className="text-gray-500">({labourProfile.review_count} reviews)</span>
+                                  <span className="text-gray-500">
+                                    ({labourProfile.review_count} reviews)
+                                  </span>
                                 )}
                               </div>
                             )}
@@ -400,7 +403,7 @@ export default function PublicUserProfilePage() {
                           {/* Skills */}
                           {labourProfile.skills && labourProfile.skills.length > 0 && (
                             <div className="mb-4">
-                              <h3 className="font-semibold text-gray-900 mb-2">Skills</h3>
+                              <h3 className="mb-2 font-semibold text-gray-900">Skills</h3>
                               <div className="flex flex-wrap gap-2">
                                 {labourProfile.skills.map((skill, idx) => (
                                   <Badge key={idx} variant="secondary">
@@ -412,23 +415,24 @@ export default function PublicUserProfilePage() {
                           )}
 
                           {/* Certifications */}
-                          {labourProfile.certifications && labourProfile.certifications.length > 0 && (
-                            <div className="mb-4">
-                              <h3 className="font-semibold text-gray-900 mb-2">Certifications</h3>
-                              <div className="flex flex-wrap gap-2">
-                                {labourProfile.certifications.map((cert, idx) => (
-                                  <Badge key={idx} variant="outline">
-                                    {cert}
-                                  </Badge>
-                                ))}
+                          {labourProfile.certifications &&
+                            labourProfile.certifications.length > 0 && (
+                              <div className="mb-4">
+                                <h3 className="mb-2 font-semibold text-gray-900">Certifications</h3>
+                                <div className="flex flex-wrap gap-2">
+                                  {labourProfile.certifications.map((cert, idx) => (
+                                    <Badge key={idx} variant="outline">
+                                      {cert}
+                                    </Badge>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
                           {/* Location */}
                           {labourProfile.location_name && (
-                            <div className="flex items-center text-gray-600 mb-4">
-                              <MapPin className="h-4 w-4 mr-2" />
+                            <div className="mb-4 flex items-center text-gray-600">
+                              <MapPin className="mr-2 h-4 w-4" />
                               <span>{labourProfile.location_name}</span>
                               {labourProfile.service_radius_km && (
                                 <span className="ml-2 text-sm text-gray-500">
@@ -439,10 +443,10 @@ export default function PublicUserProfilePage() {
                           )}
 
                           {/* Pricing */}
-                          <div className="pt-4 border-t">
+                          <div className="border-t pt-4">
                             <div className="flex items-center gap-6">
                               <div>
-                                <p className="text-sm text-gray-500 mb-1">Daily Rate</p>
+                                <p className="mb-1 text-sm text-gray-500">Daily Rate</p>
                                 <div className="flex items-center text-2xl font-bold text-green-600">
                                   <IndianRupee className="h-5 w-5" />
                                   {labourProfile.daily_rate}
@@ -450,7 +454,7 @@ export default function PublicUserProfilePage() {
                               </div>
                               {labourProfile.hourly_rate && (
                                 <div>
-                                  <p className="text-sm text-gray-500 mb-1">Hourly Rate</p>
+                                  <p className="mb-1 text-sm text-gray-500">Hourly Rate</p>
                                   <div className="flex items-center text-xl font-semibold text-gray-700">
                                     <IndianRupee className="h-4 w-4" />
                                     {labourProfile.hourly_rate}

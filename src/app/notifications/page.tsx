@@ -1,32 +1,24 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNotifications, useNotificationStats } from '@/lib/services/notifications';
-import { useUser } from '@/lib/supabase/auth-context';
 import { NotificationItem } from '@/components/notifications/notification-item';
 import { NotificationFilters } from '@/components/notifications/notification-filters';
-import type { NotificationFilters as FilterType, NotificationGroup } from '@/lib/types/notifications';
+import type {
+  NotificationFilters as FilterType,
+  NotificationGroup,
+} from '@/lib/types/notifications';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Bell,
-  CheckCheck,
-  Trash2,
-  Settings,
-  Loader2,
-  ArrowLeft,
-  LogIn,
-} from 'lucide-react';
+import { Bell, CheckCheck, Trash2, Settings, Loader2, Filter, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 export default function NotificationsPage() {
-  const { user, loading: authLoading } = useUser();
   const [filters, setFilters] = useState<FilterType>({});
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'read'>('all');
-
-  console.log('[NotificationsPage] authLoading:', authLoading, 'user:', user?.id || 'No user');
 
   const {
     notifications,
@@ -53,7 +45,7 @@ export default function NotificationsPage() {
     return notifications;
   }, [notifications, activeTab]);
 
-  // Group notifications by date
+  // Group notifications
   const groupedNotifications = useMemo<NotificationGroup[]>(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -63,240 +55,223 @@ export default function NotificationsPage() {
     const groups: NotificationGroup[] = [
       { label: 'Today', notifications: [] },
       { label: 'Yesterday', notifications: [] },
-      { label: 'This Week', notifications: [] },
-      { label: 'Older', notifications: [] },
+      { label: 'Earlier', notifications: [] },
     ];
 
     filteredNotifications.forEach((notification) => {
-      const createdAt = new Date(notification.created_at);
-      const notificationDate = new Date(
-        createdAt.getFullYear(),
-        createdAt.getMonth(),
-        createdAt.getDate()
-      );
+      const notificationDate = new Date(notification.created_at);
 
       if (notificationDate >= today) {
         groups[0].notifications.push(notification);
       } else if (notificationDate >= yesterday) {
         groups[1].notifications.push(notification);
-      } else if (notificationDate >= new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)) {
-        groups[2].notifications.push(notification);
       } else {
-        groups[3].notifications.push(notification);
+        groups[2].notifications.push(notification);
       }
     });
 
-    return groups.filter((g) => g.notifications.length > 0);
+    return groups.filter((group) => group.notifications.length > 0);
   }, [filteredNotifications]);
 
-  // Show loading while auth is being checked
-  if (authLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-        </div>
-      </div>
-    );
-  }
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
+  };
 
-  // Show login prompt if not authenticated
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Bell className="h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign in to view notifications</h3>
-            <p className="text-gray-500 text-center mb-4">
-              You need to be logged in to see your notifications.
-            </p>
-            <Link href="/login">
-              <Button>
-                <LogIn className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Bell className="h-12 w-12 text-red-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Notifications</h3>
-            <p className="text-gray-500 text-center">{error.message || 'Something went wrong'}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleClearAll = async () => {
+    if (
+      window.confirm('Are you sure you want to clear all notifications? This cannot be undone.')
+    ) {
+      try {
+        await clearAll();
+      } catch (err) {
+        console.error('Failed to clear notifications:', err);
+      }
+    }
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Bell className="h-6 w-6 text-green-600" />
+    <div className="container max-w-5xl py-8">
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight">
+              <Bell className="h-8 w-8" />
               Notifications
             </h1>
-            <p className="text-sm text-gray-500">
-              {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up!'}
+            <p className="text-muted-foreground">
+              Stay updated with all your activities and messages
             </p>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => markAllAsRead()}
-              className="hidden sm:flex"
-            >
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Mark all read
-            </Button>
-          )}
-          <Link href="/notifications/settings">
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
+          <Link href="/notifications/preferences">
+            <Button variant="outline">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
             </Button>
           </Link>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-500">Total</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">{stats.unread}</div>
-              <div className="text-sm text-gray-500">Unread</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">{stats.read}</div>
-              <div className="text-sm text-gray-500">Read</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-orange-600">{stats.highPriority}</div>
-              <div className="text-sm text-gray-500">High Priority</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Total Notifications</CardDescription>
+                <CardTitle className="text-3xl">{stats.total}</CardTitle>
+              </CardHeader>
+            </Card>
 
-      {/* Tabs & Filters */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="unread">
-                  Unread {unreadCount > 0 && `(${unreadCount})`}
-                </TabsTrigger>
-                <TabsTrigger value="read">Read</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Unread</CardDescription>
+                <CardTitle className="text-3xl text-blue-600">{stats.unread}</CardTitle>
+              </CardHeader>
+            </Card>
 
-            <NotificationFilters filters={filters} onFiltersChange={setFilters} />
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Read Rate</CardDescription>
+                <CardTitle className="text-3xl">
+                  {stats.total > 0
+                    ? Math.round(((stats.total - stats.unread) / stats.total) * 100)
+                    : 0}
+                  %
+                </CardTitle>
+              </CardHeader>
+            </Card>
           </div>
-        </CardHeader>
+        )}
 
-        <Separator />
+        {/* Main Content */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle>All Notifications</CardTitle>
+                <CardDescription>
+                  {unreadCount > 0
+                    ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
+                    : "You're all caught up!"}
+                </CardDescription>
+              </div>
 
-        <CardContent className="p-0">
-          {loading && notifications.length === 0 ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-            </div>
-          ) : filteredNotifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Bell className="h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No notifications</h3>
-              <p className="text-gray-500 text-center">
-                {activeTab === 'unread'
-                  ? "You're all caught up!"
-                  : activeTab === 'read'
-                  ? 'No read notifications yet'
-                  : 'No notifications to show'}
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {groupedNotifications.map((group) => (
-                <div key={group.label}>
-                  <div className="px-4 py-2 bg-gray-50 sticky top-0">
-                    <h3 className="text-sm font-medium text-gray-500">{group.label}</h3>
-                  </div>
-                  {group.notifications.map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      notification={notification}
-                      onMarkRead={markAsRead}
-                      onDelete={deleteNotification}
-                    />
-                  ))}
-                </div>
-              ))}
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <Button variant="outline" size="sm" onClick={handleMarkAllRead}>
+                    <CheckCheck className="mr-2 h-4 w-4" />
+                    Mark All Read
+                  </Button>
+                )}
 
-              {hasMore && (
-                <div className="p-4">
+                {notifications.length > 0 && (
                   <Button
                     variant="outline"
-                    className="w-full"
-                    onClick={loadMore}
-                    disabled={loading}
+                    size="sm"
+                    onClick={handleClearAll}
+                    className="text-destructive hover:text-destructive"
                   >
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : null}
-                    Load more
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Clear All
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
 
-      {/* Clear All Button */}
-      {filteredNotifications.length > 0 && (
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => clearAll()}
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear all notifications
-          </Button>
-        </div>
-      )}
+          <CardContent className="space-y-4">
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">All ({notifications.length})</TabsTrigger>
+                <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
+                <TabsTrigger value="read">Read ({notifications.length - unreadCount})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value={activeTab} className="space-y-4">
+                {/* Filters */}
+                <div className="flex items-center gap-2">
+                  <Filter className="text-muted-foreground h-4 w-4" />
+                  <NotificationFilters filters={filters} onFiltersChange={setFilters} />
+                </div>
+
+                <Separator />
+
+                {/* Notifications List */}
+                {loading && notifications.length === 0 ? (
+                  <div className="flex h-64 items-center justify-center">
+                    <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+                  </div>
+                ) : error ? (
+                  <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
+                    <p className="text-destructive text-sm">Failed to load notifications</p>
+                    <p className="text-muted-foreground text-xs">{error.message}</p>
+                  </div>
+                ) : filteredNotifications.length === 0 ? (
+                  <div className="flex h-64 flex-col items-center justify-center gap-2">
+                    <Bell className="text-muted-foreground/50 h-12 w-12" />
+                    <p className="text-muted-foreground text-sm font-medium">No notifications</p>
+                    <p className="text-muted-foreground text-xs">
+                      {activeTab === 'unread'
+                        ? "You've read all your notifications! 🎉"
+                        : activeTab === 'read'
+                          ? 'No read notifications yet'
+                          : "You're all caught up! 🎉"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {groupedNotifications.map((group, groupIndex) => (
+                      <div key={group.label} className="space-y-2">
+                        {/* Group Label */}
+                        <h3 className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">
+                          {group.label}
+                        </h3>
+
+                        {/* Notifications */}
+                        <div className="space-y-2">
+                          {group.notifications.map((notification) => (
+                            <NotificationItem
+                              key={notification.id}
+                              notification={notification}
+                              onMarkRead={markAsRead}
+                              onDelete={deleteNotification}
+                            />
+                          ))}
+                        </div>
+
+                        {groupIndex < groupedNotifications.length - 1 && (
+                          <Separator className="my-4" />
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Load More */}
+                    {hasMore && (
+                      <div className="flex justify-center pt-4">
+                        <Button variant="outline" onClick={loadMore} disabled={loading}>
+                          {loading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            'Load More'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

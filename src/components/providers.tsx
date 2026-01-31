@@ -5,7 +5,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from '@/lib/store';
-import { I18nProvider } from '@/lib/i18n';
 import { AuthProvider } from '@/lib/supabase/auth-context';
 import { SmoothScroll } from '@/components/providers/SmoothScroll';
 
@@ -38,38 +37,36 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <I18nProvider>
-          <AuthInitializer>
-            <SmoothScroll>
-              {children}
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 4000,
-                  style: {
-                    background: '#fff',
-                    color: '#374151',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                    borderRadius: '0.5rem',
-                    padding: '0.75rem 1rem',
+        <AuthInitializer>
+          <SmoothScroll>
+            {children}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#fff',
+                  color: '#374151',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem 1rem',
+                },
+                success: {
+                  iconTheme: {
+                    primary: '#22c55e',
+                    secondary: '#fff',
                   },
-                  success: {
-                    iconTheme: {
-                      primary: '#22c55e',
-                      secondary: '#fff',
-                    },
+                },
+                error: {
+                  iconTheme: {
+                    primary: '#ef4444',
+                    secondary: '#fff',
                   },
-                  error: {
-                    iconTheme: {
-                      primary: '#ef4444',
-                      secondary: '#fff',
-                    },
-                  },
-                }}
-              />
-            </SmoothScroll>
-          </AuthInitializer>
-        </I18nProvider>
+                },
+              }}
+            />
+          </SmoothScroll>
+        </AuthInitializer>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

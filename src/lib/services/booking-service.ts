@@ -205,7 +205,7 @@ export const bookingService = {
         const start = parseISO(booking.start_date);
         const end = parseISO(booking.end_date);
 
-        let curr = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        const curr = new Date(start.getFullYear(), start.getMonth(), start.getDate());
         const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
         let safety = 0;

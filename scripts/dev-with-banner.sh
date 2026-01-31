@@ -27,7 +27,7 @@ echo -e "${DIM}━━━━━━━━━━━━━━━━━━━━━�
 
 # Project info
 echo -e "\n${BOLD}${PURPLE}⚡ Starting Development Server...${RESET}\n"
-echo -e "${BLUE}📦 Package Manager:${RESET} ${BOLD}pnpm${RESET}"
+echo -e "${BLUE}📦 Package Manager:${RESET} ${BOLD}bun${RESET}"
 echo -e "${BLUE}🏗️  Framework:${RESET} ${BOLD}Next.js 16.1.3 (Turbopack)${RESET}"
 echo -e "${BLUE}⚛️  React:${RESET} ${BOLD}19.2.3${RESET}"
 echo -e "${BLUE}🎨 Styling:${RESET} ${BOLD}Tailwind CSS v4${RESET}"
@@ -50,7 +50,7 @@ fi
 echo -e "${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
 
 # Run the actual dev command (suppress Next.js default output)
-pnpm next dev -p 3001 2>&1 | while IFS= read -r line; do
+bun next dev -p 3001 2>&1 | while IFS= read -r line; do
     # Filter out Next.js default startup messages but keep errors
     if [[ ! "$line" =~ ^[[:space:]]*▲ ]] && \
        [[ ! "$line" =~ "Local:" ]] && \
@@ -73,8 +73,8 @@ pnpm next dev -p 3001 2>&1 | while IFS= read -r line; do
         echo -e "   ${ORANGE}➜${RESET} ${BOLD}http://${NETWORK_IP}:3001${RESET}"
         echo -e "\n${BOLD}${YELLOW}💡 Quick Commands:${RESET}"
         echo -e "   ${GREEN}•${RESET} Press ${BOLD}Ctrl+C${RESET} to stop the server"
-        echo -e "   ${GREEN}•${RESET} Run ${BOLD}pnpm build${RESET} to create production build"
-        echo -e "   ${GREEN}•${RESET} Run ${BOLD}pnpm lint${RESET} to check code quality"
+        echo -e "   ${GREEN}•${RESET} Run ${BOLD}bun run build${RESET} to create production build"
+        echo -e "   ${GREEN}•${RESET} Run ${BOLD}bun run lint${RESET} to check code quality"
         echo -e "\n${DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
         echo -e "${BOLD}${PURPLE}🚀 Happy Coding!${RESET}\n"
     fi

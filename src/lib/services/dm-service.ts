@@ -9,23 +9,44 @@ export const dmService = {
    * Uses database function to ensure uniqueness
    */
   async getOrCreateConversation(otherUserId: string): Promise<string> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase.rpc('get_or_create_conversation', {
-      user_1: user.id,
-      user_2: otherUserId,
-    });
+    try {
+      const { data, error } = await supabase.rpc('get_or_create_conversation', {
+        user_1: user.id,
+        user_2: otherUserId,
+      });
 
-    if (error) throw error;
-    return data as string;
+      if (error) {
+        console.error('getOrCreateConversation RPC error:', error);
+        throw new Error(
+          `Failed to create conversation: ${error.message || error.code || 'Unknown error'}`
+        );
+      }
+
+      if (!data) {
+        throw new Error('No conversation ID returned from database');
+      }
+
+      return data as string;
+    } catch (err) {
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error(`Unexpected error creating conversation: ${JSON.stringify(err)}`);
+    }
   },
 
   /**
    * Get all conversations for the current user
    */
   async getConversations(): Promise<DMConversation[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase.rpc('get_user_conversations', {
@@ -40,7 +61,9 @@ export const dmService = {
    * Get a single conversation by ID
    */
   async getConversation(conversationId: string): Promise<DMConversation | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase
@@ -56,9 +79,8 @@ export const dmService = {
     }
 
     // Fetch participant profiles separately
-    const otherUserId = data.participant_1_id === user.id 
-      ? data.participant_2_id 
-      : data.participant_1_id;
+    const otherUserId =
+      data.participant_1_id === user.id ? data.participant_2_id : data.participant_1_id;
 
     const { data: otherUser } = await supabase
       .from('user_profiles')
@@ -79,13 +101,13 @@ export const dmService = {
    * Get conversation by other user ID
    */
   async getConversationByUser(otherUserId: string): Promise<DMConversation | null> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     // Order the IDs to match the database constraint
-    const [p1, p2] = user.id < otherUserId 
-      ? [user.id, otherUserId] 
-      : [otherUserId, user.id];
+    const [p1, p2] = user.id < otherUserId ? [user.id, otherUserId] : [otherUserId, user.id];
 
     const { data, error } = await supabase
       .from('dm_conversations')
@@ -150,24 +172,28 @@ export const dmService = {
       console.error('Error fetching messages:', error);
       throw error;
     }
-    
+
     // Fetch sender profiles for all messages
     const messages = data || [];
     if (messages.length > 0) {
-      const senderIds = [...new Set(messages.map(m => m.sender_id))];
+      const senderIds = [...new Set(messages.map((m) => m.sender_id))];
       const { data: senders } = await supabase
         .from('user_profiles')
         .select('id, name, profile_image')
         .in('id', senderIds);
 
-      const senderMap = new Map(senders?.map(s => [s.id, s]) || []);
-      
-      return messages.map(m => ({
-        ...m,
-        sender: senderMap.get(m.sender_id) || null,
-      })).reverse() as DirectMessage[];
+      const senderMap = new Map(senders?.map((s) => [s.id, s]) || []);
+
+      return messages
+        .map((m) => ({
+          ...m,
+          delivery_status: m.is_read ? ('read' as const) : ('delivered' as const),
+          delivered_at: null,
+          sender: senderMap.get(m.sender_id) || null,
+        }))
+        .reverse() as DirectMessage[];
     }
-    
+
     return [];
   },
 
@@ -175,42 +201,60 @@ export const dmService = {
    * Send a message
    */
   async sendMessage(conversationId: string, content: string): Promise<DirectMessage> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data, error } = await supabase
-      .from('dm_messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: user.id,
-        content: content.trim(),
-      })
-      .select('*')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('dm_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: content.trim(),
+        })
+        .select('*')
+        .single();
 
-    if (error) {
-      console.error('Error sending message:', error);
-      throw error;
+      if (error) {
+        console.error('Error sending message:', error);
+        throw new Error(
+          `Failed to send message: ${error.message || error.code || 'Unknown error'}`
+        );
+      }
+
+      if (!data) {
+        throw new Error('No message data returned after sending');
+      }
+
+      // Fetch sender profile
+      const { data: sender } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image')
+        .eq('id', user.id)
+        .single();
+
+      return {
+        ...data,
+        delivery_status: 'sent',
+        sender,
+      } as DirectMessage;
+    } catch (err) {
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error(`Unexpected error sending message: ${JSON.stringify(err)}`);
     }
-
-    // Fetch sender profile
-    const { data: sender } = await supabase
-      .from('user_profiles')
-      .select('id, name, profile_image')
-      .eq('id', user.id)
-      .single();
-
-    return {
-      ...data,
-      sender,
-    } as DirectMessage;
   },
 
   /**
    * Mark messages as read
    */
   async markAsRead(conversationId: string): Promise<number> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase.rpc('mark_messages_as_read', {
@@ -226,7 +270,9 @@ export const dmService = {
    * Get total unread message count
    */
   async getUnreadCount(): Promise<number> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return 0;
 
     const { data, error } = await supabase.rpc('get_unread_dm_count', {
@@ -243,10 +289,7 @@ export const dmService = {
   /**
    * Subscribe to new messages in a conversation
    */
-  subscribeToConversation(
-    conversationId: string,
-    onMessage: (message: DirectMessage) => void
-  ) {
+  subscribeToConversation(conversationId: string, onMessage: (message: DirectMessage) => void) {
     return supabase
       .channel(`dm_messages:${conversationId}`)
       .on(
@@ -267,11 +310,14 @@ export const dmService = {
 
           const message: DirectMessage = {
             ...(payload.new as Omit<DirectMessage, 'sender'>),
-            sender: sender ? {
-              id: sender.id,
-              name: sender.name,
-              profile_image: sender.profile_image,
-            } : null,
+            delivery_status: payload.new.is_read ? 'read' : 'delivered',
+            sender: sender
+              ? {
+                  id: sender.id,
+                  name: sender.name,
+                  profile_image: sender.profile_image,
+                }
+              : null,
           };
 
           onMessage(message);
@@ -298,6 +344,7 @@ export const dmService = {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          // Check for read status changes
           if (payload.new.is_read !== payload.old.is_read) {
             onUpdate(payload.new.id, payload.new.is_read);
           }
@@ -309,10 +356,7 @@ export const dmService = {
   /**
    * Subscribe to all conversation updates (for inbox)
    */
-  subscribeToConversations(
-    userId: string,
-    onUpdate: () => void
-  ) {
+  subscribeToConversations(userId: string, onUpdate: () => void) {
     // Subscribe to conversations where user is a participant
     return supabase
       .channel(`dm_conversations:${userId}`)
@@ -346,7 +390,7 @@ export const dmService = {
             .eq('id', payload.new.conversation_id)
             .or(`participant_1_id.eq.${userId},participant_2_id.eq.${userId}`)
             .single();
-          
+
           if (data) {
             onUpdate();
           }

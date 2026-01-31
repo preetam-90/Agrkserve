@@ -14,7 +14,7 @@ function MessagesContent() {
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading, isInitialized } = useAuthStore();
   const { setActiveConversation, unsubscribeAll } = useMessagesStore();
-  
+
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isMobileViewingChat, setIsMobileViewingChat] = useState(false);
 
@@ -22,7 +22,7 @@ function MessagesContent() {
   useEffect(() => {
     const conversationParam = searchParams.get('conversation');
     const userParam = searchParams.get('user');
-    
+
     if (conversationParam) {
       setSelectedConversationId(conversationParam);
       setIsMobileViewingChat(true);
@@ -52,7 +52,7 @@ function MessagesContent() {
       const conversationId = await startConversation(userId);
       setSelectedConversationId(conversationId);
       setIsMobileViewingChat(true);
-      
+
       // Update URL without navigation
       router.replace(`/messages?conversation=${conversationId}`, { scroll: false });
     } catch (error) {
@@ -63,7 +63,7 @@ function MessagesContent() {
   const handleSelectConversation = (conversationId: string) => {
     setSelectedConversationId(conversationId);
     setIsMobileViewingChat(true);
-    
+
     // Update URL without full navigation
     router.replace(`/messages?conversation=${conversationId}`, { scroll: false });
   };
@@ -88,22 +88,31 @@ function MessagesContent() {
   }
 
   return (
-    <main className="flex-1 container mx-auto px-0 md:px-4 py-0 md:py-6 max-w-6xl">
-      <div className="bg-white rounded-none md:rounded-xl shadow-sm overflow-hidden h-[calc(100vh-64px)] md:h-[calc(100vh-160px)] flex">
+    <main className="w-full flex-1 px-0 pb-0 pt-16 md:px-0 md:pb-0">
+      <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[#0a0a0a] md:h-[calc(100vh-64px)]">
         {/* Chat List (Sidebar) */}
-        <div className={cn(
-          "w-full md:w-80 lg:w-96 border-r flex-shrink-0",
-          // Hide on mobile when viewing a chat
-          isMobileViewingChat ? "hidden md:flex md:flex-col" : "flex flex-col"
-        )}>
+        <div
+          className={cn(
+            'w-full flex-shrink-0 border-r border-[#262626] bg-[#0a0a0a] md:w-72 lg:w-80 xl:w-96',
+            // Hide on mobile when viewing a chat
+            isMobileViewingChat ? 'hidden md:flex md:flex-col' : 'flex flex-col'
+          )}
+        >
           {/* Header */}
-          <div className="px-4 py-4 border-b bg-white">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-6 w-6 text-green-600" />
-              <h1 className="text-xl font-bold text-gray-900">Messages</h1>
+          <div className="border-b border-[#262626] bg-[#0f0f0f] px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                  <MessageSquare className="h-5 w-5 text-blue-400" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-white">Messages</h1>
+                  <p className="text-xs text-gray-500">Your conversations</p>
+                </div>
+              </div>
             </div>
           </div>
-          
+
           <ChatList
             onSelectConversation={handleSelectConversation}
             selectedConversationId={selectedConversationId}
@@ -112,11 +121,13 @@ function MessagesContent() {
         </div>
 
         {/* Chat Window */}
-        <div className={cn(
-          "flex-1 flex flex-col",
-          // Hide on mobile when not viewing a chat
-          !isMobileViewingChat ? "hidden md:flex" : "flex"
-        )}>
+        <div
+          className={cn(
+            'flex flex-1 flex-col',
+            // Hide on mobile when not viewing a chat
+            !isMobileViewingChat ? 'hidden md:flex' : 'flex'
+          )}
+        >
           {selectedConversationId ? (
             <ChatWindow
               conversationId={selectedConversationId}
@@ -125,16 +136,15 @@ function MessagesContent() {
               className="flex-1"
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="h-10 w-10 text-green-600" />
+            <div className="flex flex-1 items-center justify-center bg-gradient-to-b from-[#0a0a0a] to-[#0d0d0d]">
+              <div className="px-4 text-center">
+                <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-br from-blue-500/20 to-purple-500/20 shadow-2xl shadow-blue-500/10">
+                  <MessageSquare className="h-12 w-12 text-blue-400" />
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Your Messages
-                </h2>
-                <p className="text-gray-500 max-w-sm">
-                  Select a conversation from the list to start chatting, or visit a user&apos;s profile to send them a message.
+                <h2 className="mb-3 text-2xl font-semibold text-white">Your Messages</h2>
+                <p className="max-w-sm leading-relaxed text-gray-400">
+                  Select a conversation from the list to start chatting, or visit a user&apos;s
+                  profile to send them a message.
                 </p>
               </div>
             </div>
@@ -147,8 +157,8 @@ function MessagesContent() {
 
 function MessagesLoadingFallback() {
   return (
-    <main className="flex-1 container mx-auto px-0 md:px-4 py-0 md:py-6 max-w-6xl">
-      <div className="bg-white rounded-none md:rounded-xl shadow-sm overflow-hidden h-[calc(100vh-64px)] md:h-[calc(100vh-160px)] flex items-center justify-center">
+    <main className="w-full flex-1 px-0 pb-0 pt-16 md:px-0 md:pb-0">
+      <div className="flex h-[calc(100vh-64px)] items-center justify-center overflow-hidden bg-[#0a0a0a] md:h-[calc(100vh-64px)]">
         <Spinner size="lg" />
       </div>
     </main>
@@ -157,7 +167,7 @@ function MessagesLoadingFallback() {
 
 export default function MessagesPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex min-h-screen flex-col bg-[#0a0a0a]">
       <Header />
       <Suspense fallback={<MessagesLoadingFallback />}>
         <MessagesContent />

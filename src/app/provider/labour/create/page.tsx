@@ -3,15 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ArrowLeft,
-  MapPin,
-  Briefcase,
-  IndianRupee,
-  Plus,
-  X,
-  Loader2
-} from 'lucide-react';
+import { ArrowLeft, MapPin, Briefcase, IndianRupee, Plus, X, Loader2 } from 'lucide-react';
 import { Header, Sidebar } from '@/components/layout';
 import {
   Button,
@@ -23,7 +15,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { cn } from '@/lib/utils';
@@ -53,7 +45,7 @@ export default function CreateLabourProfilePage() {
   const { user, profile } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     skills: [] as string[],
     experience_years: 1,
@@ -73,41 +65,41 @@ export default function CreateLabourProfilePage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const addSkill = (skill: string) => {
     if (skill && !formData.skills.includes(skill)) {
-      setFormData(prev => ({ ...prev, skills: [...prev.skills, skill] }));
+      setFormData((prev) => ({ ...prev, skills: [...prev.skills, skill] }));
     }
     setNewSkill('');
   };
 
   const removeSkill = (skill: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      skills: prev.skills.filter(s => s !== skill)
+      skills: prev.skills.filter((s) => s !== skill),
     }));
   };
 
   const addCertification = () => {
     if (newCertification && !formData.certifications.includes(newCertification)) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        certifications: [...prev.certifications, newCertification]
+        certifications: [...prev.certifications, newCertification],
       }));
     }
     setNewCertification('');
   };
 
   const removeCertification = (cert: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      certifications: prev.certifications.filter(c => c !== cert)
+      certifications: prev.certifications.filter((c) => c !== cert),
     }));
   };
 
@@ -121,8 +113,8 @@ export default function CreateLabourProfilePage() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        setFormData(prev => ({ ...prev, latitude, longitude }));
-        
+        setFormData((prev) => ({ ...prev, latitude, longitude }));
+
         // Try to get address from coordinates
         try {
           const response = await fetch(
@@ -131,10 +123,10 @@ export default function CreateLabourProfilePage() {
           const data = await response.json();
           if (data.address) {
             const city = data.address.city || data.address.town || data.address.village || '';
-            setFormData(prev => ({ 
-              ...prev, 
+            setFormData((prev) => ({
+              ...prev,
               city: city || prev.city,
-              address: data.display_name || prev.address 
+              address: data.display_name || prev.address,
             }));
           }
           toast.success('Location detected');
@@ -198,7 +190,7 @@ export default function CreateLabourProfilePage() {
     } catch (err) {
       console.error('Failed to create profile:', err);
       console.error('Error details:', JSON.stringify(err, null, 2));
-      
+
       // Show more specific error message
       const errorMessage = err instanceof Error ? err.message : 'Failed to create profile';
       toast.error(errorMessage);
@@ -210,17 +202,22 @@ export default function CreateLabourProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <div className="flex">
         <Sidebar role="provider" />
-        
-        <main className={cn("flex-1 p-4 lg:p-6 transition-all duration-300", sidebarOpen ? "ml-64" : "ml-0")}>
-          <div className="max-w-3xl mx-auto">
+
+        <main
+          className={cn(
+            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
+            sidebarOpen ? 'ml-64' : 'ml-0'
+          )}
+        >
+          <div className="mx-auto max-w-3xl">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="mb-6 flex items-center gap-4">
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/provider/labour">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Link>
               </Button>
@@ -228,48 +225,50 @@ export default function CreateLabourProfilePage() {
 
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Create Labour Profile</h1>
-              <p className="text-gray-600">Set up your profile to receive work requests from farmers</p>
+              <p className="text-gray-600">
+                Set up your profile to receive work requests from farmers
+              </p>
             </div>
 
             <form onSubmit={handleSubmit}>
               {/* Skills Section */}
               <Card className="mb-6">
                 <CardContent className="p-6">
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                     <Briefcase className="h-5 w-5 text-teal-600" />
                     Skills &amp; Experience
                   </h2>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Skills <span className="text-red-500">*</span>
                       </label>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {COMMON_SKILLS.map(skill => (
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {COMMON_SKILLS.map((skill) => (
                           <button
                             key={skill}
                             type="button"
                             onClick={() => addSkill(skill)}
                             className={cn(
-                              "px-3 py-1 rounded-full text-sm border transition-colors",
+                              'rounded-full border px-3 py-1 text-sm transition-colors',
                               formData.skills.includes(skill)
-                                ? "bg-teal-100 border-teal-500 text-teal-700"
-                                : "bg-white border-gray-300 text-gray-700 hover:border-teal-500"
+                                ? 'border-teal-500 bg-teal-100 text-teal-700'
+                                : 'border-gray-300 bg-white text-gray-700 hover:border-teal-500'
                             )}
                           >
                             {skill}
                           </button>
                         ))}
                       </div>
-                      
+
                       {formData.skills.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
+                        <div className="mb-3 flex flex-wrap gap-2">
                           <span className="text-sm text-gray-600">Selected:</span>
-                          {formData.skills.map(skill => (
+                          {formData.skills.map((skill) => (
                             <span
                               key={skill}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-teal-100 text-teal-700 rounded-full text-sm"
+                              className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2 py-1 text-sm text-teal-700"
                             >
                               {skill}
                               <button type="button" onClick={() => removeSkill(skill)}>
@@ -299,7 +298,7 @@ export default function CreateLabourProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Years of Experience
                       </label>
                       <Select
@@ -310,7 +309,7 @@ export default function CreateLabourProfilePage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30].map(year => (
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30].map((year) => (
                             <SelectItem key={year} value={String(year)}>
                               {year}+ years
                             </SelectItem>
@@ -320,15 +319,15 @@ export default function CreateLabourProfilePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Certifications (Optional)
                       </label>
                       {formData.certifications.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {formData.certifications.map(cert => (
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          {formData.certifications.map((cert) => (
                             <span
                               key={cert}
-                              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-sm"
+                              className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-sm text-blue-700"
                             >
                               {cert}
                               <button type="button" onClick={() => removeCertification(cert)}>
@@ -362,14 +361,14 @@ export default function CreateLabourProfilePage() {
               {/* Pricing Section */}
               <Card className="mb-6">
                 <CardContent className="p-6">
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                     <IndianRupee className="h-5 w-5 text-teal-600" />
                     Pricing
                   </h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Daily Rate (₹) <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -382,7 +381,7 @@ export default function CreateLabourProfilePage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Hourly Rate (₹) - Optional
                       </label>
                       <Input
@@ -401,15 +400,15 @@ export default function CreateLabourProfilePage() {
               {/* Location Section */}
               <Card className="mb-6">
                 <CardContent className="p-6">
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                     <MapPin className="h-5 w-5 text-teal-600" />
                     Location
                   </h2>
 
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
                           City/Town <span className="text-red-500">*</span>
                         </label>
                         <Input
@@ -420,7 +419,7 @@ export default function CreateLabourProfilePage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
                           Address
                         </label>
                         <div className="flex gap-2">
@@ -453,7 +452,7 @@ export default function CreateLabourProfilePage() {
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">
                         Service Radius (km)
                       </label>
                       <Select
@@ -464,7 +463,7 @@ export default function CreateLabourProfilePage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {[5, 10, 15, 25, 50, 75, 100].map(km => (
+                          {[5, 10, 15, 25, 50, 75, 100].map((km) => (
                             <SelectItem key={km} value={String(km)}>
                               {km} km
                             </SelectItem>
@@ -479,7 +478,7 @@ export default function CreateLabourProfilePage() {
               {/* Bio Section */}
               <Card className="mb-6">
                 <CardContent className="p-6">
-                  <h2 className="text-lg font-semibold mb-4">About You</h2>
+                  <h2 className="mb-4 text-lg font-semibold">About You</h2>
                   <Textarea
                     name="bio"
                     placeholder="Tell farmers about yourself, your experience, and what makes you a great worker..."
@@ -508,7 +507,7 @@ export default function CreateLabourProfilePage() {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
                     </>
                   ) : (

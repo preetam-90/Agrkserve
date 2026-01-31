@@ -23,7 +23,7 @@ import {
   ChevronDown,
   ChevronUp,
   Settings2,
-  Zap
+  Zap,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -62,7 +62,7 @@ function AvailabilityCalendar({
   onClose,
   bookedDates,
   isLoading,
-  equipmentName
+  equipmentName,
 }: {
   isOpen: boolean;
   onClose: (open: boolean) => void;
@@ -70,10 +70,14 @@ function AvailabilityCalendar({
   isLoading: boolean;
   equipmentName: string;
 }) {
-  console.log(`[AvailabilityCalendar] Rendering ${equipmentName} with ${bookedDates.length} booked dates. Loading: ${isLoading}`);
+  console.log(
+    `[AvailabilityCalendar] Rendering ${equipmentName} with ${bookedDates.length} booked dates. Loading: ${isLoading}`
+  );
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [currentMonth, setCurrentMonth] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
 
   const daysInMonth = new Date(
     currentMonth.getFullYear(),
@@ -81,11 +85,7 @@ function AvailabilityCalendar({
     0
   ).getDate();
 
-  const firstDayOfMonth = new Date(
-    currentMonth.getFullYear(),
-    currentMonth.getMonth(),
-    1
-  ).getDay();
+  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
 
   const isBooked = (day: number) => {
     if (!bookedDates.length) return false;
@@ -106,52 +106,72 @@ function AvailabilityCalendar({
   };
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-[#0a0a0a] border border-white/10 shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-md overflow-hidden border border-white/10 bg-[#0a0a0a] p-0 shadow-2xl">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-2xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+          <DialogTitle className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-2xl font-black text-transparent">
             Availability
           </DialogTitle>
-          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">{equipmentName}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
+            {equipmentName}
+          </p>
         </DialogHeader>
 
         <div className="px-6 pb-8">
-          <div className="flex items-center justify-between mb-6 bg-white/5 p-2 rounded-2xl border border-white/5">
+          <div className="mb-6 flex items-center justify-between rounded-2xl border border-white/5 bg-white/5 p-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-              className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+              onClick={() =>
+                setCurrentMonth(
+                  new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+                )
+              }
+              className="rounded-xl text-gray-400 hover:bg-white/10 hover:text-white"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            <span className="font-black text-white tracking-tight">
+            <span className="font-black tracking-tight text-white">
               {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
             </span>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-              className="text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+              onClick={() =>
+                setCurrentMonth(
+                  new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+                )
+              }
+              className="rounded-xl text-gray-400 hover:bg-white/10 hover:text-white"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 text-center min-h-[250px] relative">
+          <div className="relative grid min-h-[250px] grid-cols-7 gap-1 text-center">
             {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a]/50 backdrop-blur-[2px] z-20">
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0a0a0a]/50 backdrop-blur-[2px]">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
               </div>
             )}
 
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
-              <div key={day} className="text-[10px] font-black text-gray-600 pb-2">
+              <div key={day} className="pb-2 text-[10px] font-black text-gray-600">
                 {day}
               </div>
             ))}
@@ -168,29 +188,30 @@ function AvailabilityCalendar({
               return (
                 <div
                   key={day}
-                  className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all relative ${past
-                    ? 'text-gray-800'
-                    : booked
-                      ? 'bg-red-500/20 text-red-500 border border-red-500/40 line-through scale-95'
-                      : 'bg-white/5 text-emerald-400/90 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/10 cursor-pointer'
-                    }`}
+                  className={`relative flex aspect-square items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                    past
+                      ? 'text-gray-800'
+                      : booked
+                        ? 'scale-95 border border-red-500/40 bg-red-500/20 text-red-500 line-through'
+                        : 'cursor-pointer border border-white/5 bg-white/5 text-emerald-400/90 hover:border-emerald-500/50 hover:bg-emerald-500/10'
+                  }`}
                 >
                   {day}
                   {booked && (
-                    <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,1)] animate-pulse" />
+                    <div className="absolute right-1 top-1 h-2 w-2 animate-pulse rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]" />
                   )}
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-8 flex items-center gap-4 justify-center">
+          <div className="mt-8 flex items-center justify-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-md bg-emerald-500/20 border border-emerald-500/30" />
+              <div className="h-3 w-3 rounded-md border border-emerald-500/30 bg-emerald-500/20" />
               <span className="text-[10px] font-bold uppercase text-gray-500">Available</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-md bg-red-500/20 border border-red-500/30" />
+              <div className="h-3 w-3 rounded-md border border-red-500/30 bg-red-500/20" />
               <span className="text-[10px] font-bold uppercase text-gray-500">Booked</span>
             </div>
           </div>
@@ -205,7 +226,7 @@ function EquipmentCard({
   equipment,
   onMessage,
   onBook,
-  isAuthenticated
+  isAuthenticated,
 }: {
   equipment: Equipment;
   onMessage: (equipment: Equipment) => void;
@@ -233,8 +254,13 @@ function EquipmentCard({
       setBookedDates(bookedData);
     } catch (error: any) {
       // Better error logging for Supabase objects
-      const detail = error?.message || error?.details || error?.code ||
-        (typeof error === 'object' ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : String(error));
+      const detail =
+        error?.message ||
+        error?.details ||
+        error?.code ||
+        (typeof error === 'object'
+          ? JSON.stringify(error, Object.getOwnPropertyNames(error))
+          : String(error));
       console.error('[Calendar API Error]:', detail);
     } finally {
       setIsLoadingBooked(false);
@@ -271,29 +297,21 @@ function EquipmentCard({
     setShowCalendar(true);
   };
 
-
-
-
-
   return (
     <>
-      <div className="group perspective-1000">
-        <Link
-          href={`/equipment/${equipment.id}`}
-          className="block h-full"
-        >
-          <div className="relative h-full rounded-2xl overflow-hidden transition-all duration-500 group-hover:scale-[1.02] group-hover:-translate-y-2 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:translate-y-0">
+      <div className="perspective-1000 group">
+        <Link href={`/equipment/${equipment.id}`} className="block h-full">
+          <div className="relative h-full overflow-hidden rounded-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100">
             {/* Animated gradient border glow */}
-            <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm motion-reduce:transition-none" />
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-100 motion-reduce:transition-none" />
 
             {/* Glassmorphism card */}
-            <div className="relative bg-gradient-to-br from-[#1a1a1a]/90 to-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-xl group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] transition-shadow duration-500 h-full motion-reduce:transition-none">
-
+            <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/90 to-[#0a0a0a]/90 shadow-xl backdrop-blur-xl transition-shadow duration-500 group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] motion-reduce:transition-none">
               {/* Image Gallery with parallax effect */}
-              <div className="aspect-[4/3] bg-gradient-to-br from-gray-900 to-gray-950 relative overflow-hidden">
+              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
                 {images.length > 0 ? (
                   <>
-                    <div className="relative w-full h-full overflow-hidden">
+                    <div className="relative h-full w-full overflow-hidden">
                       <Image
                         src={images[currentImageIndex]}
                         alt={equipment.name}
@@ -301,7 +319,7 @@ function EquipmentCard({
                         className="object-cover transition-all duration-700 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                       />
                       {/* Holographic overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 mix-blend-overlay motion-reduce:transition-none" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-emerald-400/20 opacity-0 mix-blend-overlay transition-opacity duration-700 group-hover:opacity-100 motion-reduce:transition-none" />
                     </div>
 
                     {/* Enhanced image navigation */}
@@ -309,27 +327,28 @@ function EquipmentCard({
                       <>
                         <button
                           onClick={prevImage}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cyan-500/80 hover:scale-110 z-10 motion-reduce:transition-none"
+                          className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white opacity-0 backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-cyan-500/80 group-hover:opacity-100 motion-reduce:transition-none"
                           aria-label="Previous image"
                         >
                           <ChevronLeft className="h-5 w-5" />
                         </button>
                         <button
                           onClick={nextImage}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 backdrop-blur-md text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cyan-500/80 hover:scale-110 z-10 motion-reduce:transition-none"
+                          className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white opacity-0 backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-cyan-500/80 group-hover:opacity-100 motion-reduce:transition-none"
                           aria-label="Next image"
                         >
                           <ChevronRight className="h-5 w-5" />
                         </button>
                         {/* Enhanced image indicators */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2">
                           {images.map((_, index) => (
                             <div
                               key={index}
-                              className={`h-1.5 rounded-full transition-all duration-300 motion-reduce:transition-none ${index === currentImageIndex
-                                ? 'w-8 bg-gradient-to-r from-cyan-400 to-emerald-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]'
-                                : 'w-1.5 bg-white/40 hover:bg-white/60'
-                                }`}
+                              className={`h-1.5 rounded-full transition-all duration-300 motion-reduce:transition-none ${
+                                index === currentImageIndex
+                                  ? 'w-8 bg-gradient-to-r from-cyan-400 to-emerald-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]'
+                                  : 'w-1.5 bg-white/40 hover:bg-white/60'
+                              }`}
                             />
                           ))}
                         </div>
@@ -337,13 +356,18 @@ function EquipmentCard({
                     )}
 
                     {/* Availability badge with glow */}
-                    <div className="absolute top-4 right-4 z-10">
-                      <div className={`px-3 py-1.5 rounded-full backdrop-blur-xl border ${equipment.is_available
-                        ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
-                        : 'bg-red-500/20 border-red-400/50 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
-                        }`}>
+                    <div className="absolute right-4 top-4 z-10">
+                      <div
+                        className={`rounded-full border px-3 py-1.5 backdrop-blur-xl ${
+                          equipment.is_available
+                            ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
+                            : 'border-red-400/50 bg-red-500/20 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                        }`}
+                      >
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${equipment.is_available ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`} />
+                          <div
+                            className={`h-2 w-2 rounded-full ${equipment.is_available ? 'animate-pulse bg-emerald-400' : 'bg-red-400'}`}
+                          />
                           <span className="text-xs font-bold uppercase tracking-wide">
                             {equipment.is_available ? 'Available' : 'Booked'}
                           </span>
@@ -352,8 +376,8 @@ function EquipmentCard({
                     </div>
 
                     {/* Category badge */}
-                    <div className="absolute top-4 left-4 z-10">
-                      <div className="px-3 py-1.5 rounded-full backdrop-blur-xl bg-black/40 border border-white/20 text-white/90">
+                    <div className="absolute left-4 top-4 z-10">
+                      <div className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-white/90 backdrop-blur-xl">
                         <span className="text-xs font-bold uppercase tracking-wide">
                           {equipment.category || 'Equipment'}
                         </span>
@@ -361,26 +385,29 @@ function EquipmentCard({
                     </div>
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-950">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-900 to-gray-950">
                     <Tractor className="h-16 w-16 text-gray-700/50" />
                   </div>
                 )}
               </div>
 
               {/* Enhanced content section */}
-              <div className="p-5 flex flex-col flex-grow space-y-4">
-
+              <div className="flex flex-grow flex-col space-y-4 p-5">
                 {/* Equipment Name & Brand info */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-1 flex items-center gap-2">
                     {equipment.brand && (
-                      <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">{equipment.brand}</span>
+                      <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
+                        {equipment.brand}
+                      </span>
                     )}
                     {equipment.model && (
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{equipment.model}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                        {equipment.model}
+                      </span>
                     )}
                   </div>
-                  <h3 className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-emerald-400 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300 line-clamp-2 motion-reduce:transition-none">
+                  <h3 className="line-clamp-2 text-xl font-bold text-white transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-emerald-400 group-hover:bg-clip-text group-hover:text-transparent motion-reduce:transition-none">
                     {equipment.name}
                   </h3>
                 </div>
@@ -390,63 +417,65 @@ function EquipmentCard({
                   {(equipment.year || equipment.horsepower) && (
                     <>
                       {equipment.year && (
-                        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 group-hover:border-white/10 transition-colors">
-                          <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                        <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-2.5 py-1.5 text-gray-300 transition-colors group-hover:border-white/10">
+                          <Calendar className="h-3.5 w-3.5 text-emerald-400" />
                           <span className="text-xs font-medium">{equipment.year}</span>
                         </div>
                       )}
                       {equipment.horsepower && (
-                        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 group-hover:border-white/10 transition-colors">
-                          <Settings2 className="w-3.5 h-3.5 text-cyan-400" />
+                        <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-2.5 py-1.5 text-gray-300 transition-colors group-hover:border-white/10">
+                          <Settings2 className="h-3.5 w-3.5 text-cyan-400" />
                           <span className="text-xs font-medium">{equipment.horsepower} HP</span>
                         </div>
                       )}
                     </>
                   )}
                   {equipment.fuel_type && (
-                    <div className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 text-gray-300 group-hover:border-white/10 transition-colors ${(!equipment.year || !equipment.horsepower) ? 'col-span-1' : 'col-span-2'}`}>
-                      <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                    <div
+                      className={`flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-2.5 py-1.5 text-gray-300 transition-colors group-hover:border-white/10 ${!equipment.year || !equipment.horsepower ? 'col-span-1' : 'col-span-2'}`}
+                    >
+                      <Zap className="h-3.5 w-3.5 text-yellow-400" />
                       <span className="text-xs font-medium capitalize">{equipment.fuel_type}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Price with gradient background - showing both hourly and daily */}
-                <div className="space-y-2 mt-auto pt-2">
+                <div className="mt-auto space-y-2 pt-2">
                   {equipment.price_per_hour && (
-                    <div className="inline-flex items-baseline gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 border border-purple-500/20">
+                    <div className="inline-flex items-baseline gap-1 rounded-lg border border-purple-500/20 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 px-3 py-1.5">
                       <IndianRupee className="h-4 w-4 text-purple-400" />
-                      <span className="text-xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-xl font-black text-transparent">
                         {equipment.price_per_hour}
                       </span>
-                      <span className="text-xs text-gray-400 font-medium">/hour</span>
+                      <span className="text-xs font-medium text-gray-400">/hour</span>
                     </div>
                   )}
-                  <div className="inline-flex w-full items-baseline gap-1 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-teal-500/10 border border-cyan-500/20">
+                  <div className="inline-flex w-full items-baseline gap-1 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-teal-500/10 px-4 py-2">
                     <IndianRupee className="h-5 w-5 text-cyan-400" />
-                    <span className="text-3xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-3xl font-black text-transparent">
                       {equipment.price_per_day}
                     </span>
-                    <span className="text-sm text-gray-400 font-medium">/day</span>
+                    <span className="text-sm font-medium text-gray-400">/day</span>
                   </div>
                 </div>
 
                 {/* Location & Rating */}
-                <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                <div className="flex items-center justify-between border-t border-white/5 pt-3">
                   <div className="flex items-center gap-2 text-gray-400">
                     <MapPin className="h-4 w-4 text-cyan-400" />
-                    <span className="text-sm font-medium truncate max-w-[120px]">{equipment.location_name || 'Location'}</span>
+                    <span className="max-w-[120px] truncate text-sm font-medium">
+                      {equipment.location_name || 'Location'}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                     <span className="text-sm font-bold text-amber-400">
                       {equipment.rating?.toFixed(1) || '5.0'}
                     </span>
                     {equipment.review_count && equipment.review_count > 0 && (
-                      <span className="text-xs text-gray-500">
-                        ({equipment.review_count})
-                      </span>
+                      <span className="text-xs text-gray-500">({equipment.review_count})</span>
                     )}
                   </div>
                 </div>
@@ -455,20 +484,20 @@ function EquipmentCard({
                 <div className="flex gap-2">
                   <button
                     onClick={handleBookClick}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 text-white font-bold text-sm uppercase tracking-wide hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] transform hover:scale-[1.02] active:scale-95 transition-all duration-300 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+                    className="flex-1 transform rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
                   >
                     Book Now
                   </button>
                   <button
                     onClick={handleCalendarClick}
-                    className="px-3 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:bg-white/10 hover:border-cyan-400/50 transform hover:scale-105 active:scale-95 transition-all duration-300 motion-reduce:transition-none"
+                    className="transform rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-cyan-400/50 hover:bg-white/10 active:scale-95 motion-reduce:transition-none"
                     aria-label="View calendar"
                   >
                     <Calendar className="h-5 w-5" />
                   </button>
                   <button
                     onClick={handleMessageClick}
-                    className="px-3 py-2.5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 text-white hover:bg-white/10 hover:border-emerald-400/50 transform hover:scale-105 active:scale-95 transition-all duration-300 motion-reduce:transition-none"
+                    className="transform rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-emerald-400/50 hover:bg-white/10 active:scale-95 motion-reduce:transition-none"
                     aria-label="Send message"
                   >
                     <MessageCircle className="h-5 w-5" />
@@ -539,7 +568,7 @@ function PublicEquipmentPageContent() {
   // Extract unique brands from equipment
   const brands = useMemo(() => {
     const uniqueBrands = new Set<string>();
-    equipment.forEach(item => {
+    equipment.forEach((item) => {
       if (item.brand) {
         uniqueBrands.add(item.brand);
       }
@@ -550,7 +579,7 @@ function PublicEquipmentPageContent() {
   const visibleBrands = useMemo(() => {
     let filtered = brands;
     if (brandSearch) {
-      filtered = brands.filter(b => b.toLowerCase().includes(brandSearch.toLowerCase()));
+      filtered = brands.filter((b) => b.toLowerCase().includes(brandSearch.toLowerCase()));
     }
     return showAllBrands ? filtered : filtered.slice(0, 5);
   }, [brands, showAllBrands, brandSearch]);
@@ -567,64 +596,68 @@ function PublicEquipmentPageContent() {
     });
   }, [searchQuery, selectedCategory, priceRange, minRating, sortBy, selectedBrands]);
 
-  const loadEquipment = useCallback(async (pageNum: number = 1, append: boolean = false) => {
-    const cacheKey = getCacheKey();
-    const now = Date.now();
-
-    if (pageNum === 1 && !append) {
-      const cached = cache.get(cacheKey);
-      if (cached && (now - cached.timestamp) < CACHE_TTL) {
-        setEquipment(cached.data);
-        setTotalCount(cached.count);
-        setHasMore(cached.data.length < cached.count);
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (append) {
-      setIsLoadingMore(true);
-    } else {
-      setIsLoading(true);
-    }
-
-    try {
-      const result = await equipmentService.getEquipment({
-        search: searchQuery || undefined,
-        category: selectedCategory && selectedCategory !== 'all' ? selectedCategory : undefined,
-        minPrice: priceRange.min ? Number(priceRange.min) : undefined,
-        maxPrice: priceRange.max ? Number(priceRange.max) : undefined,
-        minRating: minRating > 0 ? minRating : undefined,
-        page: pageNum,
-        limit,
-      });
-
-      const newEquipment = append ? [...equipment, ...result.data] : result.data;
-      setEquipment(newEquipment);
-      setTotalCount(result.count);
-      setHasMore(newEquipment.length < result.count);
+  const loadEquipment = useCallback(
+    async (pageNum: number = 1, append: boolean = false) => {
+      const cacheKey = getCacheKey();
+      const now = Date.now();
 
       if (pageNum === 1 && !append) {
-        cache.set(cacheKey, {
-          data: result.data,
-          count: result.count,
-          timestamp: now,
+        const cached = cache.get(cacheKey);
+        if (cached && now - cached.timestamp < CACHE_TTL) {
+          setEquipment(cached.data);
+          setTotalCount(cached.count);
+          setHasMore(cached.data.length < cached.count);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      try {
+        const result = await equipmentService.getEquipment({
+          search: searchQuery || undefined,
+          category: selectedCategory && selectedCategory !== 'all' ? selectedCategory : undefined,
+          minPrice: priceRange.min ? Number(priceRange.min) : undefined,
+          maxPrice: priceRange.max ? Number(priceRange.max) : undefined,
+          minRating: minRating > 0 ? minRating : undefined,
+          page: pageNum,
+          limit,
         });
+
+        const newEquipment = append ? [...equipment, ...result.data] : result.data;
+        setEquipment(newEquipment);
+        setTotalCount(result.count);
+        setHasMore(newEquipment.length < result.count);
+
+        if (pageNum === 1 && !append) {
+          cache.set(cacheKey, {
+            data: result.data,
+            count: result.count,
+            timestamp: now,
+          });
+        }
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : (err as { message?: string })?.message || 'Unknown error occurred';
+        console.error('Failed to load equipment:', errorMessage, err);
+        if (!append) {
+          setEquipment([]);
+          setTotalCount(0);
+        }
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
       }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error
-        ? err.message
-        : (err as { message?: string })?.message || 'Unknown error occurred';
-      console.error('Failed to load equipment:', errorMessage, err);
-      if (!append) {
-        setEquipment([]);
-        setTotalCount(0);
-      }
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [getCacheKey, searchQuery, selectedCategory, priceRange, minRating, equipment]);
+    },
+    [getCacheKey, searchQuery, selectedCategory, priceRange, minRating, equipment]
+  );
 
   useEffect(() => {
     setPage(1);
@@ -735,7 +768,7 @@ function PublicEquipmentPageContent() {
 
     setIsSendingMessage(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setShowMessageDialog(false);
       setMessageContent('');
@@ -750,36 +783,42 @@ function PublicEquipmentPageContent() {
   };
 
   const toggleBrand = (brand: string) => {
-    setSelectedBrands(prev =>
-      prev.includes(brand)
-        ? prev.filter(b => b !== brand)
-        : [...prev, brand]
+    setSelectedBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
     );
   };
 
-  const hasActiveFilters = searchQuery || (selectedCategory && selectedCategory !== 'all') || priceRange.min || priceRange.max || minRating > 0 || selectedBrands.length > 0;
+  const hasActiveFilters =
+    searchQuery ||
+    (selectedCategory && selectedCategory !== 'all') ||
+    priceRange.min ||
+    priceRange.max ||
+    minRating > 0 ||
+    selectedBrands.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
       <Header />
 
-      <main className="max-w-[1600px] mx-auto px-4 py-8">
+      <main className="mx-auto max-w-[1600px] px-4 pb-8 pt-28">
         {/* Enhanced Page Header with gradient text */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-transparent mb-3">
+              <h1 className="mb-3 bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-4xl font-black text-transparent md:text-5xl">
                 Premium Equipment
               </h1>
               <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Link href="/" className="hover:text-cyan-400 transition-colors">Home</Link>
+                <Link href="/" className="transition-colors hover:text-cyan-400">
+                  Home
+                </Link>
                 <span>›</span>
-                <span className="text-white font-medium">Equipment</span>
+                <span className="font-medium text-white">Equipment</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border border-cyan-500/20">
+              <div className="flex items-center gap-2 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 px-4 py-2">
                 <SlidersHorizontal className="h-4 w-4 text-cyan-400" />
                 <span className="text-sm font-medium text-white">Top Rated</span>
               </div>
@@ -789,13 +828,14 @@ function PublicEquipmentPageContent() {
 
         {/* Category Tabs */}
         <div className="mb-6 border-b border-gray-800">
-          <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="scrollbar-hide flex gap-6 overflow-x-auto pb-2">
             <button
               onClick={() => handleCategoryChange('all')}
-              className={`text-sm whitespace-nowrap pb-3 border-b-2 transition-colors ${selectedCategory === 'all'
-                ? 'border-[#DFFF00] text-[#DFFF00]'
-                : 'border-transparent text-gray-400 hover:text-white'
-                }`}
+              className={`whitespace-nowrap border-b-2 pb-3 text-sm transition-colors ${
+                selectedCategory === 'all'
+                  ? 'border-[#DFFF00] text-[#DFFF00]'
+                  : 'border-transparent text-gray-400 hover:text-white'
+              }`}
             >
               All Items
             </button>
@@ -803,10 +843,11 @@ function PublicEquipmentPageContent() {
               <button
                 key={cat.value}
                 onClick={() => handleCategoryChange(cat.value)}
-                className={`text-sm whitespace-nowrap pb-3 border-b-2 transition-colors ${selectedCategory === cat.value
-                  ? 'border-[#DFFF00] text-[#DFFF00]'
-                  : 'border-transparent text-gray-400 hover:text-white'
-                  }`}
+                className={`whitespace-nowrap border-b-2 pb-3 text-sm transition-colors ${
+                  selectedCategory === cat.value
+                    ? 'border-[#DFFF00] text-[#DFFF00]'
+                    : 'border-transparent text-gray-400 hover:text-white'
+                }`}
               >
                 {cat.label}
               </button>
@@ -817,25 +858,29 @@ function PublicEquipmentPageContent() {
         {/* Main Content - Sidebar + Grid */}
         <div className="flex gap-6">
           {/* Enhanced Glassmorphism Sidebar Filters */}
-          <aside className="hidden lg:block w-72 flex-shrink-0">
+          <aside className="hidden w-72 flex-shrink-0 lg:block">
             <div className="sticky top-6 space-y-4">
               {/* Reset Filters with gradient */}
               <button
                 onClick={clearFilters}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-500/20 text-red-400 rounded-xl hover:from-red-500/20 hover:to-pink-500/20 hover:border-red-500/40 transition-all duration-300 font-bold text-sm uppercase tracking-wide motion-reduce:transition-none"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-gradient-to-r from-red-500/10 to-pink-500/10 px-4 py-3 text-sm font-bold uppercase tracking-wide text-red-400 transition-all duration-300 hover:border-red-500/40 hover:from-red-500/20 hover:to-pink-500/20 motion-reduce:transition-none"
               >
                 <X className="h-4 w-4" />
                 <span>Reset filters</span>
               </button>
 
               {/* Price Filter with glassmorphism */}
-              <div className="bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xl">
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
                 <button
                   onClick={() => setShowPriceFilter(!showPriceFilter)}
-                  className="w-full flex items-center justify-between text-white font-bold mb-4 hover:text-cyan-400 transition-colors motion-reduce:transition-none"
+                  className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400 motion-reduce:transition-none"
                 >
                   <span className="text-lg">Price Range</span>
-                  {showPriceFilter ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  {showPriceFilter ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
                 </button>
 
                 {showPriceFilter && (
@@ -844,19 +889,19 @@ function PublicEquipmentPageContent() {
                       type="number"
                       placeholder="Min price"
                       value={priceRange.min}
-                      onChange={(e) => setPriceRange(p => ({ ...p, min: e.target.value }))}
-                      className="bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50 rounded-xl"
+                      onChange={(e) => setPriceRange((p) => ({ ...p, min: e.target.value }))}
+                      className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
                     />
                     <Input
                       type="number"
                       placeholder="Max price"
                       value={priceRange.max}
-                      onChange={(e) => setPriceRange(p => ({ ...p, max: e.target.value }))}
-                      className="bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50 rounded-xl"
+                      onChange={(e) => setPriceRange((p) => ({ ...p, max: e.target.value }))}
+                      className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
                     />
                     <Button
                       onClick={() => loadEquipment(1, false)}
-                      className="w-full bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 text-white hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] font-bold uppercase tracking-wide transition-all duration-300 rounded-xl motion-reduce:transition-none"
+                      className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 font-bold uppercase tracking-wide text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] motion-reduce:transition-none"
                     >
                       Apply Filter
                     </Button>
@@ -865,24 +910,28 @@ function PublicEquipmentPageContent() {
               </div>
 
               {/* Brand Filter with glassmorphism */}
-              <div className="bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-xl">
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
                 <button
                   onClick={() => setShowBrandFilter(!showBrandFilter)}
-                  className="w-full flex items-center justify-between text-white font-bold mb-4 hover:text-cyan-400 transition-colors motion-reduce:transition-none"
+                  className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400 motion-reduce:transition-none"
                 >
                   <span className="text-lg">Brand</span>
-                  {showBrandFilter ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  {showBrandFilter ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
                 </button>
 
                 {showBrandFilter && (
                   <div className="space-y-2">
                     <div className="relative mb-3">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400" />
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
                       <Input
                         placeholder="Search brands"
                         value={brandSearch}
                         onChange={(e) => setBrandSearch(e.target.value)}
-                        className="pl-10 bg-black/40 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50 rounded-xl"
+                        className="rounded-xl border-white/10 bg-black/40 pl-10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
                       />
                     </div>
                     <div className="space-y-1">
@@ -890,25 +939,25 @@ function PublicEquipmentPageContent() {
                         visibleBrands.map((brand) => (
                           <label
                             key={brand}
-                            className="flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2.5 rounded-lg transition-colors motion-reduce:transition-none"
+                            className="flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-white/5 motion-reduce:transition-none"
                           >
                             <input
                               type="checkbox"
                               checked={selectedBrands.includes(brand)}
                               onChange={() => toggleBrand(brand)}
-                              className="w-4 h-4 rounded border-cyan-500/30 bg-black/40 text-cyan-500 focus:ring-cyan-400 focus:ring-offset-0"
+                              className="h-4 w-4 rounded border-cyan-500/30 bg-black/40 text-cyan-500 focus:ring-cyan-400 focus:ring-offset-0"
                             />
-                            <span className="text-sm text-gray-300 font-medium">{brand}</span>
+                            <span className="text-sm font-medium text-gray-300">{brand}</span>
                           </label>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-500 px-2">No brands found</p>
+                        <p className="px-2 text-sm text-gray-500">No brands found</p>
                       )}
                     </div>
                     {!brandSearch && brands.length > 5 && (
                       <button
                         onClick={() => setShowAllBrands(!showAllBrands)}
-                        className="w-full text-xs font-bold text-cyan-400 hover:text-cyan-300 uppercase tracking-widest py-2 hover:bg-cyan-500/10 rounded-lg transition-colors mt-2"
+                        className="mt-2 w-full rounded-lg py-2 text-xs font-bold uppercase tracking-widest text-cyan-400 transition-colors hover:bg-cyan-500/10 hover:text-cyan-300"
                       >
                         {showAllBrands ? 'Show Less' : `Show More (${brands.length - 5})`}
                       </button>
@@ -923,15 +972,15 @@ function PublicEquipmentPageContent() {
           <div className="flex-1">
             {/* Enhanced Search Bar with glassmorphism */}
             <form onSubmit={handleSearch} className="mb-8">
-              <div className="relative group">
-                <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 rounded-2xl opacity-0 group-focus-within:opacity-100 blur-sm transition-opacity duration-300 motion-reduce:transition-none" />
-                <div className="relative bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-cyan-400" />
+              <div className="group relative">
+                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm transition-opacity duration-300 group-focus-within:opacity-100 motion-reduce:transition-none" />
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl">
+                  <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-cyan-400" />
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search premium equipment..."
-                    className="pl-14 pr-4 bg-transparent border-0 text-white placeholder:text-gray-500 h-14 text-base focus:ring-0 focus:outline-none"
+                    className="h-14 border-0 bg-transparent pl-14 pr-4 text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-0"
                   />
                 </div>
               </div>
@@ -956,18 +1005,21 @@ function PublicEquipmentPageContent() {
             {isLoading && page === 1 ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-2xl overflow-hidden bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 animate-pulse">
-                    <div className="aspect-[4/3] bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+                  <div
+                    key={i}
+                    className="animate-pulse overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl"
+                  >
+                    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+                      <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
                     </div>
-                    <div className="p-5 space-y-4">
-                      <div className="h-10 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl w-32" />
-                      <div className="h-6 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg w-full" />
-                      <div className="h-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg w-3/4" />
+                    <div className="space-y-4 p-5">
+                      <div className="h-10 w-32 rounded-xl bg-gradient-to-r from-gray-800 to-gray-700" />
+                      <div className="h-6 w-full rounded-lg bg-gradient-to-r from-gray-800 to-gray-700" />
+                      <div className="h-4 w-3/4 rounded-lg bg-gradient-to-r from-gray-800 to-gray-700" />
                       <div className="flex gap-2">
-                        <div className="flex-1 h-12 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl" />
-                        <div className="h-12 w-12 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl" />
-                        <div className="h-12 w-12 bg-gradient-to-r from-gray-800 to-gray-700 rounded-xl" />
+                        <div className="h-12 flex-1 rounded-xl bg-gradient-to-r from-gray-800 to-gray-700" />
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-gray-800 to-gray-700" />
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-r from-gray-800 to-gray-700" />
                       </div>
                     </div>
                   </div>
@@ -1023,7 +1075,7 @@ function PublicEquipmentPageContent() {
 
         {/* Message Dialog */}
         <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-          <DialogContent className="bg-[#1a1a1a] border-gray-800">
+          <DialogContent className="border-gray-800 bg-[#1a1a1a]">
             <DialogHeader>
               <DialogTitle className="text-white">
                 Message to {selectedEquipment?.owner?.name || 'Equipment Owner'}
@@ -1061,7 +1113,7 @@ function PublicEquipmentPageContent() {
                 value={messageContent}
                 onChange={(e) => setMessageContent(e.target.value)}
                 rows={4}
-                className="bg-[#0a0a0a] border-gray-700 text-white placeholder:text-gray-500"
+                className="border-gray-700 bg-[#0a0a0a] text-white placeholder:text-gray-500"
               />
 
               <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -1074,7 +1126,7 @@ function PublicEquipmentPageContent() {
               <Button
                 variant="outline"
                 onClick={() => setShowMessageDialog(false)}
-                className="flex-1 bg-transparent border-gray-700 text-white hover:bg-gray-800"
+                className="flex-1 border-gray-700 bg-transparent text-white hover:bg-gray-800"
               >
                 Cancel
               </Button>
@@ -1107,7 +1159,13 @@ function PublicEquipmentPageContent() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><Spinner size="lg" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
+          <Spinner size="lg" />
+        </div>
+      }
+    >
       <PublicEquipmentPageContent />
     </Suspense>
   );

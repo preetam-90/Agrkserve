@@ -29,16 +29,16 @@ export function MessageBadge({
 
   if (iconOnly) {
     return (
-      <Link 
-        href="/messages" 
+      <Link
+        href="/messages"
         className={cn(
-          "relative p-2 text-gray-600 hover:text-gray-900 transition-colors",
+          "relative flex h-8 w-8 items-center justify-center rounded-lg text-[#a8c9b8] transition-colors hover:bg-[#4a7c5a]/20 hover:text-[#e8f5e9]",
           className
         )}
       >
-        {showIcon && <MessageSquare className="h-5 w-5" />}
+        {showIcon && <MessageSquare className="h-[18px] w-[18px]" />}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-green-600 rounded-full">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white ring-2 ring-[#0d1f15]">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}

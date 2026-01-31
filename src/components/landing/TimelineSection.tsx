@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { Search, Calendar, Truck, CheckCircle, Star } from 'lucide-react';
 
 const steps = [
@@ -41,10 +41,160 @@ export function TimelineSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
+  // Generate floating shapes for depth - deterministic for SSR
+  const floatingShapes = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      left: `${(i * 16.67) % 100}%`,
+      top: `${(i * 14.29 + 8) % 100}%`,
+      size: 40 + (i * 15),
+      delay: (i * 0.8) % 5,
+      duration: 15 + (i % 10),
+    }));
+  }, []);
+
+  // Generate animated texture waves
+  const textureWaves = useMemo(() => {
+    return Array.from({ length: 3 }, (_, i) => ({
+      id: i,
+      delay: i * 2,
+      duration: 10 + i * 3,
+    }));
+  }, []);
+
+  // Generate neon grid lines
+  const neonLines = useMemo(() => {
+    return Array.from({ length: 4 }, (_, i) => ({
+      id: i,
+      angle: -15 + i * 10,
+      delay: i * 0.5,
+    }));
+  }, []);
+
   return (
     <section ref={ref} className="relative py-32 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-emerald-950/30 to-slate-900" />
+      {/* Seamless continuation from FeaturedEquipmentSection (#0A0F0C) */}
+      <div className="absolute inset-0 bg-[#0A0F0C]" />
+
+      {/* Animated Texture Waves */}
+      <div className="absolute inset-0 overflow-hidden">
+        {textureWaves.map((wave) => (
+          <motion.div
+            key={wave.id}
+            className="absolute w-[200%] h-[200%] left-[-50%] top-[-50%]"
+            style={{
+              background: `radial-gradient(ellipse at 50% 50%, rgba(20, 184, 166, ${0.03 + wave.id * 0.01}) 0%, transparent 50%)`,
+            }}
+            animate={{
+              rotate: [0, -360],
+              scale: [1, 1.15, 1],
+            }}
+            transition={{
+              duration: wave.duration,
+              repeat: Infinity,
+              ease: 'linear',
+              delay: wave.delay,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Neon Tilted Grid Lines */}
+      <div className="absolute inset-0 overflow-hidden">
+        {neonLines.map((line) => (
+          <motion.div
+            key={line.id}
+            className="absolute w-[180%] h-[1px] left-[-40%]"
+            style={{
+              top: `${25 + line.id * 16}%`,
+              transform: `rotate(${line.angle}deg)`,
+              background: 'linear-gradient(90deg, transparent 0%, rgba(20, 184, 166, 0.3) 50%, transparent 100%)',
+              boxShadow: '0 0 12px rgba(20, 184, 166, 0.5)',
+            }}
+            animate={{
+              x: ['-40%', '40%', '-40%'],
+              opacity: [0.3, 0.55, 0.3],
+            }}
+            transition={{
+              duration: 10 + line.id,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: line.delay,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Animated gradient orbs */}
+      <div className="absolute inset-0">
+        <motion.div
+          className="absolute top-1/3 left-1/4 w-[450px] h-[450px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(20, 184, 166, 0.06) 0%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            y: [0, -20, 0],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1.2, 1, 1.2],
+            y: [0, 20, 0],
+          }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 3,
+          }}
+        />
+      </div>
+
+      {/* Floating geometric shapes */}
+      {floatingShapes.map((shape) => (
+        <motion.div
+          key={shape.id}
+          className="absolute border border-teal-500/10 rounded-full"
+          style={{
+            left: shape.left,
+            top: shape.top,
+            width: shape.size,
+            height: shape.size,
+          }}
+          animate={{
+            y: [0, -35, 0],
+            rotate: [0, 180, 0],
+            opacity: [0.08, 0.15, 0.08],
+          }}
+          transition={{
+            duration: shape.duration,
+            repeat: Infinity,
+            delay: shape.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Refined noise texture */}
+      <div
+        className="absolute inset-0 opacity-[0.01] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Subtle depth gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-teal-950/5 via-transparent to-teal-950/5" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div

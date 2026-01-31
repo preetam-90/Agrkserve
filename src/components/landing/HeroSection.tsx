@@ -1,294 +1,318 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValue,
+  useMotionTemplate,
+} from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, ChevronDown, Sparkles } from 'lucide-react';
 
 export function HeroSection() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [images, setImages] = useState<HTMLImageElement[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { scrollY } = useScroll();
 
-  const currentFrame = useRef(0);
-  const requestRef = useRef<number | null>(null);
+  // Smooth spring animations
+  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
+  const mouseX = useSpring(0, springConfig);
+  const mouseY = useSpring(0, springConfig);
 
-  useEffect(() => {
-    const loadImages = async () => {
-      const loadedImages: HTMLImageElement[] = [];
-      const totalFrames = 295;
-
-      // Load all 295 frames
-      const promises = Array.from({ length: totalFrames }, (_, i) => {
-        return new Promise<HTMLImageElement | null>((resolve) => {
-          const img = new Image();
-          const paddedIndex = (i + 1).toString().padStart(3, '0');
-          img.src = `/images/hero-sequence/ezgif-frame-${paddedIndex}.jpg`;
-          img.onload = () => resolve(img);
-          img.onerror = () => {
-            console.error(`Failed to load frame ${paddedIndex}`);
-            resolve(null);
-          };
-        });
-      });
-
-      const results = await Promise.all(promises);
-      results.forEach(img => {
-        if (img) loadedImages.push(img);
-      });
-
-      setImages(loadedImages);
-      setIsLoaded(true);
-    };
-
-    loadImages();
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded || !canvasRef.current || images.length === 0) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const updateDimensions = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-
-    const render = () => {
-      const img = images[currentFrame.current];
-      // Check if image is complete and not broken
-      if (img && img.complete && img.naturalWidth > 0) {
-        const hRatio = canvas.width / img.width;
-        const vRatio = canvas.height / img.height;
-        const ratio = Math.max(hRatio, vRatio);
-        const centerShift_x = (canvas.width - img.width * ratio) / 2;
-        const centerShift_y = (canvas.height - img.height * ratio) / 2;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, img.width, img.height, centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
-      }
-    };
-
-    let lastTime = 0;
-    const fps = 12; // Slowed down from 15 for a more cinematic feel
-    const interval = 1000 / fps;
-
-    const animate = (currentTime: number) => {
-      requestRef.current = requestAnimationFrame(animate);
-
-      const delta = currentTime - lastTime;
-      if (delta > interval) {
-        render();
-        currentFrame.current = (currentFrame.current + 1) % images.length;
-        lastTime = currentTime - (delta % interval);
-      }
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      window.removeEventListener('resize', updateDimensions);
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, [isLoaded, images]);
-
+  // Parallax transforms
   const y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-  const scale = useTransform(scrollY, [0, 500], [1, 1.1]);
+  const scale = useTransform(scrollY, [0, 500], [1, 1.15]);
+  const textY = useTransform(scrollY, [0, 400], [0, 100]);
+
+  // Mouse glow effect
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;
+        const y = (e.clientY - rect.top) / rect.height;
+        mouseX.set(x);
+        mouseY.set(y);
+        setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      }
+    },
+    [mouseX, mouseY]
+  );
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    setIsMounted(true);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [handleMouseMove]);
+
+  // Spotlight gradient based on mouse position
+  const spotlightGradient = useMotionTemplate`radial-gradient(600px circle at ${mouseX}% ${mouseY}%, rgba(34, 197, 94, 0.15), transparent 40%)`;
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black text-white">
-      {/* Canvas Background with Parallax Scale */}
+    <section ref={containerRef} className="relative h-screen w-full overflow-hidden bg-[#0A0F0C]">
+      {/* Animated Background Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#22c55e08_1px,transparent_1px),linear-gradient(to_bottom,#22c55e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,#22c55e10,transparent)]" />
+      </div>
+
+      {/* Mouse Spotlight Effect */}
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-20"
+        style={{ background: spotlightGradient }}
+      />
+
+      {/* Video Background with Parallax Scale */}
       <motion.div style={{ scale }} className="absolute inset-0 z-0">
-        <canvas ref={canvasRef} className="w-full h-full object-cover opacity-70 transition-opacity duration-1000" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black/90" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)]" />
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="h-full w-full object-cover opacity-60 transition-opacity duration-1000"
+          style={{ filter: 'contrast(1.1) saturate(1.2)' }}
+        >
+          <source src="/Landingpagevideo.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F0C]/90 via-[#0A0F0C]/50 to-[#0A0F0C]/95" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(10,15,12,0.9)_100%)]" />
       </motion.div>
+
+      {/* Floating Particles */}
+      {isMounted && (
+        <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute h-1 w-1 rounded-full bg-emerald-400/30"
+              initial={{
+                x: `${Math.random() * 100}%`,
+                y: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
+                opacity: [0.2, 0.6, 0.2],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 4 + Math.random() * 4,
+                repeat: Infinity,
+                delay: Math.random() * 2,
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Premium Content Overlay */}
       <motion.div
-        style={{ y, opacity }}
-        className="relative z-10 h-full flex flex-col justify-center items-center text-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+        style={{ y: textY, opacity }}
+        className="relative z-30 mx-auto flex h-full max-w-7xl flex-col items-center justify-center px-4 text-center sm:px-6 lg:px-8"
       >
+        {/* Animated Badge */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="mb-8 flex items-center gap-4 pl-4 border-l-2 border-golden-accent/50"
+          initial={{ opacity: 0, x: -30, scale: 0.9 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-8 flex items-center gap-3 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-5 py-2.5 backdrop-blur-xl"
         >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-golden-accent opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-golden-accent"></span>
+          <motion.span
+            className="relative flex h-2.5 w-2.5"
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          </motion.span>
+          <Sparkles className="h-4 w-4 text-emerald-400" />
+          <span className="text-sm font-medium uppercase tracking-wider text-emerald-300">
+            India's Trusted Farm Equipment Network
           </span>
-          <span className="text-sm font-black text-white/80 tracking-[0.3em] uppercase" style={{ fontFamily: 'DM Mono, monospace' }}>The New Standard of Agriculture</span>
         </motion.div>
 
-        {/* Cinematic Headline with Bebas Neue */}
+        {/* Animated Headline */}
         <div className="mb-10">
           <motion.h1
-            className="text-[3rem] md:text-[6rem] lg:text-[8rem] font-black uppercase leading-[0.85] tracking-[0.015em]"
-            style={{
-              fontFamily: 'Bebas Neue, Impact, sans-serif',
-              textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 0 40px rgba(255,255,255,0.1)'
-            }}
+            className="text-[2.5rem] font-bold uppercase leading-[0.9] tracking-tight sm:text-[3.5rem] md:text-[5rem] lg:text-[6.5rem]"
+            style={{ fontFamily: 'var(--font-playfair), serif' }}
           >
-            {/* Staggered Word Animations */}
+            {/* Staggered Word Animations with 3D effect */}
             <motion.span
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="block text-white"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}
-            >
-              Rent.
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="block text-white"
-              style={{
-                background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}
-            >
-              Farm.
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, rotateX: -90, y: 50 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               className="block"
               style={{
-                background: 'linear-gradient(135deg, #2E7D32 0%, #FFD700 50%, #ffffff 100%)',
+                background: 'linear-gradient(135deg, #ffffff 0%, #dcfce7 50%, #86efac 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
+                backgroundClip: 'text',
+                textShadow: '0 0 80px rgba(34, 197, 94, 0.3)',
               }}
             >
-              Dominating.
+              Rent Equipment.
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, rotateX: -90, y: 50 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-2 block"
+              style={{
+                background:
+                  'linear-gradient(135deg, #22c55e 0%, #10b981 30%, #14b8a6 60%, #06b6d4 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Grow Better.
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ duration: 0.8, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-6 block text-[1.25rem] font-normal normal-case tracking-normal sm:text-[1.5rem] md:text-[2rem] lg:text-[2.5rem]"
+              style={{ fontFamily: 'var(--font-inter), sans-serif' }}
+            >
+              <span className="text-emerald-200/80">Trusted by farmers</span>
             </motion.span>
           </motion.h1>
         </div>
 
-        {/* Subheadline with Keyword Highlights */}
+        {/* Animated Subheadline */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
-          className="text-base md:text-2xl max-w-4xl mb-16 leading-relaxed font-medium"
-          style={{
-            fontFamily: 'Inter, Poppins, sans-serif',
-            color: '#E5E5E5'
-          }}
+          initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.8, delay: 1, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-12 max-w-3xl text-base leading-relaxed text-emerald-100/70 md:text-xl lg:text-2xl"
+          style={{ fontFamily: 'var(--font-inter), sans-serif' }}
         >
-          Unrivaled access to{' '}
+          Connecting you with{' '}
           <motion.span
+            className="font-medium text-emerald-400"
             animate={{
-              color: ['#E5E5E5', '#FFD700', '#E5E5E5'],
+              textShadow: [
+                '0 0 0px rgba(34, 197, 94, 0)',
+                '0 0 20px rgba(34, 197, 94, 0.5)',
+                '0 0 0px rgba(34, 197, 94, 0)',
+              ],
             }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="font-semibold"
+            transition={{ duration: 2, repeat: Infinity }}
           >
-            elite machinery
-          </motion.span>
-          {' '}and master-class labor. The platform that{' '}
-          <motion.span
-            animate={{
-              color: ['#E5E5E5', '#FFD700', '#E5E5E5'],
-            }}
-            transition={{ duration: 2, delay: 1, repeat: Infinity, ease: "easeInOut" }}
-            className="font-semibold"
-          >
-            farmers
-          </motion.span>
-          {' '}trust at scale.
+            quality farm equipment
+          </motion.span>{' '}
+          at fair prices.
         </motion.p>
 
-        {/* Premium Buttons with Montserrat */}
+        {/* Animated CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.5, ease: "easeOut" }}
-          className="flex flex-col sm:flex-row gap-6"
+          transition={{ duration: 0.8, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col gap-4 sm:flex-row sm:gap-6"
         >
-          <Link href="/auth/signup">
-            <motion.button
-              whileHover={{
-                scale: 1.05,
-                background: 'linear-gradient(135deg, #2E7D32 0%, #FFD700 100%)',
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 text-base md:text-lg font-semibold uppercase tracking-wide rounded-full transition-all duration-300 shadow-[0_0_40px_rgba(46,125,50,0.4)] hover:shadow-[0_0_60px_rgba(255,215,0,0.6)]"
-              style={{
-                fontFamily: 'Montserrat, sans-serif',
-                background: '#2E7D32',
-                color: 'white',
-                border: 'none'
-              }}
-            >
-              Get Started
-              <ArrowRight className="inline ml-2 w-5 h-5" />
-            </motion.button>
-          </Link>
           <Link href="/equipment">
             <motion.button
               whileHover={{
                 scale: 1.05,
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                borderColor: 'rgba(255, 255, 255, 1)'
+                boxShadow: '0 20px 50px rgba(34, 197, 94, 0.4)',
               }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 text-base md:text-lg font-semibold uppercase tracking-wide rounded-full transition-all duration-300 backdrop-blur-xl"
+              whileTap={{ scale: 0.98 }}
+              className="group relative overflow-hidden rounded-2xl px-8 py-4 text-base font-semibold transition-all duration-500 md:text-lg"
               style={{
-                fontFamily: 'Montserrat, sans-serif',
-                backgroundColor: 'transparent',
-                color: 'white',
-                border: '2px solid rgba(255, 255, 255, 0.3)'
+                background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #10b981 100%)',
+                boxShadow: '0 10px 30px rgba(34, 197, 94, 0.3)',
               }}
             >
-              Explore Equipment
+              {/* Button shine effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.6 }}
+              />
+              <span className="relative z-10 flex items-center gap-2 text-white">
+                Find Equipment Near You
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </span>
+            </motion.button>
+          </Link>
+
+          <Link href="/auth/signup">
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                borderColor: 'rgba(34, 197, 94, 0.6)',
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="group rounded-2xl border-2 px-8 py-4 text-base font-semibold backdrop-blur-xl transition-all duration-300 md:text-lg"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#4ade80',
+                borderColor: 'rgba(34, 197, 94, 0.4)',
+              }}
+            >
+              <span className="flex items-center gap-2">
+                <ArrowRight className="h-4 w-4" />
+                List Your Equipment
+              </span>
             </motion.button>
           </Link>
         </motion.div>
       </motion.div>
 
-      {/* Scroll Indicator with DM Mono */}
+      {/* Animated Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: [0, 0.6, 0] }}
-        transition={{ delay: 2, duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-4"
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-12 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-4"
       >
-        <span
-          className="text-[0.9rem] uppercase tracking-[0.3em]"
-          style={{
-            fontFamily: 'DM Mono, Montserrat, monospace',
-            color: 'rgba(255, 255, 255, 0.4)'
-          }}
+        <motion.span
+          className="text-sm uppercase tracking-[0.2em] text-emerald-400/60"
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity }}
         >
-          Discover More
-        </span>
+          Scroll to Explore
+        </motion.span>
         <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative"
         >
-          <ChevronDown className="w-8 h-8 text-golden-accent" />
+          <motion.div
+            className="absolute inset-0 rounded-full bg-emerald-500/30"
+            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <ChevronDown className="relative z-10 h-6 w-6 text-emerald-400" />
         </motion.div>
       </motion.div>
+
+      {/* Corner Decorations */}
+      <div className="absolute left-8 top-8 z-20">
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.5, duration: 0.5 }}
+          className="h-16 w-16 rounded-tl-3xl border-l-2 border-t-2 border-emerald-500/30"
+        />
+      </div>
+      <div className="absolute right-8 top-8 z-20">
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.6, duration: 0.5 }}
+          className="h-16 w-16 rounded-tr-3xl border-r-2 border-t-2 border-emerald-500/30"
+        />
+      </div>
     </section>
   );
 }

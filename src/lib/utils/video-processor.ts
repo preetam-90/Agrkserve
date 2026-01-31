@@ -129,7 +129,7 @@ export async function processVideo(
   config: Partial<VideoUploadConfig> = {}
 ): Promise<{ outputPath: string; metadata: VideoMetadata }> {
   let processedPath = inputPath;
-  let tempFiles: string[] = [];
+  const tempFiles: string[] = [];
 
   try {
     // Step 1: Trim if requested

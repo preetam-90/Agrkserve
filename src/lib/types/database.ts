@@ -3,9 +3,17 @@
 
 export type UserRole = 'renter' | 'provider' | 'labour' | 'admin';
 
-export type BookingStatus = 'pending' | 'approved' | 'rejected' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
+export type BookingStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'confirmed'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled'
+  | 'disputed';
 
-export type EquipmentCategory = 
+export type EquipmentCategory =
   | 'tractor'
   | 'harvester'
   | 'plough'
@@ -195,6 +203,9 @@ export interface DirectMessage {
   read_at: string | null;
   created_at: string;
   updated_at: string;
+  // Delivery status for WhatsApp-like read receipts (optional - may not exist in DB)
+  delivery_status?: 'sent' | 'delivered' | 'read';
+  delivered_at?: string | null;
   // Joined fields
   sender?: UserProfileMinimal | null;
 }

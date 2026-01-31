@@ -8,12 +8,12 @@ export default function ProviderRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to provider dashboard
-    router.push('/provider/dashboard');
+    // Redirect to unified dashboard
+    router.push('/dashboard');
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <Spinner size="lg" />
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { Star, MapPin, ChevronLeft, ChevronRight, Gauge, Zap, ArrowRight, Calendar, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -35,6 +35,27 @@ export function FeaturedEquipmentSection({ equipment, isLoading }: FeaturedEquip
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Generate floating particles for depth - deterministic for SSR
+  const particles = useMemo(() => {
+    return Array.from({ length: 10 }, (_, i) => ({
+      id: i,
+      left: `${(i * 10) % 100}%`,
+      top: `${(i * 9.09 + 5) % 100}%`,
+      size: 1 + (i % 3),
+      delay: (i * 0.6) % 6,
+      duration: 18 + (i % 12),
+    }));
+  }, []);
+
+  // Generate neon grid lines
+  const neonLines = useMemo(() => {
+    return Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      angle: -15 + i * 6,
+      delay: i * 0.4,
+    }));
+  }, []);
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -80,13 +101,106 @@ export function FeaturedEquipmentSection({ equipment, isLoading }: FeaturedEquip
   };
 
   return (
-    <section className="py-32 bg-gradient-to-b from-black via-zinc-950 to-black overflow-hidden relative">
-      {/* Animated Background Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_110%)]" />
+    <section className="py-32 overflow-hidden relative">
+      {/* Seamless continuation from CategoriesSection (#0A0F0C) */}
+      <div className="absolute inset-0 bg-[#0A0F0C]" />
+      
+      {/* Neon Tilted Grid Lines */}
+      <div className="absolute inset-0 overflow-hidden">
+        {neonLines.map((line) => (
+          <motion.div
+            key={line.id}
+            className="absolute w-[200%] h-[1px] left-[-50%]"
+            style={{
+              top: `${20 + line.id * 12}%`,
+              transform: `rotate(${line.angle}deg)`,
+              background: 'linear-gradient(90deg, transparent 0%, rgba(6, 182, 212, 0.4) 50%, transparent 100%)',
+              boxShadow: '0 0 12px rgba(6, 182, 212, 0.6)',
+            }}
+            animate={{
+              x: ['-50%', '50%', '-50%'],
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 8 + line.id,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: line.delay,
+            }}
+          />
+        ))}
+      </div>
 
-      {/* Glowing Orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Animated gradient orbs for depth */}
+      <div className="absolute inset-0">
+        <motion.div
+          className="absolute top-1/4 left-1/5 w-[500px] h-[500px] rounded-full"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.07) 0%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1, 1.25, 1],
+            x: [0, 40, 0],
+          }}
+          transition={{
+            duration: 14,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/5 w-[450px] h-[450px] rounded-full"
+          style={{ 
+            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1.25, 1, 1.25],
+            x: [0, -40, 0],
+          }}
+          transition={{
+            duration: 16,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 4,
+          }}
+        />
+      </div>
+
+      {/* Floating particles */}
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full bg-cyan-400/15"
+          style={{
+            left: particle.left,
+            top: particle.top,
+            width: particle.size,
+            height: particle.size,
+          }}
+          animate={{
+            y: [0, -50, 0],
+            x: [0, 15, 0],
+            opacity: [0.15, 0.4, 0.15],
+          }}
+          transition={{
+            duration: particle.duration,
+            repeat: Infinity,
+            delay: particle.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Refined noise texture */}
+      <div 
+        className="absolute inset-0 opacity-[0.01] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Very subtle grid pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_110%)]" />
 
       <div className="container-custom relative z-10">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12 mb-20">
