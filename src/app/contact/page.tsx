@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock, MessageSquare, Sparkles } from 'lucide-react';
 import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
@@ -12,6 +12,33 @@ import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
 export default function ContactPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
+  const [mounted, setMounted] = useState(false);
+  const [particles, setParticles] = useState<
+    Array<{
+      id: number;
+      initialX: number;
+      initialY: number;
+      animateY: [number, number];
+      duration: number;
+    }>
+  >([]);
+
+  // Generate particle data only on client to avoid hydration mismatch
+  useEffect(() => {
+    // Generate particles after mount
+    const newParticles = [...Array(15)].map((_, i) => ({
+      id: i,
+      initialX: Math.random() * 100,
+      initialY: Math.random() * 100,
+      animateY: [Math.random() * 100, Math.random() * 100] as [number, number],
+      duration: 4 + Math.random() * 4,
+    }));
+    // Defer state updates to avoid cascading renders warning
+    setTimeout(() => {
+      setParticles(newParticles);
+      setMounted(true);
+    }, 0);
+  }, []);
 
   // Parallax effects
   const y1 = useTransform(scrollY, [0, 500], [0, 50]);
@@ -89,29 +116,30 @@ export default function ContactPage() {
           </motion.div>
         </div>
 
-        {/* Floating Particles */}
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={`particle-${i}`}
-            className="pointer-events-none absolute"
-            initial={{
-              x: `${Math.random() * 100}%`,
-              y: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 4 + Math.random() * 4,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <div className="h-1 w-1 rounded-full bg-emerald-400/40" />
-          </motion.div>
-        ))}
+        {/* Floating Particles - Only render on client to avoid hydration mismatch */}
+        {mounted &&
+          particles.map((particle) => (
+            <motion.div
+              key={`particle-${particle.id}`}
+              className="pointer-events-none absolute"
+              initial={{
+                x: `${particle.initialX}%`,
+                y: `${particle.initialY}%`,
+              }}
+              animate={{
+                y: [`${particle.animateY[0]}%`, `${particle.animateY[1]}%`],
+                opacity: [0.2, 0.6, 0.2],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: particle.duration,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <div className="h-1 w-1 rounded-full bg-emerald-400/40" />
+            </motion.div>
+          ))}
 
         <div className="relative mx-auto max-w-6xl px-4 py-8 md:py-12 lg:py-16">
           {/* Hero Section */}
