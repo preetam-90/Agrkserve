@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,10 +17,10 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock data
+// Mock data (ids as strings to match backend/store conventions)
 const conversations = [
   {
-    id: 1,
+    id: '1',
     name: 'Rajesh Kumar',
     avatar: '',
     lastMessage: 'Is the tractor available tomorrow?',
@@ -29,7 +29,7 @@ const conversations = [
     online: true,
   },
   {
-    id: 2,
+    id: '2',
     name: 'Amit Singh',
     avatar: '',
     lastMessage: 'Thanks for the service!',
@@ -38,7 +38,7 @@ const conversations = [
     online: false,
   },
   {
-    id: 3,
+    id: '3',
     name: 'Suresh Patel',
     avatar: '',
     lastMessage: 'Can we reschedule?',
@@ -48,31 +48,31 @@ const conversations = [
   },
 ];
 
-const messages = [
+const initialMessages = [
   {
-    id: 1,
-    senderId: 1,
+    id: '1',
+    senderId: '1',
     text: 'Hello, is the tractor available for rent tomorrow?',
     time: '10:00 AM',
     isMe: false,
   },
   {
-    id: 2,
-    senderId: 0, // Me
+    id: '2',
+    senderId: '0', // Me
     text: 'Yes, it is available. What time do you need it?',
     time: '10:05 AM',
     isMe: true,
   },
   {
-    id: 3,
-    senderId: 1,
+    id: '3',
+    senderId: '1',
     text: 'Around 8 AM would be great.',
     time: '10:15 AM',
     isMe: false,
   },
   {
-    id: 4,
-    senderId: 1,
+    id: '4',
+    senderId: '1',
     text: 'Is the tractor available tomorrow?',
     time: '10:30 AM',
     isMe: false,
@@ -84,20 +84,43 @@ interface MessagesViewProps {
 }
 
 export function MessagesView({ className }: MessagesViewProps) {
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  const [messagesList, setMessagesList] = useState(initialMessages);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-select first conversation on desktop
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-      setSelectedConversation(1);
+      setSelectedConversation(conversations[0]?.id ?? null);
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Scroll to bottom when messages change or conversation changes
+  useEffect(() => {
+    // small timeout helps when DOM updates are still pending
+    const t = setTimeout(
+      () => bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }),
+      50
+    );
+    return () => clearTimeout(t);
+  }, [messagesList, selectedConversation]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageInput.trim()) return;
-    // Handle send logic here
+
+    // Optimistic local add (replace with store/send integration)
+    const newMessage = {
+      id: Date.now().toString(),
+      senderId: '0',
+      text: messageInput.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isMe: true,
+    };
+
+    setMessagesList((prev) => [...prev, newMessage]);
     setMessageInput('');
   };
 
@@ -121,10 +144,13 @@ export function MessagesView({ className }: MessagesViewProps) {
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="flex flex-col">
+          <div className="flex flex-col" role="listbox" aria-label="Conversations">
             {conversations.map((conv) => (
               <button
                 key={conv.id}
+                type="button"
+                role="option"
+                aria-selected={selectedConversation === conv.id}
                 onClick={() => setSelectedConversation(conv.id)}
                 className={cn(
                   'flex items-center gap-3 border-b border-gray-50 p-4 text-left transition-colors last:border-0 hover:bg-gray-50',
@@ -170,10 +196,12 @@ export function MessagesView({ className }: MessagesViewProps) {
             <div className="z-10 flex items-center justify-between border-b bg-white p-4">
               <div className="flex items-center gap-3">
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   className="-ml-2 md:hidden"
                   onClick={() => setSelectedConversation(null)}
+                  aria-label="Back to conversations"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -186,13 +214,13 @@ export function MessagesView({ className }: MessagesViewProps) {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon">
+                <Button type="button" variant="ghost" size="icon" aria-label="Start voice call">
                   <Phone className="h-5 w-5 text-gray-500" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button type="button" variant="ghost" size="icon" aria-label="Start video call">
                   <Video className="h-5 w-5 text-gray-500" />
                 </Button>
-                <Button variant="ghost" size="icon">
+                <Button type="button" variant="ghost" size="icon" aria-label="More actions">
                   <MoreVertical className="h-5 w-5 text-gray-500" />
                 </Button>
               </div>
@@ -201,7 +229,7 @@ export function MessagesView({ className }: MessagesViewProps) {
             {/* Messages */}
             <ScrollArea className="flex-1 bg-gray-50 p-4">
               <div className="space-y-4">
-                {messages.map((msg) => (
+                {messagesList.map((msg) => (
                   <div
                     key={msg.id}
                     className={cn('flex w-full', msg.isMe ? 'justify-end' : 'justify-start')}
@@ -226,13 +254,22 @@ export function MessagesView({ className }: MessagesViewProps) {
                     </div>
                   </div>
                 ))}
+
+                {/* Dummy element used as a scroll target */}
+                <div ref={bottomRef} />
               </div>
             </ScrollArea>
 
             {/* Input Area */}
             <div className="border-t bg-white p-4">
               <form onSubmit={handleSendMessage} className="flex gap-2">
-                <Button type="button" variant="ghost" size="icon" className="text-gray-500">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-500"
+                  aria-label="Attach image"
+                >
                   <ImageIcon className="h-5 w-5" />
                 </Button>
                 <Input
@@ -240,8 +277,13 @@ export function MessagesView({ className }: MessagesViewProps) {
                   onChange={(e) => setMessageInput(e.target.value)}
                   placeholder="Type a message..."
                   className="flex-1"
+                  aria-label="Message input"
                 />
-                <Button type="submit" className="bg-green-600 text-white hover:bg-green-700">
+                <Button
+                  type="submit"
+                  className="bg-green-600 text-white hover:bg-green-700"
+                  aria-label="Send message"
+                >
                   <Send className="h-4 w-4" />
                 </Button>
               </form>

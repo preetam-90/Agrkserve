@@ -194,11 +194,20 @@ export interface UserProfileMinimal {
 }
 
 // Direct Message
+export type MessageType = 'text' | 'image' | 'video' | 'gif' | 'sticker' | 'location' | 'link';
+
 export interface DirectMessage {
   id: string;
   conversation_id: string;
   sender_id: string;
-  content: string;
+  content: string | null;
+  message_type: MessageType;
+  media_url: string | null;
+  media_thumbnail_url: string | null;
+  media_size_bytes: number | null;
+  media_duration_seconds: number | null;
+  media_width: number | null;
+  media_height: number | null;
   is_read: boolean;
   read_at: string | null;
   created_at: string;
@@ -206,6 +215,24 @@ export interface DirectMessage {
   // Delivery status for WhatsApp-like read receipts (optional - may not exist in DB)
   delivery_status?: 'sent' | 'delivered' | 'read';
   delivered_at?: string | null;
+  // KLIPY media metadata
+  klipy_slug?: string | null;
+  klipy_blur_preview?: string | null;
+  // Reactions
+  reactions?: { emoji: string; count: number; users: string[] }[] | null;
+  // Reply/Quote
+  reply_to_id?: string | null;
+  reply_to_message?: DirectMessage | null;
+  // Location
+  location_lat?: number | null;
+  location_lng?: number | null;
+  location_address?: string | null;
+  // Link preview
+  link_preview?: { title: string; description: string; image: string; url: string } | null;
+  // Soft delete
+  is_deleted?: boolean;
+  deleted_at?: string | null;
+  deleted_for?: string[] | null;
   // Joined fields
   sender?: UserProfileMinimal | null;
 }

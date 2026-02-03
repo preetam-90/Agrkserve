@@ -73,11 +73,7 @@ export function ReviewForm({
       if (existingReview) {
         await reviewService.update(existingReview.id, {
           rating,
-          vehicle_condition_rating: vehicleConditionRating || undefined,
-          fuel_efficiency_rating: fuelEfficiencyRating || undefined,
-          owner_communication_rating: ownerCommunicationRating || undefined,
           comment: comment || undefined,
-          images: images.map((i) => i.url),
         });
         toast.success('Review updated successfully!');
       } else {
@@ -85,11 +81,7 @@ export function ReviewForm({
           booking_id: bookingId,
           equipment_id: equipmentId,
           rating,
-          vehicle_condition_rating: vehicleConditionRating,
-          fuel_efficiency_rating: fuelEfficiencyRating,
-          owner_communication_rating: ownerCommunicationRating,
           comment: comment || undefined,
-          images: images.map((i) => i.url),
         });
         toast.success('Review submitted successfully!');
       }

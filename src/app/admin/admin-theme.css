@@ -1,110 +1,335 @@
-/* AgriServe Admin Theme - Glassmorphism & Premium Dark Mode Support */
+/* AgriServe Admin Theme - Premium Dark Mode Design */
 
 :root {
-    /* Success/Error Colors */
-    --admin-success: 34 197 94;
-    --admin-warning: 245 158 11;
-    --admin-error: 239 68 68;
-    --admin-info: 59 130 246;
+  /* Success/Error Colors */
+  --admin-success: 34 197 94;
+  --admin-warning: 245 158 11;
+  --admin-error: 239 68 68;
+  --admin-info: 59 130 246;
 
-    /* Primary Brand Colors (Deep Green & Gold) */
-    --admin-primary: 20 83 45;
-    /* green-900 */
-    --admin-primary-light: 34 197 94;
-    /* green-500 */
-    --admin-accent: 250 204 21;
-    /* yellow-400 */
+  /* Primary Brand Colors (Emerald & Green) */
+  --admin-primary: 16 185 129;
+  /* emerald-500 */
+  --admin-primary-dark: 5 150 105;
+  /* emerald-600 */
+  --admin-accent: 52 211 153;
+  /* emerald-400 */
 
-    /* Surface Colors */
-    --admin-bg: 248 250 252;
-    /* slate-50 */
-    --admin-surface: 255 255 255;
-    --admin-surface-glass: 255 255 255 / 0.8;
+  /* Dark Mode Surfaces - Default to Dark */
+  --admin-bg: 10 10 10;
+  /* Almost black with slight warmth */
+  --admin-bg-secondary: 15 15 15;
+  --admin-surface: 23 23 23;
+  /* Elevated surface */
+  --admin-surface-elevated: 28 28 28;
+  --admin-surface-glass: 23 23 23 / 0.7;
 
-    /* Text Colors */
-    --admin-text-primary: 15 23 42;
-    /* slate-900 */
-    --admin-text-secondary: 100 116 139;
-    /* slate-500 */
+  /* Text Colors - Optimized for Dark Mode */
+  --admin-text-primary: 250 250 250;
+  /* Near white */
+  --admin-text-secondary: 163 163 163;
+  /* Mid gray */
+  --admin-text-muted: 115 115 115;
+  /* Darker gray */
 
-    /* Borders & Shadows */
-    --admin-border: 226 232 240;
-    /* slate-200 */
-    --admin-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --admin-shadow-hover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Borders & Dividers */
+  --admin-border: 38 38 38;
+  /* Subtle border */
+  --admin-border-light: 50 50 50;
+  /* Lighter border for hover states */
 
-    /* Spacing & Radius */
-    --radius-lg: 1rem;
-    --radius-xl: 1.5rem;
+  /* Shadows - Adjusted for Dark Mode */
+  --admin-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+  --admin-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --admin-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+
+  /* Glow Effects for Accents */
+  --admin-glow-emerald: 0 0 20px rgb(16 185 129 / 0.15);
+  --admin-glow-emerald-strong: 0 0 30px rgb(16 185 129 / 0.3);
+
+  /* Spacing & Radius */
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
 }
 
-.dark {
-    /* Dark Mode Surfaces */
-    --admin-bg: 15 23 42;
-    /* slate-900 */
-    --admin-surface: 30 41 59;
-    /* slate-800 */
-    --admin-surface-glass: 30 41 59 / 0.8;
+/* Modern Glassmorphism Card */
+.glass-panel {
+  background: rgba(var(--admin-surface), 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(var(--admin-border-light), 0.8);
+  box-shadow: var(--admin-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-    --admin-text-primary: 248 250 252;
-    /* slate-50 */
-    --admin-text-secondary: 148 163 184;
-    /* slate-400 */
+.glass-panel:hover {
+  background: rgba(var(--admin-surface-elevated), 0.7);
+  border-color: rgba(var(--admin-accent), 0.3);
+  box-shadow: var(--admin-shadow-lg);
+}
 
-    --admin-border: 51 65 85;
-    /* slate-700 */
+/* Premium Glass Card with Gradient Border */
+.glass-card {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--admin-surface), 0.9) 0%,
+    rgba(var(--admin-surface-elevated), 0.8) 100%
+  );
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(var(--admin-border-light), 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--admin-accent), 0.1),
+    transparent 50%,
+    rgba(var(--admin-primary), 0.05)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--admin-surface-elevated), 0.95) 0%,
+    rgba(var(--admin-surface), 0.85) 100%
+  );
+  box-shadow: var(--admin-shadow-lg), var(--admin-glow-emerald);
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+/* Admin Layout Grid */
+.admin-layout-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .admin-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Custom Scrollbar - Dark Theme Optimized */
+.admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--admin-text-muted), 0.3);
+  border-radius: 99px;
+  transition: background 0.2s ease;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--admin-text-secondary), 0.5);
+}
+
+/* Gradient Text Utility */
+.gradient-text-admin {
+  background: linear-gradient(135deg, rgb(var(--admin-accent)) 0%, rgb(var(--admin-primary)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Accent Glow Effect */
+.glow-accent {
+  box-shadow: var(--admin-glow-emerald);
+}
+
+.glow-accent-strong {
+  box-shadow: var(--admin-glow-emerald-strong);
+}
+
+/* Premium Button Styles */
+.btn-admin-primary {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--admin-primary)) 0%,
+    rgb(var(--admin-primary-dark)) 100%
+  );
+  color: white;
+  border: 1px solid rgba(var(--admin-accent), 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-admin-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow-lg), var(--admin-glow-emerald-strong);
+  border-color: rgba(var(--admin-accent), 0.4);
+}
+
+/* Subtle Grid Pattern Background */
+.admin-bg-pattern {
+  background-image:
+    linear-gradient(rgba(var(--admin-border), 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--admin-border), 0.3) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Animated Gradient Background for Headers */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animated-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--admin-primary), 0.05) 0%,
+    rgba(var(--admin-accent), 0.03) 50%,
+    rgba(var(--admin-primary), 0.05) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Data Table Optimized for Dark Mode */
+.admin-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table thead {
+  background: rgba(var(--admin-surface-elevated), 0.6);
+  border-bottom: 2px solid rgba(var(--admin-border-light), 0.5);
+}
+
+.admin-table th {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: rgb(var(--admin-text-secondary));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid rgba(var(--admin-border), 0.5);
+  transition: background-color 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(var(--admin-surface-elevated), 0.4);
+}
+
+.admin-table td {
+  padding: 1rem 1.5rem;
+  color: rgb(var(--admin-text-primary));
+}
+
+/* Status Badge Styles */
+.badge-success {
+  background: rgba(var(--admin-success), 0.1);
+  color: rgb(var(--admin-success));
+  border: 1px solid rgba(var(--admin-success), 0.2);
+}
+
+.badge-warning {
+  background: rgba(var(--admin-warning), 0.1);
+  color: rgb(var(--admin-warning));
+  border: 1px solid rgba(var(--admin-warning), 0.2);
+}
+
+.badge-error {
+  background: rgba(var(--admin-error), 0.1);
+  color: rgb(var(--admin-error));
+  border: 1px solid rgba(var(--admin-error), 0.2);
+}
+
+.badge-info {
+  background: rgba(var(--admin-info), 0.1);
+  color: rgb(var(--admin-info));
+  border: 1px solid rgba(var(--admin-info), 0.2);
 }
 
 /* Glassmorphism Utility */
 .glass-panel {
-    background-color: rgba(var(--admin-surface), 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(var(--admin-border), 0.5);
-    box-shadow: var(--admin-shadow);
+  background-color: rgba(var(--admin-surface), 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--admin-border), 0.5);
+  box-shadow: var(--admin-shadow);
 }
 
 .glass-card {
-    background: linear-gradient(135deg, rgba(var(--admin-surface), 0.9) 0%, rgba(var(--admin-surface), 0.7) 100%);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(var(--admin-border), 0.6);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--admin-surface), 0.9) 0%,
+    rgba(var(--admin-surface), 0.7) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(var(--admin-border), 0.6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--admin-shadow-hover);
-    border-color: rgba(var(--admin-primary-light), 0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--admin-shadow-hover);
+  border-color: rgba(var(--admin-primary-light), 0.3);
 }
 
 /* Admin Specific Layout */
 .admin-layout-grid {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
 }
 
 @media (max-width: 1024px) {
-    .admin-layout-grid {
-        grid-template-columns: 1fr;
-    }
+  .admin-layout-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Scrollbar */
 .admin-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  width: 6px;
+  height: 6px;
 }
 
 .admin-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 .admin-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(var(--admin-text-secondary), 0.2);
-    border-radius: 99px;
+  background: rgba(var(--admin-text-secondary), 0.2);
+  border-radius: 99px;
 }
 
 .admin-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--admin-text-secondary), 0.4);
+  background: rgba(var(--admin-text-secondary), 0.4);
 }

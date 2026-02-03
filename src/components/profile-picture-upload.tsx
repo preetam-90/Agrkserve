@@ -153,11 +153,15 @@ export function ProfilePictureUpload({
 
           xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
-              const data = JSON.parse(xhr.responseText);
-              if (data.success) {
-                resolve(data.url);
-              } else {
-                reject(new Error(data.error || 'Upload failed'));
+              try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                  resolve(data.url);
+                } else {
+                  reject(new Error(data.error || 'Upload failed'));
+                }
+              } catch (parseError) {
+                reject(new Error('Invalid server response'));
               }
             } else {
               reject(new Error('Upload failed'));

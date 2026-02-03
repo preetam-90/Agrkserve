@@ -3,6 +3,51 @@ import type { DirectMessage, DMConversation } from '@/lib/types';
 
 const supabase = createClient();
 
+// Helper functions for media metadata
+function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.width, height: img.height });
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image'));
+    };
+
+    img.src = url;
+  });
+}
+
+function getVideoMetadata(
+  file: File
+): Promise<{ duration: number; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve({
+        duration: video.duration,
+        width: video.videoWidth,
+        height: video.videoHeight,
+      });
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load video'));
+    };
+
+    video.src = url;
+  });
+}
+
 export const dmService = {
   /**
    * Get or create a conversation between two users
@@ -213,6 +258,7 @@ export const dmService = {
           conversation_id: conversationId,
           sender_id: user.id,
           content: content.trim(),
+          message_type: 'text',
         })
         .select('*')
         .single();
@@ -249,6 +295,111 @@ export const dmService = {
   },
 
   /**
+   * Send a media message (image or video)
+   */
+  async sendMediaMessage(
+    conversationId: string,
+    file: File,
+    mediaType: 'image' | 'video',
+    caption?: string
+  ): Promise<DirectMessage> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    try {
+      // Generate unique file path
+      const timestamp = Date.now();
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${conversationId}/${timestamp}.${fileExt}`;
+
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-media')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error('Error uploading media:', uploadError);
+        throw new Error(`Failed to upload media: ${uploadError.message}`);
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage.from('chat-media').getPublicUrl(filePath);
+
+      // Get image/video dimensions
+      let width: number | undefined;
+      let height: number | undefined;
+      let duration: number | undefined;
+      let thumbnailUrl: string | undefined;
+
+      if (mediaType === 'image') {
+        const dimensions = await getImageDimensions(file);
+        width = dimensions.width;
+        height = dimensions.height;
+      } else if (mediaType === 'video') {
+        const metadata = await getVideoMetadata(file);
+        width = metadata.width;
+        height = metadata.height;
+        duration = Math.round(metadata.duration);
+
+        // For videos, we could generate a thumbnail here
+        // For now, we'll skip thumbnail generation server-side
+      }
+
+      // Insert message
+      const { data, error } = await supabase
+        .from('dm_messages')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: caption?.trim() || null,
+          message_type: mediaType,
+          media_url: urlData.publicUrl,
+          media_thumbnail_url: thumbnailUrl || null,
+          media_size_bytes: file.size,
+          media_duration_seconds: duration || null,
+          media_width: width || null,
+          media_height: height || null,
+        })
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error sending media message:', error);
+        // Clean up uploaded file on error
+        await supabase.storage.from('chat-media').remove([filePath]);
+        throw new Error(`Failed to send media message: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No message data returned after sending');
+      }
+
+      // Fetch sender profile
+      const { data: sender } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image')
+        .eq('id', user.id)
+        .single();
+
+      return {
+        ...data,
+        delivery_status: 'sent',
+        sender,
+      } as DirectMessage;
+    } catch (err) {
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error(`Unexpected error sending media message: ${JSON.stringify(err)}`);
+    }
+  },
+
+  /**
    * Mark messages as read
    */
   async markAsRead(conversationId: string): Promise<number> {
@@ -264,6 +415,111 @@ export const dmService = {
 
     if (error) throw error;
     return data as number;
+  },
+
+  /**
+   * Send a KLIPY media message (GIF, Sticker)
+   */
+  async sendKlipyMediaMessage(
+    conversationId: string,
+    klipyMedia: {
+      slug: string;
+      type: 'gif' | 'sticker';
+      media_url: string;
+      blur_preview?: string;
+      width?: number;
+      height?: number;
+      duration_seconds?: number;
+      size_bytes?: number;
+      thumbnail_url?: string;
+    },
+    caption?: string
+  ): Promise<DirectMessage> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    try {
+      // Track share with KLIPY API (non-blocking)
+      try {
+        const { klipyService } = await import('@/lib/services/klipy-service');
+        await klipyService.share({
+          slug: klipyMedia.slug,
+          customer_id: user.id,
+          platform: 'web',
+        });
+      } catch (shareError) {
+        console.warn('KLIPY share tracking failed (non-critical):', shareError);
+      }
+
+      // Build insert data - conditionally include KLIPY fields if columns exist
+      const insertData: any = {
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: caption?.trim() || null,
+        message_type: klipyMedia.type,
+        media_url: klipyMedia.media_url,
+        media_thumbnail_url: klipyMedia.thumbnail_url || null,
+        media_size_bytes: klipyMedia.size_bytes || null,
+        media_duration_seconds: klipyMedia.duration_seconds || null,
+        media_width: klipyMedia.width || null,
+        media_height: klipyMedia.height || null,
+      };
+
+      // Try to add KLIPY fields (will be ignored if columns don't exist)
+      try {
+        insertData.klipy_slug = klipyMedia.slug;
+        insertData.klipy_blur_preview = klipyMedia.blur_preview || null;
+      } catch (e) {
+        // KLIPY columns don't exist yet - that's OK, migration pending
+      }
+
+      // Insert message
+      const { data, error } = await supabase
+        .from('dm_messages')
+        .insert(insertData)
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error sending KLIPY media message:', error);
+
+        // If error is about unknown columns, provide helpful message
+        if (
+          error.message?.includes('klipy_slug') ||
+          error.message?.includes('klipy_blur_preview')
+        ) {
+          throw new Error(
+            'Database migration needed. Please run: KLIPY_QUICK_MIGRATION.sql in Supabase SQL Editor'
+          );
+        }
+
+        throw new Error(`Failed to send KLIPY media message: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No message data returned after sending');
+      }
+
+      // Fetch sender profile
+      const { data: sender } = await supabase
+        .from('user_profiles')
+        .select('id, name, profile_image')
+        .eq('id', user.id)
+        .single();
+
+      return {
+        ...data,
+        delivery_status: 'sent',
+        sender,
+      } as DirectMessage;
+    } catch (err) {
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error(`Unexpected error sending KLIPY media message: ${JSON.stringify(err)}`);
+    }
   },
 
   /**
@@ -397,6 +653,55 @@ export const dmService = {
         }
       )
       .subscribe();
+  },
+
+  /**
+   * Delete a message
+   * Supports both "delete for me" and "delete for everyone" modes
+   */
+  async deleteMessage(messageId: string, mode: 'me' | 'everyone'): Promise<void> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    console.log('=== Delete Message Debug ===');
+    console.log('Message ID:', messageId);
+    console.log('Mode:', mode);
+    console.log('User ID:', user.id);
+
+    try {
+      if (mode === 'everyone') {
+        // Hard delete the message (remove from database)
+        // Only sender can delete for everyone
+        const { error, data } = await supabase
+          .from('dm_messages')
+          .delete()
+          .eq('id', messageId)
+          .eq('sender_id', user.id)
+          .select();
+
+        console.log('Delete result:', { error, data });
+
+        if (error) {
+          console.error('Error deleting message:', error);
+          throw new Error(`Failed to delete message: ${error.message}`);
+        }
+
+        console.log('Message deleted successfully');
+      } else {
+        // For "delete for me", we'll use client-side filtering
+        // The message remains in the database but is hidden from the user
+        // No database operation needed - the store will handle filtering
+        console.log('Delete for me - skipping database operation');
+      }
+    } catch (err) {
+      console.error('Delete message exception:', err);
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new Error(`Unexpected error deleting message: ${JSON.stringify(err)}`);
+    }
   },
 
   /**

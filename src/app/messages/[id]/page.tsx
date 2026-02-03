@@ -52,8 +52,8 @@ export default function ConversationPage() {
     <div className="flex min-h-screen flex-col bg-[#0a0a0a]">
       <Header />
 
-      <main className="w-full flex-1 px-0 pb-0 pt-16 md:px-0 md:pb-0">
-        <div className="h-[calc(100vh-64px)] overflow-hidden bg-[#0a0a0a] md:h-[calc(100vh-64px)]">
+      <main className="w-full flex-1 px-0 pb-0 pt-14 md:px-0 md:pb-0">
+        <div className="h-[calc(100vh-56px)] overflow-hidden bg-[#0a0a0a] md:h-[calc(100vh-56px)]">
           <ChatWindow
             conversationId={conversationId}
             onBack={handleBack}

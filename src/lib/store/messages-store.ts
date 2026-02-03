@@ -18,6 +18,9 @@ interface MessagesState {
   messagesLoading: boolean;
   hasMoreMessages: boolean;
 
+  // Local tracking
+  deletedMessageIds: Set<string>;
+
   // Unread count
   unreadCount: number;
 
@@ -36,10 +39,26 @@ interface MessagesActions {
   // Messages
   fetchMessages: (conversationId: string, loadMore?: boolean) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  sendMediaMessage: (file: File, mediaType: 'image' | 'video', caption?: string) => Promise<void>;
+  sendKlipyMediaMessage: (
+    klipyMedia: {
+      slug: string;
+      type: 'gif' | 'sticker';
+      media_url: string;
+      blur_preview?: string;
+      width?: number;
+      height?: number;
+      duration_seconds?: number;
+      size_bytes?: number;
+      thumbnail_url?: string;
+    },
+    caption?: string
+  ) => Promise<void>;
   markAsRead: () => Promise<void>;
   markAsDelivered: (messageIds: string[]) => Promise<void>;
   addMessage: (message: DirectMessage) => void;
   updateMessageDeliveryStatus: (messageId: string, status: 'delivered' | 'read') => void;
+  deleteMessage: (messageId: string, mode: 'me' | 'everyone') => Promise<void>;
 
   // Unread count
   fetchUnreadCount: () => Promise<void>;
@@ -54,14 +73,24 @@ interface MessagesActions {
 }
 
 const initialState: MessagesState = {
+  // Conversations
   conversations: [],
-  conversationsLoading: false,
-  activeConversation: null,
   activeConversationId: null,
+  activeConversation: null,
+  conversationsLoading: false,
+
+  // Messages
   messages: [],
   messagesLoading: false,
-  hasMoreMessages: true,
+  hasMoreMessages: false,
+
+  // Local tracking
+  deletedMessageIds: new Set<string>(),
+
+  // Unread count
   unreadCount: 0,
+
+  // Realtime channels
   conversationsChannel: null,
   messagesChannel: null,
   readStatusChannel: null,
@@ -191,6 +220,72 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
     }
   },
 
+  sendMediaMessage: async (file: File, mediaType: 'image' | 'video', caption?: string) => {
+    const { activeConversationId } = get();
+
+    if (!activeConversationId) return;
+
+    try {
+      const message = await dmService.sendMediaMessage(
+        activeConversationId,
+        file,
+        mediaType,
+        caption
+      );
+
+      // Optimistically add the message if not already present
+      const { messages } = get();
+      if (!messages.find((m) => m.id === message.id)) {
+        set({ messages: [...messages, message] });
+      }
+
+      // Refresh conversations to update last message
+      get().fetchConversations();
+    } catch (error) {
+      console.error('Failed to send media message:', error);
+      throw error;
+    }
+  },
+
+  sendKlipyMediaMessage: async (
+    klipyMedia: {
+      slug: string;
+      type: 'gif' | 'sticker';
+      media_url: string;
+      blur_preview?: string;
+      width?: number;
+      height?: number;
+      duration_seconds?: number;
+      size_bytes?: number;
+      thumbnail_url?: string;
+    },
+    caption?: string
+  ) => {
+    const { activeConversationId } = get();
+
+    if (!activeConversationId) return;
+
+    try {
+      const message = await dmService.sendKlipyMediaMessage(
+        activeConversationId,
+        klipyMedia,
+        caption
+      );
+
+      // Optimistically add the message if not already present
+      const { messages } = get();
+      if (!messages.find((m) => m.id === message.id)) {
+        set({ messages: [...messages, message] });
+      }
+
+      // Refresh conversations to update last message
+      get().fetchConversations();
+    } catch (error) {
+      console.error('Failed to send KLIPY media message:', error);
+      throw error;
+    }
+  },
+
   markAsRead: async () => {
     const { activeConversationId } = get();
 
@@ -248,6 +343,32 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
           : m
       ),
     }));
+  },
+
+  deleteMessage: async (messageId: string, mode: 'me' | 'everyone') => {
+    try {
+      if (mode === 'everyone') {
+        // For "delete for everyone", call the API to delete from database
+        await dmService.deleteMessage(messageId, mode);
+      }
+
+      // For both modes, mark message as deleted in local state but keep it in array
+      // This allows showing "message deleted" placeholder
+      set((state) => {
+        const deletedIds = new Set(state.deletedMessageIds);
+        deletedIds.add(messageId);
+
+        return {
+          deletedMessageIds: deletedIds,
+        };
+      });
+
+      // Refresh conversations to update last message
+      get().fetchConversations();
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+      throw error;
+    }
   },
 
   markAsDelivered: async (messageIds: string[]) => {

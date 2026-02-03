@@ -1,6 +1,7 @@
 // Re-export all types
 export * from './database';
 export * from './media';
+export * from './klipy';
 
 // Auth types
 export interface AuthState {

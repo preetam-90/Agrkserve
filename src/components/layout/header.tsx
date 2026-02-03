@@ -219,7 +219,7 @@ export function Header() {
         </div>
 
         <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-20 items-center justify-between">
+          <div className="flex h-14 items-center justify-between">
             {/* Enhanced Logo */}
             <Link href="/" className="group relative flex items-center gap-3">
               <motion.div

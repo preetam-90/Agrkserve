@@ -141,19 +141,23 @@ export function MediaUpload({
 
           xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
-              const data = JSON.parse(xhr.responseText);
-              if (data.success) {
-                const newFile: MediaFile = {
-                  id: data.publicId,
-                  type: 'image',
-                  url: data.url,
-                  publicUrl: data.publicUrl,
-                  publicId: data.publicId,
-                  metadata: data.metadata,
-                };
-                resolve(newFile);
-              } else {
-                reject(new Error(data.error || 'Upload failed'));
+              try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                  const newFile: MediaFile = {
+                    id: data.publicId,
+                    type: 'image',
+                    url: data.url,
+                    publicUrl: data.publicUrl,
+                    publicId: data.publicId,
+                    metadata: data.metadata,
+                  };
+                  resolve(newFile);
+                } else {
+                  reject(new Error(data.error || 'Upload failed'));
+                }
+              } catch (parseError) {
+                reject(new Error('Invalid server response'));
               }
             } else {
               reject(new Error('Upload failed'));
@@ -225,25 +229,23 @@ export function MediaUpload({
 
           xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
-              const data = JSON.parse(xhr.responseText);
-              if (data.success) {
-                const newFile: MediaFile = {
-                  id: data.publicId,
-                  type: 'video',
-                  url: data.url,
-                  publicUrl: data.publicUrl,
-                  publicId: data.publicId,
-                  metadata: data.metadata,
-                };
-                resolve(newFile);
-              } else if (data.requiresTrim) {
-                // Handle trim requirement
-                setVideoToTrim(file);
-                setVideoMetadata(data.metadata);
-                setShowTrimmer(true);
-                resolve(null);
-              } else {
-                reject(new Error(data.error || 'Upload failed'));
+              try {
+                const data = JSON.parse(xhr.responseText);
+                if (data.success) {
+                  const newFile: MediaFile = {
+                    id: data.publicId,
+                    type: 'video',
+                    url: data.url,
+                    publicUrl: data.publicUrl,
+                    publicId: data.publicId,
+                    metadata: data.metadata,
+                  };
+                  resolve(newFile);
+                } else {
+                  reject(new Error(data.error || 'Upload failed'));
+                }
+              } catch (parseError) {
+                reject(new Error('Invalid server response'));
               }
             } else {
               reject(new Error('Upload failed'));

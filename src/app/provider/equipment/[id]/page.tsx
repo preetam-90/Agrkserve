@@ -288,8 +288,12 @@ export default function EquipmentFormPage() {
 
           xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
-              const data = JSON.parse(xhr.responseText);
-              resolve(data.secure_url as string);
+              try {
+                const data = JSON.parse(xhr.responseText);
+                resolve(data.secure_url as string);
+              } catch (parseError) {
+                reject(new Error('Invalid server response'));
+              }
             } else {
               reject(new Error('Upload failed'));
             }
