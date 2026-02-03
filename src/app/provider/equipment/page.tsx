@@ -379,8 +379,8 @@ export default function ProviderEquipmentPage() {
                 asChild
                 className="group relative overflow-hidden rounded-2xl border-2 border-emerald-500/30 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-900/20 transition-all hover:scale-105 hover:shadow-emerald-500/40 active:scale-95"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                 <Link href="/provider/equipment/new">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
                   <span className="relative z-10 flex items-center">
                     <Plus className="mr-2 h-5 w-5 transition-transform group-hover:rotate-90" />
                     Add Equipment
@@ -607,7 +607,7 @@ export default function ProviderEquipmentPage() {
                       asChild
                       className="rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-white shadow-lg shadow-emerald-900/20 hover:from-emerald-500 hover:to-emerald-400"
                     >
-                      <Link href="/provider/equipment/new">
+                      <Link href="/provider/equipment/new" className="flex items-center">
                         <Plus className="mr-2 h-5 w-5" />
                         List Your First Equipment
                       </Link>
@@ -631,7 +631,7 @@ export default function ProviderEquipmentPage() {
                       asChild
                       className="rounded-2xl border border-white/10 bg-transparent text-white hover:bg-white/5"
                     >
-                      <Link href="/provider/equipment/new">
+                      <Link href="/provider/equipment/new" className="flex items-center">
                         <Plus className="mr-2 h-5 w-5" />
                         Add Equipment
                       </Link>

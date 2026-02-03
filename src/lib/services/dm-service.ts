@@ -59,6 +59,12 @@ export const dmService = {
     } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
+    // Prevent attempting to create a conversation with yourself which violates
+    // the database check constraint `no_self_conversation`.
+    if (user.id === otherUserId) {
+      throw new Error('Cannot create conversation with yourself');
+    }
+
     try {
       const { data, error } = await supabase.rpc('get_or_create_conversation', {
         user_1: user.id,
@@ -66,10 +72,32 @@ export const dmService = {
       });
 
       if (error) {
+        // Log the raw error for debugging
         console.error('getOrCreateConversation RPC error:', error);
-        throw new Error(
-          `Failed to create conversation: ${error.message || error.code || 'Unknown error'}`
-        );
+
+        // Try to produce a helpful human-readable message. Some error objects
+        // from the Supabase/Postgres client are non-enumerable and JSON.stringify
+        // returns "{}". Attempt several fallbacks to surface useful details.
+        let errMsg: string | undefined =
+          (error as any)?.message ||
+          (error as any)?.code ||
+          (error as any)?.details ||
+          (error as any)?.hint;
+
+        if (!errMsg) {
+          try {
+            const props = Object.getOwnPropertyNames(error || ({} as any));
+            if (props.length > 0) {
+              errMsg = props.map((k) => `${k}:${(error as any)[k]}`).join(', ');
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        if (!errMsg) errMsg = JSON.stringify(error) || 'Unknown error';
+
+        throw new Error(`Failed to create conversation: ${errMsg}`);
       }
 
       if (!data) {
@@ -81,6 +109,7 @@ export const dmService = {
       if (err instanceof Error) {
         throw err;
       }
+      // As a last resort include a stringified version of the unexpected error
       throw new Error(`Unexpected error creating conversation: ${JSON.stringify(err)}`);
     }
   },

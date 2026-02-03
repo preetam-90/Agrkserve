@@ -5,6 +5,7 @@
 
 import { DownloadInvoiceButton, InvoicePDF } from '@/components/invoice';
 import { PDFViewer } from '@react-pdf/renderer';
+import { useEffect, useState } from 'react';
 import type { Booking, Equipment, UserProfile } from '@/lib/types';
 
 // Sample booking data for demo
@@ -97,6 +98,12 @@ const sampleBooking: Booking & {
 };
 
 export default function InvoiceDemoPage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] p-8">
       <div className="mx-auto max-w-4xl">
@@ -153,9 +160,15 @@ export default function InvoiceDemoPage() {
         <section className="mb-12">
           <h2 className="mb-6 text-xl font-semibold text-white">PDF Preview</h2>
           <div className="h-[800px] w-full overflow-hidden rounded-lg border border-[#262626]">
-            <PDFViewer width="100%" height="100%">
-              <InvoicePDF booking={sampleBooking} />
-            </PDFViewer>
+            {isClient ? (
+              <PDFViewer width="100%" height="100%">
+                <InvoicePDF booking={sampleBooking} />
+              </PDFViewer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-gray-400">
+                Loading PDF viewer...
+              </div>
+            )}
           </div>
         </section>
 

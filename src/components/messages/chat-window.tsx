@@ -503,10 +503,7 @@ export function ChatWindow({
           <div className="flex-shrink-0 border-t border-[#262626] bg-[#0f0f0f] p-3 sm:p-4">
             <div className="relative flex items-center gap-2 sm:gap-3">
               <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-[#333333] sm:h-20 sm:w-20">
-                {mediaType === 'image' ||
-                selectedKlipyMedia?.type === 'gif' ||
-                selectedKlipyMedia?.type === 'sticker' ? (
-                selectedKlipyMedia?.type === 'sticker' ? (
+                {(mediaType === 'image' || selectedKlipyMedia?.type === 'gif') && (
                   <Image
                     src={mediaPreview}
                     alt="Preview"
@@ -514,8 +511,9 @@ export function ChatWindow({
                     className="object-cover"
                     unoptimized
                   />
-                ) : (
-                  <video src={mediaPreview} className="h-full w-full object-cover" />
+                )}
+                {selectedKlipyMedia?.type === 'sticker' && (
+                  <video src={mediaPreview} className="h-full w-full object-cover"></video>
                 )}
               </div>
               <div className="min-w-0 flex-1">
@@ -912,7 +910,7 @@ function MessageBubble({
               )}
 
               {/* KLIPY Meme */}
-              {message.message_type === 'meme' && message.media_url && (
+              {message.message_type === 'image' && message.media_url && (
                 <div
                   className="relative cursor-pointer overflow-hidden transition-opacity hover:opacity-90"
                   onClick={handleMediaClick}

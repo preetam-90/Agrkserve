@@ -108,7 +108,8 @@ export default function EquipmentDetailPage() {
 
   const handleChat = async () => {
     if (!user) {
-      router.push(`/login?redirect=/equipment/${equipmentId}`);
+      // Redirect to login and preserve intent to message the owner after auth
+      router.push(`/login?redirect=${encodeURIComponent(`/messages?user=${equipment?.owner_id}`)}`);
       return;
     }
 
@@ -117,6 +118,15 @@ export default function EquipmentDetailPage() {
       return;
     }
 
+    // If the current user is the equipment owner, don't attempt to create a
+    // conversation (backend prohibits self-conversations). Send them to the
+    // Messages inbox instead.
+    if (equipment.owner_id === user?.id) {
+      router.push('/messages');
+      return;
+    }
+
+    // Normal flow: create (or fetch) a conversation with the owner and open it
     setIsStartingChat(true);
     try {
       const conversationId = await useMessagesStore
@@ -446,7 +456,7 @@ export default function EquipmentDetailPage() {
                       size="sm"
                       onClick={handleChat}
                       disabled={isStartingChat}
-                      className="flex-1 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white"
+                      className="flex-1 border-emerald-500/30 bg-emerald-500/5 text-emerald-400 transition-all duration-300 hover:bg-emerald-500 hover:text-white"
                     >
                       {isStartingChat ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

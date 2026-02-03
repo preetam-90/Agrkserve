@@ -15,11 +15,7 @@ import {
   ChevronRight,
   Calendar,
   MessageCircle,
-  User,
   IndianRupee,
-  RefreshCw,
-  Loader2,
-  Phone,
   ChevronDown,
   ChevronUp,
   Settings2,
@@ -29,28 +25,19 @@ import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Input,
-  Card,
-  CardContent,
-  Badge,
   Spinner,
   EmptyState,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  Textarea,
 } from '@/components/ui';
 import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { Equipment, EquipmentCategory } from '@/lib/types';
-import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
+import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
-import { addDays, isSameDay, parseISO } from 'date-fns';
+import toast from 'react-hot-toast';
 
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -226,12 +213,10 @@ function EquipmentCard({
   equipment,
   onMessage,
   onBook,
-  isAuthenticated,
 }: {
   equipment: Equipment;
   onMessage: (equipment: Equipment) => void;
   onBook: (equipment: Equipment) => void;
-  isAuthenticated: boolean;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -538,14 +523,11 @@ function PublicEquipmentPageContent() {
     (searchParams.get('category') as EquipmentCategory) || 'all'
   );
   const [sortBy, setSortBy] = useState<string>('newest');
-  const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [minRating, setMinRating] = useState<number>(0);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
 
   // Sidebar state
   const [showPriceFilter, setShowPriceFilter] = useState(true);
@@ -553,12 +535,6 @@ function PublicEquipmentPageContent() {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [brandSearch, setBrandSearch] = useState('');
-
-  // Message dialog state
-  const [showMessageDialog, setShowMessageDialog] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
-  const [messageContent, setMessageContent] = useState('');
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -676,12 +652,8 @@ function PublicEquipmentPageContent() {
           table: 'equipment',
         },
         () => {
-          setIsAutoRefreshing(true);
           cache.clear();
-          loadEquipment(1, false).then(() => {
-            setIsAutoRefreshing(false);
-            setLastRefresh(new Date());
-          });
+          loadEquipment(1, false);
         }
       )
       .subscribe();
@@ -739,20 +711,24 @@ function PublicEquipmentPageContent() {
     setPage(1);
   };
 
-  const handleManualRefresh = () => {
-    cache.clear();
-    setPage(1);
-    loadEquipment(1, false);
-    setLastRefresh(new Date());
-  };
-
   const handleMessage = (eq: Equipment) => {
     if (!isAuthenticated) {
-      router.push('/login?redirect=/equipment');
+      router.push(`/login?redirect=/messages?user=${eq.owner_id}`);
       return;
     }
-    setSelectedEquipment(eq);
-    setShowMessageDialog(true);
+
+    if (!eq.owner_id) {
+      toast.error('Unable to find equipment owner');
+      return;
+    }
+
+    // Prevent starting a conversation with yourself
+    if (eq.owner_id === user?.id) {
+      toast.error('You cannot start a chat with yourself.');
+      return;
+    }
+
+    router.push(`/messages?user=${eq.owner_id}`);
   };
 
   const handleBook = (eq: Equipment) => {
@@ -761,25 +737,6 @@ function PublicEquipmentPageContent() {
       return;
     }
     router.push(`/equipment/${eq.id}/book`);
-  };
-
-  const sendMessage = async () => {
-    if (!selectedEquipment || !messageContent.trim() || !user) return;
-
-    setIsSendingMessage(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setShowMessageDialog(false);
-      setMessageContent('');
-      setSelectedEquipment(null);
-      alert('Message sent successfully!');
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      alert('Failed to send message. Please try again.');
-    } finally {
-      setIsSendingMessage(false);
-    }
   };
 
   const toggleBrand = (brand: string) => {
@@ -1051,7 +1008,6 @@ function PublicEquipmentPageContent() {
                       equipment={item}
                       onMessage={handleMessage}
                       onBook={handleBook}
-                      isAuthenticated={isAuthenticated}
                     />
                   ))}
                 </div>
@@ -1072,84 +1028,6 @@ function PublicEquipmentPageContent() {
             )}
           </div>
         </div>
-
-        {/* Message Dialog */}
-        <Dialog open={showMessageDialog} onOpenChange={setShowMessageDialog}>
-          <DialogContent className="border-gray-800 bg-[#1a1a1a]">
-            <DialogHeader>
-              <DialogTitle className="text-white">
-                Message to {selectedEquipment?.owner?.name || 'Equipment Owner'}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              {selectedEquipment && (
-                <div className="flex items-center gap-3 rounded-lg bg-[#0a0a0a] p-3">
-                  <div className="h-12 w-12 overflow-hidden rounded-lg bg-gray-800">
-                    {selectedEquipment.images?.[0] ? (
-                      <Image
-                        src={selectedEquipment.images[0]}
-                        alt={selectedEquipment.name}
-                        width={48}
-                        height={48}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <Tractor className="h-6 w-6 text-gray-600" />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-white">{selectedEquipment.name}</p>
-                    <p className="text-sm text-gray-400">
-                      {formatCurrency(selectedEquipment.price_per_day)}/day
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <Textarea
-                placeholder="Hi, I'm interested in renting this equipment. Is it available for..."
-                value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
-                rows={4}
-                className="border-gray-700 bg-[#0a0a0a] text-white placeholder:text-gray-500"
-              />
-
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Phone className="h-4 w-4" />
-                <span>Or call: {selectedEquipment?.owner?.phone || 'Not available'}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowMessageDialog(false)}
-                className="flex-1 border-gray-700 bg-transparent text-white hover:bg-gray-800"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={sendMessage}
-                disabled={!messageContent.trim() || isSendingMessage}
-                className="flex-1 bg-[#DFFF00] text-black hover:bg-[#DFFF00]/90"
-              >
-                {isSendingMessage ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <MessageCircle className="mr-2 h-4 w-4" />
-                    Send Message
-                  </>
-                )}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </main>
 
       <Footer />

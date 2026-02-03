@@ -163,7 +163,21 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
 
       return conversationId;
     } catch (error) {
-      console.error('Failed to start conversation:', error);
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        ('message' in (error as Record<string, unknown>) ||
+          'code' in (error as Record<string, unknown>))
+      ) {
+        console.error(
+          'Failed to start conversation:',
+          (error as Record<string, unknown>).message ||
+            (error as Record<string, unknown>).code ||
+            'Unknown error'
+        );
+      } else {
+        console.error('Failed to start conversation:', JSON.stringify(error) || 'Unknown error');
+      }
       throw error;
     }
   },
