@@ -62,6 +62,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
+      <head>
+        <script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="c6c9d3b1-c5c8-4c49-a9f6-1ca368cc9tml2d0"
+        />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased`}>
         <Providers>
           <NetworkStatus />
