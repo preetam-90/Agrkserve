@@ -101,12 +101,12 @@ export function FeaturedEquipmentSection({ equipment, isLoading }: FeaturedEquip
   };
 
   return (
-    <section className="py-32 overflow-hidden relative">
+    <section className="py-32 w-full max-w-full overflow-hidden relative">
       {/* Seamless continuation from CategoriesSection (#0A0F0C) */}
       <div className="absolute inset-0 bg-[#0A0F0C]" />
       
       {/* Neon Tilted Grid Lines */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {neonLines.map((line) => (
           <motion.div
             key={line.id}
@@ -202,7 +202,7 @@ export function FeaturedEquipmentSection({ equipment, isLoading }: FeaturedEquip
       {/* Very subtle grid pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_110%)]" />
 
-      <div className="container-custom relative z-10">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12 mb-20">
           <div className="max-w-3xl">
             <motion.div

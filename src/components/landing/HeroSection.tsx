@@ -54,7 +54,7 @@ export function HeroSection() {
   const spotlightGradient = useMotionTemplate`radial-gradient(600px circle at ${mouseX}% ${mouseY}%, rgba(34, 197, 94, 0.15), transparent 40%)`;
 
   return (
-    <section ref={containerRef} className="relative h-screen w-full overflow-hidden bg-[#0A0F0C]">
+    <section ref={containerRef} className="relative h-screen w-full max-w-full overflow-hidden bg-[#0A0F0C]">
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#22c55e08_1px,transparent_1px),linear-gradient(to_bottom,#22c55e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />

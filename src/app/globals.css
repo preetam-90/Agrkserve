@@ -26,6 +26,7 @@
   --font-sans: var(--font-inter);
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
@@ -38,6 +39,31 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
+/* Prevent horizontal scroll on main container */
+#__next {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Ensure all sections and main containers don't cause overflow */
+main,
+section,
+header,
+footer {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+/* Ensure absolutely positioned elements don't cause scroll */
+.absolute {
+  max-width: 100%;
 }
 
 /* Custom scrollbar */

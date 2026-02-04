@@ -41,12 +41,12 @@ export function FinalCTASection() {
   ];
 
   return (
-    <section ref={ref} className="relative py-24 lg:py-32 overflow-hidden">
+    <section ref={ref} className="relative py-24 lg:py-32 w-full max-w-full overflow-hidden">
       {/* Seamless continuation from TimelineSection (#0A0F0C) */}
       <div className="absolute inset-0 bg-[#0A0F0C]" />
       
       {/* Neon Tilted Grid Lines */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {neonLines.map((line) => (
           <motion.div
             key={line.id}

@@ -87,7 +87,7 @@ export function FuturisticHeader() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed left-0 right-0 top-0 z-50 px-4 py-4 sm:px-6 lg:px-8"
+        className="fixed left-0 right-0 top-0 z-50 w-full max-w-full px-4 py-4 sm:px-6 lg:px-8"
       >
         {/* Main Container - Fresh Green Styling */}
         <motion.div

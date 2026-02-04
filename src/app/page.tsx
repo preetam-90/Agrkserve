@@ -92,7 +92,7 @@ export default function HomePage() {
 
   return (
     <div
-      className="relative min-h-screen"
+      className="relative min-h-screen w-full overflow-x-hidden"
       style={{ backgroundColor: '#0A0F0C' }}
     >
       {/* Ambient Background Effects - Fresh Green Tones */}

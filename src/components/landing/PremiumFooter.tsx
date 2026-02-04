@@ -75,7 +75,7 @@ export function PremiumFooter() {
 
 
   return (
-    <footer className="relative overflow-hidden bg-[#0A0F0C]">
+    <footer className="relative w-full max-w-full overflow-hidden bg-[#0A0F0C]">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Gradient Orbs */}

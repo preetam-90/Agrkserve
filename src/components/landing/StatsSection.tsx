@@ -76,12 +76,12 @@ export function StatsSection({ stats }: StatsSectionProps) {
   ];
 
   return (
-    <section ref={ref} className="relative py-32 overflow-hidden">
+    <section ref={ref} className="relative py-32 w-full max-w-full overflow-hidden">
       {/* Seamless continuation from Hero (#0A0F0C) */}
       <div className="absolute inset-0 bg-[#0A0F0C]" />
       
       {/* Neon Tilted Grid Lines */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Horizontal grid lines with perspective */}
         {[...Array(6)].map((_, i) => (
           <motion.div
@@ -154,7 +154,7 @@ export function StatsSection({ stats }: StatsSectionProps) {
       </div>
 
       {/* Animated radial gradient for depth */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         <motion.div
           className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full"
           style={{ 

@@ -55,6 +55,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: '#0A0F0C',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({
@@ -63,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className="scroll-smooth">
+    <html lang="en" suppressHydrationWarning className="scroll-smooth overflow-x-hidden">
       <head>
         <script
           defer
@@ -71,7 +75,7 @@ export default function RootLayout({
           data-website-id="c6c9d3b1-c5c8-4c49-a9f6-1ca368cc9tml2d0"
         />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} antialiased overflow-x-hidden`}>
         <Providers>
           <NetworkStatus />
           <AuthenticatedLayout>

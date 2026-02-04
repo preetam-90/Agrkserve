@@ -68,12 +68,12 @@ export function CategoriesSection() {
   }, []);
 
   return (
-    <section ref={ref} className="relative py-32 overflow-hidden">
+    <section ref={ref} className="relative py-32 w-full max-w-full overflow-hidden">
       {/* Seamless continuation from StatsSection (#0A0F0C) */}
       <div className="absolute inset-0 bg-[#0A0F0C]" />
       
       {/* Animated Texture Waves */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {textureWaves.map((wave) => (
           <motion.div
             key={wave.id}
@@ -96,7 +96,7 @@ export function CategoriesSection() {
       </div>
 
       {/* Neon Tilted Grid Lines */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {neonLines.map((line) => (
           <motion.div
             key={line.id}
