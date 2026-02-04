@@ -21,6 +21,7 @@ import {
   Package,
   TrendingUp,
   User,
+  Download,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -40,6 +41,8 @@ import { bookingService, reviewService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { pdf } from '@react-pdf/renderer';
+import { InvoicePDF } from '@/components/invoice/InvoicePDF';
 
 function BookingDetailPageContent() {
   const params = useParams();
@@ -59,6 +62,7 @@ function BookingDetailPageContent() {
     comment: '',
   });
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
 
   useEffect(() => {
     loadBooking();
@@ -116,6 +120,34 @@ function BookingDetailPageContent() {
       toast.error('Failed to submit review');
     } finally {
       setIsSubmittingReview(false);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!booking) return;
+
+    setIsGeneratingInvoice(true);
+    try {
+      // Generate the PDF document
+      const invoiceDoc = <InvoicePDF booking={booking} />;
+      const blob = await pdf(invoiceDoc).toBlob();
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${booking.id.slice(0, 8).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Invoice downloaded successfully!');
+    } catch (err) {
+      console.error('Failed to generate invoice:', err);
+      toast.error('Failed to generate invoice');
+    } finally {
+      setIsGeneratingInvoice(false);
     }
   };
 
@@ -515,9 +547,12 @@ function BookingDetailPageContent() {
                 <Button 
                   variant="outline" 
                   className="w-full cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+                  onClick={handleDownloadInvoice}
+                  loading={isGeneratingInvoice}
+                  disabled={isGeneratingInvoice}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
-                  View Invoice
+                  <Download className="mr-2 h-4 w-4" />
+                  {isGeneratingInvoice ? 'Generating...' : 'Download Invoice'}
                 </Button>
 
                 <Button 
