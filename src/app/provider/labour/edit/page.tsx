@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Briefcase, IndianRupee, Plus, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Briefcase, IndianRupee, Plus, X, Loader2, Save, Target } from 'lucide-react';
 import { Header } from '@/components/layout';
 import {
   Button,
-  Card,
-  CardContent,
   Input,
   Textarea,
   Select,
@@ -19,9 +17,8 @@ import {
   Spinner,
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
-import { LabourAvailability, LabourProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 
 const COMMON_SKILLS = [
@@ -43,12 +40,11 @@ const COMMON_SKILLS = [
 
 export default function EditLabourProfilePage() {
   const router = useRouter();
-  const { sidebarOpen } = useAppStore();
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
-  const [profile, setProfile] = useState<LabourProfile | null>(null);
+  const [profileId, setProfileId] = useState<string>('');
 
   const [formData, setFormData] = useState({
     skills: [] as string[],
@@ -57,7 +53,6 @@ export default function EditLabourProfilePage() {
     hourly_rate: '',
     bio: '',
     certifications: [] as string[],
-    availability: 'available' as LabourAvailability,
     city: '',
     address: '',
     latitude: 0,
@@ -68,44 +63,40 @@ export default function EditLabourProfilePage() {
   const [newSkill, setNewSkill] = useState('');
   const [newCertification, setNewCertification] = useState('');
 
-  // Load existing profile
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-
-      try {
-        const data = await labourService.getByUserId(user.id);
-        if (data) {
-          setProfile(data);
-          setFormData({
-            skills: data.skills || [],
-            experience_years: data.experience_years || 1,
-            daily_rate: String(data.daily_rate || ''),
-            hourly_rate: data.hourly_rate ? String(data.hourly_rate) : '',
-            bio: data.bio || '',
-            certifications: data.certifications || [],
-            availability: data.availability || 'available',
-            city: data.city || data.location_name || '',
-            address: data.address || '',
-            latitude: data.latitude || 0,
-            longitude: data.longitude || 0,
-            service_radius_km: data.service_radius_km || 25,
-          });
-        } else {
-          toast.error('No labour profile found');
-          router.push('/provider/labour');
-        }
-      } catch (err) {
-        console.error('Failed to load profile:', err);
-        toast.error('Failed to load profile');
-        router.push('/provider/labour');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadProfile();
-  }, [user, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    try {
+      const profile = await labourService.getByUserId(user.id);
+      if (profile) {
+        setProfileId(profile.id);
+        setFormData({
+          skills: profile.skills || [],
+          experience_years: profile.experience_years || 1,
+          daily_rate: String(profile.daily_rate || ''),
+          hourly_rate: profile.hourly_rate ? String(profile.hourly_rate) : '',
+          bio: profile.bio || '',
+          certifications: profile.certifications || [],
+          city: profile.city || '',
+          address: profile.address || '',
+          latitude: profile.latitude || 0,
+          longitude: profile.longitude || 0,
+          service_radius_km: profile.service_radius_km || 25,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load profile:', err);
+      toast.error('Failed to load profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -172,7 +163,7 @@ export default function EditLabourProfilePage() {
               address: data.display_name || prev.address,
             }));
           }
-          toast.success('Location updated');
+          toast.success('Location detected');
         } catch {
           toast.success('Coordinates captured');
         } finally {
@@ -190,8 +181,8 @@ export default function EditLabourProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user || !profile) {
-      toast.error('Please log in first');
+    if (!user || !profileId) {
+      toast.error('Profile not found');
       return;
     }
 
@@ -212,14 +203,13 @@ export default function EditLabourProfilePage() {
 
     setIsSubmitting(true);
     try {
-      await labourService.update(profile.id, {
+      await labourService.update(profileId, {
         skills: formData.skills,
         experience_years: formData.experience_years,
         daily_rate: Number(formData.daily_rate),
         hourly_rate: formData.hourly_rate ? Number(formData.hourly_rate) : undefined,
         bio: formData.bio || undefined,
         certifications: formData.certifications.length > 0 ? formData.certifications : undefined,
-        availability: formData.availability,
         city: formData.city,
         address: formData.address || undefined,
         latitude: formData.latitude,
@@ -231,7 +221,8 @@ export default function EditLabourProfilePage() {
       router.push('/provider/labour');
     } catch (err) {
       console.error('Failed to update profile:', err);
-      toast.error('Failed to update profile');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -239,11 +230,11 @@ export default function EditLabourProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#0A0E27]">
         <Header />
         <div className="flex">
-          <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
-            <div className="flex min-h-[400px] items-center justify-center">
+          <main className="flex-1 p-4 transition-all duration-300 lg:p-6">
+            <div className="flex justify-center py-12">
               <Spinner size="lg" />
             </div>
           </main>
@@ -253,15 +244,20 @@ export default function EditLabourProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#0A0E27]">
       <Header />
 
       <div className="flex">
         <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-4xl">
             {/* Header */}
             <div className="mb-6 flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                asChild
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50"
+              >
                 <Link href="/provider/labour">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
@@ -269,290 +265,324 @@ export default function EditLabourProfilePage() {
               </Button>
             </div>
 
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Edit Labour Profile</h1>
-              <p className="text-gray-600">Update your profile information</p>
+            <div className="mb-8">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-500/20 to-cyan-500/20 px-4 py-1.5 text-sm text-teal-300">
+                <Save className="h-4 w-4" />
+                Edit Profile
+              </div>
+              <h1 className="mb-2 text-4xl font-bold text-white">Update Labour Profile</h1>
+              <p className="text-lg text-slate-400">
+                Keep your profile up to date to attract more opportunities
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Skills Section */}
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                    <Briefcase className="h-5 w-5 text-teal-600" />
+              <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm">
+                <div className="border-b border-slate-700/50 bg-slate-800/30 px-6 py-4">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+                    <Briefcase className="h-5 w-5 text-teal-400" />
                     Skills &amp; Experience
                   </h2>
+                  <p className="mt-1 text-sm text-slate-400">Update your expertise and qualifications</p>
+                </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Skills <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mb-3 flex flex-wrap gap-2">
-                        {COMMON_SKILLS.map((skill) => (
-                          <button
-                            key={skill}
-                            type="button"
-                            onClick={() => addSkill(skill)}
-                            className={cn(
-                              'rounded-full border px-3 py-1 text-sm transition-colors',
-                              formData.skills.includes(skill)
-                                ? 'border-teal-500 bg-teal-100 text-teal-700'
-                                : 'border-gray-300 bg-white text-gray-700 hover:border-teal-500'
-                            )}
-                          >
-                            {skill}
-                          </button>
-                        ))}
-                      </div>
+                <div className="p-6 space-y-6">
+                  <div>
+                    <label className="mb-3 block text-sm font-medium text-slate-300">
+                      Skills <span className="text-red-400">*</span>
+                    </label>
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {COMMON_SKILLS.map((skill) => (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() => addSkill(skill)}
+                          className={cn(
+                            'rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer',
+                            formData.skills.includes(skill)
+                              ? 'border-teal-500/50 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                              : 'border-slate-600/50 bg-slate-800/50 text-slate-300 hover:border-teal-500/30 hover:bg-slate-700/50'
+                          )}
+                        >
+                          {skill}
+                        </button>
+                      ))}
+                    </div>
 
-                      {formData.skills.length > 0 && (
-                        <div className="mb-3 flex flex-wrap gap-2">
-                          <span className="text-sm text-gray-600">Selected:</span>
+                    {formData.skills.length > 0 && (
+                      <div className="mb-4 rounded-xl bg-slate-800/50 p-4">
+                        <span className="mb-2 block text-sm font-medium text-slate-400">Selected Skills:</span>
+                        <div className="flex flex-wrap gap-2">
                           {formData.skills.map((skill) => (
                             <span
                               key={skill}
-                              className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2 py-1 text-sm text-teal-700"
+                              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-500/30 px-3 py-1.5 text-sm font-medium text-teal-300"
                             >
                               {skill}
-                              <button type="button" onClick={() => removeSkill(skill)}>
-                                <X className="h-3 w-3" />
+                              <button 
+                                type="button" 
+                                onClick={() => removeSkill(skill)}
+                                className="hover:text-red-400 transition-colors duration-200"
+                              >
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </span>
                           ))}
                         </div>
-                      )}
-
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add custom skill"
-                          value={newSkill}
-                          onChange={(e) => setNewSkill(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              addSkill(newSkill);
-                            }
-                          }}
-                        />
-                        <Button type="button" variant="outline" onClick={() => addSkill(newSkill)}>
-                          <Plus className="h-4 w-4" />
-                        </Button>
                       </div>
-                    </div>
+                    )}
 
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Years of Experience
-                      </label>
-                      <Select
-                        value={String(formData.experience_years)}
-                        onValueChange={(value) => handleSelectChange('experience_years', value)}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add custom skill"
+                        value={newSkill}
+                        onChange={(e) => setNewSkill(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addSkill(newSkill);
+                          }
+                        }}
+                        className="border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => addSkill(newSkill)}
+                        className="border-slate-600/50 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
                       >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30].map((year) => (
-                            <SelectItem key={year} value={String(year)}>
-                              {year}+ years
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Certifications (Optional)
-                      </label>
-                      {formData.certifications.length > 0 && (
-                        <div className="mb-3 flex flex-wrap gap-2">
+                  <div>
+                    <label className="mb-3 block text-sm font-medium text-slate-300">
+                      Years of Experience
+                    </label>
+                    <Select
+                      value={String(formData.experience_years)}
+                      onValueChange={(value) => handleSelectChange('experience_years', value)}
+                    >
+                      <SelectTrigger className="border-slate-600/50 bg-slate-800/50 text-white focus:border-teal-500/50 focus:ring-teal-500/20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30].map((year) => (
+                          <SelectItem key={year} value={String(year)}>
+                            {year}+ years
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="mb-3 block text-sm font-medium text-slate-300">
+                      Certifications (Optional)
+                    </label>
+                    {formData.certifications.length > 0 && (
+                      <div className="mb-4 rounded-xl bg-slate-800/50 p-4">
+                        <div className="flex flex-wrap gap-2">
                           {formData.certifications.map((cert) => (
                             <span
                               key={cert}
-                              className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-sm text-blue-700"
+                              className="inline-flex items-center gap-2 rounded-lg bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 text-sm font-medium text-blue-300"
                             >
                               {cert}
-                              <button type="button" onClick={() => removeCertification(cert)}>
-                                <X className="h-3 w-3" />
+                              <button 
+                                type="button" 
+                                onClick={() => removeCertification(cert)}
+                                className="hover:text-red-400 transition-colors duration-200"
+                              >
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </span>
                           ))}
                         </div>
-                      )}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="e.g., Tractor License, Pesticide Certificate"
+                        value={newCertification}
+                        onChange={(e) => setNewCertification(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addCertification();
+                          }
+                        }}
+                        className="border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={addCertification}
+                        className="border-slate-600/50 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Section */}
+              <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm">
+                <div className="border-b border-slate-700/50 bg-slate-800/30 px-6 py-4">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+                    <IndianRupee className="h-5 w-5 text-teal-400" />
+                    Pricing
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">Update your competitive rates</p>
+                </div>
+
+                <div className="p-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                      <label className="mb-3 block text-sm font-medium text-slate-300">
+                        Daily Rate (₹) <span className="text-red-400">*</span>
+                      </label>
+                      <div className="relative">
+                        <IndianRupee className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        <Input
+                          type="number"
+                          name="daily_rate"
+                          placeholder="e.g., 500"
+                          value={formData.daily_rate}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="border-slate-600/50 bg-slate-800/50 pl-10 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-3 block text-sm font-medium text-slate-300">
+                        Hourly Rate (₹) - Optional
+                      </label>
+                      <div className="relative">
+                        <IndianRupee className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        <Input
+                          type="number"
+                          name="hourly_rate"
+                          placeholder="e.g., 75"
+                          value={formData.hourly_rate}
+                          onChange={handleInputChange}
+                          min="0"
+                          className="border-slate-600/50 bg-slate-800/50 pl-10 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Location Section */}
+              <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm">
+                <div className="border-b border-slate-700/50 bg-slate-800/30 px-6 py-4">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+                    <MapPin className="h-5 w-5 text-teal-400" />
+                    Location
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">Update where you provide your services</p>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div>
+                      <label className="mb-3 block text-sm font-medium text-slate-300">
+                        City/Town <span className="text-red-400">*</span>
+                      </label>
+                      <Input
+                        name="city"
+                        placeholder="Your city or town"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        className="border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-3 block text-sm font-medium text-slate-300">
+                        Address
+                      </label>
                       <div className="flex gap-2">
                         <Input
-                          placeholder="e.g., Tractor License, Pesticide Certificate"
-                          value={newCertification}
-                          onChange={(e) => setNewCertification(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              addCertification();
-                            }
-                          }}
+                          name="address"
+                          placeholder="Your address (optional)"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          className="flex-1 border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
                         />
-                        <Button type="button" variant="outline" onClick={addCertification}>
-                          <Plus className="h-4 w-4" />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleGetLocation}
+                          disabled={isLocating}
+                          className="border-slate-600/50 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                        >
+                          {isLocating ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MapPin className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Pricing Section */}
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                    <IndianRupee className="h-5 w-5 text-teal-600" />
-                    Pricing
-                  </h2>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Daily Rate (₹) <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        type="number"
-                        name="daily_rate"
-                        placeholder="e.g., 500"
-                        value={formData.daily_rate}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">
-                        Hourly Rate (₹) - Optional
-                      </label>
-                      <Input
-                        type="number"
-                        name="hourly_rate"
-                        placeholder="e.g., 75"
-                        value={formData.hourly_rate}
-                        onChange={handleInputChange}
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Location Section */}
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-                    <MapPin className="h-5 w-5 text-teal-600" />
-                    Location &amp; Availability
-                  </h2>
-
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          City/Town <span className="text-red-500">*</span>
-                        </label>
-                        <Input
-                          name="city"
-                          placeholder="Your city or town"
-                          value={formData.city}
-                          onChange={handleInputChange}
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Address
-                        </label>
-                        <div className="flex gap-2">
-                          <Input
-                            name="address"
-                            placeholder="Your address (optional)"
-                            value={formData.address}
-                            onChange={handleInputChange}
-                            className="flex-1"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleGetLocation}
-                            disabled={isLocating}
-                          >
-                            {isLocating ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <MapPin className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    {formData.latitude !== 0 && (
-                      <p className="text-xs text-gray-500">
-                        Coordinates: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
+                  {formData.latitude !== 0 && (
+                    <div className="rounded-lg bg-slate-800/50 p-3">
+                      <p className="text-xs text-slate-400">
+                        📍 Coordinates: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
                       </p>
-                    )}
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Service Radius (km)
-                        </label>
-                        <Select
-                          value={String(formData.service_radius_km)}
-                          onValueChange={(value) => handleSelectChange('service_radius_km', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {[5, 10, 15, 25, 50, 75, 100].map((km) => (
-                              <SelectItem key={km} value={String(km)}>
-                                {km} km
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                          Availability Status
-                        </label>
-                        <Select
-                          value={formData.availability}
-                          onValueChange={(value) => handleSelectChange('availability', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="available">Available</SelectItem>
-                            <SelectItem value="busy">Busy</SelectItem>
-                            <SelectItem value="unavailable">Unavailable</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
                     </div>
+                  )}
+
+                  <div>
+                    <label className="mb-3 block text-sm font-medium text-slate-300">
+                      Service Radius (km)
+                    </label>
+                    <Select
+                      value={String(formData.service_radius_km)}
+                      onValueChange={(value) => handleSelectChange('service_radius_km', value)}
+                    >
+                      <SelectTrigger className="border-slate-600/50 bg-slate-800/50 text-white focus:border-teal-500/50 focus:ring-teal-500/20">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
+                        {[5, 10, 15, 25, 50, 75, 100].map((km) => (
+                          <SelectItem key={km} value={String(km)}>
+                            {km} km
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Bio Section */}
-              <Card className="mb-6">
-                <CardContent className="p-6">
-                  <h2 className="mb-4 text-lg font-semibold">About You</h2>
+              <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm">
+                <div className="border-b border-slate-700/50 bg-slate-800/30 px-6 py-4">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+                    <Target className="h-5 w-5 text-teal-400" />
+                    About You
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">Update what makes you stand out</p>
+                </div>
+
+                <div className="p-6">
                   <Textarea
                     name="bio"
                     placeholder="Tell farmers about yourself, your experience, and what makes you a great worker..."
                     value={formData.bio}
                     onChange={handleInputChange}
-                    rows={4}
+                    rows={5}
+                    className="border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
                   />
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Submit Button */}
               <div className="flex gap-4">
@@ -561,14 +591,14 @@ export default function EditLabourProfilePage() {
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={isSubmitting}
-                  className="flex-1"
+                  className="flex-1 border-slate-600/50 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-teal-600 hover:bg-teal-700"
+                  className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600 transition-all duration-200 shadow-lg shadow-teal-500/20"
                 >
                   {isSubmitting ? (
                     <>
@@ -576,7 +606,10 @@ export default function EditLabourProfilePage() {
                       Saving...
                     </>
                   ) : (
-                    'Save Changes'
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Changes
+                    </>
                   )}
                 </Button>
               </div>
