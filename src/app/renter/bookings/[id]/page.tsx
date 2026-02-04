@@ -18,6 +18,9 @@ import {
   Tractor,
   CreditCard,
   FileText,
+  Package,
+  TrendingUp,
+  User,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -119,55 +122,78 @@ function BookingDetailPageContent() {
   const getStatusInfo = (status: BookingStatus) => {
     const info: Record<
       BookingStatus,
-      { color: string; icon: React.ReactNode; label: string; description: string }
+      { 
+        color: string; 
+        bgGradient: string;
+        icon: React.ReactNode; 
+        label: string; 
+        description: string;
+        step: number;
+      }
     > = {
       pending: {
-        color: 'bg-yellow-100 text-yellow-800',
+        color: 'text-yellow-400',
+        bgGradient: 'from-yellow-500/20 to-yellow-600/10',
         icon: <Clock className="h-5 w-5" />,
         label: 'Pending Confirmation',
         description: 'Waiting for the provider to confirm your booking',
+        step: 1,
       },
       approved: {
-        color: 'bg-green-100 text-green-800',
+        color: 'text-[#22C55E]',
+        bgGradient: 'from-[#22C55E]/20 to-[#16A34A]/10',
         icon: <CheckCircle className="h-5 w-5" />,
         label: 'Approved',
         description: 'Your booking has been approved',
+        step: 2,
       },
       rejected: {
-        color: 'bg-red-100 text-red-800',
+        color: 'text-red-400',
+        bgGradient: 'from-red-500/20 to-red-600/10',
         icon: <XCircle className="h-5 w-5" />,
         label: 'Rejected',
         description: 'Your booking request was rejected',
+        step: 0,
       },
       confirmed: {
-        color: 'bg-green-100 text-green-800',
+        color: 'text-[#22C55E]',
+        bgGradient: 'from-[#22C55E]/20 to-[#16A34A]/10',
         icon: <CheckCircle className="h-5 w-5" />,
         label: 'Confirmed',
         description: 'Your booking has been confirmed',
+        step: 2,
       },
       in_progress: {
-        color: 'bg-blue-100 text-blue-800',
-        icon: <Tractor className="h-5 w-5" />,
+        color: 'text-blue-400',
+        bgGradient: 'from-blue-500/20 to-blue-600/10',
+        icon: <TrendingUp className="h-5 w-5" />,
         label: 'In Progress',
         description: 'Equipment is currently in use',
+        step: 3,
       },
       completed: {
-        color: 'bg-gray-100 text-gray-800',
+        color: 'text-[#22C55E]',
+        bgGradient: 'from-[#22C55E]/20 to-[#16A34A]/10',
         icon: <CheckCircle className="h-5 w-5" />,
         label: 'Completed',
         description: 'Booking has been completed',
+        step: 4,
       },
       cancelled: {
-        color: 'bg-red-100 text-red-800',
+        color: 'text-red-400',
+        bgGradient: 'from-red-500/20 to-red-600/10',
         icon: <XCircle className="h-5 w-5" />,
         label: 'Cancelled',
         description: 'This booking has been cancelled',
+        step: 0,
       },
       disputed: {
-        color: 'bg-orange-100 text-orange-800',
+        color: 'text-orange-400',
+        bgGradient: 'from-orange-500/20 to-orange-600/10',
         icon: <AlertCircle className="h-5 w-5" />,
         label: 'Disputed',
         description: 'This booking is under dispute',
+        step: 0,
       },
     };
     return info[status];
@@ -175,10 +201,13 @@ function BookingDetailPageContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#020617]">
         <Header />
-        <div className="flex items-center justify-center py-20">
-          <Spinner size="lg" />
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <Spinner size="lg" className="text-[#22C55E]" />
+            <p className="mt-4 text-[#94A3B8]">Loading booking details...</p>
+          </div>
         </div>
       </div>
     );
@@ -186,14 +215,20 @@ function BookingDetailPageContent() {
 
   if (!booking) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#020617]">
         <Header />
-        <div className="mx-auto max-w-4xl px-4 py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
-          <h1 className="mb-2 text-2xl font-bold text-gray-900">Booking Not Found</h1>
-          <Button asChild>
-            <Link href="/renter/bookings">View All Bookings</Link>
-          </Button>
+        <div className="mx-auto max-w-4xl px-4 py-12 pt-28 text-center">
+          <div className="rounded-2xl border border-[#1E293B] bg-[#0F172A] p-12">
+            <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-400" />
+            <h1 className="mb-2 text-2xl font-bold text-[#F8FAFC]">Booking Not Found</h1>
+            <p className="mb-6 text-[#94A3B8]">The booking you're looking for doesn't exist or has been removed.</p>
+            <Button 
+              asChild
+              className="cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]"
+            >
+              <Link href="/renter/bookings">View All Bookings</Link>
+            </Button>
+          </div>
         </div>
         <Footer />
       </div>
@@ -207,25 +242,58 @@ function BookingDetailPageContent() {
   const canReview = booking.status === 'completed';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#020617]">
       <Header />
 
-      <main className="mx-auto max-w-4xl px-4 pb-6 pt-28">
+      <main className="mx-auto max-w-7xl px-4 pb-12 pt-28 lg:px-6">
+        {/* Back Button */}
         <Link
           href="/renter/bookings"
-          className="mb-6 inline-flex items-center text-gray-600 hover:text-gray-900"
+          className="group mb-6 inline-flex cursor-pointer items-center gap-2 text-[#94A3B8] transition-colors duration-200 hover:text-[#22C55E]"
         >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to bookings
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
+          <span>Back to bookings</span>
         </Link>
 
-        {/* Status Banner */}
-        <div className={`mb-6 rounded-lg p-4 ${statusInfo.color}`}>
-          <div className="flex items-center gap-3">
-            {statusInfo.icon}
-            <div>
-              <p className="font-semibold">{statusInfo.label}</p>
-              <p className="text-sm opacity-80">{statusInfo.description}</p>
+        {/* Status Banner with Progress */}
+        <div className={`mb-8 overflow-hidden rounded-2xl border border-[#1E293B] bg-gradient-to-br ${statusInfo.bgGradient} backdrop-blur-sm`}>
+          <div className="p-6">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <div className={`rounded-xl bg-[#0F172A]/50 p-3 ${statusInfo.color}`}>
+                  {statusInfo.icon}
+                </div>
+                <div>
+                  <h2 className={`text-xl font-semibold ${statusInfo.color}`}>{statusInfo.label}</h2>
+                  <p className="mt-1 text-sm text-[#CBD5E1]">{statusInfo.description}</p>
+                </div>
+              </div>
+              
+              {/* Progress Steps */}
+              {statusInfo.step > 0 && (
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div key={step} className="flex items-center">
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300 ${
+                          step <= statusInfo.step
+                            ? 'bg-[#22C55E] text-[#020617]'
+                            : 'border border-[#1E293B] bg-[#0F172A] text-[#64748B]'
+                        }`}
+                      >
+                        {step}
+                      </div>
+                      {step < 4 && (
+                        <div
+                          className={`h-0.5 w-8 transition-all duration-300 ${
+                            step < statusInfo.step ? 'bg-[#22C55E]' : 'bg-[#1E293B]'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -234,36 +302,41 @@ function BookingDetailPageContent() {
           {/* Main Content */}
           <div className="space-y-6 lg:col-span-2">
             {/* Equipment Details */}
-            <Card>
+            <Card className="group overflow-hidden border-[#1E293B] bg-[#0F172A] transition-all duration-300 hover:border-[#22C55E]/50 hover:shadow-xl hover:shadow-[#22C55E]/10">
               <CardContent className="p-6">
-                <h2 className="mb-4 text-lg font-semibold">Equipment Details</h2>
-                <div className="flex gap-4">
-                  <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                <div className="mb-4 flex items-center gap-2">
+                  <Package className="h-5 w-5 text-[#22C55E]" />
+                  <h2 className="text-lg font-semibold text-[#F8FAFC]">Equipment Details</h2>
+                </div>
+                <div className="flex gap-6">
+                  <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-xl bg-[#1E293B]">
                     {equipment?.images?.[0] ? (
                       <Image
                         src={equipment.images[0]}
                         alt={equipment.name || 'Equipment'}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Tractor className="h-10 w-10 text-gray-300" />
+                        <Tractor className="h-12 w-12 text-[#64748B]" />
                       </div>
                     )}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-[#F8FAFC]">
                       {equipment?.name || 'Equipment'}
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {equipment?.description?.slice(0, 100)}...
+                    <p className="mt-2 text-sm leading-relaxed text-[#94A3B8]">
+                      {equipment?.description?.slice(0, 150)}
+                      {equipment?.description && equipment.description.length > 150 ? '...' : ''}
                     </p>
                     <Link
                       href={`/equipment/${booking.equipment_id}`}
-                      className="mt-2 inline-block text-sm text-green-600 hover:underline"
+                      className="mt-4 inline-flex cursor-pointer items-center gap-1 text-sm font-medium text-[#22C55E] transition-colors duration-200 hover:text-[#16A34A]"
                     >
-                      View Equipment →
+                      View Full Details
+                      <ArrowLeft className="h-3.5 w-3.5 rotate-180" />
                     </Link>
                   </div>
                 </div>
@@ -271,52 +344,63 @@ function BookingDetailPageContent() {
             </Card>
 
             {/* Booking Schedule */}
-            <Card>
+            <Card className="border-[#1E293B] bg-[#0F172A]">
               <CardContent className="p-6">
-                <h2 className="mb-4 text-lg font-semibold">Booking Schedule</h2>
+                <div className="mb-4 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-[#22C55E]" />
+                  <h2 className="text-lg font-semibold text-[#F8FAFC]">Booking Schedule</h2>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-green-100 p-2">
-                      <Calendar className="h-5 w-5 text-green-600" />
+                  <div className="group cursor-default rounded-xl border border-[#1E293B] bg-[#0F172A]/50 p-4 transition-all duration-200 hover:border-[#22C55E]/30">
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="rounded-lg bg-[#22C55E]/10 p-2">
+                        <Calendar className="h-4 w-4 text-[#22C55E]" />
+                      </div>
+                      <p className="text-sm text-[#94A3B8]">Rental Period</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Dates</p>
-                      <p className="font-medium">
-                        {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
-                      </p>
-                    </div>
+                    <p className="font-medium text-[#F8FAFC]">
+                      {formatDate(booking.start_date)}
+                    </p>
+                    <p className="text-sm text-[#64748B]">to</p>
+                    <p className="font-medium text-[#F8FAFC]">
+                      {formatDate(booking.end_date)}
+                    </p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-lg bg-blue-100 p-2">
-                      <Clock className="h-5 w-5 text-blue-600" />
+                  <div className="group cursor-default rounded-xl border border-[#1E293B] bg-[#0F172A]/50 p-4 transition-all duration-200 hover:border-[#22C55E]/30">
+                    <div className="mb-2 flex items-center gap-2">
+                      <div className="rounded-lg bg-blue-500/10 p-2">
+                        <Clock className="h-4 w-4 text-blue-400" />
+                      </div>
+                      <p className="text-sm text-[#94A3B8]">Time Slot</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Time</p>
-                      <p className="font-medium">
-                        {booking.start_time} - {booking.end_time}
-                      </p>
-                    </div>
+                    <p className="font-medium text-[#F8FAFC]">
+                      {booking.start_time}
+                    </p>
+                    <p className="text-sm text-[#64748B]">to</p>
+                    <p className="font-medium text-[#F8FAFC]">
+                      {booking.end_time}
+                    </p>
                   </div>
                 </div>
 
                 {booking.delivery_address && (
-                  <div className="mt-4 border-t pt-4">
+                  <div className="mt-4 rounded-xl border border-[#1E293B] bg-[#0F172A]/50 p-4">
                     <div className="flex items-start gap-3">
-                      <div className="rounded-lg bg-purple-100 p-2">
-                        <MapPin className="h-5 w-5 text-purple-600" />
+                      <div className="rounded-lg bg-purple-500/10 p-2">
+                        <MapPin className="h-4 w-4 text-purple-400" />
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Delivery Address</p>
-                        <p className="font-medium">{booking.delivery_address}</p>
+                      <div className="flex-1">
+                        <p className="text-sm text-[#94A3B8]">Delivery Address</p>
+                        <p className="mt-1 font-medium text-[#F8FAFC]">{booking.delivery_address}</p>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {booking.notes && (
-                  <div className="mt-4 border-t pt-4">
-                    <p className="text-sm text-gray-500">Notes</p>
-                    <p className="mt-1 text-gray-700">{booking.notes}</p>
+                  <div className="mt-4 rounded-xl border border-[#1E293B] bg-[#0F172A]/50 p-4">
+                    <p className="mb-2 text-sm font-medium text-[#94A3B8]">Additional Notes</p>
+                    <p className="text-sm leading-relaxed text-[#CBD5E1]">{booking.notes}</p>
                   </div>
                 )}
               </CardContent>
@@ -324,26 +408,37 @@ function BookingDetailPageContent() {
 
             {/* Provider Details */}
             {provider && (
-              <Card>
+              <Card className="border-[#1E293B] bg-[#0F172A]">
                 <CardContent className="p-6">
-                  <h2 className="mb-4 text-lg font-semibold">Provider</h2>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div className="mb-4 flex items-center gap-2">
+                    <User className="h-5 w-5 text-[#22C55E]" />
+                    <h2 className="text-lg font-semibold text-[#F8FAFC]">Provider Information</h2>
+                  </div>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
                       <Avatar src={provider.profile_image} name={provider.name} size="lg" />
                       <div>
-                        <p className="font-semibold text-gray-900">{provider.name}</p>
+                        <p className="font-semibold text-[#F8FAFC]">{provider.name}</p>
                         {provider.address && (
-                          <p className="text-sm text-gray-500">{provider.address}</p>
+                          <p className="mt-1 text-sm text-[#94A3B8]">{provider.address}</p>
                         )}
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Phone className="mr-1 h-4 w-4" />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+                      >
+                        <Phone className="mr-1.5 h-4 w-4" />
                         Call
                       </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageSquare className="mr-1 h-4 w-4" />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+                      >
+                        <MessageSquare className="mr-1.5 h-4 w-4" />
                         Chat
                       </Button>
                     </div>
@@ -356,46 +451,50 @@ function BookingDetailPageContent() {
           {/* Sidebar */}
           <div className="space-y-6 lg:col-span-1">
             {/* Payment Summary */}
-            <Card>
+            <Card className="border-[#1E293B] bg-[#0F172A]">
               <CardContent className="p-6">
-                <h2 className="mb-4 text-lg font-semibold">Payment Summary</h2>
-                <div className="space-y-2">
+                <div className="mb-4 flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-[#22C55E]" />
+                  <h2 className="text-lg font-semibold text-[#F8FAFC]">Payment Summary</h2>
+                </div>
+                <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Rental Amount</span>
-                    <span>
+                    <span className="text-[#94A3B8]">Rental Amount</span>
+                    <span className="font-medium text-[#F8FAFC]">
                       {formatCurrency(booking.total_amount - (booking.platform_fee || 0))}
                     </span>
                   </div>
                   {booking.platform_fee && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Platform Fee</span>
-                      <span>{formatCurrency(booking.platform_fee)}</span>
+                      <span className="text-[#94A3B8]">Platform Fee</span>
+                      <span className="font-medium text-[#F8FAFC]">{formatCurrency(booking.platform_fee)}</span>
                     </div>
                   )}
                 </div>
-                <div className="mt-3 border-t pt-3">
-                  <div className="flex justify-between">
-                    <span className="font-semibold">Total</span>
-                    <span className="text-lg font-bold text-green-600">
-                      {formatCurrency(booking.total_amount)}
-                    </span>
-                  </div>
+                <div className="my-4 border-t border-[#1E293B]"></div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-[#F8FAFC]">Total Paid</span>
+                  <span className="text-xl font-bold text-[#22C55E]">
+                    {formatCurrency(booking.total_amount)}
+                  </span>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 p-3">
-                  <CreditCard className="h-4 w-4 text-green-600" />
-                  <span className="text-sm text-green-700">Payment completed</span>
+                <div className="mt-4 flex items-center gap-2 rounded-xl bg-[#22C55E]/10 p-3">
+                  <CheckCircle className="h-4 w-4 text-[#22C55E]" />
+                  <span className="text-sm font-medium text-[#22C55E]">Payment completed</span>
                 </div>
               </CardContent>
             </Card>
 
             {/* Actions */}
-            <Card>
+            <Card className="border-[#1E293B] bg-[#0F172A]">
               <CardContent className="space-y-3 p-6">
+                <h3 className="mb-3 text-sm font-semibold text-[#F8FAFC]">Quick Actions</h3>
+                
                 {canCancel && (
                   <Button
                     variant="outline"
-                    className="w-full border-red-200 text-red-600 hover:bg-red-50"
+                    className="w-full cursor-pointer border-red-500/30 bg-red-500/5 text-red-400 transition-all duration-200 hover:border-red-500 hover:bg-red-500/10"
                     onClick={() => setShowCancelDialog(true)}
                   >
                     <XCircle className="mr-2 h-4 w-4" />
@@ -404,33 +503,43 @@ function BookingDetailPageContent() {
                 )}
 
                 {canReview && (
-                  <Button className="w-full" onClick={() => setShowReviewDialog(true)}>
+                  <Button 
+                    className="w-full cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]" 
+                    onClick={() => setShowReviewDialog(true)}
+                  >
                     <Star className="mr-2 h-4 w-4" />
                     Write a Review
                   </Button>
                 )}
 
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+                >
                   <FileText className="mr-2 h-4 w-4" />
                   View Invoice
                 </Button>
 
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+                >
                   <AlertCircle className="mr-2 h-4 w-4" />
                   Report Issue
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Booking ID */}
-            <Card>
+            {/* Booking Info */}
+            <Card className="border-[#1E293B] bg-[#0F172A]">
               <CardContent className="p-4">
-                <p className="text-center text-xs text-gray-500">
-                  Booking ID: {booking.id.slice(0, 8)}
-                </p>
-                <p className="mt-1 text-center text-xs text-gray-500">
-                  Created: {formatDate(booking.created_at)}
-                </p>
+                <div className="space-y-2 text-center">
+                  <p className="text-xs text-[#64748B]">Booking ID</p>
+                  <p className="font-mono text-sm font-medium text-[#94A3B8]">{booking.id.slice(0, 8).toUpperCase()}</p>
+                  <div className="border-t border-[#1E293B] pt-2">
+                    <p className="text-xs text-[#64748B]">Created on {formatDate(booking.created_at)}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -439,15 +548,15 @@ function BookingDetailPageContent() {
 
       {/* Cancel Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <DialogContent>
+        <DialogContent className="border-[#1E293B] bg-[#0F172A]">
           <DialogHeader>
-            <DialogTitle>Cancel Booking</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-[#F8FAFC]">Cancel Booking</DialogTitle>
+            <DialogDescription className="text-[#94A3B8]">
               Are you sure you want to cancel this booking? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <label className="mb-2 block text-sm font-medium text-[#CBD5E1]">
               Reason for cancellation
             </label>
             <Textarea
@@ -455,17 +564,22 @@ function BookingDetailPageContent() {
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="Please provide a reason..."
               rows={3}
+              className="border-[#1E293B] bg-[#020617] text-[#F8FAFC] placeholder:text-[#64748B] focus:border-[#22C55E] focus:ring-[#22C55E]/20"
             />
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowCancelDialog(false)} className="flex-1">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCancelDialog(false)} 
+              className="flex-1 cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+            >
               Keep Booking
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancelBooking}
               loading={isCancelling}
-              className="flex-1"
+              className="flex-1 cursor-pointer bg-red-500 text-white transition-all duration-200 hover:bg-red-600"
             >
               Confirm Cancel
             </Button>
@@ -475,24 +589,26 @@ function BookingDetailPageContent() {
 
       {/* Review Dialog */}
       <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-        <DialogContent>
+        <DialogContent className="border-[#1E293B] bg-[#0F172A]">
           <DialogHeader>
-            <DialogTitle>Rate Your Experience</DialogTitle>
-            <DialogDescription>How was your experience with this equipment?</DialogDescription>
+            <DialogTitle className="text-[#F8FAFC]">Rate Your Experience</DialogTitle>
+            <DialogDescription className="text-[#94A3B8]">
+              How was your experience with this equipment?
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">Rating</label>
+              <label className="mb-2 block text-sm font-medium text-[#CBD5E1]">Rating</label>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     onClick={() => setReview((r) => ({ ...r, rating: star }))}
-                    className="p-1"
+                    className="cursor-pointer p-1 transition-transform duration-200 hover:scale-110"
                   >
                     <Star
-                      className={`h-8 w-8 transition-colors ${
-                        star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                      className={`h-8 w-8 transition-colors duration-200 ${
+                        star <= review.rating ? 'fill-[#22C55E] text-[#22C55E]' : 'text-[#64748B]'
                       }`}
                     />
                   </button>
@@ -500,7 +616,7 @@ function BookingDetailPageContent() {
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-[#CBD5E1]">
                 Your Review (optional)
               </label>
               <Textarea
@@ -508,14 +624,23 @@ function BookingDetailPageContent() {
                 onChange={(e) => setReview((r) => ({ ...r, comment: e.target.value }))}
                 placeholder="Share your experience..."
                 rows={4}
+                className="border-[#1E293B] bg-[#020617] text-[#F8FAFC] placeholder:text-[#64748B] focus:border-[#22C55E] focus:ring-[#22C55E]/20"
               />
             </div>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowReviewDialog(false)} className="flex-1">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowReviewDialog(false)} 
+              className="flex-1 cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSubmitReview} loading={isSubmittingReview} className="flex-1">
+            <Button 
+              onClick={handleSubmitReview} 
+              loading={isSubmittingReview} 
+              className="flex-1 cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]"
+            >
               Submit Review
             </Button>
           </div>
@@ -531,8 +656,11 @@ export default function BookingDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
-          <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-green-600" />
+        <div className="flex min-h-screen items-center justify-center bg-[#020617]">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-[#22C55E]" />
+            <p className="mt-4 text-[#94A3B8]">Loading...</p>
+          </div>
         </div>
       }
     >
