@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { NetworkStatus } from '@/components/system-pages/NetworkStatus';
+import { AuthenticatedLayout } from '@/components/layout';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -72,7 +73,9 @@ export default function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} antialiased`}>
         <Providers>
           <NetworkStatus />
-          {children}
+          <AuthenticatedLayout>
+            {children}
+          </AuthenticatedLayout>
         </Providers>
       </body>
     </html>

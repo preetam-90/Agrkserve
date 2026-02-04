@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Download, ExternalLink, Calendar, HardDrive } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 
 interface MediaFile {
   name: string;
@@ -70,6 +71,11 @@ export default function PublicGalleryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="container mx-auto px-4 py-12">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton variant="minimal" />
+        </div>
+        
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-5xl font-bold text-slate-900 dark:text-white">Media Gallery</h1>

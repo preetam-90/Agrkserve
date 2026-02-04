@@ -38,6 +38,7 @@ import {
   MapPinned,
   Info,
 } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 import {
   Button,
   Input,
@@ -362,6 +363,11 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen overflow-hidden bg-slate-950 text-slate-50">
+      {/* Back Button - Floating */}
+      <div className="fixed left-4 top-20 z-50">
+        <BackButton variant="floating" />
+      </div>
+      
       {/* Image Cropper Modal */}
       {cropImage && (
         <ImageCropper

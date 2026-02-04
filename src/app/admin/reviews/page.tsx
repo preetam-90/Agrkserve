@@ -10,6 +10,7 @@ import { ITEMS_PER_PAGE } from '@/lib/utils/admin-constants';
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [ratingFilter, setRatingFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,12 +20,12 @@ export default function ReviewsPage() {
 
   const fetchReviews = async () => {
     setLoading(true);
+    setError(null);
     try {
       let query = supabase.from('reviews').select(
         `
           *,
-          equipment:equipment(name, images),
-          reviewer:user_profiles!reviewer_id(name, email, profile_image)
+          equipment:equipment(name, images)
         `,
         { count: 'exact' }
       );
@@ -38,21 +39,40 @@ export default function ReviewsPage() {
         query = query.eq('rating', parseInt(ratingFilter));
       }
 
-      if (ratingFilter) {
-        query = query.eq('rating', parseInt(ratingFilter));
-      }
-
       const offset = (currentPage - 1) * ITEMS_PER_PAGE;
       const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range(offset, offset + ITEMS_PER_PAGE - 1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message || 'Failed to fetch reviews');
+      }
 
-      setReviews(data || []);
+      // Fetch reviewer profiles separately
+      if (data && data.length > 0) {
+        const reviewerIds = [...new Set(data.map(r => r.reviewer_id))];
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('id, name, email, profile_image')
+          .in('id', reviewerIds);
+
+        // Map profiles to reviews
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+        const reviewsWithProfiles = data.map(review => ({
+          ...review,
+          reviewer: profileMap.get(review.reviewer_id) || null
+        }));
+
+        setReviews(reviewsWithProfiles);
+      } else {
+        setReviews(data || []);
+      }
+
       setTotalCount(count || 0);
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
+    } catch (err: any) {
+      console.error('Error fetching reviews:', err);
+      setError(err.message || 'Failed to load reviews. Please check your permissions.');
     } finally {
       setLoading(false);
     }
@@ -68,13 +88,16 @@ export default function ReviewsPage() {
     try {
       const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw new Error(error.message || 'Failed to delete review');
+      }
 
       alert('Review deleted successfully');
       fetchReviews();
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      alert('Failed to delete review');
+    } catch (err: any) {
+      console.error('Error deleting review:', err);
+      alert(err.message || 'Failed to delete review. Please check your permissions.');
     }
   };
 
@@ -117,6 +140,16 @@ export default function ReviewsPage() {
         {loading ? (
           <div className="admin-loading">
             <div className="admin-spinner" />
+          </div>
+        ) : error ? (
+          <div className="py-8 text-center">
+            <p className="text-red-500 mb-2">{error}</p>
+            <button
+              onClick={fetchReviews}
+              className="admin-btn admin-btn-primary px-4 py-2 text-sm"
+            >
+              Retry
+            </button>
           </div>
         ) : reviews.length === 0 ? (
           <p className="text-text-secondary py-8 text-center">No reviews found</p>

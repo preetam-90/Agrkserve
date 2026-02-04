@@ -108,7 +108,7 @@ export function createDashboardBreadcrumb(
   } else if (role === 'provider') {
     items.push({ label: 'Dashboard', href: '/provider/dashboard' });
   } else if (role === 'admin') {
-    items.push({ label: 'Admin', href: '/admin/dashboard' });
+    items.push({ label: 'Admin', href: '/admin' });
   }
 
   if (section) {

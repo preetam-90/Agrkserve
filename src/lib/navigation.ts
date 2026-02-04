@@ -40,33 +40,6 @@ const universalNavItems: NavItem[] = [
     label: 'Dashboard',
     icon: LayoutDashboard,
   },
-  {
-    href: '/notifications',
-    label: 'Notifications',
-    icon: AlertTriangle,
-    badge: 'unreadCount',
-  },
-  {
-    href: '/messages',
-    label: 'Messages',
-    icon: MessageSquare,
-    badge: 'unreadMessages',
-  },
-  {
-    href: '/wallet',
-    label: 'Wallet',
-    icon: Wallet,
-  },
-  {
-    href: '/profile',
-    label: 'Profile',
-    icon: User,
-  },
-  {
-    href: '/settings',
-    label: 'Settings',
-    icon: Settings,
-  },
 ];
 
 // Equipment Provider navigation items
@@ -323,10 +296,7 @@ export function getGroupedNavItems(
   const groups: { section: string; items: NavItem[] }[] = [
     {
       section: 'Overview',
-      items: navItems.filter(
-        (item) =>
-          item.href === '/dashboard' || item.href === '/notifications' || item.href === '/messages'
-      ),
+      items: navItems.filter((item) => item.href === '/dashboard'),
     },
     {
       section: 'Equipment',
@@ -344,9 +314,25 @@ export function getGroupedNavItems(
       items: navItems.filter((item) => item.href.includes('/labour')),
     },
     {
-      section: 'Account',
+      section: 'Rentals',
       items: navItems.filter(
-        (item) => item.href === '/wallet' || item.href === '/profile' || item.href === '/settings'
+        (item) =>
+          item.href.includes('/renter/bookings') ||
+          item.href.includes('/renter/favorites') ||
+          item.href.includes('/renter/orders') ||
+          item.href.includes('/renter/payments') ||
+          item.href.includes('/renter/reviews')
+      ),
+    },
+    {
+      section: 'Account',
+      items: navItems.filter((item) => item.href === '/settings'),
+    },
+    {
+      section: 'Management',
+      items: navItems.filter(
+        (item) =>
+          item.href.includes('/admin/') && !item.href.includes('/admin/settings')
       ),
     },
   ];

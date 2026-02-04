@@ -38,6 +38,7 @@ import { Equipment, EquipmentCategory } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
+import { BackButton } from '@/components/ui/back-button';
 
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -758,6 +759,11 @@ function PublicEquipmentPageContent() {
       <Header />
 
       <main className="mx-auto max-w-[1600px] px-4 pb-8 pt-28">
+        {/* Back Button */}
+        <div className="mb-4">
+          <BackButton variant="minimal" />
+        </div>
+        
         {/* Enhanced Page Header with gradient text */}
         <div className="mb-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">

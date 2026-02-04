@@ -43,6 +43,7 @@ import { useAppStore, useAuthStore, useMessagesStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 import { LabourProfile, LabourAvailability } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { BackButton } from '@/components/ui/back-button';
 
 // Common skills for agricultural labour
 const LABOUR_SKILLS = [
@@ -619,6 +620,11 @@ function LabourPageContent() {
       <Header />
 
       <main className="mx-auto max-w-7xl px-4 pb-8 pt-28">
+        {/* Back Button */}
+        <div className="mb-4">
+          <BackButton variant="minimal" />
+        </div>
+        
         {/* Page Header */}
         <div className="relative mb-8">
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

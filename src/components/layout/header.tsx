@@ -26,7 +26,7 @@ import {
   useMotionValue,
   useTransform,
 } from 'framer-motion';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useAppStore } from '@/lib/store';
 import { Avatar, Button, Badge } from '@/components/ui';
 import {
   DropdownMenu,
@@ -40,6 +40,7 @@ import { cn, formatStatus } from '@/lib/utils';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { MessageBadge } from '@/components/messages';
 import { getRoleDisplayName, getRoleIcon } from '@/lib/navigation';
+import { RoleSwitcher } from '@/components/layout/role-switcher';
 
 const publicNav = [
   { href: '/', label: 'Home', icon: Sprout },
@@ -125,7 +126,7 @@ export function Header() {
   }, [pathname]);
 
   const getDashboardLink = useCallback(() => {
-    if (activeRole === 'admin') return '/admin/dashboard';
+    if (activeRole === 'admin') return '/admin';
     return '/dashboard';
   }, [activeRole]);
 
@@ -220,8 +221,10 @@ export function Header() {
 
         <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
-            {/* Enhanced Logo */}
-            <Link href="/" className="group relative flex items-center gap-3">
+            {/* Left Side: Logo */}
+            <div className="flex items-center gap-3">
+              {/* Enhanced Logo */}
+              <Link href="/" className="group relative flex items-center gap-3">
               <motion.div
                 whileHover={shouldReduceMotion ? {} : { scale: 1.05, rotate: -2 }}
                 whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
@@ -268,6 +271,7 @@ export function Header() {
                 />
               </div>
             </Link>
+            </div>
 
             {/* Desktop Navigation - Glassmorphism Pill */}
             <nav className="hidden items-center md:flex">
@@ -319,7 +323,10 @@ export function Header() {
               {isLoading ? (
                 <div className="h-10 w-32 animate-pulse rounded-full bg-white/5" />
               ) : user ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  {/* Role Switcher */}
+                  <RoleSwitcher />
+                  
                   {/* Notification Icon */}
                   <motion.div
                     whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
@@ -463,6 +470,25 @@ export function Header() {
                           Profile
                         </Link>
                       </DropdownMenuItem>
+                      
+                      {/* Manage Roles - Prominent */}
+                      <DropdownMenuItem
+                        asChild
+                        className="mx-1 my-1 cursor-pointer rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-200"
+                      >
+                        <Link href="/settings/roles" className="flex items-center gap-3 py-2.5">
+                          <Tractor className="h-4 w-4 text-emerald-400" />
+                          <div className="flex flex-1 items-center justify-between">
+                            <span>Manage Roles</span>
+                            {roles.length < 3 && (
+                              <span className="rounded-full bg-emerald-500/30 px-2 py-0.5 text-[10px] font-bold">
+                                NEW
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      </DropdownMenuItem>
+                      
                       <DropdownMenuItem
                         asChild
                         className="mx-1 my-1 cursor-pointer rounded-xl text-white/70 hover:bg-white/5 hover:text-white"
@@ -521,38 +547,6 @@ export function Header() {
                   </motion.div>
                 </div>
               )}
-
-              {/* Mobile Menu Toggle */}
-              <motion.button
-                whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
-                whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:bg-white/10 hover:text-white md:hidden"
-              >
-                <AnimatePresence mode="wait">
-                  {mobileMenuOpen ? (
-                    <motion.div
-                      key="close"
-                      initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                      animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                      exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <X className="h-5 w-5" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="menu"
-                      initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
-                      animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                      exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Menu className="h-5 w-5" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
             </div>
           </div>
         </div>

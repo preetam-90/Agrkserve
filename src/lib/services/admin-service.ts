@@ -17,8 +17,15 @@ export const adminService = {
   async getAnalytics(): Promise<PlatformAnalytics> {
     const { data, error } = await supabase.rpc('get_platform_analytics');
 
-    if (error) throw error;
-    return data || {
+    if (error) {
+      console.error('RPC Error (get_platform_analytics):', error);
+      throw error;
+    }
+    
+    // The RPC function returns JSON, so we need to parse it if it's a string
+    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+    
+    return parsedData || {
       total_users: 0,
       total_farmers: 0,
       total_providers: 0,
@@ -303,9 +310,15 @@ export const adminService = {
       p_period: period,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('RPC Error (get_revenue_stats):', error);
+      throw error;
+    }
 
-    return data || { labels: [], values: [], total: 0 };
+    // The RPC function returns JSON, so we need to parse it if it's a string
+    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+    
+    return parsedData || { labels: [], values: [], total: 0 };
   },
 
   // Send announcement to all users
@@ -329,5 +342,52 @@ export const adminService = {
       .insert(notifications);
 
     if (error) throw error;
+  },
+
+  // Get system health metrics
+  async getSystemHealth(): Promise<{
+    status: 'operational' | 'degraded' | 'error';
+    timestamp: string;
+    metrics: {
+      apiResponseTime: number;
+      dbResponseTime: number;
+      serverLoad: number;
+      dbLoad: number;
+      uptime: number;
+    };
+    checks: {
+      database: boolean;
+      api: boolean;
+    };
+  }> {
+    try {
+      const response = await fetch('/api/admin/health', {
+        cache: 'no-store',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Health check failed');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch system health:', error);
+      // Return degraded status on error
+      return {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        metrics: {
+          apiResponseTime: 0,
+          dbResponseTime: 0,
+          serverLoad: 0,
+          dbLoad: 0,
+          uptime: 0,
+        },
+        checks: {
+          database: false,
+          api: false,
+        },
+      };
+    }
   },
 };

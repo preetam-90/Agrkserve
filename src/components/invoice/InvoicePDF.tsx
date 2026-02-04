@@ -9,6 +9,10 @@ interface InvoicePDFProps {
     renter?: UserProfile;
     provider?: UserProfile;
   };
+  contactInfo?: {
+    email: string;
+    phone: string;
+  };
 }
 
 const BRAND_PRIMARY = '#059669';
@@ -567,9 +571,13 @@ function FooterSection() {
       <View style={styles.footerDivider} />
 
       <View style={styles.supportSection}>
-        <Text style={styles.supportText}>Need help? Contact support@agriserve.com</Text>
+        <Text style={styles.supportText}>
+          Need help? Contact {contactInfo?.email || 'support@agriserve.com'}
+        </Text>
         <Text style={styles.supportText}>|</Text>
-        <Text style={styles.supportText}>Call: +91-1800-AGR-SERVE</Text>
+        <Text style={styles.supportText}>
+          Call: {contactInfo?.phone || '+91-1800-AGR-SERVE'}
+        </Text>
       </View>
 
       <Text style={styles.footerNote}>
@@ -581,7 +589,7 @@ function FooterSection() {
   );
 }
 
-export function InvoicePDF({ booking }: InvoicePDFProps) {
+export function InvoicePDF({ booking, contactInfo }: InvoicePDFProps) {
   if (!booking) {
     return (
       <Document>

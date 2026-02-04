@@ -1,0 +1,594 @@
+/* ============================================
+   FUTURISTIC ADMIN THEME - CYBERPUNK INSPIRED
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Core Colors - Cyberpunk Palette */
+  --admin-primary: #00ff9d;
+  --admin-primary-glow: rgba(0, 255, 157, 0.3);
+  --admin-secondary: #00d4ff;
+  --admin-accent: #ff00ff;
+  --admin-warning: #ffaa00;
+  --admin-danger: #ff0055;
+  --admin-success: #00ff9d;
+  
+  /* Background Layers */
+  --admin-bg-base: #0a0a0f;
+  --admin-bg-elevated: #12121a;
+  --admin-bg-card: #1a1a24;
+  --admin-bg-hover: #22222e;
+  
+  /* Borders & Dividers */
+  --admin-border: rgba(0, 255, 157, 0.1);
+  --admin-border-hover: rgba(0, 255, 157, 0.3);
+  --admin-divider: rgba(255, 255, 255, 0.05);
+  
+  /* Text Colors */
+  --admin-text-primary: #ffffff;
+  --admin-text-secondary: #a0a0b0;
+  --admin-text-muted: #606070;
+  
+  /* Glow Effects */
+  --glow-sm: 0 0 10px var(--admin-primary-glow);
+  --glow-md: 0 0 20px var(--admin-primary-glow);
+  --glow-lg: 0 0 30px var(--admin-primary-glow);
+  
+  /* Shadows */
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.6);
+  
+  /* Grid Pattern */
+  --grid-size: 40px;
+  --grid-color: rgba(0, 255, 157, 0.03);
+}
+
+/* ============================================
+   GLOBAL STYLES
+   ============================================ */
+
+.admin-container {
+  font-family: 'Fira Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--admin-bg-base);
+  color: var(--admin-text-primary);
+  min-height: 100vh;
+}
+
+/* Animated Grid Background */
+.admin-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
+  animation: grid-flow 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes grid-flow {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(var(--grid-size)); }
+}
+
+/* Scanline Effect */
+.admin-scanline {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* ============================================
+   GLASS MORPHISM CARDS
+   ============================================ */
+
+.admin-glass-card {
+  background: rgba(26, 26, 36, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 157, 0.05) 0%,
+    transparent 50%,
+    rgba(0, 212, 255, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-glass-card:hover {
+  border-color: var(--admin-border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated), var(--glow-sm);
+}
+
+.admin-glass-card:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   NEON BUTTONS
+   ============================================ */
+
+.admin-btn-neon {
+  position: relative;
+  padding: 12px 24px;
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--admin-primary);
+  background: transparent;
+  border: 2px solid var(--admin-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.admin-btn-neon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--admin-primary);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: -1;
+}
+
+.admin-btn-neon:hover {
+  color: #0a0a0f;
+  box-shadow: var(--glow-md);
+  transform: translateY(-2px);
+}
+
+.admin-btn-neon:hover::before {
+  transform: translateX(0);
+}
+
+.admin-btn-neon:active {
+  transform: translateY(0);
+}
+
+/* Button Variants */
+.admin-btn-danger {
+  color: var(--admin-danger);
+  border-color: var(--admin-danger);
+}
+
+.admin-btn-danger::before {
+  background: var(--admin-danger);
+}
+
+.admin-btn-warning {
+  color: var(--admin-warning);
+  border-color: var(--admin-warning);
+}
+
+.admin-btn-warning::before {
+  background: var(--admin-warning);
+}
+
+/* ============================================
+   STAT CARDS WITH HOLOGRAPHIC EFFECT
+   ============================================ */
+
+.admin-stat-card {
+  position: relative;
+  background: var(--admin-bg-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 24px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.admin-stat-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--admin-primary-glow) 90deg,
+    transparent 180deg
+  );
+  animation: holographic-rotate 4s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-stat-card:hover::before {
+  opacity: 1;
+}
+
+@keyframes holographic-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.admin-stat-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-stat-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.admin-stat-label {
+  font-size: 14px;
+  color: var(--admin-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.admin-stat-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-stat-trend.up {
+  color: var(--admin-success);
+  background: rgba(0, 255, 157, 0.1);
+}
+
+.admin-stat-trend.down {
+  color: var(--admin-danger);
+  background: rgba(255, 0, 85, 0.1);
+}
+
+/* ============================================
+   DATA TABLES
+   ============================================ */
+
+.admin-table-container {
+  background: var(--admin-bg-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table thead {
+  background: rgba(0, 255, 157, 0.05);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--admin-primary);
+}
+
+.admin-table tbody tr {
+  border-bottom: 1px solid var(--admin-divider);
+  transition: all 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+  background: var(--admin-bg-hover);
+}
+
+.admin-table td {
+  padding: 16px 20px;
+  color: var(--admin-text-primary);
+  font-size: 14px;
+}
+
+/* ============================================
+   BADGES & STATUS INDICATORS
+   ============================================ */
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+}
+
+.admin-badge-success {
+  color: var(--admin-success);
+  background: rgba(0, 255, 157, 0.1);
+  border-color: rgba(0, 255, 157, 0.3);
+}
+
+.admin-badge-warning {
+  color: var(--admin-warning);
+  background: rgba(255, 170, 0, 0.1);
+  border-color: rgba(255, 170, 0, 0.3);
+}
+
+.admin-badge-danger {
+  color: var(--admin-danger);
+  background: rgba(255, 0, 85, 0.1);
+  border-color: rgba(255, 0, 85, 0.3);
+}
+
+.admin-badge-info {
+  color: var(--admin-secondary);
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* Pulse Animation for Status */
+.admin-status-pulse {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.admin-status-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+
+.admin-progress-bar {
+  position: relative;
+  height: 8px;
+  background: var(--admin-bg-elevated);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+}
+
+.admin-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--admin-primary), var(--admin-secondary));
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-progress-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: progress-shimmer 2s infinite;
+}
+
+@keyframes progress-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ============================================
+   CHARTS & DATA VISUALIZATION
+   ============================================ */
+
+.admin-chart-container {
+  background: var(--admin-bg-card);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+}
+
+.admin-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-divider);
+}
+
+.admin-chart-title {
+  font-family: 'Fira Code', monospace;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--admin-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ============================================
+   INPUTS & FORMS
+   ============================================ */
+
+.admin-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  color: var(--admin-text-primary);
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: var(--glow-sm);
+}
+
+.admin-input::placeholder {
+  color: var(--admin-text-muted);
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+.admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: var(--admin-bg-elevated);
+  border-radius: 4px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--admin-primary);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-secondary);
+}
+
+/* ============================================
+   LOADING STATES
+   ============================================ */
+
+.admin-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--admin-border);
+  border-top-color: var(--admin-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--admin-bg-elevated) 0%,
+    var(--admin-bg-hover) 50%,
+    var(--admin-bg-elevated) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+@media (max-width: 768px) {
+  .admin-stat-value {
+    font-size: 24px;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+  
+  .admin-glass-card {
+    border-radius: 12px;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+.admin-btn-neon:focus-visible,
+.admin-input:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}

@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { Spinner } from '@/components/ui';
 import { ProviderDashboardView } from '@/components/dashboard/ProviderDashboardView';
-import { RenterDashboardView } from '@/components/dashboard/RenterDashboardView';
+import { EnhancedRenterDashboard } from '@/components/dashboard/EnhancedRenterDashboard';
 import { LabourDashboardView } from '@/components/dashboard/LabourDashboardView';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -27,9 +28,15 @@ export default function DashboardPage() {
       return;
     }
 
-    // Admin users should go to /admin/dashboard
+    // Admin users should go to /admin
     if (activeRole === 'admin') {
-      router.push('/admin/dashboard');
+      router.push('/admin');
+      return;
+    }
+
+    // Redirect to appropriate dashboard based on active role
+    if (activeRole === 'provider') {
+      router.push('/provider/dashboard');
       return;
     }
   }, [profile, roles, activeRole, isLoading, router]);
@@ -63,7 +70,7 @@ export default function DashboardPage() {
         return <LabourDashboardView />;
       case 'renter':
       default:
-        return <RenterDashboardView />;
+        return <EnhancedRenterDashboard />;
     }
   };
 
@@ -71,13 +78,12 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       <Header />
 
-      <div className="flex">
-        <Sidebar role={sidebarRole} />
-
-        <main className="ml-0 flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:ml-64 lg:px-8 lg:pb-8">
-          {renderDashboardView()}
-        </main>
-      </div>
+      <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-8 lg:pb-8">
+        <div className="mb-4">
+          <BackButton variant="minimal" />
+        </div>
+        {renderDashboardView()}
+      </main>
 
       <Footer />
     </div>

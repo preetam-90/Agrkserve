@@ -1,101 +1,135 @@
+'use client';
+
+import { LucideIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Users, DollarSign, Calendar, Archive } from 'lucide-react';
 
 interface StatsCardProps {
   title: string;
   value: string | number;
-  icon: any;
+  icon: LucideIcon;
+  color?: 'green' | 'blue' | 'purple' | 'yellow' | 'red' | 'cyan';
   trend?: {
     value: number;
     isUp: boolean;
   };
-  color: 'green' | 'blue' | 'yellow' | 'purple';
 }
 
-export default function StatsCard({ title, value, icon: Icon, trend, color }: StatsCardProps) {
-  const colorMap = {
-    green: {
-      gradient: 'from-emerald-500 to-emerald-600',
-      bg: 'bg-emerald-500/10',
-      text: 'text-emerald-400',
-      glow: 'shadow-emerald-500/20',
-    },
-    blue: {
-      gradient: 'from-blue-500 to-blue-600',
-      bg: 'bg-blue-500/10',
-      text: 'text-blue-400',
-      glow: 'shadow-blue-500/20',
-    },
-    yellow: {
-      gradient: 'from-amber-400 to-amber-500',
-      bg: 'bg-amber-500/10',
-      text: 'text-amber-400',
-      glow: 'shadow-amber-500/20',
-    },
-    purple: {
-      gradient: 'from-purple-500 to-purple-600',
-      bg: 'bg-purple-500/10',
-      text: 'text-purple-400',
-      glow: 'shadow-purple-500/20',
-    },
-  };
+const colorMap = {
+  green: {
+    bg: 'rgba(0, 255, 157, 0.1)',
+    border: 'rgba(0, 255, 157, 0.3)',
+    text: '#00ff9d',
+    glow: 'rgba(0, 255, 157, 0.3)',
+  },
+  blue: {
+    bg: 'rgba(0, 212, 255, 0.1)',
+    border: 'rgba(0, 212, 255, 0.3)',
+    text: '#00d4ff',
+    glow: 'rgba(0, 212, 255, 0.3)',
+  },
+  purple: {
+    bg: 'rgba(255, 0, 255, 0.1)',
+    border: 'rgba(255, 0, 255, 0.3)',
+    text: '#ff00ff',
+    glow: 'rgba(255, 0, 255, 0.3)',
+  },
+  yellow: {
+    bg: 'rgba(255, 170, 0, 0.1)',
+    border: 'rgba(255, 170, 0, 0.3)',
+    text: '#ffaa00',
+    glow: 'rgba(255, 170, 0, 0.3)',
+  },
+  red: {
+    bg: 'rgba(255, 0, 85, 0.1)',
+    border: 'rgba(255, 0, 85, 0.3)',
+    text: '#ff0055',
+    glow: 'rgba(255, 0, 85, 0.3)',
+  },
+  cyan: {
+    bg: 'rgba(0, 255, 255, 0.1)',
+    border: 'rgba(0, 255, 255, 0.3)',
+    text: '#00ffff',
+    glow: 'rgba(0, 255, 255, 0.3)',
+  },
+};
 
+export default function StatsCard({ title, value, icon: Icon, color = 'green', trend }: StatsCardProps) {
   const colors = colorMap[color];
 
   return (
     <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="admin-stat-card group cursor-pointer"
       whileHover={{ y: -4 }}
-      className="glass-card group relative overflow-hidden rounded-2xl border border-[#262626] p-6 transition-all duration-300 hover:border-emerald-500/20"
     >
-      {/* Animated gradient background */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-5`}
-      />
-
-      <div className="relative z-10">
-        {/* Header */}
-        <div className="mb-5 flex items-start justify-between">
+      {/* Icon Container */}
+      <div className="admin-stat-card-content">
+        <div className="mb-4 flex items-start justify-between">
           <div
-            className={`rounded-xl p-3 ${colors.bg} ${colors.text} transition-all duration-300 group-hover:scale-110`}
+            className="flex h-12 w-12 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110"
+            style={{
+              backgroundColor: colors.bg,
+              border: `1px solid ${colors.border}`,
+              boxShadow: `0 0 20px ${colors.glow}`,
+            }}
           >
-            <Icon className="h-6 w-6" />
+            <Icon className="h-6 w-6" style={{ color: colors.text }} />
           </div>
+
+          {/* Trend Indicator */}
           {trend && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold ${
-                trend.isUp
-                  ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
-                  : 'border border-red-500/20 bg-red-500/10 text-red-400'
-              }`}
+            <div
+              className={`admin-stat-trend ${trend.isUp ? 'up' : 'down'}`}
             >
               {trend.isUp ? (
-                <TrendingUp className="h-3.5 w-3.5" />
+                <TrendingUp className="h-3 w-3" />
               ) : (
-                <TrendingDown className="h-3.5 w-3.5" />
+                <TrendingDown className="h-3 w-3" />
               )}
-              {trend.value}%
-            </motion.div>
+              <span>{trend.value}%</span>
+            </div>
           )}
         </div>
 
-        {/* Content */}
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-            {title}
-          </p>
-          <h3 className="text-3xl font-bold tracking-tight text-white">{value}</h3>
+        {/* Value */}
+        <div className="admin-stat-value" style={{
+          background: `linear-gradient(135deg, ${colors.text}, ${colors.text}dd)`,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+        }}>
+          {value}
+        </div>
+
+        {/* Label */}
+        <div className="admin-stat-label font-['Fira_Sans']">
+          {title}
+        </div>
+
+        {/* Decorative line */}
+        <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-[var(--admin-bg-elevated)]">
+          <motion.div
+            className="h-full rounded-full"
+            style={{
+              background: `linear-gradient(90deg, ${colors.text}, transparent)`,
+            }}
+            initial={{ width: '0%' }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 1, delay: 0.2 }}
+          />
         </div>
       </div>
 
-      {/* Decorative gradient blob */}
+      {/* Holographic overlay on hover */}
       <div
-        className={`absolute -bottom-6 -right-6 h-32 w-32 bg-gradient-to-br ${colors.gradient} rounded-full opacity-10 blur-3xl transition-opacity duration-500 group-hover:opacity-20`}
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(circle at 50% 0%, ${colors.glow}, transparent 70%)`,
+        }}
       />
-
-      {/* Subtle shine effect */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
     </motion.div>
   );
 }

@@ -4,10 +4,23 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import SearchFilterBar from '@/components/admin/SearchFilterBar';
 import Link from 'next/link';
-import { Eye, Edit, Trash2, Tractor, Plus } from 'lucide-react';
+import { 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Tractor, 
+  Plus, 
+  TrendingUp, 
+  DollarSign, 
+  Package,
+  AlertCircle,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react';
 import { ITEMS_PER_PAGE, EQUIPMENT_CATEGORY_OPTIONS } from '@/lib/utils/admin-constants';
 import DataTable from '@/components/admin/DataTable';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 export default function EquipmentPage() {
   const [equipment, setEquipment] = useState<any[]>([]);
@@ -19,12 +32,19 @@ export default function EquipmentPage() {
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<Record<string, string[]>>({});
   const [isUploading, setIsUploading] = useState(false);
+  const [stats, setStats] = useState({
+    totalAssets: 0,
+    availableCount: 0,
+    rentedCount: 0,
+    totalValue: 0,
+  });
 
   const supabase = createClient();
 
   const fetchEquipment = async () => {
     setLoading(true);
     try {
+      // Build base query for paginated data
       let query = supabase.from('equipment').select(
         `
           *,
@@ -50,8 +70,36 @@ export default function EquipmentPage() {
 
       setEquipment(data || []);
       setTotalCount(count || 0);
+
+      // Fetch ALL equipment for accurate stats (without pagination)
+      let statsQuery = supabase.from('equipment').select('is_available, price_per_day');
+
+      if (search) {
+        statsQuery = statsQuery.or(`name.ilike.%${search}%,brand.ilike.%${search}%,model.ilike.%${search}%`);
+      }
+
+      if (categoryFilter) {
+        statsQuery = statsQuery.eq('category', categoryFilter);
+      }
+
+      const { data: allEquipment, error: statsError } = await statsQuery;
+
+      if (statsError) throw statsError;
+
+      // Calculate stats from all equipment
+      const available = allEquipment?.filter((e) => e.is_available).length || 0;
+      const rented = allEquipment?.filter((e) => !e.is_available).length || 0;
+      const totalValue = allEquipment?.reduce((sum, e) => sum + (e.price_per_day || 0), 0) || 0;
+
+      setStats({
+        totalAssets: count || 0,
+        availableCount: available,
+        rentedCount: rented,
+        totalValue,
+      });
     } catch (error) {
       console.error('Error fetching equipment:', error);
+      toast.error('Failed to load equipment');
     } finally {
       setLoading(false);
     }
@@ -75,16 +123,35 @@ export default function EquipmentPage() {
       label: 'Equipment',
       render: (item: any) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
+          <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm transition-transform hover:scale-105 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
             {item.images?.[0] ? (
-              <img src={item.images[0]} alt={item.name} className="h-full w-full object-cover" />
+              <img 
+                src={item.images[0]} 
+                alt={item.name} 
+                className="h-full w-full object-cover" 
+              />
             ) : (
-              <Tractor className="h-6 w-6 text-slate-400" />
+              <Tractor className="h-7 w-7 text-slate-400 dark:text-slate-500" />
             )}
+            {/* Status indicator badge */}
+            <div className={`absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-800 ${
+              item.is_available ? 'bg-green-500' : 'bg-amber-500'
+            }`} />
           </div>
-          <div>
-            <p className="line-clamp-1 font-medium text-slate-900 dark:text-white">{item.name}</p>
-            <p className="text-xs capitalize text-slate-500">{item.category}</p>
+          <div className="min-w-0 flex-1">
+            <p className="line-clamp-1 font-semibold text-slate-900 dark:text-white">
+              {item.name}
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                {item.category}
+              </span>
+              {item.brand && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {item.brand}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       ),
@@ -94,10 +161,12 @@ export default function EquipmentPage() {
       label: 'Owner',
       render: (item: any) => (
         <div className="flex flex-col">
-          <span className="text-sm text-slate-700 dark:text-slate-300">
+          <span className="font-medium text-slate-900 dark:text-white">
             {item.owner?.name || 'Unknown'}
           </span>
-          <span className="text-xs text-slate-500">{item.owner?.phone}</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            {item.owner?.phone || 'No phone'}
+          </span>
         </div>
       ),
     },
@@ -106,21 +175,26 @@ export default function EquipmentPage() {
       label: 'Price / Day',
       sortable: true,
       render: (item: any) => (
-        <span className="font-mono font-medium text-slate-900 dark:text-white">
-          {formatCurrency(item.price_per_day)}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
+            {formatCurrency(item.price_per_day)}
+          </span>
+          <span className="text-xs text-slate-500">per day</span>
+        </div>
       ),
     },
     {
       key: 'status',
-      label: 'Status',
+      label: 'Availability',
       render: (item: any) =>
         item.is_available ? (
-          <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 dark:border-green-900/30 dark:bg-green-900/20 dark:text-green-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 dark:border-green-900/30 dark:bg-green-900/20 dark:text-green-400">
+            <CheckCircle2 className="h-3.5 w-3.5" />
             Available
           </span>
         ) : (
-          <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/20 dark:text-amber-400">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:border-amber-900/30 dark:bg-amber-900/20 dark:text-amber-400">
+            <XCircle className="h-3.5 w-3.5" />
             Rented
           </span>
         ),
@@ -130,10 +204,16 @@ export default function EquipmentPage() {
       label: 'Rating',
       sortable: true,
       render: (item: any) => (
-        <div className="flex items-center gap-1">
-          <span className="text-amber-400">★</span>
-          <span className="text-sm font-medium">{item.rating || 0}</span>
-          <span className="text-xs text-slate-400">({item.review_count || 0})</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <span className="text-lg text-amber-400">★</span>
+            <span className="text-sm font-bold text-slate-900 dark:text-white">
+              {item.rating?.toFixed(1) || '0.0'}
+            </span>
+          </div>
+          <span className="text-xs text-slate-400">
+            ({item.review_count || 0} reviews)
+          </span>
         </div>
       ),
     },
@@ -143,17 +223,18 @@ export default function EquipmentPage() {
     if (!confirm('Are you sure you want to delete this equipment? This action cannot be undone.'))
       return;
 
+    const loadingToast = toast.loading('Deleting equipment...');
+
     try {
       const { error } = await supabase.from('equipment').delete().eq('id', id);
 
       if (error) throw error;
 
-      // Refresh list
+      toast.success('Equipment deleted successfully', { id: loadingToast });
       fetchEquipment();
-      console.log(`Equipment ${id} deleted`);
     } catch (err) {
       console.error('Error deleting equipment:', err);
-      alert('Failed to delete equipment');
+      toast.error('Failed to delete equipment', { id: loadingToast });
     }
   };
 
@@ -224,102 +305,146 @@ export default function EquipmentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header Section */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Equipment</h1>
-          <p className="mt-1 text-slate-500 dark:text-slate-400">
-            Manage tractors, drones, and other machinery.
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Equipment Management
+          </h1>
+          <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+            Manage tractors, drones, and other machinery across your platform
           </p>
         </div>
         <Link
           href="/provider/equipment/new"
-          className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-green-500/20 transition-colors hover:bg-green-700"
+          className="group flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-500/25 transition-all hover:shadow-xl hover:shadow-green-500/30 active:scale-95"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 transition-transform group-hover:rotate-90" />
           Add Equipment
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="glass-card flex items-center justify-between rounded-2xl p-6">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Total Assets</p>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{totalCount}</h3>
-          </div>
-          <div className="rounded-xl bg-amber-50 p-3 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-            <Tractor className="h-6 w-6" />
-          </div>
-        </div>
-      </div>
-
-      {/* Equipment Image Upload Section */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
-          Upload Equipment Images
-        </h3>
-        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-          Select equipment and upload multiple images (max 10)
-        </p>
-
-        {equipment.length > 0 && (
-          <div className="mb-4">
-            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Select Equipment
-            </label>
-            <select
-              value={selectedEquipmentId || ''}
-              onChange={(e) => setSelectedEquipmentId(e.target.value || null)}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-green-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-            >
-              <option value="">-- Select equipment --</option>
-              {equipment.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name} ({item.category})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {selectedEquipmentId && (
-          <div className="mt-4 max-w-2xl rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-            <p className="mb-2 text-sm text-slate-600 dark:text-slate-400">
-              Image upload is available in the equipment edit page.
-            </p>
-            <Link
-              href={`/admin/equipment/${selectedEquipmentId}`}
-              className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Equipment to Upload Images
-            </Link>
-          </div>
-        )}
-
-        {/* Display uploaded images preview */}
-        {selectedEquipmentId && uploadedImages[selectedEquipmentId]?.length > 0 && (
-          <div className="mt-6">
-            <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-              Recently Uploaded Images:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {uploadedImages[selectedEquipmentId].map((url, idx) => (
-                <div
-                  key={idx}
-                  className="h-20 w-20 overflow-hidden rounded-lg border-2 border-green-200"
-                >
-                  <img
-                    src={url}
-                    alt={`Uploaded ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Total Assets */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Total Assets
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                {stats.totalAssets}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">All equipment items</p>
+            </div>
+            <div className="rounded-xl bg-blue-50 p-3 text-blue-600 transition-transform group-hover:scale-110 dark:bg-blue-900/20 dark:text-blue-400">
+              <Package className="h-6 w-6" />
             </div>
           </div>
-        )}
+          <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-blue-500 to-blue-600" />
+        </motion.div>
+
+        {/* Available */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Available
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                {stats.availableCount}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">Ready to rent</p>
+            </div>
+            <div className="rounded-xl bg-green-50 p-3 text-green-600 transition-transform group-hover:scale-110 dark:bg-green-900/20 dark:text-green-400">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+          </div>
+          <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-green-500 to-green-600" />
+        </motion.div>
+
+        {/* Currently Rented */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Currently Rented
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                {stats.rentedCount}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">In active use</p>
+            </div>
+            <div className="rounded-xl bg-amber-50 p-3 text-amber-600 transition-transform group-hover:scale-110 dark:bg-amber-900/20 dark:text-amber-400">
+              <TrendingUp className="h-6 w-6" />
+            </div>
+          </div>
+          <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-amber-500 to-amber-600" />
+        </motion.div>
+
+        {/* Total Value */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Daily Revenue Potential
+              </p>
+              <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                {formatCurrency(stats.totalValue)}
+              </h3>
+              <p className="mt-1 text-xs text-slate-500">If all rented</p>
+            </div>
+            <div className="rounded-xl bg-purple-50 p-3 text-purple-600 transition-transform group-hover:scale-110 dark:bg-purple-900/20 dark:text-purple-400">
+              <DollarSign className="h-6 w-6" />
+            </div>
+          </div>
+          <div className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-purple-500 to-purple-600" />
+        </motion.div>
       </div>
 
+      {/* Quick Actions Info Card */}
+      {equipment.length === 0 && !loading && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex items-start gap-4 rounded-2xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-900/30 dark:bg-blue-900/10"
+        >
+          <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/30">
+            <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+              No equipment found
+            </h3>
+            <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+              Get started by adding your first equipment item. Click the "Add Equipment" button above to begin.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Data Table */}
       <DataTable
         columns={columns}
         data={equipment}

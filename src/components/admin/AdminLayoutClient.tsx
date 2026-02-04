@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/admin/Sidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
-import '@/app/admin/admin-theme.css';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -11,7 +10,8 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayoutClient({ children, user }: AdminLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Default to true for desktop
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Force dark mode for admin panel
   useEffect(() => {
@@ -23,15 +23,30 @@ export default function AdminLayoutClient({ children, user }: AdminLayoutProps) 
   }, []);
 
   return (
-    <div className="admin-bg-pattern flex min-h-screen bg-[#0a0a0a] font-sans text-white">
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="admin-container relative">
+      {/* Animated Grid Background */}
+      <div className="admin-grid-bg" />
+      
+      {/* Scanline Effect */}
+      <div className="admin-scanline" />
 
-      {/* Main Content Area */}
-      <div className="flex min-w-0 flex-1 flex-col transition-all duration-300">
+      {/* Sidebar - Fixed Position */}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+
+      {/* Main Content Area - Adjusted margin based on sidebar state */}
+      <div 
+        className={`relative flex min-w-0 flex-1 flex-col transition-all duration-300 ${
+          sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[280px]'
+        }`}
+      >
         <AdminHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
 
-        <main className="mx-auto w-full max-w-7xl flex-1 p-6 lg:p-8">{children}</main>
+        <main className="relative z-10 mx-auto w-full max-w-7xl flex-1 p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

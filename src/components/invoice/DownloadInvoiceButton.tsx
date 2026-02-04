@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { InvoicePDF } from './InvoicePDF';
 import type { Booking, Equipment, UserProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { getContactInfo } from '@/lib/services/settings';
 
 interface DownloadInvoiceButtonProps {
   booking: Booking & {
@@ -95,7 +96,10 @@ export function DownloadInvoiceButton({
       try {
         onDownloadStart?.();
 
-        const blob = await pdf(<InvoicePDF booking={booking} />).toBlob();
+        // Fetch contact info for invoice
+        const contactInfo = await getContactInfo();
+
+        const blob = await pdf(<InvoicePDF booking={booking} contactInfo={contactInfo} />).toBlob();
         const url = URL.createObjectURL(blob);
 
         const link = document.createElement('a');

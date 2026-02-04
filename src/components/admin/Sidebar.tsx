@@ -1,4 +1,5 @@
 'use client';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -9,28 +10,36 @@ import {
   CalendarDays,
   Briefcase,
   Settings,
-  LogOut,
   X,
   Database,
   ShieldCheck,
   HardDrive,
-  Sparkles,
+  Zap,
   Image,
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/admin' },
+  { icon: BarChart3, label: 'Analytics', href: '/admin/analytics' },
   { type: 'divider', label: 'Management' },
   { icon: Users, label: 'Users', href: '/admin/users' },
   { icon: Tractor, label: 'Equipment', href: '/admin/equipment' },
   { icon: CalendarDays, label: 'Bookings', href: '/admin/bookings' },
   { icon: Briefcase, label: 'Labour', href: '/admin/labour' },
+  { icon: Star, label: 'Reviews', href: '/admin/reviews' },
   { type: 'divider', label: 'System' },
   { icon: Image, label: 'Media', href: '/admin/media/cloudinary' },
   { icon: HardDrive, label: 'Storage', href: '/admin/storage' },
@@ -39,7 +48,7 @@ const menuItems = [
   { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -52,45 +61,80 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md lg:hidden"
+            className="fixed inset-0 z-40 bg-black/90 backdrop-blur-sm lg:hidden"
           />
         )}
       </AnimatePresence>
 
       {/* Sidebar Container */}
       <motion.aside
+        animate={{ width: isCollapsed ? 80 : 280 }}
         className={cn(
-          'fixed bottom-0 left-0 top-0 z-50 w-[280px] lg:static lg:translate-x-0',
-          'border-r border-[#262626] bg-[#0f0f0f]',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          'fixed bottom-0 left-0 top-0 z-50 lg:translate-x-0',
+          'border-r border-[var(--admin-border)] bg-[var(--admin-bg-elevated)]/80 backdrop-blur-xl',
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
         initial={false}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <div className="flex h-full flex-col">
+        {/* Holographic Border Effect */}
+        <div className="pointer-events-none absolute inset-0 rounded-r-2xl border-r-2 border-[var(--admin-primary)] opacity-20" 
+             style={{
+               boxShadow: '0 0 20px var(--admin-primary-glow)',
+             }}
+        />
+
+        <div className="relative flex h-full flex-col">
           {/* Header */}
-          <div className="flex h-20 items-center border-b border-[#262626] bg-gradient-to-r from-emerald-500/5 to-transparent px-6">
-            <Link href="/admin" className="group flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 opacity-50 blur-md transition-opacity group-hover:opacity-75"></div>
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg">
-                  <Sparkles className="h-5 w-5 text-white" />
+          <div className="flex h-20 items-center justify-between border-b border-[var(--admin-border)] px-6">
+            {!isCollapsed ? (
+              <Link href="/admin" className="group flex items-center gap-3">
+                <div className="relative">
+                  {/* Animated glow effect */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--admin-primary)] to-[var(--admin-secondary)] opacity-50 blur-lg transition-opacity group-hover:opacity-75" />
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--admin-primary)] to-[var(--admin-secondary)] shadow-lg">
+                    <Zap className="h-5 w-5 text-[var(--admin-bg-base)]" />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h1 className="text-lg font-bold tracking-tight text-white">
-                  Agri<span className="gradient-text-admin">Admin</span>
-                </h1>
-                <p className="text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
-                  Control Center
-                </p>
-              </div>
-            </Link>
+                <div>
+                  <h1 className="font-['Fira_Code'] text-lg font-bold tracking-tight text-white">
+                    AGRI<span className="text-[var(--admin-primary)]">ADMIN</span>
+                  </h1>
+                  <p className="font-['Fira_Code'] text-[9px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
+                    Control Center
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <Link href="/admin" className="group mx-auto">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[var(--admin-primary)] to-[var(--admin-secondary)] opacity-50 blur-lg transition-opacity group-hover:opacity-75" />
+                  <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--admin-primary)] to-[var(--admin-secondary)] shadow-lg">
+                    <Zap className="h-5 w-5 text-[var(--admin-bg-base)]" />
+                  </div>
+                </div>
+              </Link>
+            )}
+            
+            {/* Mobile close button */}
             <button
               onClick={onClose}
-              className="ml-auto rounded-lg p-2 text-neutral-400 transition-all hover:bg-white/5 hover:text-white lg:hidden"
+              className="rounded-lg p-2 text-[var(--admin-text-secondary)] transition-all hover:bg-white/5 hover:text-white lg:hidden"
             >
               <X className="h-5 w-5" />
+            </button>
+            
+            {/* Desktop collapse toggle */}
+            <button
+              onClick={onToggleCollapse}
+              className="hidden rounded-lg p-2 text-[var(--admin-text-secondary)] transition-all hover:bg-white/5 hover:text-white lg:block"
+              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-5 w-5" />
+              )}
             </button>
           </div>
 
@@ -98,9 +142,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="admin-scrollbar flex-1 space-y-1 overflow-y-auto px-3 py-6">
             {menuItems.map((item, idx) => {
               if (item.type === 'divider') {
+                if (isCollapsed) {
+                  return (
+                    <div key={idx} className="my-3 border-t border-[var(--admin-border)]" />
+                  );
+                }
                 return (
                   <div key={idx} className="mt-4 px-3 py-4 first:mt-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">
+                    <p className="font-['Fira_Code'] text-[10px] font-bold uppercase tracking-widest text-[var(--admin-text-muted)]">
                       {item.label}
                     </p>
                   </div>
@@ -111,38 +160,61 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               const Icon = item.icon as any;
 
               return (
-                <Link key={idx} href={item.href || '#'}>
+                <Link key={idx} href={item.href || '#'} title={isCollapsed ? item.label : undefined}>
                   <motion.div
-                    whileHover={{ x: 4 }}
+                    whileHover={{ x: isCollapsed ? 0 : 4 }}
                     whileTap={{ scale: 0.98 }}
                     className={cn(
                       'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                      isCollapsed ? 'justify-center' : '',
                       isActive
-                        ? 'bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 text-emerald-400'
-                        : 'text-neutral-400 hover:bg-white/5 hover:text-white'
+                        ? 'bg-gradient-to-r from-[var(--admin-primary)]/10 to-[var(--admin-secondary)]/5 text-[var(--admin-primary)]'
+                        : 'text-[var(--admin-text-secondary)] hover:bg-white/5 hover:text-white'
                     )}
                   >
-                    {isActive && (
+                    {/* Active indicator line */}
+                    {isActive && !isCollapsed && (
                       <motion.div
                         layoutId="active-indicator"
-                        className="absolute left-0 h-8 w-1 rounded-r-full bg-gradient-to-b from-emerald-400 to-emerald-600"
+                        className="absolute left-0 h-8 w-1 rounded-r-full bg-gradient-to-b from-[var(--admin-primary)] to-[var(--admin-secondary)]"
+                        style={{
+                          boxShadow: '0 0 10px var(--admin-primary-glow)',
+                        }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                       />
                     )}
+                    
                     <Icon
                       className={cn(
                         'h-5 w-5 transition-colors',
                         isActive
-                          ? 'text-emerald-400'
-                          : 'text-neutral-500 group-hover:text-neutral-300'
+                          ? 'text-[var(--admin-primary)]'
+                          : 'text-[var(--admin-text-muted)] group-hover:text-[var(--admin-text-secondary)]'
                       )}
                     />
-                    <span>{item.label}</span>
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-dot"
-                        className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-500/50"
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                    
+                    {!isCollapsed && (
+                      <>
+                        <span className="font-['Fira_Sans']">{item.label}</span>
+                        {isActive && (
+                          <motion.div
+                            layoutId="active-dot"
+                            className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--admin-primary)]"
+                            style={{
+                              boxShadow: '0 0 8px var(--admin-primary-glow)',
+                            }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                          />
+                        )}
+                      </>
+                    )}
+                    
+                    {isCollapsed && isActive && (
+                      <div 
+                        className="absolute right-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-l-full bg-gradient-to-b from-[var(--admin-primary)] to-[var(--admin-secondary)]"
+                        style={{
+                          boxShadow: '0 0 10px var(--admin-primary-glow)',
+                        }}
                       />
                     )}
                   </motion.div>
@@ -152,36 +224,41 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Footer Status Card */}
-          <div className="border-t border-[#262626] p-4">
-            <div className="group relative overflow-hidden rounded-2xl border border-[#262626] bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] p-4 transition-all duration-300 hover:border-emerald-500/30">
-              {/* Animated gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-emerald-600/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
-
-              {/* Decorative icon */}
-              <div className="absolute right-2 top-2 opacity-5 transition-opacity group-hover:opacity-10">
-                <ShieldCheck className="h-16 w-16 rotate-12" />
-              </div>
-
-              <div className="relative z-10">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
-                  System Status
-                </p>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <div className="absolute inset-0 h-2 w-2 animate-ping rounded-full bg-emerald-400 opacity-75"></div>
-                    <div className="h-2 w-2 rounded-full bg-emerald-400"></div>
-                  </div>
-                  <span className="text-sm font-semibold text-white">All Systems Operational</span>
+          {!isCollapsed && (
+            <div className="border-t border-[var(--admin-border)] p-4">
+              <div className="admin-glass-card group relative overflow-hidden rounded-2xl p-4">
+                {/* Decorative icon */}
+                <div className="absolute right-2 top-2 opacity-5 transition-opacity group-hover:opacity-10">
+                  <Activity className="h-16 w-16 rotate-12" />
                 </div>
-                <div className="mt-3 border-t border-[#262626] pt-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-neutral-500">Uptime</span>
-                    <span className="font-mono font-semibold text-emerald-400">99.9%</span>
+
+                <div className="relative z-10">
+                  <p className="font-['Fira_Code'] mb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
+                    System Status
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="admin-status-pulse text-[var(--admin-success)]" />
+                    <span className="text-sm font-semibold text-white">All Systems Online</span>
+                  </div>
+                  <div className="mt-3 border-t border-[var(--admin-divider)] pt-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[var(--admin-text-secondary)]">Uptime</span>
+                      <span className="font-['Fira_Code'] font-semibold text-[var(--admin-primary)]">99.9%</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
+          
+          {/* Collapsed Footer - Just Status Indicator */}
+          {isCollapsed && (
+            <div className="border-t border-[var(--admin-border)] p-4">
+              <div className="flex justify-center" title="All Systems Online">
+                <div className="admin-status-pulse text-[var(--admin-success)]" />
+              </div>
+            </div>
+          )}
         </div>
       </motion.aside>
     </>

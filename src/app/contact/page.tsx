@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Mail, Phone, MapPin, Clock, MessageSquare, Sparkles } from 'lucide-react';
 import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
+import { useContactInfo } from '@/lib/hooks/useContactInfo';
 
 /**
  * Contact Us Page
@@ -13,6 +14,7 @@ export default function ContactPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const [mounted, setMounted] = useState(false);
+  const { contactInfo, loading } = useContactInfo();
   const [particles, setParticles] = useState<
     Array<{
       id: number;
@@ -218,8 +220,8 @@ export default function ContactPage() {
                   en: 'Phone',
                   actionHi: 'हमें कॉल करें',
                   actionEn: 'Call us',
-                  value: '+91 1800-XXX-XXXX',
-                  link: 'tel:+911800XXXXXX',
+                  value: contactInfo.phone,
+                  link: `tel:${contactInfo.phone.replace(/\s/g, '')}`,
                   extraHi: 'टोल-फ्री',
                   extraEn: 'Toll-free',
                 },
@@ -229,8 +231,8 @@ export default function ContactPage() {
                   en: 'Email',
                   actionHi: 'हमें लिखें',
                   actionEn: 'Write to us',
-                  value: 'support@agriserve.in',
-                  link: 'mailto:support@agriserve.in',
+                  value: contactInfo.email,
+                  link: `mailto:${contactInfo.email}`,
                   extraHi: '24 घंटे में जवाब',
                   extraEn: 'Reply within 24 hours',
                 },
@@ -240,8 +242,8 @@ export default function ContactPage() {
                   en: 'WhatsApp',
                   actionHi: 'त्वरित सहायता',
                   actionEn: 'Quick support',
-                  value: '+91 1800-XXX-XXXX',
-                  link: 'https://wa.me/911800XXXXXX',
+                  value: contactInfo.whatsapp || contactInfo.phone,
+                  link: `https://wa.me/${(contactInfo.whatsapp || contactInfo.phone).replace(/[^0-9]/g, '')}`,
                   extraHi: 'सोमवार - शनिवार',
                   extraEn: 'Mon - Sat',
                   external: true,
@@ -252,7 +254,7 @@ export default function ContactPage() {
                   en: 'Office',
                   actionHi: 'हमसे मिलें',
                   actionEn: 'Visit us',
-                  value: 'AgriServe Technologies\nBangalore, Karnataka\nIndia - 560001',
+                  value: contactInfo.address,
                   link: '',
                   extraHi: '',
                   extraEn: '',
@@ -345,18 +347,18 @@ export default function ContactPage() {
                       {
                         hi: 'सोमवार - शुक्रवार',
                         en: 'Monday - Friday',
-                        time: '9:00 AM - 6:00 PM',
+                        time: contactInfo.hours.weekday,
                       },
                       {
                         hi: 'शनिवार',
                         en: 'Saturday',
-                        time: '10:00 AM - 4:00 PM',
+                        time: contactInfo.hours.saturday,
                       },
                       {
                         hi: 'रविवार',
                         en: 'Sunday',
-                        time: 'बंद | Closed',
-                        isClosed: true,
+                        time: contactInfo.hours.sunday,
+                        isClosed: contactInfo.hours.sunday.toLowerCase().includes('closed') || contactInfo.hours.sunday.toLowerCase().includes('बंद'),
                       },
                     ].map((schedule, index) => (
                       <motion.div

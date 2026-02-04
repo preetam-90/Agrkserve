@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
 import { getAdminUser } from '@/lib/utils/admin-auth';
 import AdminLayoutClient from '@/components/admin/AdminLayoutClient';
+import './admin-theme-futuristic.css';
 
 export const metadata = {
-    title: 'Admin Panel - AgriServe',
-    description: 'Admin dashboard for AgriServe platform management',
+    title: 'Admin Control Center - AgriServe',
+    description: 'Futuristic admin dashboard for AgriServe platform management',
 };
 
 export default async function AdminLayout({

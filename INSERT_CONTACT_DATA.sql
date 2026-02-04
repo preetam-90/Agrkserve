@@ -1,0 +1,84 @@
+-- ============================================================================
+-- Insert Contact Information Data
+-- This will add all 40+ contact fields to your database
+-- ============================================================================
+
+-- Insert all contact fields with proper JSONB format
+INSERT INTO system_settings (key, value, category) VALUES
+  -- Primary Contact
+  ('support_email_primary', '"support@agriServe.com"'::jsonb, 'contact'),
+  ('support_email_secondary', '"info@agriServe.com"'::jsonb, 'contact'),
+  ('sales_email', '"sales@agriServe.com"'::jsonb, 'contact'),
+  ('support_phone_primary', '"+1-555-0123"'::jsonb, 'contact'),
+  ('support_phone_secondary', '"+1-555-0124"'::jsonb, 'contact'),
+  ('whatsapp_number', '"+1-555-0123"'::jsonb, 'contact'),
+  ('toll_free_number', '"1-800-AGRISERVE"'::jsonb, 'contact'),
+  ('fax_number', '""'::jsonb, 'contact'),
+  ('emergency_contact', '"+1-555-HELP"'::jsonb, 'contact'),
+  
+  -- Business Address
+  ('business_address_line1', '"123 Farm Road"'::jsonb, 'contact'),
+  ('business_address_line2', '"Suite 100"'::jsonb, 'contact'),
+  ('business_city', '"Agriculture City"'::jsonb, 'contact'),
+  ('business_state', '"AC"'::jsonb, 'contact'),
+  ('business_country', '"United States"'::jsonb, 'contact'),
+  ('business_postal_code', '"12345"'::jsonb, 'contact'),
+  
+  -- Social Media
+  ('facebook_url', '""'::jsonb, 'contact'),
+  ('twitter_url', '""'::jsonb, 'contact'),
+  ('instagram_url', '""'::jsonb, 'contact'),
+  ('linkedin_url', '""'::jsonb, 'contact'),
+  ('youtube_url', '""'::jsonb, 'contact'),
+  ('tiktok_url', '""'::jsonb, 'contact'),
+  ('pinterest_url', '""'::jsonb, 'contact'),
+  
+  -- Messaging Apps
+  ('telegram_username', '""'::jsonb, 'contact'),
+  ('discord_server', '""'::jsonb, 'contact'),
+  ('slack_workspace', '""'::jsonb, 'contact'),
+  
+  -- Business Hours
+  ('business_hours_weekday', '"Monday - Friday: 9:00 AM - 6:00 PM"'::jsonb, 'contact'),
+  ('business_hours_saturday', '"Saturday: 10:00 AM - 4:00 PM"'::jsonb, 'contact'),
+  ('business_hours_sunday', '"Sunday: Closed"'::jsonb, 'contact'),
+  ('timezone', '"America/New_York"'::jsonb, 'contact'),
+  
+  -- Additional Info
+  ('company_registration', '""'::jsonb, 'contact'),
+  ('tax_id', '""'::jsonb, 'contact'),
+  ('website_url', '"https://agriServe.com"'::jsonb, 'contact'),
+  ('support_portal_url', '"https://support.agriServe.com"'::jsonb, 'contact'),
+  ('help_center_url', '"https://help.agriServe.com"'::jsonb, 'contact'),
+  
+  -- Map & Location
+  ('google_maps_url', '""'::jsonb, 'contact'),
+  ('latitude', '""'::jsonb, 'contact'),
+  ('longitude', '""'::jsonb, 'contact')
+ON CONFLICT (key) 
+DO UPDATE SET 
+  value = EXCLUDED.value,
+  category = EXCLUDED.category,
+  updated_at = NOW();
+
+-- Verify insertion
+SELECT 
+  'Contact fields inserted' as status,
+  COUNT(*) as total_fields
+FROM system_settings
+WHERE category = 'contact';
+
+-- Show sample data
+SELECT key, value
+FROM system_settings
+WHERE category = 'contact'
+ORDER BY key
+LIMIT 10;
+
+-- Success message
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Contact information fields have been inserted!';
+  RAISE NOTICE '✅ You can now update these values in /admin/settings';
+  RAISE NOTICE '✅ Changes will auto-update on contact page and footer';
+END $$;

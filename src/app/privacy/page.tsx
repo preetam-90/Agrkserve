@@ -1,237 +1,493 @@
-import { Metadata } from 'next';
+"use client";
+
+import { 
+  Shield, 
+  Lock, 
+  Eye, 
+  UserCheck, 
+  FileText, 
+  AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Mail,
+  Phone,
+  MapPin,
+  Database,
+  Globe,
+  ShieldCheck,
+  Hand
+} from 'lucide-react';
+import { useState } from 'react';
 import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
-import { generateSystemPageMetadata, metadataConfigs } from '@/lib/system-pages/page-metadata';
-import { Shield, Lock, Eye, UserCheck, FileText, AlertCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = generateSystemPageMetadata(metadataConfigs.privacy);
-
-/**
- * Privacy Policy Page
- * Data protection and privacy information
- */
-export default function PrivacyPolicyPage() {
-  return (
-    <SystemPageLayout>
-      <div className="max-w-4xl mx-auto">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-            <Shield className="h-8 w-8 text-green-600" />
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            गोपनीयता नीति | Privacy Policy
-          </h1>
-          <p className="text-lg text-gray-600">
-            अंतिम अपडेट: जनवरी 2026 | Last Updated: January 2026
-          </p>
-        </div>
-
-        {/* Introduction */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-8">
+// Privacy policy data structure
+const privacySections = [
+  {
+    id: 'intro',
+    title: 'परिचय | Introduction',
+    icon: Shield,
+    content: (
+      <div className="space-y-4">
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-r-lg">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
-            <div>
-              <p className="text-gray-700 mb-2">
+            <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-gray-700 dark:text-gray-300">
                 AgriServe में, हम आपकी गोपनीयता का सम्मान करते हैं। यह नीति बताती है कि हम आपकी जानकारी कैसे एकत्र, उपयोग और सुरक्षित करते हैं।
               </p>
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-300">
                 At AgriServe, we respect your privacy. This policy explains how we collect, use, and protect your information.
               </p>
             </div>
           </div>
         </div>
-
-        {/* Table of Contents */}
-        <div className="bg-gray-50 rounded-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            विषय-सूची | Table of Contents
-          </h2>
-          <nav className="space-y-2">
-            <a href="#collection" className="block text-green-600 hover:text-green-700">
-              1. जानकारी संग्रह | Information Collection
-            </a>
-            <a href="#usage" className="block text-green-600 hover:text-green-700">
-              2. जानकारी का उपयोग | Information Usage
-            </a>
-            <a href="#sharing" className="block text-green-600 hover:text-green-700">
-              3. जानकारी साझाकरण | Information Sharing
-            </a>
-            <a href="#security" className="block text-green-600 hover:text-green-700">
-              4. डेटा सुरक्षा | Data Security
-            </a>
-            <a href="#rights" className="block text-green-600 hover:text-green-700">
-              5. आपके अधिकार | Your Rights
-            </a>
-            <a href="#contact" className="block text-green-600 hover:text-green-700">
-              6. संपर्क करें | Contact Us
-            </a>
-          </nav>
+      </div>
+    )
+  },
+  {
+    id: 'collection',
+    title: 'जानकारी संग्रह | Information Collection',
+    icon: Database,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          हम निम्नलिखित जानकारी एकत्र करते हैं:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          We collect the following information:
+        </p>
+        <div className="grid md:grid-cols-2 gap-3">
+          {[
+            { text: 'नाम, फोन नंबर, और ईमेल | Name, phone number, and email', icon: FileText },
+            { text: 'पता और स्थान | Address and location', icon: MapPin },
+            { text: 'उपकरण और बुकिंग विवरण | Equipment and booking details', icon: Database },
+            { text: 'भुगतान जानकारी | Payment information', icon: Lock },
+            { text: 'उपयोग डेटा और लॉग | Usage data and logs', icon: Eye },
+          ].map((item, index) => (
+            <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <item.icon className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
+            </div>
+          ))}
         </div>
-
-        {/* Content Sections */}
-        <div className="space-y-8">
-          {/* Section 1 */}
-          <section id="collection">
-            <div className="flex items-start gap-3 mb-4">
-              <FileText className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  1. जानकारी संग्रह | Information Collection
-                </h2>
-                <p className="text-gray-700 mb-3">
-                  हम निम्नलिखित जानकारी एकत्र करते हैं:
-                </p>
-                <p className="text-gray-700 mb-3">
-                  We collect the following information:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-                  <li>नाम, फोन नंबर, और ईमेल | Name, phone number, and email</li>
-                  <li>पता और स्थान | Address and location</li>
-                  <li>उपकरण और बुकिंग विवरण | Equipment and booking details</li>
-                  <li>भुगतान जानकारी | Payment information</li>
-                  <li>उपयोग डेटा और लॉग | Usage data and logs</li>
-                </ul>
-              </div>
+      </div>
+    )
+  },
+  {
+    id: 'usage',
+    title: 'जानकारी का उपयोग | Information Usage',
+    icon: Eye,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          हम आपकी जानकारी का उपयोग करते हैं:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          We use your information to:
+        </p>
+        <div className="grid gap-3">
+          {[
+            { text: 'सेवाएं प्रदान करने के लिए | Provide services', icon: Shield },
+            { text: 'बुकिंग प्रबंधित करने के लिए | Manage bookings', icon: Database },
+            { text: 'भुगतान प्रक्रिया के लिए | Process payments', icon: Lock },
+            { text: 'ग्राहक सहायता के लिए | Customer support', icon: Hand },
+            { text: 'सेवा सुधार के लिए | Improve services', icon: Eye },
+            { text: 'महत्वपूर्ण अपडेट भेजने के लिए | Send important updates', icon: Mail },
+          ].map((item, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <item.icon className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <span className="text-gray-700 dark:text-gray-300">{item.text}</span>
             </div>
-          </section>
-
-          {/* Section 2 */}
-          <section id="usage">
-            <div className="flex items-start gap-3 mb-4">
-              <Eye className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  2. जानकारी का उपयोग | Information Usage
-                </h2>
-                <p className="text-gray-700 mb-3">
-                  हम आपकी जानकारी का उपयोग करते हैं:
-                </p>
-                <p className="text-gray-700 mb-3">
-                  We use your information to:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-                  <li>सेवाएं प्रदान करने के लिए | Provide services</li>
-                  <li>बुकिंग प्रबंधित करने के लिए | Manage bookings</li>
-                  <li>भुगतान प्रक्रिया के लिए | Process payments</li>
-                  <li>ग्राहक सहायता के लिए | Customer support</li>
-                  <li>सेवा सुधार के लिए | Improve services</li>
-                  <li>महत्वपूर्ण अपडेट भेजने के लिए | Send important updates</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 3 */}
-          <section id="sharing">
-            <div className="flex items-start gap-3 mb-4">
-              <UserCheck className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  3. जानकारी साझाकरण | Information Sharing
-                </h2>
-                <p className="text-gray-700 mb-3">
-                  हम आपकी जानकारी साझा नहीं करते, सिवाय:
-                </p>
-                <p className="text-gray-700 mb-3">
-                  We do not share your information, except:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-                  <li>बुकिंग पूरी करने के लिए उपकरण मालिकों के साथ | With equipment owners to complete bookings</li>
-                  <li>भुगतान प्रक्रिया के लिए | For payment processing</li>
-                  <li>कानूनी आवश्यकताओं के लिए | For legal requirements</li>
-                  <li>आपकी सहमति से | With your consent</li>
-                </ul>
-                <p className="text-gray-700 mt-3">
-                  हम आपकी जानकारी कभी भी तीसरे पक्ष को नहीं बेचते।
-                </p>
-                <p className="text-gray-700">
-                  We never sell your information to third parties.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 4 */}
-          <section id="security">
-            <div className="flex items-start gap-3 mb-4">
-              <Lock className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  4. डेटा सुरक्षा | Data Security
-                </h2>
-                <p className="text-gray-700 mb-3">
-                  हम आपके डेटा की सुरक्षा के लिए उद्योग-मानक उपाय करते हैं:
-                </p>
-                <p className="text-gray-700 mb-3">
-                  We use industry-standard measures to protect your data:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-                  <li>एन्क्रिप्टेड डेटा ट्रांसमिशन (SSL/TLS) | Encrypted data transmission (SSL/TLS)</li>
-                  <li>सुरक्षित सर्वर और डेटाबेस | Secure servers and databases</li>
-                  <li>नियमित सुरक्षा ऑडिट | Regular security audits</li>
-                  <li>सीमित कर्मचारी पहुंच | Limited employee access</li>
-                  <li>दो-कारक प्रमाणीकरण | Two-factor authentication</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 5 */}
-          <section id="rights">
-            <div className="flex items-start gap-3 mb-4">
-              <Shield className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  5. आपके अधिकार | Your Rights
-                </h2>
-                <p className="text-gray-700 mb-3">
-                  आपके पास निम्नलिखित अधिकार हैं:
-                </p>
-                <p className="text-gray-700 mb-3">
-                  You have the following rights:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-gray-700 ml-4">
-                  <li>अपनी जानकारी देखने का अधिकार | Right to view your information</li>
-                  <li>जानकारी सुधारने का अधिकार | Right to correct information</li>
-                  <li>डेटा हटाने का अधिकार | Right to delete data</li>
-                  <li>डेटा पोर्टेबिलिटी का अधिकार | Right to data portability</li>
-                  <li>मार्केटिंग से ऑप्ट-आउट करने का अधिकार | Right to opt-out of marketing</li>
-                </ul>
-                <p className="text-gray-700 mt-3">
-                  इन अधिकारों का उपयोग करने के लिए, हमसे संपर्क करें।
-                </p>
-                <p className="text-gray-700">
-                  To exercise these rights, contact us.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 6 */}
-          <section id="contact">
-            <div className="bg-green-50 rounded-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                6. संपर्क करें | Contact Us
-              </h2>
-              <p className="text-gray-700 mb-4">
-                गोपनीयता से संबंधित प्रश्नों के लिए:
-              </p>
-              <p className="text-gray-700 mb-4">
-                For privacy-related questions:
-              </p>
-              <div className="space-y-2 text-gray-700">
-                <p>📧 Email: privacy@agriserve.in</p>
-                <p>📞 Phone: +91 1800-XXX-XXXX</p>
-                <p>📍 Address: AgriServe Technologies, Bangalore, India</p>
-              </div>
-            </div>
-          </section>
+          ))}
         </div>
+      </div>
+    )
+  },
+  {
+    id: 'sharing',
+    title: 'जानकारी साझाकरण | Information Sharing',
+    icon: UserCheck,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          हम आपकी जानकारी साझा नहीं करते, सिवाय:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          We do not share your information, except:
+        </p>
+        <div className="grid md:grid-cols-2 gap-3">
+          {[
+            { text: 'बुकिंग पूरी करने के लिए उपकरण मालिकों के साथ | With equipment owners to complete bookings', icon: UserCheck },
+            { text: 'भुगतान प्रक्रिया के लिए | For payment processing', icon: Lock },
+            { text: 'कानूनी आवश्यकताओं के लिए | For legal requirements', icon: Shield },
+            { text: 'आपकी सहमति से | With your consent', icon: Hand },
+          ].map((item, index) => (
+            <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <item.icon className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-r-lg">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+            <p className="text-green-800 dark:text-green-200">
+              हम आपकी जानकारी कभी भी तीसरे पक्ष को नहीं बेचते। | We never sell your information to third parties.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'security',
+    title: 'डेटा सुरक्षा | Data Security',
+    icon: Lock,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          हम आपके डेटा की सुरक्षा के लिए उद्योग-मानक उपाय करते हैं:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          We use industry-standard measures to protect your data:
+        </p>
+        <div className="grid gap-3">
+          {[
+            { text: 'एन्क्रिप्टेड डेटा ट्रांसमिशन (SSL/TLS) | Encrypted data transmission (SSL/TLS)', icon: Lock },
+            { text: 'सुरक्षित सर्वर और डेटाबेस | Secure servers and databases', icon: Database },
+            { text: 'नियमित सुरक्षा ऑडिट | Regular security audits', icon: Shield },
+            { text: 'सीमित कर्मचारी पहुंच | Limited employee access', icon: UserCheck },
+            { text: 'दो-कारक प्रमाणीकरण | Two-factor authentication', icon: ShieldCheck },
+          ].map((item, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+              <item.icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-gray-700 dark:text-gray-300">{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'rights',
+    title: 'आपके अधिकार | Your Rights',
+    icon: Hand,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          आपके पास निम्नलिखित अधिकार हैं:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          You have the following rights:
+        </p>
+        <div className="grid md:grid-cols-2 gap-3">
+          {[
+            { text: 'अपनी जानकारी देखने का अधिकार | Right to view your information', icon: Eye },
+            { text: 'जानकारी सुधारने का अधिकार | Right to correct information', icon: FileText },
+            { text: 'डेटा हटाने का अधिकार | Right to delete data', icon: Hand },
+            { text: 'डेटा पोर्टेबिलिटी का अधिकार | Right to data portability', icon: Database },
+            { text: 'मार्केटिंग से ऑप्ट-आउट करने का अधिकार | Right to opt-out of marketing', icon: Shield },
+          ].map((item, index) => (
+            <div key={index} className="flex items-start gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <item.icon className="h-5 w-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+          <p className="text-blue-800 dark:text-blue-200">
+            इन अधिकारों का उपयोग करने के लिए, हमसे संपर्क करें। | To exercise these rights, contact us.
+          </p>
+        </div>
+      </div>
+    )
+  },
+  {
+    id: 'cookies',
+    title: 'कुकीज़ और ट्रैकिंग | Cookies and Tracking',
+    icon: Globe,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          हम वेबसाइट सुधार के लिए कुकीज़ का उपयोग करते हैं:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          We use cookies to improve website experience:
+        </p>
+        <div className="grid gap-3">
+          {[
+            { text: 'आवश्यक कुकीज़ | Essential cookies', icon: Shield },
+            { text: 'प्रदर्शन कुकीज़ | Performance cookies', icon: Eye },
+            { text: 'कार्यात्मक कुकीज़ | Functional cookies', icon: Database },
+            { text: 'विज्ञापन कुकीज़ | Advertising cookies', icon: ShieldCheck },
+          ].map((item, index) => (
+            <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <item.icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-gray-700 dark:text-gray-300">{item.text}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          आप अपने ब्राउज़र सेटिंग्स में कुकीज़ अक्षम कर सकते हैं। | You can disable cookies in your browser settings.
+        </p>
+      </div>
+    )
+  },
+  {
+    id: 'international',
+    title: 'अंतर्राष्ट्रीय डेटा स्थानांतरण | International Data Transfers',
+    icon: Globe,
+    content: (
+      <div className="space-y-4">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg">
+          <div className="flex items-start gap-3">
+            <Globe className="h-5 w-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <p className="text-yellow-800 dark:text-yellow-200 font-medium">महत्वपूर्ण | Important:</p>
+              <ul className="list-disc list-inside space-y-1 text-sm text-yellow-700 dark:text-yellow-300">
+                <li>आपकी जानकारी भारत में संग्रहीत की जाती है | Your information is stored in India</li>
+                <li>हम डेटा स्थानांतरण के लिए सुरक्षा उपाय करते हैं | We ensure security measures for data transfers</li>
+                <li>हम कानूनी आवश्यकताओं का पालन करते हैं | We comply with legal requirements</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+];
 
-        {/* Last Updated */}
-        <div className="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p>यह नीति अंतिम बार जनवरी 2026 में अपडेट की गई थी।</p>
-          <p>This policy was last updated in January 2026.</p>
+// Client component for accordion sections
+function PrivacyAccordionSection({ 
+  section, 
+  isOpen, 
+  onToggle,
+  index 
+}: { 
+  section: typeof privacySections[0];
+  isOpen: boolean;
+  onToggle: () => void;
+  index: number;
+}) {
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-green-900/10">
+      <button
+        onClick={onToggle}
+        className={cn(
+          "w-full px-6 py-4 flex items-center justify-between text-left transition-colors duration-300",
+          isOpen 
+            ? "bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/10" 
+            : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+        )}
+      >
+        <div className="flex items-center gap-4">
+          <div className={cn(
+            "w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300",
+            isOpen 
+              ? "bg-green-100 dark:bg-green-900/30" 
+              : "bg-gray-100 dark:bg-gray-700"
+          )}>
+            <section.icon className={cn(
+              "h-5 w-5 transition-colors duration-300",
+              isOpen ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-300"
+            )} />
+          </div>
+          <div>
+            <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+              0{index + 1}
+            </span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {section.title}
+            </h2>
+          </div>
+        </div>
+        <ChevronDown className={cn(
+          "h-5 w-5 text-gray-400 transition-transform duration-300",
+          isOpen && "rotate-180"
+        )} />
+      </button>
+      
+      <div className={cn(
+        "overflow-hidden transition-all duration-300 ease-in-out",
+        isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+      )}>
+        <div className="p-6 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-100">
+          {section.content}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Searchable Table of Contents
+function TableOfContents({ 
+  activeId, 
+  onNavigate 
+}: { 
+  activeId: string | null;
+  onNavigate: (id: string) => void;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSections = privacySections.filter(section =>
+    section.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 sticky top-32">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Table of Contents
+        </h3>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search privacy policy..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+          />
+        </div>
+      </div>
+      
+      <nav className="space-y-1">
+        {filteredSections.map((section, index) => (
+          <button
+            key={section.id}
+            onClick={() => onNavigate(section.id)}
+            className={cn(
+              "w-full text-left px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center gap-2",
+              activeId === section.id
+                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+            )}
+          >
+            <span className="text-green-600 dark:text-green-400 font-mono">0{index + 1}.</span>
+            <span className="truncate">{section.title.split('|')[1]?.trim() || section.title.split('|')[0]}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+// Hero Section Component
+function PrivacyHero() {
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/10 dark:to-teal-900/10 rounded-2xl p-8 md:p-12 mb-8">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-200/30 dark:bg-green-800/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-teal-200/30 dark:bg-teal-800/20 rounded-full blur-3xl" />
+      </div>
+      
+      <div className="relative z-10 text-center">
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl mb-6 shadow-lg">
+          <Shield className="h-10 w-10 text-white" />
+        </div>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          गोपनीयता नीति | Privacy Policy
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
+          अंतिम अपडेट: जनवरी 2026 | Last Updated: January 2026
+        </p>
+        <div className="flex flex-wrap justify-center gap-3 mt-6">
+          <span className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
+            ✓ सुरक्षित | Secure
+          </span>
+          <span className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium">
+            ✓ कानूनी | Legal
+          </span>
+          <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full text-sm font-medium">
+            ✓ पारदर्शी | Transparent
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Contact Card Component
+function ContactCard() {
+  return (
+    <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white">
+      <h3 className="text-xl font-bold mb-4">संपर्क करें | Contact Us</h3>
+      <p className="text-green-100 mb-4">
+        गोपनीयता से संबंधित प्रश्नों के लिए: | For privacy-related questions:
+      </p>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <Mail className="h-5 w-5" />
+          </div>
+          <span>privacy@agriserve.in</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <Phone className="h-5 w-5" />
+          </div>
+          <span>+91 1800-XXX-XXXX</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <span>AgriServe Technologies, Bangalore, India</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main Page Component with client-side interactivity
+export default function PrivacyPolicyPage() {
+  const [openSection, setOpenSection] = useState<string | null>('intro');
+  const [activeId, setActiveId] = useState<string | null>('intro');
+
+  const handleNavigate = (id: string) => {
+    setOpenSection(id);
+    setActiveId(id);
+  };
+
+  return (
+    <SystemPageLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <PrivacyHero />
+
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Table of Contents - Sidebar */}
+          <div className="lg:col-span-1">
+            <TableOfContents activeId={activeId} onNavigate={handleNavigate} />
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
+            {privacySections.map((section, index) => (
+              <PrivacyAccordionSection
+                key={section.id}
+                section={section}
+                index={index}
+                isOpen={openSection === section.id}
+                onToggle={() => setOpenSection(openSection === section.id ? null : section.id)}
+              />
+            ))}
+
+            {/* Contact Section */}
+            <div className="mt-8">
+              <ContactCard />
+            </div>
+
+            {/* Last Updated */}
+            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
+              <p className="text-gray-500 dark:text-gray-400">
+                यह नीति अंतिम बार जनवरी 2026 में अपडेट की गई थी। | This policy was last updated in January 2026.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </SystemPageLayout>

@@ -3,12 +3,9 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useContactInfo } from '@/lib/hooks/useContactInfo';
 import {
   Tractor,
-  Facebook,
-  Twitter,
-  Instagram,
-  Linkedin,
   Mail,
   Phone,
   MapPin,
@@ -18,6 +15,12 @@ import {
   Sprout,
   ChevronRight,
 } from 'lucide-react';
+import { 
+  FaFacebook, 
+  FaTwitter, 
+  FaInstagram, 
+  FaLinkedin 
+} from 'react-icons/fa';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -40,33 +43,34 @@ const scaleOnHover = {
 
 export function PremiumFooter() {
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+  const { contactInfo } = useContactInfo();
 
   const footerLinks = {
     product: [
       { id: 'equipment', label: 'Equipment', href: '/equipment' },
       { id: 'labor', label: 'Labor', href: '/labour' },
-      { id: 'pricing', label: 'Pricing', href: '/equipment#pricing' },
-      { id: 'how-it-works', label: 'How It Works', href: '/#how-it-works' },
+      { id: 'bookings', label: 'Bookings', href: '/bookings' },
+      { id: 'gallery', label: 'Gallery', href: '/gallery' },
     ],
     company: [
       { id: 'about', label: 'About Us', href: '/about' },
       { id: 'contact', label: 'Contact', href: '/contact' },
-      { id: 'careers', label: 'Careers', href: '/about#careers' },
-      { id: 'blog', label: 'Blog', href: '/about#blog' },
+      { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+      { id: 'profile', label: 'Profile', href: '/profile' },
     ],
     support: [
       { id: 'help', label: 'Help Center', href: '/help' },
       { id: 'terms', label: 'Terms of Service', href: '/terms' },
       { id: 'privacy', label: 'Privacy Policy', href: '/privacy' },
-      { id: 'safety', label: 'Safety', href: '/help#safety' },
+      { id: 'settings', label: 'Settings', href: '/settings' },
     ],
   };
 
   const socialLinks = [
-    { icon: Facebook, href: 'https://facebook.com/agriserve', label: 'Facebook', color: '#1877F2' },
-    { icon: Twitter, href: 'https://twitter.com/agriserve', label: 'Twitter', color: '#1DA1F2' },
-    { icon: Instagram, href: 'https://instagram.com/agriserve', label: 'Instagram', color: '#E4405F' },
-    { icon: Linkedin, href: 'https://linkedin.com/company/agriserve', label: 'LinkedIn', color: '#0A66C2' },
+    { icon: FaFacebook, href: contactInfo.social.facebook || 'https://facebook.com/agriserve', label: 'Facebook', color: '#1877F2' },
+    { icon: FaTwitter, href: contactInfo.social.twitter || 'https://twitter.com/agriserve', label: 'Twitter', color: '#1DA1F2' },
+    { icon: FaInstagram, href: contactInfo.social.instagram || 'https://instagram.com/agriserve', label: 'Instagram', color: '#E4405F' },
+    { icon: FaLinkedin, href: contactInfo.social.linkedin || 'https://linkedin.com/company/agriserve', label: 'LinkedIn', color: '#0A66C2' },
   ];
 
 
@@ -212,9 +216,9 @@ export function PremiumFooter() {
             {/* Contact Info */}
             <div className="space-y-4" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
               {[
-                { icon: Mail, text: 'support@agriserve.in', href: 'mailto:support@agriserve.in' },
-                { icon: Phone, text: '+91 1800-AGRISERVE', href: 'tel:+9118002474737' },
-                { icon: MapPin, text: 'Serving farmers across India', href: null },
+                { icon: Mail, text: contactInfo.email, href: `mailto:${contactInfo.email}` },
+                { icon: Phone, text: contactInfo.phone, href: `tel:${contactInfo.phone.replace(/\s/g, '')}` },
+                { icon: MapPin, text: contactInfo.address, href: null },
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -356,21 +360,21 @@ export function PremiumFooter() {
             </ul>
           </motion.div>
 
-          {/* Resources */}
+          {/* Quick Access */}
           <motion.div className="lg:col-span-2" variants={fadeInUp}>
             <h3
               className="font-bold text-lg mb-6 text-white flex items-center gap-2"
               style={{ fontFamily: '"Playfair Display", serif' }}
             >
               <span className="w-8 h-px bg-gradient-to-r from-green-500 to-transparent" />
-              Resources
+              Quick Access
             </h3>
             <ul className="space-y-3" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
               {[
-                { id: 'docs', label: 'Documentation', href: '/docs' },
-                { id: 'api', label: 'API Reference', href: '/api' },
-                { id: 'guides', label: 'Guides', href: '/guides' },
-                { id: 'community', label: 'Community', href: '/community' },
+                { id: 'messages', label: 'Messages', href: '/messages' },
+                { id: 'notifications', label: 'Notifications', href: '/notifications' },
+                { id: 'provider', label: 'Provider Portal', href: '/provider' },
+                { id: 'renter', label: 'Renter Portal', href: '/renter' },
               ].map((link, index) => (
                 <motion.li
                   key={link.id}
