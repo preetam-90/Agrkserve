@@ -76,6 +76,11 @@ export default function RootLayout({
           src="https://cloud.umami.is/script.js"
           data-website-id="c6c9d3b1-c5c8-4c49-a9f6-1ca368cc92d0"
         />
+        <script
+          defer
+          src="https://umami-production-4afa.up.railway.app/script.js"
+          data-website-id="a2a1c58a-8322-46dd-a7f3-2944863a2740"
+        />
       </head>
       <body className={`${inter.variable} ${playfair.variable} antialiased overflow-x-hidden`}>
         <Providers>
