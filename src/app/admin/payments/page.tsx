@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import SearchFilterBar from '@/components/admin/SearchFilterBar';
 import Pagination from '@/components/admin/Pagination';
 import { ITEMS_PER_PAGE, PAYMENT_STATUS_OPTIONS, STATUS_COLORS } from '@/lib/utils/admin-constants';
+import { CreditCard, TrendingUp, DollarSign, Plus, Database } from 'lucide-react';
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -20,6 +21,8 @@ export default function PaymentsPage() {
   const fetchPayments = async () => {
     setLoading(true);
     try {
+      console.log('🔍 Fetching payments...');
+      
       let query = supabase.from('payments').select(
         `
           *,
@@ -41,30 +44,44 @@ export default function PaymentsPage() {
         query = query.eq('status', statusFilter);
       }
 
-      if (statusFilter) {
-        query = query.eq('status', statusFilter);
-      }
-
       const offset = (currentPage - 1) * ITEMS_PER_PAGE;
       const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range(offset, offset + ITEMS_PER_PAGE - 1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching payments:', error);
+        throw error;
+      }
+
+      console.log('✅ Payments fetched:', data?.length || 0, 'records');
+      console.log('📊 Total count:', count);
+      
+      if (data && data.length > 0) {
+        console.log('📝 Sample payment:', data[0]);
+      }
 
       setPayments(data || []);
       setTotalCount(count || 0);
 
       // Calculate total revenue (completed payments only)
-      const { data: completedPayments } = await supabase
+      const { data: completedPayments, error: revenueError } = await supabase
         .from('payments')
         .select('amount')
         .eq('status', 'completed');
 
+      if (revenueError) {
+        console.error('❌ Error fetching revenue:', revenueError);
+      } else {
+        console.log('💰 Completed payments:', completedPayments?.length || 0);
+      }
+
       const revenue = completedPayments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) || 0;
       setTotalRevenue(revenue);
+      
+      console.log('💵 Total revenue:', revenue);
     } catch (error) {
-      console.error('Error fetching payments:', error);
+      console.error('❌ Error in fetchPayments:', error);
     } finally {
       setLoading(false);
     }

@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import SearchFilterBar from '@/components/admin/SearchFilterBar';
 import Link from 'next/link';
-import { Eye, Ban, CheckCircle, Loader2, Users } from 'lucide-react';
+import { Eye, Ban, CheckCircle, Loader2, Users, UserPlus } from 'lucide-react';
 import { ITEMS_PER_PAGE } from '@/lib/utils/admin-constants';
 import DataTable from '@/components/admin/DataTable';
+import CreateUserModal from '@/components/admin/CreateUserModal';
 
 export default function UsersPage() {
     const [users, setUsers] = useState<any[]>([]);
@@ -15,6 +16,7 @@ export default function UsersPage() {
     const [roleFilter, setRoleFilter] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const supabase = createClient();
 
@@ -149,9 +151,12 @@ export default function UsersPage() {
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">User Management</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Manage platform access and user roles.</p>
                 </div>
-                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-green-500/20">
-                    <CheckCircle className="w-4 h-4" />
-                    Verify New Users
+                <button 
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20"
+                >
+                    <UserPlus className="w-4 h-4" />
+                    Add New User
                 </button>
             </div>
 
@@ -180,6 +185,14 @@ export default function UsersPage() {
                     totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE),
                     onPageChange: setCurrentPage,
                     totalItems: totalCount
+                }}
+            />
+
+            <CreateUserModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={() => {
+                    fetchUsers();
                 }}
             />
         </div>

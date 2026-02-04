@@ -89,7 +89,7 @@ export default function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="admin-glass-card absolute right-0 z-40 mt-2 w-80 overflow-hidden"
+                  className="absolute right-0 top-full z-40 mt-2 w-80 overflow-hidden rounded-2xl border border-[var(--admin-border)] bg-[rgba(26,26,36,0.95)] shadow-2xl backdrop-blur-2xl"
                 >
                   <div className="border-b border-[var(--admin-border)] bg-gradient-to-br from-[var(--admin-primary)]/10 to-transparent p-4">
                     <p className="font-['Fira_Code'] text-sm font-semibold text-white">NOTIFICATIONS</p>
@@ -193,7 +193,7 @@ export default function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="admin-glass-card absolute right-0 z-40 mt-2 w-64 overflow-hidden"
+                  className="absolute right-0 top-full z-40 mt-2 w-64 overflow-hidden rounded-2xl border border-[var(--admin-border)] bg-[rgba(26,26,36,0.95)] shadow-2xl backdrop-blur-2xl"
                 >
                   {/* Header */}
                   <div className="border-b border-[var(--admin-border)] bg-gradient-to-br from-[var(--admin-primary)]/10 to-transparent p-4">

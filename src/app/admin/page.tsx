@@ -343,9 +343,10 @@ async function getSystemHealth() {
 export default async function AdminDashboard({
   searchParams,
 }: {
-  searchParams: { timeRange?: string };
+  searchParams: Promise<{ timeRange?: string }>;
 }) {
-  const timeRange = searchParams.timeRange || 'last_7_days';
+  const params = await searchParams;
+  const timeRange = params.timeRange || 'last_7_days';
   
   const [stats, recentBookings, systemHealth, recentUsers, activityFeed] = await Promise.all([
     getAdminStats(timeRange),

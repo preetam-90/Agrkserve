@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   TrendingUp,
   Users,
@@ -30,6 +31,7 @@ import {
 import { useAuthStore } from '@/lib/store';
 import { adminService } from '@/lib/services/admin-service';
 import type { PlatformAnalytics } from '@/lib/types';
+import RevenueDetailsModal from '@/components/admin/RevenueDetailsModal';
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -52,6 +54,7 @@ export default function AnalyticsPage() {
     };
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading && (!profile || !profile.roles?.includes('admin'))) {
@@ -223,6 +226,8 @@ export default function AnalyticsPage() {
       trend: 'up' as const,
       icon: CreditCard,
       gradient: 'from-emerald-500 to-teal-600',
+      onClick: () => setIsRevenueModalOpen(true),
+      isModal: true,
     },
     {
       title: 'Total Bookings',
@@ -231,6 +236,8 @@ export default function AnalyticsPage() {
       trend: 'up' as const,
       icon: Calendar,
       gradient: 'from-blue-500 to-cyan-600',
+      link: '/admin/bookings',
+      isModal: false,
     },
     {
       title: 'Active Users',
@@ -239,6 +246,8 @@ export default function AnalyticsPage() {
       trend: 'up' as const,
       icon: Users,
       gradient: 'from-violet-500 to-purple-600',
+      link: '/admin/users',
+      isModal: false,
     },
     {
       title: 'Equipment Listed',
@@ -247,6 +256,8 @@ export default function AnalyticsPage() {
       trend: 'up' as const,
       icon: Package,
       gradient: 'from-amber-500 to-orange-600',
+      link: '/admin/equipment',
+      isModal: false,
     },
   ];
 
@@ -310,37 +321,75 @@ export default function AnalyticsPage() {
 
         {/* Responsive Metrics Grid */}
         <div className="mb-4 grid gap-2.5 sm:mb-5 sm:grid-cols-2 sm:gap-3 md:mb-6 lg:grid-cols-4">
-          {metrics.map((metric, index) => (
-            <Card 
-              key={index} 
-              className="group relative overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10"
-            >
-              <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2">
-                <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">{metric.title}</CardTitle>
-                <div className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}>
-                  <metric.icon className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
+          {metrics.map((metric, index) => {
+            if (metric.isModal) {
+              return (
+                <div key={index} onClick={metric.onClick} className="block cursor-pointer">
+                  <Card 
+                    className="group relative overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2">
+                      <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">{metric.title}</CardTitle>
+                      <div className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}>
+                        <metric.icon className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pb-2.5 sm:pb-3">
+                      <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">{metric.value}</div>
+                      <div className="mt-0.5 flex items-center text-[10px] sm:mt-1 sm:text-xs">
+                        {metric.trend === 'up' ? (
+                          <span className="flex items-center font-medium text-emerald-400">
+                            <ArrowUp className="mr-0.5 h-2.5 w-2.5 sm:mr-1 sm:h-3 sm:w-3" />
+                            {metric.change}
+                          </span>
+                        ) : (
+                          <span className="flex items-center font-medium text-red-400">
+                            <ArrowDown className="mr-0.5 h-2.5 w-2.5 sm:mr-1 sm:h-3 sm:w-3" />
+                            {metric.change}
+                          </span>
+                        )}
+                        <span className="ml-1.5 text-slate-500 sm:ml-2">vs last period</span>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardHeader>
-              <CardContent className="pb-2.5 sm:pb-3">
-                <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">{metric.value}</div>
-                <div className="mt-0.5 flex items-center text-[10px] sm:mt-1 sm:text-xs">
-                  {metric.trend === 'up' ? (
-                    <span className="flex items-center font-medium text-emerald-400">
-                      <ArrowUp className="mr-0.5 h-2.5 w-2.5 sm:mr-1 sm:h-3 sm:w-3" />
-                      {metric.change}
-                    </span>
-                  ) : (
-                    <span className="flex items-center font-medium text-red-400">
-                      <ArrowDown className="mr-0.5 h-2.5 w-2.5 sm:mr-1 sm:h-3 sm:w-3" />
-                      {metric.change}
-                    </span>
-                  )}
-                  <span className="ml-1.5 text-slate-500 sm:ml-2">vs last period</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+              );
+            }
+            
+            return (
+              <Link key={index} href={metric.link || '#'} className="block">
+                <Card 
+                  className="group relative overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2">
+                    <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">{metric.title}</CardTitle>
+                    <div className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}>
+                      <metric.icon className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-2.5 sm:pb-3">
+                    <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">{metric.value}</div>
+                    <div className="mt-0.5 flex items-center text-[10px] sm:mt-1 sm:text-xs">
+                      {metric.trend === 'up' ? (
+                        <span className="flex items-center font-medium text-emerald-400">
+                          <ArrowUp className="mr-0.5 h-2.5 w-2.5 sm:mr-1 sm:h-3 sm:w-3" />
+                          {metric.change}
+                        </span>
+                      ) : (
+                        <span className="flex items-center font-medium text-red-400">
+                          <ArrowDown className="mr-0.5 h-2.5 w-2.5 sm:mr-1 sm:h-3 sm:w-3" />
+                          {metric.change}
+                        </span>
+                      )}
+                      <span className="ml-1.5 text-slate-500 sm:ml-2">vs last period</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
 
         {/* Responsive Main Content Grid */}
@@ -483,57 +532,65 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 sm:space-y-2.5 md:space-y-3">
-                <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-colors hover:bg-slate-800/50 sm:p-2.5">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className="rounded-md bg-blue-500/10 p-1 sm:p-1.5">
-                      <Users className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
+                <Link href="/admin/users?filter=renter">
+                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="rounded-md bg-blue-500/10 p-1 sm:p-1.5">
+                        <Users className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Farmers</p>
+                        <p className="text-[9px] text-slate-500 sm:text-[10px]">Renters</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Farmers</p>
-                      <p className="text-[9px] text-slate-500 sm:text-[10px]">Renters</p>
-                    </div>
+                    <p className="text-base font-bold text-white sm:text-lg">{analytics.total_farmers}</p>
                   </div>
-                  <p className="text-base font-bold text-white sm:text-lg">{analytics.total_farmers}</p>
-                </div>
+                </Link>
 
-                <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-colors hover:bg-slate-800/50 sm:p-2.5">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className="rounded-md bg-emerald-500/10 p-1 sm:p-1.5">
-                      <Package className="h-3.5 w-3.5 text-emerald-400 sm:h-4 sm:w-4" />
+                <Link href="/admin/users?filter=provider">
+                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="rounded-md bg-emerald-500/10 p-1 sm:p-1.5">
+                        <Package className="h-3.5 w-3.5 text-emerald-400 sm:h-4 sm:w-4" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Providers</p>
+                        <p className="text-[9px] text-slate-500 sm:text-[10px]">Owners</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Providers</p>
-                      <p className="text-[9px] text-slate-500 sm:text-[10px]">Owners</p>
-                    </div>
+                    <p className="text-base font-bold text-white sm:text-lg">{analytics.total_providers}</p>
                   </div>
-                  <p className="text-base font-bold text-white sm:text-lg">{analytics.total_providers}</p>
-                </div>
+                </Link>
 
-                <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-colors hover:bg-slate-800/50 sm:p-2.5">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className="rounded-md bg-amber-500/10 p-1 sm:p-1.5">
-                      <Wrench className="h-3.5 w-3.5 text-amber-400 sm:h-4 sm:w-4" />
+                <Link href="/admin/labour">
+                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="rounded-md bg-amber-500/10 p-1 sm:p-1.5">
+                        <Wrench className="h-3.5 w-3.5 text-amber-400 sm:h-4 sm:w-4" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Labour</p>
+                        <p className="text-[9px] text-slate-500 sm:text-[10px]">Workers</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Labour</p>
-                      <p className="text-[9px] text-slate-500 sm:text-[10px]">Workers</p>
-                    </div>
+                    <p className="text-base font-bold text-white sm:text-lg">{analytics.total_labour}</p>
                   </div>
-                  <p className="text-base font-bold text-white sm:text-lg">{analytics.total_labour}</p>
-                </div>
+                </Link>
 
-                <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-colors hover:bg-slate-800/50 sm:p-2.5">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <div className="rounded-md bg-red-500/10 p-1 sm:p-1.5">
-                      <AlertCircle className="h-3.5 w-3.5 text-red-400 sm:h-4 sm:w-4" />
+                <Link href="/admin/disputes">
+                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <div className="rounded-md bg-red-500/10 p-1 sm:p-1.5">
+                        <AlertCircle className="h-3.5 w-3.5 text-red-400 sm:h-4 sm:w-4" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Disputes</p>
+                        <p className="text-[9px] text-slate-500 sm:text-[10px]">Active</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Disputes</p>
-                      <p className="text-[9px] text-slate-500 sm:text-[10px]">Active</p>
-                    </div>
+                    <p className="text-base font-bold text-white sm:text-lg">{analytics.active_disputes}</p>
                   </div>
-                  <p className="text-base font-bold text-white sm:text-lg">{analytics.active_disputes}</p>
-                </div>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -726,6 +783,15 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Revenue Details Modal */}
+        <RevenueDetailsModal
+          isOpen={isRevenueModalOpen}
+          onClose={() => setIsRevenueModalOpen(false)}
+          totalRevenue={analytics.total_revenue}
+          revenueStats={revenueStats}
+          timeRange={timeRange}
+        />
       </div>
     </div>
   );

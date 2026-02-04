@@ -147,34 +147,42 @@ export default function AdminDashboardClient({
 
       {/* Statistics Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total Revenue"
-          value={formatCurrency(stats.totalRevenue)}
-          icon={DollarSign}
-          color="green"
-          trend={stats.trends.revenue}
-        />
-        <StatsCard
-          title="Active Users"
-          value={stats.totalUsers}
-          icon={Users}
-          color="blue"
-          trend={stats.trends.users}
-        />
-        <StatsCard
-          title="Total Bookings"
-          value={stats.totalBookings}
-          icon={Calendar}
-          color="purple"
-          trend={stats.trends.bookings}
-        />
-        <StatsCard
-          title="Equipment"
-          value={stats.totalEquipment}
-          icon={Truck}
-          color="yellow"
-          trend={stats.trends.equipment}
-        />
+        <Link href="/admin/payments" className="cursor-pointer">
+          <StatsCard
+            title="Total Revenue"
+            value={formatCurrency(stats.totalRevenue)}
+            icon={DollarSign}
+            color="green"
+            trend={stats.trends.revenue}
+          />
+        </Link>
+        <Link href="/admin/users" className="cursor-pointer">
+          <StatsCard
+            title="Active Users"
+            value={stats.totalUsers}
+            icon={Users}
+            color="blue"
+            trend={stats.trends.users}
+          />
+        </Link>
+        <Link href="/admin/bookings" className="cursor-pointer">
+          <StatsCard
+            title="Total Bookings"
+            value={stats.totalBookings}
+            icon={Calendar}
+            color="purple"
+            trend={stats.trends.bookings}
+          />
+        </Link>
+        <Link href="/admin/equipment" className="cursor-pointer">
+          <StatsCard
+            title="Equipment"
+            value={stats.totalEquipment}
+            icon={Truck}
+            color="yellow"
+            trend={stats.trends.equipment}
+          />
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -205,9 +213,10 @@ export default function AdminDashboardClient({
                 <p className="py-8 text-center text-[var(--admin-text-secondary)]">No recent users</p>
               ) : (
                 recentUsers.map((user) => (
-                  <div
+                  <Link
                     key={user.id}
-                    className="admin-glass-card flex items-center gap-3 p-3 transition-all hover:scale-[1.02]"
+                    href={`/admin/users?id=${user.id}`}
+                    className="admin-glass-card flex items-center gap-3 p-3 transition-all hover:scale-[1.02] cursor-pointer"
                   >
                     <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)]">
                       {user.avatar_url ? (
@@ -233,7 +242,7 @@ export default function AdminDashboardClient({
                       </span>
                       <p className="mt-1 font-['Fira_Code'] text-xs text-[var(--admin-text-muted)]">{getTimeAgo(user.created_at)}</p>
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
@@ -335,7 +344,11 @@ export default function AdminDashboardClient({
                     </tr>
                   ) : (
                     recentBookings.map((booking: any) => (
-                      <tr key={booking.id}>
+                      <tr 
+                        key={booking.id}
+                        onClick={() => router.push(`/admin/bookings?id=${booking.id}`)}
+                        className="cursor-pointer hover:bg-white/5"
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)]">
@@ -395,16 +408,16 @@ export default function AdminDashboardClient({
             <div className="space-y-3">
               <Link
                 href="/admin/bookings?status=pending"
-                className="group flex w-full items-center justify-between rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 transition-all hover:border-[var(--admin-primary)]/30 hover:bg-[var(--admin-bg-hover)]"
+                className="group flex w-full items-center justify-between rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 transition-all hover:border-[var(--admin-primary)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-success)]/30 bg-[var(--admin-success)]/10 text-[var(--admin-success)]">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-success)]/30 bg-[var(--admin-success)]/10 text-[var(--admin-success)] group-hover:bg-[var(--admin-success)]/20 transition-colors">
                     <Calendar className="h-4 w-4" />
                   </div>
                   <span className="text-sm font-medium text-white">Pending Bookings</span>
                 </div>
                 <span 
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--admin-success)] font-['Fira_Code'] text-xs font-bold text-[var(--admin-bg-base)]"
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--admin-success)] font-['Fira_Code'] text-xs font-bold text-[var(--admin-bg-base)] group-hover:scale-110 transition-transform"
                   style={{
                     boxShadow: '0 0 10px var(--admin-primary-glow)',
                   }}
@@ -414,18 +427,36 @@ export default function AdminDashboardClient({
               </Link>
               <Link
                 href="/admin/users"
-                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-secondary)]/30 hover:bg-[var(--admin-bg-hover)]"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-secondary)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98] group"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-secondary)]/30 bg-[var(--admin-secondary)]/10 text-[var(--admin-secondary)]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-secondary)]/30 bg-[var(--admin-secondary)]/10 text-[var(--admin-secondary)] group-hover:bg-[var(--admin-secondary)]/20 transition-colors">
                   <Users className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-medium">Verify New Users</span>
+                <span className="text-sm font-medium">Add New User</span>
+              </Link>
+              <Link
+                href="/admin/equipment"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-primary)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98] group"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-primary)]/30 bg-[var(--admin-primary)]/10 text-[var(--admin-primary)] group-hover:bg-[var(--admin-primary)]/20 transition-colors">
+                  <Package className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">Manage Equipment</span>
+              </Link>
+              <Link
+                href="/admin/analytics"
+                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-warning)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98] group"
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-warning)]/30 bg-[var(--admin-warning)]/10 text-[var(--admin-warning)]">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">View Analytics</span>
               </Link>
             </div>
           </div>
 
           {/* System Health */}
-          <div className="admin-glass-card p-6">
+          <Link href="/admin/analytics" className="admin-glass-card block p-6 cursor-pointer transition-all hover:scale-[1.02]">
             <h3 className="font-['Fira_Code'] mb-4 font-bold text-white">SYSTEM STATUS</h3>
             <div className="space-y-4">
               <div>
@@ -457,7 +488,7 @@ export default function AdminDashboardClient({
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
     </div>
