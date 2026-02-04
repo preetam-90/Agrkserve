@@ -224,11 +224,11 @@ export default function RoleManagementPage() {
 
         {/* Role Cards */}
         <div className="space-y-4">
-          {(Object.keys(roleConfig) as UserRole[]).map((role) => {
+          {(Object.keys(roleConfig) as Array<keyof typeof roleConfig>).map((role) => {
             const config = roleConfig[role];
             const Icon = config.icon;
-            const isEnabled = enabledRoles.includes(role);
-            const wasOriginallyEnabled = roles.includes(role);
+            const isEnabled = enabledRoles.includes(role as UserRole);
+            const wasOriginallyEnabled = roles.includes(role as UserRole);
             const isCurrentActive = role === activeRole;
             const isNewRole = !wasOriginallyEnabled && isEnabled;
 
@@ -270,7 +270,7 @@ export default function RoleManagementPage() {
                         <CardDescription className="mt-1 text-[#94A3B8]">
                           {config.description}
                         </CardDescription>
-                        {isNewRole && config.requiresSetup && (
+                        {isNewRole && config.requiresSetup && 'setupMessage' in config && (
                           <div className="mt-2 flex items-start gap-2 rounded-lg border border-[#FCD34D]/20 bg-[#FCD34D]/5 p-2">
                             <Info className="h-4 w-4 flex-shrink-0 text-[#FCD34D] mt-0.5" />
                             <p className="text-xs text-[#94A3B8]">{config.setupMessage}</p>

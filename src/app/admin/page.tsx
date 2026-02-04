@@ -319,7 +319,8 @@ async function getSystemHealth() {
 
     // Database load (based on connection count)
     const maxConnections = 100;
-    const dbLoadPercentage = Math.min(((connections || 0) / maxConnections) * 100, 100);
+    const connectionCount = typeof connections === 'number' ? connections : Number(connections) || 0;
+    const dbLoadPercentage = Math.min((connectionCount / maxConnections) * 100, 100);
 
     return {
       dbLoad: Math.round(dbLoadPercentage),

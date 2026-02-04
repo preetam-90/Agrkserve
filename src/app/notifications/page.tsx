@@ -28,6 +28,7 @@ import {
   TrendingUp,
   Eye,
   EyeOff,
+  X,
   Search,
   SlidersHorizontal
 } from 'lucide-react';

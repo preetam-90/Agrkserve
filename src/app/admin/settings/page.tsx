@@ -48,15 +48,71 @@ interface SystemSettings {
   platform_name: string;
   platform_version: string;
   environment: string;
-  support_email: string;
-  support_phone: string;
-  business_address: string;
-  social_links: {
+  
+  // Primary Contact
+  support_email_primary: string;
+  support_email_secondary: string;
+  sales_email: string;
+  support_phone_primary: string;
+  support_phone_secondary: string;
+  whatsapp_number: string;
+  toll_free_number: string;
+  
+  // Business Address
+  business_address_line1: string;
+  business_address_line2: string;
+  business_city: string;
+  business_state: string;
+  business_country: string;
+  business_postal_code: string;
+  
+  // Additional Contact
+  fax_number: string;
+  emergency_contact: string;
+  
+  // Social Media
+  facebook_url: string;
+  twitter_url: string;
+  instagram_url: string;
+  linkedin_url: string;
+  youtube_url: string;
+  tiktok_url: string;
+  pinterest_url: string;
+  
+  // Messaging Apps
+  telegram_username: string;
+  discord_server: string;
+  slack_workspace: string;
+  
+  // Business Hours
+  business_hours_weekday: string;
+  business_hours_saturday: string;
+  business_hours_sunday: string;
+  timezone: string;
+  
+  // Additional Info
+  company_registration: string;
+  tax_id: string;
+  website_url: string;
+  support_portal_url: string;
+  help_center_url: string;
+  
+  // Map & Location
+  google_maps_url: string;
+  latitude: string;
+  longitude: string;
+  
+  // Legacy/Backward Compatibility
+  support_email?: string;
+  support_phone?: string;
+  business_address?: string;
+  social_links?: {
     facebook: string;
     twitter: string;
     linkedin: string;
     instagram: string;
   };
+  
   session_timeout: number;
 }
 
@@ -402,11 +458,11 @@ export default function SettingsPage() {
 
       // Save all fields that exist in settings
       for (const key of contactFields) {
-        if (settings[key] !== undefined) {
+        if (settings[key as keyof SystemSettings] !== undefined) {
           await fetch('/api/admin/settings', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key, value: settings[key] }),
+            body: JSON.stringify({ key, value: settings[key as keyof SystemSettings] }),
           });
         }
       }

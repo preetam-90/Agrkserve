@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { NetworkStatus } from '@/components/system-pages/NetworkStatus';
 import { AuthenticatedLayout } from '@/components/layout';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -77,6 +78,7 @@ export default function RootLayout({
             {children}
           </AuthenticatedLayout>
         </Providers>
+        <Analytics />
       </body>
     </html>
   );

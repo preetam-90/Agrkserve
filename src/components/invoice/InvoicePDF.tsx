@@ -554,7 +554,7 @@ function FinancialSummary({ booking }: { booking: InvoicePDFProps['booking'] }) 
   );
 }
 
-function FooterSection() {
+function FooterSection({ contactInfo }: { contactInfo?: InvoicePDFProps['contactInfo'] }) {
   return (
     <View style={styles.footerContainer}>
       <View style={styles.footerGrid}>
@@ -608,7 +608,7 @@ export function InvoicePDF({ booking, contactInfo }: InvoicePDFProps) {
         <PartyDetailsSection booking={booking} />
         <ServiceTable booking={booking} />
         <FinancialSummary booking={booking} />
-        <FooterSection />
+        <FooterSection contactInfo={contactInfo} />
       </Page>
     </Document>
   );
