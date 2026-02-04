@@ -5,6 +5,7 @@ import { Providers } from '@/components/providers';
 import { NetworkStatus } from '@/components/system-pages/NetworkStatus';
 import { AuthenticatedLayout } from '@/components/layout';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -84,6 +85,7 @@ export default function RootLayout({
           </AuthenticatedLayout>
         </Providers>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
