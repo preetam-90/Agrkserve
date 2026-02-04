@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, Clock, ChevronRight, Tractor, Search } from 'lucide-react';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Card,
@@ -218,14 +218,7 @@ export default function RenterBookingsPage() {
       <Header />
 
       <div className="flex">
-        <Sidebar role="renter" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
           <div className="mx-auto max-w-4xl">
             <div className="mb-6 flex items-center justify-between">
               <div>

@@ -30,7 +30,7 @@ import {
   Upload,
   Sparkles,
 } from 'lucide-react';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import { Checkbox } from '@/components/ui';
 import {
   Button,
@@ -342,14 +342,7 @@ export default function ProviderEquipmentPage() {
             </Button>
           </div>
         )}
-        <Sidebar role="provider" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-12 pt-28 transition-all duration-500 ease-out lg:px-8',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-12 pt-28 transition-all duration-500 ease-out lg:px-8">
           <motion.div
             initial="hidden"
             animate="visible"

@@ -15,7 +15,7 @@ import {
   Clock,
   Users,
 } from 'lucide-react';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import { Button, Input, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
 import { equipmentService, bookingService, labourService } from '@/lib/services';
 import { useAuthStore, useAppStore } from '@/lib/store';
@@ -135,14 +135,7 @@ export default function RenterDashboard() {
       <Header />
 
       <div className="flex">
-        <Sidebar role="renter" />
-
-        <main
-          className={cn(
-            'flex-1 p-4 pt-28 transition-all duration-300 lg:p-6',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 p-4 pt-28 transition-all duration-300 lg:p-6">
           {/* Welcome Section */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">

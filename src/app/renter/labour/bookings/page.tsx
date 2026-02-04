@@ -12,7 +12,7 @@ import {
   Search,
   User,
 } from 'lucide-react';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Card,
@@ -144,14 +144,7 @@ export default function RenterLabourBookingsPage() {
       <Header />
 
       <div className="flex">
-        <Sidebar role="renter" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
           <div className="mx-auto max-w-5xl">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Labour Booking Requests</h1>

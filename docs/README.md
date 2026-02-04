@@ -1,85 +1,378 @@
-# AgriServe Documentation
+# AgriServe - Agricultural Equipment & Labour Marketplace
 
-This folder contains all documentation for the AgriServe project. 
+A modern Next.js application for connecting farmers with agricultural equipment providers and labour services.
 
-## 📚 Documentation Index
-
-### 🚀 Getting Started
-- **[QUICK_START.md](./QUICK_START.md)** - Get your development environment up and running in 5 minutes
-- **[DATABASE_SETUP.md](./DATABASE_SETUP.md)** - Complete database setup and migration guide
-- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist for production
-
-### 🏗️ Project Structure & Guidelines
-- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Architecture, coding standards, and best practices
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute to the project
-- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - Community guidelines and standards
-
-### 🔐 Authentication & User Management
-- **[AUTH_PROFILE_GUIDE.md](./AUTH_PROFILE_GUIDE.md)** - Complete authentication and profile management guide
-- **[PHONE_MANDATORY_FLOW.md](./PHONE_MANDATORY_FLOW.md)** - Phone number collection flow documentation
-- **[USER_FLOWS.md](./USER_FLOWS.md)** - Visual user flow diagrams and journeys
-- **[FIX_EMAIL_CONFIRMATION.md](./FIX_EMAIL_CONFIRMATION.md)** - Email confirmation troubleshooting
-
-### 🎯 Feature Implementation
-- **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - Summary of implemented features
-- **[BOOKING_ACCEPT_REJECT_FEATURE.md](./BOOKING_ACCEPT_REJECT_FEATURE.md)** - Booking management feature guide
-- **[DELIVERY_SUMMARY.md](./DELIVERY_SUMMARY.md)** - Delivery feature documentation
-
-### 🔄 Real-time Features
-- **[REALTIME_FEATURES.md](./REALTIME_FEATURES.md)** - Real-time functionality overview
-- **[ENABLE_REALTIME_NOW.md](./ENABLE_REALTIME_NOW.md)** - How to enable real-time features
-- **[REALTIME_FIX_GUIDE.md](./REALTIME_FIX_GUIDE.md)** - Real-time troubleshooting guide
-- **[REALTIME_TROUBLESHOOTING.md](./REALTIME_TROUBLESHOOTING.md)** - Advanced real-time debugging
-
-### 💾 Storage & Database
-- **[IMAGE_STORAGE_INFO.md](./IMAGE_STORAGE_INFO.md)** - Image upload and storage guide
-- **[SUPABASE_REPLICATION_GUIDE.md](./SUPABASE_REPLICATION_GUIDE.md)** - Database replication setup
-
-### 🧪 Testing
-- **[responsive-test-plan.md](./responsive-test-plan.md)** - Responsive design testing plan
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-green)](https://supabase.com/)
 
 ---
 
-## 📖 Documentation Categories
+## 🎯 Features
 
-### For New Contributors
-Start here:
-1. [QUICK_START.md](./QUICK_START.md)
-2. [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
-3. [CONTRIBUTING.md](./CONTRIBUTING.md)
+### ✅ Complete Authentication System
+- **Email/Password Authentication** with strong password validation
+- **Google OAuth Integration** for quick signup
+- **Mandatory Phone Number Collection** for all users
+- **Profile Picture Upload** with real-time preview
+- **Comprehensive Profile Management** page
+- **Smart Redirects** based on profile completion status
+- **Last Login Tracking** for account activity
 
-### For Developers
-Technical guides:
-- [AUTH_PROFILE_GUIDE.md](./AUTH_PROFILE_GUIDE.md)
-- [DATABASE_SETUP.md](./DATABASE_SETUP.md)
-- [REALTIME_FEATURES.md](./REALTIME_FEATURES.md)
+### 🔐 Security Features
+- Strong password requirements (8+ chars, uppercase, lowercase, number)
+- Phone number validation (Indian 10-digit mobile)
+- Row Level Security (RLS) on all tables
+- Secure file upload with type and size validation
+- Protected routes with middleware
 
-### For Deployment
-Production setup:
-- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
-- [DATABASE_SETUP.md](./DATABASE_SETUP.md)
-
----
-
-## 🔍 Quick Links
-
-- [Main README](../README.md) - Project overview
-- [Contributing Guide](./CONTRIBUTING.md) - How to contribute
-- [Code of Conduct](./CODE_OF_CONDUCT.md) - Community standards
-- [Architecture Guide](./PROJECT_STRUCTURE.md) - Technical architecture
+### 🌾 Core Marketplace Features
+- Equipment listing and browsing
+- Labour service listings
+- Booking management
+- Real-time notifications
+- Multi-language support (English/Hindi)
+- Role-based dashboards (Renter, Provider, Labour)
 
 ---
 
-## 📝 Documentation Standards
+## 🚀 Quick Start
 
-When creating new documentation:
-- Use clear, descriptive titles
-- Include a table of contents for long documents
-- Add code examples where applicable
-- Keep documentation up-to-date with code changes
-- Use Markdown formatting consistently
-- Add links to related documents
+### Prerequisites
+- Node.js 18+
+- pnpm (or npm/yarn)
+- Supabase account
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd agri-serve-web
+
+# Install dependencies
+pnpm install
+
+# Setup environment variables
+cp .env.example .env.local
+# Add your Supabase credentials to .env.local
+```
+
+### Environment Variables
+
+Create `.env.local` with:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### Database Setup
+
+1. Open Supabase Dashboard → SQL Editor
+2. Run migrations in order:
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/007_add_phone_mandatory.sql`
+   - `supabase/migrations/008_setup_storage.sql`
+
+### Configure Supabase
+
+1. **Authentication:**
+   - Enable Email provider
+   - (Optional) Enable Google OAuth
+   - Add redirect URL: `http://localhost:3000/auth/callback`
+
+2. **Storage:**
+   - Verify `avatars` bucket exists
+   - Verify `equipment-images` bucket exists
+
+### Run Development Server
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-**Need help?** Check the [AUTH_PROFILE_GUIDE.md](./AUTH_PROFILE_GUIDE.md) for troubleshooting or open an issue on GitHub.
+## 📖 Documentation
+
+- **[QUICK_START.md](./docs/QUICK_START.md)** - Get started in 5 minutes
+- **[AUTH_PROFILE_GUIDE.md](./docs/AUTH_PROFILE_GUIDE.md)** - Complete authentication guide
+- **[USER_FLOWS.md](./docs/USER_FLOWS.md)** - Visual user flow diagrams
+- **[IMPLEMENTATION_SUMMARY.md](./docs/IMPLEMENTATION_SUMMARY.md)** - What was built
+- **[DEPLOYMENT_CHECKLIST.md](./docs/DEPLOYMENT_CHECKLIST.md)** - Pre-deployment checklist
+- **[PROJECT_STRUCTURE.md](./docs/PROJECT_STRUCTURE.md)** - Architecture & coding standards
+- **[CONTRIBUTING.md](./docs/CONTRIBUTING.md)** - How to contribute
+- **[CODE_OF_CONDUCT.md](./docs/CODE_OF_CONDUCT.md)** - Community guidelines
+
+---
+
+## 🏗️ Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **Database:** Supabase (PostgreSQL + PostGIS)
+- **Authentication:** Supabase Auth
+- **Storage:** Supabase Storage
+- **State Management:** Zustand
+- **UI Components:** Custom components with Radix UI
+- **Icons:** Lucide React
+
+---
+
+## 📁 Project Structure
+
+```
+agri-serve-web/
+├── src/
+│   ├── app/                    # Next.js app router pages
+│   │   ├── login/             # Authentication page
+│   │   ├── phone-setup/       # Phone number collection
+│   │   ├── onboarding/        # User onboarding
+│   │   ├── profile/           # Profile management
+│   │   ├── provider/          # Provider dashboard
+│   │   ├── renter/            # Renter dashboard
+│   │   └── auth/              # Auth callbacks
+│   ├── components/            # React components
+│   │   ├── ui/               # UI primitives
+│   │   ├── layout/           # Layout components
+│   │   ├── phone-modal.tsx   # Phone collection modal
+│   │   └── profile-picture-upload.tsx
+│   ├── lib/                   # Utilities and services
+│   │   ├── services/         # API services
+│   │   ├── store/            # State management
+│   │   ├── supabase/         # Supabase clients
+│   │   ├── types/            # TypeScript types
+│   │   └── utils/            # Helper functions
+│   └── middleware.ts          # Route protection
+├── supabase/
+│   └── migrations/            # Database migrations
+├── public/                    # Static assets
+└── scripts/                   # Helper scripts
+```
+
+---
+
+## 🔑 Key Features Explained
+
+### Authentication Flow
+
+1. **Email Signup:**
+   - User creates account with email/password
+   - Password must meet strength requirements
+   - Redirected to phone setup
+
+2. **Phone Collection:**
+   - Mandatory for all users
+   - Validates Indian mobile numbers (10 digits)
+   - Cannot proceed without phone
+
+3. **Profile Picture:**
+   - Optional during signup
+   - Can upload later from profile page
+   - Supports JPG, PNG, GIF, WebP (max 5MB)
+
+4. **Onboarding:**
+   - Select role (Renter, Provider, Labour)
+   - Complete profile information
+   - Set location
+
+5. **Dashboard:**
+   - Role-based interface
+   - Access to all features
+
+### Profile Management
+
+- View and edit all profile information
+- Update profile picture
+- Change phone number (with validation)
+- Update address and location
+- View account activity
+- See member since and last login
+
+---
+
+## 🛣️ User Flows
+
+### New User (Email)
+```
+Login → Sign Up → Phone Setup → Picture (optional) → Onboarding → Dashboard
+```
+
+### New User (Google)
+```
+Login → Google Auth → Phone Check → Phone Setup (if needed) → Onboarding → Dashboard
+```
+
+### Existing User
+```
+Login → Check Profile → Phone Setup (if missing) → Dashboard
+```
+
+---
+
+## 🧪 Testing
+
+### Test Email Signup
+```bash
+# Visit http://localhost:3000/login
+# Click "Sign Up"
+# Enter: test@example.com / Password123
+# Should redirect to phone setup
+```
+
+### Test Phone Validation
+```bash
+# Valid: 9876543210 (10 digits, starts with 6-9)
+# Invalid: 5876543210 (starts with 5)
+# Invalid: 98765432 (only 8 digits)
+```
+
+### Test Profile Page
+```bash
+# Visit http://localhost:3000/profile
+# Click "Edit Profile"
+# Update information
+# Save changes
+```
+
+---
+
+## 🚢 Deployment
+
+### Build for Production
+
+```bash
+pnpm build
+```
+
+### Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<your-repo-url>)
+
+1. Connect your repository
+2. Add environment variables
+3. Deploy
+
+### Environment Variables (Production)
+
+Same as development:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
+```
+
+### Post-Deployment
+
+1. Update Supabase redirect URLs
+2. Test all authentication flows
+3. Verify storage uploads work
+4. Check error logs
+
+See [DEPLOYMENT_CHECKLIST.md](./docs/DEPLOYMENT_CHECKLIST.md) for complete checklist.
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**"Supabase connection failed"**
+- Check environment variables
+- Verify Supabase URL and key
+- Restart dev server
+
+**"user_profiles table doesn't exist"**
+- Run database migrations
+- Check Supabase Tables tab
+
+**"Redirect loop"**
+- Complete phone setup
+- Complete onboarding
+- Check profile completion status
+
+**"Profile picture not uploading"**
+- Verify storage bucket exists
+- Check file size < 5MB
+- Run migration 008
+
+More troubleshooting: [AUTH_PROFILE_GUIDE.md](./docs/AUTH_PROFILE_GUIDE.md)
+
+---
+
+## 📝 Scripts
+
+```bash
+# Development
+pnpm dev              # Start dev server
+pnpm build            # Build for production
+pnpm start            # Run production build
+
+# Code Quality
+pnpm lint             # Run ESLint
+pnpm type-check       # Run TypeScript check
+
+# Helpers
+./scripts/setup-auth.sh  # Auth setup guide
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from developers of all skill levels! Please read our [Contributing Guidelines](./docs/CONTRIBUTING.md) before submitting a pull request.
+
+### Quick Contribution Steps
+
+1. **Fork the repository**
+2. **Clone your fork**: `git clone <your-fork-url>`
+3. **Install dependencies**: `pnpm install`
+4. **Create a branch**: `git checkout -b feature/your-feature`
+5. **Make changes and commit**: `git commit -m 'feat: add feature'`
+6. **Push**: `git push origin feature/your-feature`
+7. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow the existing code style
+- Write clear commit messages (Conventional Commits)
+- Update documentation for new features
+- Test your changes thoroughly
+- Run `pnpm lint` and `pnpm type-check` before committing
+
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [Supabase](https://supabase.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Radix UI](https://www.radix-ui.com/)
+- [Lucide Icons](https://lucide.dev/)
+
+---
+
+## 📞 Support
+
+For questions or issues:
+- Check the [documentation](./docs/AUTH_PROFILE_GUIDE.md)
+- Open an issue on GitHub
+- Contact the development team
+
+---
+
+**Status:** ✅ Production Ready
+**Version:** 1.0.0
+**Last Updated:** January 2026

@@ -15,7 +15,7 @@ import {
   ToggleRight,
   IndianRupee,
 } from 'lucide-react';
-import { Header, Sidebar } from '@/components/layout';
+import { Header } from '@/components/layout';
 import {
   Button,
   Card,
@@ -144,13 +144,7 @@ export default function ProviderLabourPage() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex">
-          <Sidebar role="provider" />
-          <main
-            className={cn(
-              'flex-1 p-4 transition-all duration-300 lg:p-6',
-              sidebarOpen ? 'ml-64' : 'ml-0'
-            )}
-          >
+          <main className="flex-1 p-4 transition-all duration-300 lg:p-6">
             <div className="flex justify-center py-12">
               <Spinner size="lg" />
             </div>
@@ -165,13 +159,7 @@ export default function ProviderLabourPage() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex">
-          <Sidebar role="provider" />
-          <main
-            className={cn(
-              'flex-1 p-4 transition-all duration-300 lg:p-6',
-              sidebarOpen ? 'ml-64' : 'ml-0'
-            )}
-          >
+          <main className="flex-1 p-4 transition-all duration-300 lg:p-6">
             <div className="mx-auto max-w-4xl">
               <EmptyState
                 icon={<Users className="h-12 w-12" />}
@@ -198,14 +186,7 @@ export default function ProviderLabourPage() {
       <Header />
 
       <div className="flex">
-        <Sidebar role="provider" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
           <div className="mx-auto max-w-6xl">
             <div className="mb-6 flex items-center justify-between">
               <div>

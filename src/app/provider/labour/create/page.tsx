@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Briefcase, IndianRupee, Plus, X, Loader2 } from 'lucide-react';
-import { Header, Sidebar } from '@/components/layout';
+import { Header } from '@/components/layout';
 import {
   Button,
   Card,
@@ -204,14 +204,7 @@ export default function CreateLabourProfilePage() {
       <Header />
 
       <div className="flex">
-        <Sidebar role="provider" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
           <div className="mx-auto max-w-3xl">
             {/* Header */}
             <div className="mb-6 flex items-center gap-4">

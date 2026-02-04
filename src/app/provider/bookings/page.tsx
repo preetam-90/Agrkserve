@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, Clock, ChevronRight, Tractor, CheckCircle, XCircle, Search, Filter, TrendingUp, DollarSign, Package } from 'lucide-react';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Card,
@@ -398,14 +398,7 @@ export default function ProviderBookingsPage() {
       <Header />
 
       <div className="flex">
-        <Sidebar role="provider" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-4 pt-28 transition-all duration-300 lg:px-6 lg:pb-6">
           <div className="mx-auto max-w-7xl">
             {/* Header Section */}
             <div className="mb-8">

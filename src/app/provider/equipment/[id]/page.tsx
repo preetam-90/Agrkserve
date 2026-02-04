@@ -29,7 +29,7 @@ import {
   useSpring,
   AnimatePresence,
 } from 'framer-motion';
-import { Header, Footer, Sidebar } from '@/components/layout';
+import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Card,
@@ -582,14 +582,7 @@ export default function EquipmentFormPage() {
       </div>
 
       <div className="relative z-10 flex">
-        <Sidebar role="provider" />
-
-        <main
-          className={cn(
-            'flex-1 px-4 pb-20 pt-28 transition-all duration-500 ease-out lg:px-8',
-            sidebarOpen ? 'ml-64' : 'ml-0'
-          )}
-        >
+        <main className="flex-1 px-4 pb-20 pt-28 transition-all duration-500 ease-out lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
