@@ -78,7 +78,7 @@ export default function RootLayout({
         />
         <script
           defer
-          src="https://umami-production-4afa.up.railway.app/script.js"
+          src="https://umami-analytics-pk.up.railway.app/script.js"
           data-website-id="a2a1c58a-8322-46dd-a7f3-2944863a2740"
         />
       </head>
