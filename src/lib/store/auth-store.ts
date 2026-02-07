@@ -51,26 +51,25 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       setInitialized: (isInitialized) => set({ isInitialized }),
 
       initialize: async () => {
+        // Skip if already initialized (e.g. seeded by SSR data)
+        if (get().isInitialized && get().user) return;
+
         const supabase = createClient();
 
         try {
           set({ isLoading: true });
 
-          // Add timeout for getUser call (5 seconds)
-          const getUserPromise = supabase.auth.getUser();
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Auth timeout')), 5000)
-          );
-
+          // Use getSession() first — it reads from local storage (instant, no network)
           const {
-            data: { user },
-          } = (await Promise.race([getUserPromise, timeoutPromise])) as any;
+            data: { session },
+          } = await supabase.auth.getSession();
 
-          if (user) {
-            set({ user });
-            // Fetch profile and roles with individual timeouts
+          if (session?.user) {
+            set({ user: session.user });
+            // Fetch profile and roles in parallel
             await Promise.all([get().fetchProfile(), get().fetchRoles()]);
           }
+          // No session = not logged in, skip silently
         } catch (error) {
           console.error('Failed to initialize auth:', error);
           // On error, still mark as initialized so the UI can proceed

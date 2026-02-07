@@ -9,13 +9,14 @@ import { AuthProvider } from '@/lib/supabase/auth-context';
 import { SmoothScroll } from '@/components/providers/SmoothScroll';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const { initialize, isInitialized } = useAuthStore();
+  const { initialize, isInitialized, user } = useAuthStore();
 
   useEffect(() => {
-    if (!isInitialized) {
+    // Skip if already initialized (e.g. seeded by SSR data from DashboardClient)
+    if (!isInitialized && !user) {
       initialize();
     }
-  }, [initialize, isInitialized]);
+  }, [initialize, isInitialized, user]);
 
   return <>{children}</>;
 }

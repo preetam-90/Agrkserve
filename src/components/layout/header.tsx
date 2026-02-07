@@ -225,52 +225,52 @@ export function Header() {
             <div className="flex items-center gap-3">
               {/* Enhanced Logo */}
               <Link href="/" className="group relative flex items-center gap-3">
-              <motion.div
-                whileHover={shouldReduceMotion ? {} : { scale: 1.05, rotate: -2 }}
-                whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
-                className="relative"
-              >
-                {/* Glow Effect */}
-                <div className="absolute -inset-3 rounded-2xl bg-gradient-to-r from-emerald-500/40 via-green-500/40 to-emerald-500/40 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
-
-                {/* Logo Container */}
-                <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 to-white/5 shadow-xl backdrop-blur-md">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-green-600/20" />
-
-                  {/* Animated Tractor Icon */}
-                  <motion.div
-                    animate={{ y: [0, -2, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <Tractor className="h-6 w-6 text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
-                  </motion.div>
-
-                  {/* Corner Accents */}
-                  <div className="absolute left-1 top-1 h-2 w-2 rounded-tl-lg border-l-2 border-t-2 border-emerald-400/50" />
-                  <div className="absolute right-1 top-1 h-2 w-2 rounded-tr-lg border-r-2 border-t-2 border-emerald-400/50" />
-                  <div className="absolute bottom-1 left-1 h-2 w-2 rounded-bl-lg border-b-2 border-l-2 border-emerald-400/50" />
-                  <div className="absolute bottom-1 right-1 h-2 w-2 rounded-br-lg border-b-2 border-r-2 border-emerald-400/50" />
-                </div>
-              </motion.div>
-
-              <div className="flex flex-col">
-                <motion.span
-                  className="text-2xl font-bold tracking-tight"
-                  style={{ fontFamily: '"Playfair Display", serif' }}
-                >
-                  <span className="text-white/90">Agri</span>
-                  <span className="animate-gradient-x bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 bg-clip-text text-transparent">
-                    Serve
-                  </span>
-                </motion.span>
                 <motion.div
-                  className="h-0.5 w-full rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500"
-                  initial={{ scaleX: 0, opacity: 0 }}
-                  animate={{ scaleX: 1, opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                />
-              </div>
-            </Link>
+                  whileHover={shouldReduceMotion ? {} : { scale: 1.05, rotate: -2 }}
+                  whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+                  className="relative"
+                >
+                  {/* Glow Effect */}
+                  <div className="absolute -inset-3 rounded-2xl bg-gradient-to-r from-emerald-500/40 via-green-500/40 to-emerald-500/40 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
+
+                  {/* Logo Container */}
+                  <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-white/10 to-white/5 shadow-xl backdrop-blur-md">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-green-600/20" />
+
+                    {/* Animated Tractor Icon */}
+                    <motion.div
+                      animate={{ y: [0, -2, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <Tractor className="h-6 w-6 text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
+                    </motion.div>
+
+                    {/* Corner Accents */}
+                    <div className="absolute left-1 top-1 h-2 w-2 rounded-tl-lg border-l-2 border-t-2 border-emerald-400/50" />
+                    <div className="absolute right-1 top-1 h-2 w-2 rounded-tr-lg border-r-2 border-t-2 border-emerald-400/50" />
+                    <div className="absolute bottom-1 left-1 h-2 w-2 rounded-bl-lg border-b-2 border-l-2 border-emerald-400/50" />
+                    <div className="absolute bottom-1 right-1 h-2 w-2 rounded-br-lg border-b-2 border-r-2 border-emerald-400/50" />
+                  </div>
+                </motion.div>
+
+                <div className="flex flex-col">
+                  <motion.span
+                    className="text-2xl font-bold tracking-tight"
+                    style={{ fontFamily: '"Playfair Display", serif' }}
+                  >
+                    <span className="text-white/90">Agri</span>
+                    <span className="animate-gradient-x bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 bg-clip-text text-transparent">
+                      Serve
+                    </span>
+                  </motion.span>
+                  <motion.div
+                    className="h-0.5 w-full rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500"
+                    initial={{ scaleX: 0, opacity: 0 }}
+                    animate={{ scaleX: 1, opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  />
+                </div>
+              </Link>
             </div>
 
             {/* Desktop Navigation - Glassmorphism Pill */}
@@ -326,14 +326,14 @@ export function Header() {
                 <div className="flex items-center gap-3">
                   {/* Role Switcher */}
                   <RoleSwitcher />
-                  
+
                   {/* Notification Icon */}
                   <motion.div
                     whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
                     whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
                     className="group relative"
                   >
-                    <NotificationBell asButton={false} />
+                    <NotificationBell />
                     <div className="pointer-events-none absolute inset-0 rounded-full bg-emerald-500/20 opacity-0 blur-md transition-opacity duration-300 group-hover:opacity-100" />
                   </motion.div>
 
@@ -470,7 +470,7 @@ export function Header() {
                           Profile
                         </Link>
                       </DropdownMenuItem>
-                      
+
                       {/* Manage Roles - Prominent */}
                       <DropdownMenuItem
                         asChild
@@ -488,7 +488,7 @@ export function Header() {
                           </div>
                         </Link>
                       </DropdownMenuItem>
-                      
+
                       <DropdownMenuItem
                         asChild
                         className="mx-1 my-1 cursor-pointer rounded-xl text-white/70 hover:bg-white/5 hover:text-white"

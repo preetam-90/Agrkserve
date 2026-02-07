@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Reply } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
@@ -26,21 +26,50 @@ export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
   };
 
   return (
-    <div className="mb-2 flex items-start gap-2 rounded-xl border-l-4 border-blue-500 bg-[#1a1a1a] p-3">
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-blue-400">
-          Replying to {message.sender?.name || 'Unknown'}
-        </p>
-        <p className="mt-0.5 line-clamp-2 text-sm text-gray-400">{getMessagePreview()}</p>
+    <div className="relative mb-3 animate-in slide-in-from-bottom-2 duration-200">
+      <div className="group relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-500/15 via-blue-500/8 to-transparent p-3.5 shadow-lg shadow-blue-500/10 backdrop-blur-sm transition-all hover:border-blue-500/60 hover:shadow-blue-500/20">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
+        
+        {/* Reply icon badge with pulse animation */}
+        <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50">
+          <Reply className="h-3.5 w-3.5 text-white animate-pulse" />
+        </div>
+        
+        <div className="relative flex items-start gap-3">
+          {/* Left accent bar */}
+          <div className="absolute -left-3.5 top-0 h-full w-1 rounded-r-full bg-gradient-to-b from-blue-500 via-blue-400 to-blue-500" />
+          
+          {/* Reply icon */}
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/20 shadow-inner">
+            <Reply className="h-4.5 w-4.5 text-blue-400" />
+          </div>
+          
+          <div className="min-w-0 flex-1">
+            <div className="mb-1.5 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500/25 to-blue-600/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-300 shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                Replying to
+              </span>
+              <p className="text-xs font-bold text-blue-200">
+                {message.sender?.name || 'Unknown'}
+              </p>
+            </div>
+            <p className="line-clamp-2 text-sm leading-relaxed text-gray-200">
+              {getMessagePreview()}
+            </p>
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCancel}
+            className="h-8 w-8 flex-shrink-0 rounded-full p-0 text-gray-400 transition-all hover:bg-red-500/20 hover:text-red-400 hover:scale-110 hover:rotate-90"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onCancel}
-        className="h-6 w-6 flex-shrink-0 rounded-full p-0 text-gray-500 hover:bg-[#2a2a2a] hover:text-gray-300"
-      >
-        <X className="h-4 w-4" />
-      </Button>
     </div>
   );
 }

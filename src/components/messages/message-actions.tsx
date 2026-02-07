@@ -67,59 +67,67 @@ export function MessageActions({ message, isOwn, onCopy, onReply, onDelete }: Me
       </Button>
 
       {isOpen && (
-        <div className="absolute bottom-full right-0 z-50 mb-1 w-48 rounded-xl border border-[#333333] bg-[#1a1a1a] py-1 shadow-xl">
+        <div className="absolute bottom-full right-0 z-50 mb-2 min-w-[200px] max-w-[280px] overflow-hidden rounded-2xl border border-[#333333] bg-[#1a1a1a] shadow-2xl ring-1 ring-black/50">
           {!showDeleteConfirm ? (
-            <>
+            <div className="py-1">
               <button
                 onClick={handleCopy}
-                className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-300 transition-colors hover:bg-[#2a2a2a]"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-300 transition-colors hover:bg-[#2a2a2a]"
               >
-                <Copy className="h-4 w-4" />
-                Copy
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10">
+                  <Copy className="h-4 w-4 text-blue-400" />
+                </div>
+                <span className="font-medium">Copy</span>
               </button>
 
               <button
                 onClick={handleReply}
-                className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-300 transition-colors hover:bg-[#2a2a2a]"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-300 transition-colors hover:bg-[#2a2a2a]"
               >
-                <Reply className="h-4 w-4" />
-                Reply
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/10">
+                  <Reply className="h-4 w-4 text-green-400" />
+                </div>
+                <span className="font-medium">Reply</span>
               </button>
 
               <div className="my-1 border-t border-[#333333]" />
 
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-400 transition-colors hover:bg-red-500/10"
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-400 transition-colors hover:bg-red-500/10"
               >
-                <Trash2 className="h-4 w-4" />
-                Delete
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10">
+                  <Trash2 className="h-4 w-4" />
+                </div>
+                <span className="font-medium">Delete</span>
               </button>
-            </>
+            </div>
           ) : (
-            <div className="px-3 py-2">
-              <p className="mb-2 text-xs text-gray-500">Delete message?</p>
-              <div className="flex gap-2">
+            <div className="w-full min-w-[200px] p-4">
+              <p className="mb-4 text-center text-sm font-medium text-gray-300">Delete message?</p>
+              <div className="flex w-full flex-col gap-2">
                 <button
                   onClick={() => handleDelete('me')}
-                  className="flex-1 rounded-lg bg-[#2a2a2a] px-3 py-1.5 text-xs text-gray-300 transition-colors hover:bg-[#333333]"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#2a2a2a] px-4 py-2.5 text-sm font-medium text-gray-200 transition-all hover:bg-[#333333] hover:text-white"
                 >
-                  For me
+                  <span className="text-base">🙈</span>
+                  <span>Delete for me</span>
                 </button>
                 {isOwn && (
                   <button
                     onClick={() => handleDelete('everyone')}
-                    className="flex-1 rounded-lg bg-red-500/20 px-3 py-1.5 text-xs text-red-400 transition-colors hover:bg-red-500/30"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-500/20 px-4 py-2.5 text-sm font-medium text-red-300 transition-all hover:bg-red-500/30"
                   >
-                    For all
+                    <span className="text-base">🗑️</span>
+                    <span>Delete for everyone</span>
                   </button>
                 )}
               </div>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="mt-2 flex w-full items-center justify-center gap-1 text-xs text-gray-500 hover:text-gray-400"
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-sm text-gray-400 transition-colors hover:text-gray-200"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
                 Cancel
               </button>
             </div>

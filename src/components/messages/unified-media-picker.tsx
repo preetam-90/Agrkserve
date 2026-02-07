@@ -67,6 +67,7 @@ export function UnifiedMediaPicker({
   // Load Klipy content for GIFs/Stickers tabs
   const loadKlipyContent = useCallback(
     async (loadMore: boolean = false) => {
+      // Prevent concurrent loading
       if (loading || activeTab === 'emoji') return;
 
       setLoading(true);
@@ -101,13 +102,22 @@ export function UnifiedMediaPicker({
         setLoading(false);
       }
     },
-    [activeTab, viewMode, debouncedQuery, user?.id, page, loading]
+    // Remove 'loading' from dependencies to prevent flickering loops
+    [activeTab, viewMode, debouncedQuery, user?.id, page]
   );
 
   // Load content when tab, view mode, or debounced query changes
+  // Use a ref to prevent duplicate calls
+  const lastLoadKey = useRef('');
+  
   useEffect(() => {
     if (isOpen && activeTab !== 'emoji') {
-      loadKlipyContent(false);
+      const loadKey = `${activeTab}-${viewMode}-${debouncedQuery}`;
+      // Only load if the key has changed
+      if (lastLoadKey.current !== loadKey) {
+        lastLoadKey.current = loadKey;
+        loadKlipyContent(false);
+      }
     }
   }, [isOpen, activeTab, viewMode, debouncedQuery, loadKlipyContent]);
 
@@ -119,17 +129,22 @@ export function UnifiedMediaPicker({
     }
   }, [isOpen, activeTab]);
 
-  // Infinite scroll handler
+  // Infinite scroll handler with debounce
+  const isLoadingMore = useRef(false);
+  
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
-    if (!container || loading || !hasMore || activeTab === 'emoji') return;
+    if (!container || loading || isLoadingMore.current || !hasMore || activeTab === 'emoji') return;
 
     const { scrollTop, scrollHeight, clientHeight } = container;
     const scrolledPercentage = (scrollTop + clientHeight) / scrollHeight;
 
     if (scrolledPercentage > 0.8) {
+      isLoadingMore.current = true;
       setPage((prev) => prev + 1);
-      loadKlipyContent(true);
+      loadKlipyContent(true).finally(() => {
+        isLoadingMore.current = false;
+      });
     }
   }, [loading, hasMore, loadKlipyContent, activeTab]);
 
@@ -329,7 +344,7 @@ export function UnifiedMediaPicker({
           ) : (
             <div className="p-4">
               <KlipyMediaGrid
-                key={`${activeTab}-${viewMode}-${searchQuery}`}
+                key={`${activeTab}-${viewMode}`}
                 items={items}
                 onSelect={handleKlipySelect}
                 loading={loading && items.length === 0}

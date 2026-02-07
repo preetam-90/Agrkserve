@@ -29,22 +29,62 @@ import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
-export function ProviderDashboardView() {
+interface ProviderDashboardProps {
+  initialData?: any;
+}
+
+export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
   const { sidebarOpen } = useAppStore();
 
-  const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
-  const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
-  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>([]);
-  const [stats, setStats] = useState({
-    totalEquipment: 0,
-    activeBookings: 0,
-    totalEarnings: 0,
-    averageRating: 0,
+  // Seed state from SSR data if available
+  const hasSSRData = initialData?.equipment || initialData?.bookings;
+
+  const [myEquipment, setMyEquipment] = useState<Equipment[]>(
+    hasSSRData ? (initialData.equipment || []).slice(0, 4) : []
+  );
+  const [pendingBookings, setPendingBookings] = useState<Booking[]>(() => {
+    if (hasSSRData) {
+      return (initialData.bookings || []).filter((b: any) => b.status === 'pending').slice(0, 5);
+    }
+    return [];
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>(() => {
+    if (hasSSRData) {
+      return (initialData.labourBookings || [])
+        .filter((b: any) => b.status === 'pending')
+        .slice(0, 5);
+    }
+    return [];
+  });
+  const [stats, setStats] = useState(() => {
+    if (hasSSRData) {
+      const equipment = initialData.equipment || [];
+      const bookings = initialData.bookings || [];
+      const totalEarnings = bookings
+        .filter((b: any) => b.status === 'completed')
+        .reduce((sum: number, b: any) => sum + (b.total_amount || 0), 0);
+      const ratings = equipment.filter((e: any) => e.rating).map((e: any) => e.rating as number);
+      const avgRating =
+        ratings.length > 0
+          ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
+          : 0;
+      return {
+        totalEquipment: equipment.length,
+        activeBookings: bookings.filter((b: any) => ['confirmed', 'in_progress'].includes(b.status))
+          .length,
+        totalEarnings,
+        averageRating: avgRating,
+      };
+    }
+    return { totalEquipment: 0, activeBookings: 0, totalEarnings: 0, averageRating: 0 };
+  });
+  const [isLoading, setIsLoading] = useState(!hasSSRData);
 
   useEffect(() => {
-    loadDashboardData();
+    // Skip initial fetch if SSR data was provided
+    if (!hasSSRData) {
+      loadDashboardData();
+    }
 
     const supabase = createClient();
     let channel: any = null;
@@ -52,8 +92,9 @@ export function ProviderDashboardView() {
     const setupRealtimeSubscription = async () => {
       try {
         const {
-          data: { user: currentUser },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const currentUser = session?.user;
         if (!currentUser) return;
 
         const { data: equipmentData } = await supabase
@@ -192,30 +233,23 @@ export function ProviderDashboardView() {
     <>
       {/* Welcome Banner */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-8 shadow-2xl backdrop-blur-xl"
       >
         {/* Animated background effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -right-32 -top-32 h-64 w-64 animate-pulse rounded-full bg-white/10 blur-3xl"></div>
-          <div
-            className="absolute -bottom-32 -left-32 h-64 w-64 animate-pulse rounded-full bg-white/10 blur-3xl"
-            style={{ animationDelay: '1s' }}
-          ></div>
-          <div
-            className="absolute right-1/4 top-1/4 h-32 w-32 animate-pulse rounded-full bg-white/5 blur-2xl"
-            style={{ animationDelay: '2s' }}
-          ></div>
+          <div className="absolute -right-32 -top-32 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
+          <div className="absolute -bottom-32 -left-32 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
         </div>
 
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex-1">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.3, delay: 0.05 }}
               className="mb-4 flex items-center gap-3"
             >
               <div className="relative">
@@ -235,7 +269,7 @@ export function ProviderDashboardView() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.3, delay: 0.05 }}
               className="flex gap-3"
             >
               <Link href="/provider/equipment/new" className="block">
@@ -257,9 +291,9 @@ export function ProviderDashboardView() {
           </div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
             className="hidden lg:block"
           >
             <div className="relative">
@@ -274,20 +308,20 @@ export function ProviderDashboardView() {
 
       {/* Stats Grid */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
         className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
       >
         {statsCards.map((stat, idx) => (
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 + idx * 0.1 }}
+            transition={{ duration: 0.3, delay: 0.05 + idx * 0.03 }}
             className="group relative"
           >
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-emerald-500/20">
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 shadow-xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-emerald-500/10">
               {/* Glow effect */}
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
@@ -301,9 +335,9 @@ export function ProviderDashboardView() {
               <CardContent className="relative p-6">
                 <div className="mb-4 flex items-start justify-between">
                   <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
-                    className={`relative rounded-2xl p-4 ${stat.iconBg} shadow-xl transition-transform duration-500`}
+                    whileHover={{ scale: 1.05, rotate: 3 }}
+                    transition={{ duration: 0.2 }}
+                    className={`relative rounded-2xl p-4 ${stat.iconBg} shadow-lg transition-transform duration-300`}
                   >
                     <div className="absolute inset-0 rounded-2xl bg-white/20 blur-lg"></div>
                     <stat.icon className="relative h-7 w-7 text-white" />
@@ -343,9 +377,9 @@ export function ProviderDashboardView() {
       <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Equipment Requests */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
           className="space-y-4"
         >
           <div className="flex items-center justify-between">
@@ -385,20 +419,20 @@ export function ProviderDashboardView() {
               {pendingBookings.map((booking, idx) => (
                 <motion.div
                   key={booking.id}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.1 + idx * 0.03 }}
                 >
-                  <Card className="group relative overflow-hidden border-0 border-l-4 border-l-orange-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-orange-500/20">
+                  <Card className="group relative overflow-hidden border-0 border-l-4 border-l-orange-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-200 hover:-translate-x-0.5 hover:shadow-lg hover:shadow-orange-500/10">
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
 
                     <CardContent className="relative p-5">
                       <div className="flex items-center gap-4">
                         <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.3 }}
-                          className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 transition-transform duration-300 group-hover:scale-110"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2 }}
+                          className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 transition-transform duration-200 group-hover:scale-105"
                         >
                           <div className="absolute inset-0 rounded-2xl bg-orange-500/10 blur-xl"></div>
                           <Tractor className="relative h-8 w-8 text-orange-400" />
@@ -425,15 +459,13 @@ export function ProviderDashboardView() {
                             {formatCurrency(booking.total_amount)}
                           </p>
                           <Link href={`/provider/bookings/${booking.id}`}>
-                            <Link href="/provider/equipment/new" className="block">
-                              <Button
-                                size="lg"
-                                className="group relative w-full overflow-hidden bg-gradient-to-r from-emerald-500 to-green-500 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                              >
-                                <Plus className="mr-2 h-5 w-5" />
-                                Add Your First Equipment
-                              </Button>
-                            </Link>
+                            <Button
+                              size="lg"
+                              className="group relative w-full overflow-hidden bg-gradient-to-r from-emerald-500 to-green-500 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                            >
+                              <Plus className="mr-2 h-5 w-5" />
+                              View Booking
+                            </Button>
                           </Link>
                         </div>
                       </div>
@@ -447,9 +479,9 @@ export function ProviderDashboardView() {
 
         {/* Labour Requests */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
+          initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
           className="space-y-4"
         >
           <div className="flex items-center justify-between">
@@ -489,19 +521,19 @@ export function ProviderDashboardView() {
               {pendingLabourBookings.map((booking, idx) => (
                 <motion.div
                   key={booking.id}
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.1 + idx * 0.03 }}
                 >
-                  <Card className="group relative overflow-hidden border-0 border-l-4 border-l-blue-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-blue-500/20">
+                  <Card className="group relative overflow-hidden border-0 border-l-4 border-l-blue-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-200 hover:-translate-x-0.5 hover:shadow-lg hover:shadow-blue-500/10">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
 
                     <CardContent className="relative p-5">
                       <div className="flex items-center gap-4">
                         <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.3 }}
-                          className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 transition-transform duration-300 group-hover:scale-110"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2 }}
+                          className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 transition-transform duration-200 group-hover:scale-105"
                         >
                           <div className="absolute inset-0 rounded-2xl bg-blue-500/10 blur-xl"></div>
                           <Users className="relative h-8 w-8 text-blue-400" />
@@ -546,9 +578,9 @@ export function ProviderDashboardView() {
 
       {/* My Equipment Section */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className="mb-8"
       >
         <div className="mb-6 flex items-center justify-between">
@@ -600,19 +632,19 @@ export function ProviderDashboardView() {
             {myEquipment.map((equipment, idx) => (
               <motion.div
                 key={equipment.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.05 + idx * 0.03 }}
               >
                 <Link href={`/provider/equipment/${equipment.id}`}>
-                  <Card className="group h-full overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
+                  <Card className="group h-full overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
                     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-700/50 to-gray-800/50">
                       {equipment.images?.[0] ? (
                         <Image
                           src={equipment.images[0]}
                           alt={equipment.name}
                           fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
@@ -715,7 +747,7 @@ export function ProviderDashboardView() {
             key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
+            transition={{ duration: 0.3, delay: 0.1 + idx * 0.03 }}
           >
             <Link href={action.href}>
               <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20">

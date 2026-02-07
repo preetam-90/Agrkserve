@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -22,8 +22,6 @@ import {
 import { Header } from '@/components/layout';
 import {
   Button,
-  Card,
-  CardContent,
   Badge,
   Spinner,
   EmptyState,
@@ -33,60 +31,35 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
-import { LabourProfile, LabourAvailability, LabourBooking } from '@/lib/types';
+import { LabourAvailability, LabourBooking } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useAppStore, useAuthStore } from '@/lib/store';
+import { useLabourProfile, useLabourBookings } from '@/lib/hooks/use-labour-queries';
+import { useQueryClient } from '@tanstack/react-query';
+import { labourKeys } from '@/lib/hooks/query-keys';
 import toast from 'react-hot-toast';
 
 export default function ProviderLabourPage() {
   const { sidebarOpen } = useAppStore();
   const { user } = useAuthStore();
-  const [labourProfile, setLabourProfile] = useState<LabourProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [bookings, setBookings] = useState<LabourBooking[]>([]);
-  const [selectedBooking, setSelectedBooking] = useState<LabourBooking | null>(null);
+  const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    loadLabourProfile();
-    loadBookings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  const loadLabourProfile = async () => {
-    if (!user) return;
-
-    setIsLoading(true);
-    try {
-      const data = await labourService.getByUserId(user.id);
-      setLabourProfile(data);
-    } catch (err) {
-      console.error('Failed to load labour profile:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadBookings = async () => {
-    if (!user) return;
-
-    try {
-      const result = await labourService.getBookings(user.id, 'labour');
-      setBookings(result.data);
-    } catch (err) {
-      console.error('Failed to load bookings:', err);
-    }
-  };
+  const userId = user?.id;
+  const { data: labourProfile, isLoading: profileLoading } = useLabourProfile(userId);
+  const { data: bookingsResult, isLoading: bookingsLoading } = useLabourBookings(userId, 'labour');
+  const bookings = bookingsResult?.data ?? [];
+  const isLoading = profileLoading || bookingsLoading;
 
   const handleToggleAvailability = async () => {
-    if (!labourProfile) return;
+    if (!labourProfile || !userId) return;
 
     try {
       const newAvailability: LabourAvailability =
         labourProfile.availability === 'available' ? 'unavailable' : 'available';
 
       await labourService.updateAvailability(labourProfile.id, newAvailability);
-      setLabourProfile({ ...labourProfile, availability: newAvailability });
+      queryClient.invalidateQueries({ queryKey: labourKeys.profile(userId) });
       toast.success(`Status updated to ${newAvailability}`);
     } catch (err) {
       console.error('Failed to update availability:', err);
@@ -101,7 +74,7 @@ export default function ProviderLabourPage() {
     try {
       await labourService.updateBookingStatus(booking.id, 'confirmed', user.id);
       toast.success('Booking accepted!');
-      loadBookings();
+      queryClient.invalidateQueries({ queryKey: labourKeys.bookings(user.id, 'labour') });
     } catch (err) {
       console.error('Failed to accept booking:', err);
       toast.error('Failed to accept booking');
@@ -117,7 +90,7 @@ export default function ProviderLabourPage() {
     try {
       await labourService.cancelBooking(booking.id, 'Rejected by labour', user.id);
       toast.success('Booking rejected');
-      loadBookings();
+      queryClient.invalidateQueries({ queryKey: labourKeys.bookings(user.id, 'labour') });
     } catch (err) {
       console.error('Failed to reject booking:', err);
       toast.error('Failed to reject booking');
@@ -129,9 +102,18 @@ export default function ProviderLabourPage() {
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { color: 'bg-amber-500/20 text-amber-300 border-amber-500/30', label: 'Pending' },
-      confirmed: { color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30', label: 'Confirmed' },
-      in_progress: { color: 'bg-blue-500/20 text-blue-300 border-blue-500/30', label: 'In Progress' },
-      completed: { color: 'bg-slate-500/20 text-slate-300 border-slate-500/30', label: 'Completed' },
+      confirmed: {
+        color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+        label: 'Confirmed',
+      },
+      in_progress: {
+        color: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+        label: 'In Progress',
+      },
+      completed: {
+        color: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+        label: 'Completed',
+      },
       cancelled: { color: 'bg-red-500/20 text-red-300 border-red-500/30', label: 'Cancelled' },
     };
 
@@ -171,9 +153,9 @@ export default function ProviderLabourPage() {
                   title="No Labour Profile"
                   description="Create your labour profile to start receiving booking requests"
                   action={
-                    <Button 
+                    <Button
                       asChild
-                      className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600 transition-all duration-200"
+                      className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white transition-all duration-200 hover:from-teal-600 hover:to-cyan-600"
                     >
                       <Link href="/provider/labour/create">
                         <Plus className="mr-2 h-4 w-4" />
@@ -203,10 +185,10 @@ export default function ProviderLabourPage() {
                 <h1 className="mb-2 text-3xl font-bold text-white">My Labour Profile</h1>
                 <p className="text-slate-400">Manage your profile and bookings</p>
               </div>
-              <Button 
-                asChild 
+              <Button
+                asChild
                 variant="outline"
-                className="border-slate-700 bg-slate-800/50 text-white hover:bg-slate-700/50 transition-colors duration-200"
+                className="border-slate-700 bg-slate-800/50 text-white transition-colors duration-200 hover:bg-slate-700/50"
               >
                 <Link href={`/provider/labour/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
@@ -226,7 +208,7 @@ export default function ProviderLabourPage() {
                         {labourProfile.user?.name || 'Your Profile'}
                       </h2>
                       {labourProfile.user?.is_verified && (
-                        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                        <Badge className="border-emerald-500/30 bg-emerald-500/20 text-emerald-300">
                           <Award className="mr-1 h-3 w-3" />
                           Verified
                         </Badge>
@@ -260,10 +242,10 @@ export default function ProviderLabourPage() {
 
                     <div className="mb-4 flex flex-wrap gap-2">
                       {labourProfile.skills.map((skill, idx) => (
-                        <Badge 
-                          key={idx} 
+                        <Badge
+                          key={idx}
                           variant="secondary"
-                          className="bg-slate-700/50 text-slate-200 border-slate-600/50 hover:bg-slate-600/50 transition-colors duration-200"
+                          className="border-slate-600/50 bg-slate-700/50 text-slate-200 transition-colors duration-200 hover:bg-slate-600/50"
                         >
                           {skill}
                         </Badge>
@@ -288,8 +270,8 @@ export default function ProviderLabourPage() {
                       className={cn(
                         'w-full transition-all duration-200 lg:w-auto',
                         labourProfile.availability === 'available'
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
-                          : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 border border-slate-600'
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600'
+                          : 'border border-slate-600 bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
                       )}
                     >
                       {labourProfile.availability === 'available' ? (
@@ -309,7 +291,7 @@ export default function ProviderLabourPage() {
 
                 {/* Stats Grid */}
                 <div className="mt-8 grid grid-cols-2 gap-4 border-t border-slate-700/50 pt-6 md:grid-cols-4">
-                  <div className="rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50 cursor-pointer">
+                  <div className="cursor-pointer rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50">
                     <div className="mb-1 text-3xl font-bold text-teal-400">
                       {labourProfile.total_jobs || 0}
                     </div>
@@ -318,7 +300,7 @@ export default function ProviderLabourPage() {
                       Total Jobs
                     </div>
                   </div>
-                  <div className="rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50 cursor-pointer">
+                  <div className="cursor-pointer rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50">
                     <div className="mb-1 text-3xl font-bold text-amber-400">
                       {bookings.filter((b) => b.status === 'pending').length}
                     </div>
@@ -327,7 +309,7 @@ export default function ProviderLabourPage() {
                       Pending
                     </div>
                   </div>
-                  <div className="rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50 cursor-pointer">
+                  <div className="cursor-pointer rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50">
                     <div className="mb-1 text-3xl font-bold text-emerald-400">
                       {bookings.filter((b) => b.status === 'confirmed').length}
                     </div>
@@ -336,7 +318,7 @@ export default function ProviderLabourPage() {
                       Confirmed
                     </div>
                   </div>
-                  <div className="rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50 cursor-pointer">
+                  <div className="cursor-pointer rounded-xl bg-slate-800/50 p-4 text-center transition-all duration-200 hover:bg-slate-700/50">
                     <div className="mb-1 text-3xl font-bold text-cyan-400">
                       {labourProfile.service_radius_km} km
                     </div>
@@ -353,11 +335,11 @@ export default function ProviderLabourPage() {
             <div className="mb-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-white">Recent Bookings</h2>
-                <Button 
-                  asChild 
-                  variant="outline" 
+                <Button
+                  asChild
+                  variant="outline"
                   size="sm"
-                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 transition-colors duration-200"
+                  className="border-slate-700 bg-slate-800/50 text-slate-300 transition-colors duration-200 hover:bg-slate-700/50"
                 >
                   <Link href="/provider/bookings">View All</Link>
                 </Button>
@@ -376,7 +358,7 @@ export default function ProviderLabourPage() {
                   {bookings.slice(0, 5).map((booking) => (
                     <div
                       key={booking.id}
-                      className="group overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-600/50 hover:shadow-lg hover:shadow-teal-500/10 cursor-pointer"
+                      className="group cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-600/50 hover:shadow-lg hover:shadow-teal-500/10"
                     >
                       <div className="p-5">
                         <div className="flex items-start justify-between">
@@ -415,15 +397,15 @@ export default function ProviderLabourPage() {
                             </div>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
-                                  className="text-slate-400 hover:text-white hover:bg-slate-700/50"
+                                  className="text-slate-400 hover:bg-slate-700/50 hover:text-white"
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent 
+                              <DropdownMenuContent
                                 align="end"
                                 className="border-slate-700 bg-slate-800 text-slate-200"
                               >

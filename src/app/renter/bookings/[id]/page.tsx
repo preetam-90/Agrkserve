@@ -41,8 +41,8 @@ import { bookingService, reviewService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { pdf } from '@react-pdf/renderer';
-import { InvoicePDF } from '@/components/invoice/InvoicePDF';
+// @react-pdf/renderer and InvoicePDF are dynamically imported in handleDownloadInvoice
+// to avoid loading ~500KB+ bundle on page load (only ~5% of users click "Download Invoice")
 
 function BookingDetailPageContent() {
   const params = useParams();
@@ -128,7 +128,11 @@ function BookingDetailPageContent() {
 
     setIsGeneratingInvoice(true);
     try {
-      // Generate the PDF document
+      // Dynamically import heavy PDF dependencies (~500KB+) only when needed
+      const [{ pdf }, { InvoicePDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('@/components/invoice/InvoicePDF'),
+      ]);
       const invoiceDoc = <InvoicePDF booking={booking} />;
       const blob = await pdf(invoiceDoc).toBlob();
 
@@ -154,11 +158,11 @@ function BookingDetailPageContent() {
   const getStatusInfo = (status: BookingStatus) => {
     const info: Record<
       BookingStatus,
-      { 
-        color: string; 
+      {
+        color: string;
         bgGradient: string;
-        icon: React.ReactNode; 
-        label: string; 
+        icon: React.ReactNode;
+        label: string;
         description: string;
         step: number;
       }
@@ -253,8 +257,10 @@ function BookingDetailPageContent() {
           <div className="rounded-2xl border border-[#1E293B] bg-[#0F172A] p-12">
             <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-400" />
             <h1 className="mb-2 text-2xl font-bold text-[#F8FAFC]">Booking Not Found</h1>
-            <p className="mb-6 text-[#94A3B8]">The booking you're looking for doesn't exist or has been removed.</p>
-            <Button 
+            <p className="mb-6 text-[#94A3B8]">
+              The booking you're looking for doesn't exist or has been removed.
+            </p>
+            <Button
               asChild
               className="cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]"
             >
@@ -288,7 +294,9 @@ function BookingDetailPageContent() {
         </Link>
 
         {/* Status Banner with Progress */}
-        <div className={`mb-8 overflow-hidden rounded-2xl border border-[#1E293B] bg-gradient-to-br ${statusInfo.bgGradient} backdrop-blur-sm`}>
+        <div
+          className={`mb-8 overflow-hidden rounded-2xl border border-[#1E293B] bg-gradient-to-br ${statusInfo.bgGradient} backdrop-blur-sm`}
+        >
           <div className="p-6">
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div className="flex items-start gap-4">
@@ -296,11 +304,13 @@ function BookingDetailPageContent() {
                   {statusInfo.icon}
                 </div>
                 <div>
-                  <h2 className={`text-xl font-semibold ${statusInfo.color}`}>{statusInfo.label}</h2>
+                  <h2 className={`text-xl font-semibold ${statusInfo.color}`}>
+                    {statusInfo.label}
+                  </h2>
                   <p className="mt-1 text-sm text-[#CBD5E1]">{statusInfo.description}</p>
                 </div>
               </div>
-              
+
               {/* Progress Steps */}
               {statusInfo.step > 0 && (
                 <div className="flex items-center gap-2">
@@ -390,13 +400,9 @@ function BookingDetailPageContent() {
                       </div>
                       <p className="text-sm text-[#94A3B8]">Rental Period</p>
                     </div>
-                    <p className="font-medium text-[#F8FAFC]">
-                      {formatDate(booking.start_date)}
-                    </p>
+                    <p className="font-medium text-[#F8FAFC]">{formatDate(booking.start_date)}</p>
                     <p className="text-sm text-[#64748B]">to</p>
-                    <p className="font-medium text-[#F8FAFC]">
-                      {formatDate(booking.end_date)}
-                    </p>
+                    <p className="font-medium text-[#F8FAFC]">{formatDate(booking.end_date)}</p>
                   </div>
                   <div className="group cursor-default rounded-xl border border-[#1E293B] bg-[#0F172A]/50 p-4 transition-all duration-200 hover:border-[#22C55E]/30">
                     <div className="mb-2 flex items-center gap-2">
@@ -405,13 +411,9 @@ function BookingDetailPageContent() {
                       </div>
                       <p className="text-sm text-[#94A3B8]">Time Slot</p>
                     </div>
-                    <p className="font-medium text-[#F8FAFC]">
-                      {booking.start_time}
-                    </p>
+                    <p className="font-medium text-[#F8FAFC]">{booking.start_time}</p>
                     <p className="text-sm text-[#64748B]">to</p>
-                    <p className="font-medium text-[#F8FAFC]">
-                      {booking.end_time}
-                    </p>
+                    <p className="font-medium text-[#F8FAFC]">{booking.end_time}</p>
                   </div>
                 </div>
 
@@ -423,7 +425,9 @@ function BookingDetailPageContent() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-[#94A3B8]">Delivery Address</p>
-                        <p className="mt-1 font-medium text-[#F8FAFC]">{booking.delivery_address}</p>
+                        <p className="mt-1 font-medium text-[#F8FAFC]">
+                          {booking.delivery_address}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -457,16 +461,16 @@ function BookingDetailPageContent() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
                       >
                         <Phone className="mr-1.5 h-4 w-4" />
                         Call
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         className="cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
                       >
@@ -499,7 +503,9 @@ function BookingDetailPageContent() {
                   {booking.platform_fee && (
                     <div className="flex justify-between text-sm">
                       <span className="text-[#94A3B8]">Platform Fee</span>
-                      <span className="font-medium text-[#F8FAFC]">{formatCurrency(booking.platform_fee)}</span>
+                      <span className="font-medium text-[#F8FAFC]">
+                        {formatCurrency(booking.platform_fee)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -522,7 +528,7 @@ function BookingDetailPageContent() {
             <Card className="border-[#1E293B] bg-[#0F172A]">
               <CardContent className="space-y-3 p-6">
                 <h3 className="mb-3 text-sm font-semibold text-[#F8FAFC]">Quick Actions</h3>
-                
+
                 {canCancel && (
                   <Button
                     variant="outline"
@@ -535,8 +541,8 @@ function BookingDetailPageContent() {
                 )}
 
                 {canReview && (
-                  <Button 
-                    className="w-full cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]" 
+                  <Button
+                    className="w-full cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]"
                     onClick={() => setShowReviewDialog(true)}
                   >
                     <Star className="mr-2 h-4 w-4" />
@@ -544,8 +550,8 @@ function BookingDetailPageContent() {
                   </Button>
                 )}
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
                   onClick={handleDownloadInvoice}
                   loading={isGeneratingInvoice}
@@ -555,8 +561,8 @@ function BookingDetailPageContent() {
                   {isGeneratingInvoice ? 'Generating...' : 'Download Invoice'}
                 </Button>
 
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
                 >
                   <AlertCircle className="mr-2 h-4 w-4" />
@@ -570,9 +576,13 @@ function BookingDetailPageContent() {
               <CardContent className="p-4">
                 <div className="space-y-2 text-center">
                   <p className="text-xs text-[#64748B]">Booking ID</p>
-                  <p className="font-mono text-sm font-medium text-[#94A3B8]">{booking.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="font-mono text-sm font-medium text-[#94A3B8]">
+                    {booking.id.slice(0, 8).toUpperCase()}
+                  </p>
                   <div className="border-t border-[#1E293B] pt-2">
-                    <p className="text-xs text-[#64748B]">Created on {formatDate(booking.created_at)}</p>
+                    <p className="text-xs text-[#64748B]">
+                      Created on {formatDate(booking.created_at)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -603,9 +613,9 @@ function BookingDetailPageContent() {
             />
           </div>
           <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCancelDialog(false)} 
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
               className="flex-1 cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
             >
               Keep Booking
@@ -664,16 +674,16 @@ function BookingDetailPageContent() {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowReviewDialog(false)} 
+            <Button
+              variant="outline"
+              onClick={() => setShowReviewDialog(false)}
               className="flex-1 cursor-pointer border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] transition-all duration-200 hover:border-[#22C55E] hover:bg-[#22C55E]/10"
             >
               Cancel
             </Button>
-            <Button 
-              onClick={handleSubmitReview} 
-              loading={isSubmittingReview} 
+            <Button
+              onClick={handleSubmitReview}
+              loading={isSubmittingReview}
               className="flex-1 cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]"
             >
               Submit Review

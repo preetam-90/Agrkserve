@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef, Suspense, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -31,7 +32,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui';
+
 import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { Equipment, EquipmentCategory } from '@/lib/types';
@@ -523,12 +529,13 @@ function PublicEquipmentPageContent() {
   const [selectedCategory, setSelectedCategory] = useState<EquipmentCategory | 'all'>(
     (searchParams.get('category') as EquipmentCategory) || 'all'
   );
-  const [sortBy, setSortBy] = useState<string>('newest');
+  const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc' | 'rating'>('newest');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [minRating, setMinRating] = useState<number>(0);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Sidebar state
   const [showPriceFilter, setShowPriceFilter] = useState(true);
@@ -702,14 +709,10 @@ function PublicEquipmentPageContent() {
     setPage(1);
   };
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('all');
-    setPriceRange({ min: '', max: '' });
-    setMinRating(0);
-    setSortBy('newest');
-    setSelectedBrands([]);
-    setPage(1);
+  const toggleBrand = (brand: string) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+    );
   };
 
   const handleMessage = (eq: Equipment) => {
@@ -740,11 +743,132 @@ function PublicEquipmentPageContent() {
     router.push(`/equipment/${eq.id}/book`);
   };
 
-  const toggleBrand = (brand: string) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
-    );
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setPriceRange({ min: '', max: '' });
+    setMinRating(0);
+    setSortBy('newest');
+    setSelectedBrands([]);
+    setPage(1);
+    setBrandSearch('');
   };
+
+  const FilterContent = ({ isMobile = false }: { isMobile?: boolean }) => (
+    <div className="space-y-4">
+      {/* Reset Filters with gradient */}
+      <button
+        onClick={() => {
+          clearFilters();
+          if (isMobile) setShowFilters(false);
+        }}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-gradient-to-r from-red-500/10 to-pink-500/10 px-4 py-3 text-sm font-bold uppercase tracking-wide text-red-400 transition-all duration-300 hover:border-red-500/40 hover:from-red-500/20 hover:to-pink-500/20"
+      >
+        <X className="h-4 w-4" />
+        <span>Reset filters</span>
+      </button>
+
+      {/* Price Filter with glassmorphism */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
+        <button
+          onClick={() => setShowPriceFilter(!showPriceFilter)}
+          className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400"
+        >
+          <span className="text-lg">Price Range</span>
+          {showPriceFilter ? (
+            <ChevronUp className="h-5 w-5" />
+          ) : (
+            <ChevronDown className="h-5 w-5" />
+          )}
+        </button>
+
+        {showPriceFilter && (
+          <div className="space-y-3">
+            <Input
+              type="number"
+              placeholder="Min price"
+              value={priceRange.min}
+              onChange={(e) => setPriceRange((p) => ({ ...p, min: e.target.value }))}
+              className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
+            />
+            <Input
+              type="number"
+              placeholder="Max price"
+              value={priceRange.max}
+              onChange={(e) => setPriceRange((p) => ({ ...p, max: e.target.value }))}
+              className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
+            />
+            <Button
+              onClick={() => {
+                loadEquipment(1, false);
+                if (isMobile) setShowFilters(false);
+              }}
+              className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 font-bold uppercase tracking-wide text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+            >
+              Apply Filter
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Brand Filter with glassmorphism */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
+        <button
+          onClick={() => setShowBrandFilter(!showBrandFilter)}
+          className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400"
+        >
+          <span className="text-lg">Brand</span>
+          {showBrandFilter ? (
+            <ChevronUp className="h-5 w-5" />
+          ) : (
+            <ChevronDown className="h-5 w-5" />
+          )}
+        </button>
+
+        {showBrandFilter && (
+          <div className="space-y-2">
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
+              <Input
+                placeholder="Search brands"
+                value={brandSearch}
+                onChange={(e) => setBrandSearch(e.target.value)}
+                className="rounded-xl border-white/10 bg-black/40 pl-10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
+              />
+            </div>
+            <div className="space-y-1">
+              {visibleBrands.length > 0 ? (
+                visibleBrands.map((brand) => (
+                  <label
+                    key={brand}
+                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-white/5"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedBrands.includes(brand)}
+                      onChange={() => toggleBrand(brand)}
+                      className="h-4 w-4 rounded border-cyan-500/30 bg-black/40 text-cyan-500 focus:ring-cyan-400 focus:ring-offset-0"
+                    />
+                    <span className="text-sm font-medium text-gray-300">{brand}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="px-2 text-sm text-gray-500">No brands found</p>
+              )}
+            </div>
+            {!brandSearch && brands.length > 5 && (
+              <button
+                onClick={() => setShowAllBrands(!showAllBrands)}
+                className="mt-2 w-full rounded-lg py-2 text-xs font-bold uppercase tracking-widest text-cyan-400 transition-colors hover:bg-cyan-500/10 hover:text-cyan-300"
+              >
+                {showAllBrands ? 'Show Less' : `Show More (${brands.length - 5})`}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   const hasActiveFilters =
     searchQuery ||
@@ -763,7 +887,7 @@ function PublicEquipmentPageContent() {
         <div className="mb-4">
           <BackButton variant="minimal" />
         </div>
-        
+
         {/* Enhanced Page Header with gradient text */}
         <div className="mb-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -781,9 +905,57 @@ function PublicEquipmentPageContent() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 px-4 py-2">
+              <Button
+                onClick={() => setShowFilters(true)}
+                className="flex items-center gap-2 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 px-4 py-2 transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] lg:hidden"
+              >
                 <SlidersHorizontal className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm font-medium text-white">Top Rated</span>
+                <span className="text-sm font-medium text-white">Filters</span>
+              </Button>
+              <div suppressHydrationWarning>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      suppressHydrationWarning
+                      className="hidden items-center gap-2 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 px-4 py-2 transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] lg:flex"
+                    >
+                      <SlidersHorizontal className="h-4 w-4 text-cyan-400" />
+                      <span className="text-sm font-medium text-white">
+                        {sortBy === 'newest' && 'Newest'}
+                        {sortBy === 'price-asc' && 'Price: Low to High'}
+                        {sortBy === 'price-desc' && 'Price: High to Low'}
+                        {sortBy === 'rating' && 'Top Rated'}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-cyan-400" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="border-slate-800 bg-slate-950 text-slate-100">
+                    <DropdownMenuItem
+                      onClick={() => setSortBy('newest')}
+                      className="cursor-pointer focus:bg-slate-800"
+                    >
+                      Newest
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setSortBy('price-asc')}
+                      className="cursor-pointer focus:bg-slate-800"
+                    >
+                      Price: Low to High
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setSortBy('price-desc')}
+                      className="cursor-pointer focus:bg-slate-800"
+                    >
+                      Price: High to Low
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setSortBy('rating')}
+                      className="cursor-pointer focus:bg-slate-800"
+                    >
+                      Top Rated
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -823,111 +995,7 @@ function PublicEquipmentPageContent() {
           {/* Enhanced Glassmorphism Sidebar Filters */}
           <aside className="hidden w-72 flex-shrink-0 lg:block">
             <div className="sticky top-6 space-y-4">
-              {/* Reset Filters with gradient */}
-              <button
-                onClick={clearFilters}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/20 bg-gradient-to-r from-red-500/10 to-pink-500/10 px-4 py-3 text-sm font-bold uppercase tracking-wide text-red-400 transition-all duration-300 hover:border-red-500/40 hover:from-red-500/20 hover:to-pink-500/20 motion-reduce:transition-none"
-              >
-                <X className="h-4 w-4" />
-                <span>Reset filters</span>
-              </button>
-
-              {/* Price Filter with glassmorphism */}
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
-                <button
-                  onClick={() => setShowPriceFilter(!showPriceFilter)}
-                  className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400 motion-reduce:transition-none"
-                >
-                  <span className="text-lg">Price Range</span>
-                  {showPriceFilter ? (
-                    <ChevronUp className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
-                </button>
-
-                {showPriceFilter && (
-                  <div className="space-y-3">
-                    <Input
-                      type="number"
-                      placeholder="Min price"
-                      value={priceRange.min}
-                      onChange={(e) => setPriceRange((p) => ({ ...p, min: e.target.value }))}
-                      className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Max price"
-                      value={priceRange.max}
-                      onChange={(e) => setPriceRange((p) => ({ ...p, max: e.target.value }))}
-                      className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
-                    />
-                    <Button
-                      onClick={() => loadEquipment(1, false)}
-                      className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 font-bold uppercase tracking-wide text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] motion-reduce:transition-none"
-                    >
-                      Apply Filter
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Brand Filter with glassmorphism */}
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
-                <button
-                  onClick={() => setShowBrandFilter(!showBrandFilter)}
-                  className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400 motion-reduce:transition-none"
-                >
-                  <span className="text-lg">Brand</span>
-                  {showBrandFilter ? (
-                    <ChevronUp className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
-                </button>
-
-                {showBrandFilter && (
-                  <div className="space-y-2">
-                    <div className="relative mb-3">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-                      <Input
-                        placeholder="Search brands"
-                        value={brandSearch}
-                        onChange={(e) => setBrandSearch(e.target.value)}
-                        className="rounded-xl border-white/10 bg-black/40 pl-10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      {visibleBrands.length > 0 ? (
-                        visibleBrands.map((brand) => (
-                          <label
-                            key={brand}
-                            className="flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-white/5 motion-reduce:transition-none"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedBrands.includes(brand)}
-                              onChange={() => toggleBrand(brand)}
-                              className="h-4 w-4 rounded border-cyan-500/30 bg-black/40 text-cyan-500 focus:ring-cyan-400 focus:ring-offset-0"
-                            />
-                            <span className="text-sm font-medium text-gray-300">{brand}</span>
-                          </label>
-                        ))
-                      ) : (
-                        <p className="px-2 text-sm text-gray-500">No brands found</p>
-                      )}
-                    </div>
-                    {!brandSearch && brands.length > 5 && (
-                      <button
-                        onClick={() => setShowAllBrands(!showAllBrands)}
-                        className="mt-2 w-full rounded-lg py-2 text-xs font-bold uppercase tracking-widest text-cyan-400 transition-colors hover:bg-cyan-500/10 hover:text-cyan-300"
-                      >
-                        {showAllBrands ? 'Show Less' : `Show More (${brands.length - 5})`}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+              <FilterContent />
             </div>
           </aside>
 
@@ -1035,6 +1103,21 @@ function PublicEquipmentPageContent() {
           </div>
         </div>
       </main>
+
+      <Dialog open={showFilters} onOpenChange={setShowFilters}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-slate-800 bg-slate-950 p-0 text-slate-100 sm:max-w-md">
+          <DialogHeader className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/95 px-6 py-4 backdrop-blur-md">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-bold tracking-tight text-white">
+                Filters
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="px-6 py-4">
+            <FilterContent isMobile />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

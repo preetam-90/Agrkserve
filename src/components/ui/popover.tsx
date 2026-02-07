@@ -41,7 +41,7 @@ function Popover({ children, open: controlledOpen, onOpenChange, defaultOpen = f
 
   return (
     <PopoverContext.Provider value={{ open, setOpen }}>
-      <div className="relative inline-block">
+      <div className="relative">
         {children}
       </div>
     </PopoverContext.Provider>
@@ -134,10 +134,17 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
     };
 
     const sideClasses = {
-      top: 'bottom-full mb-2',
-      bottom: 'top-full mt-2',
-      left: 'right-full mr-2',
-      right: 'left-full ml-2',
+      top: 'bottom-full',
+      bottom: 'top-full',
+      left: 'right-full',
+      right: 'left-full',
+    };
+
+    const offsetStyle = {
+      top: { marginBottom: `${sideOffset}px` },
+      bottom: { marginTop: `${sideOffset}px` },
+      left: { marginRight: `${sideOffset}px` },
+      right: { marginLeft: `${sideOffset}px` },
     };
 
     return (
@@ -149,13 +156,13 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
         }}
         role="dialog"
         className={cn(
-          'absolute z-50 rounded-md border bg-white p-4 shadow-md outline-none',
-          'animate-in fade-in-0 zoom-in-95',
+          'absolute z-50 min-w-[200px]',
+          'animate-in fade-in-0 zoom-in-95 duration-200',
           sideClasses[side],
           alignmentClasses[align],
           className
         )}
-        style={{ marginTop: side === 'bottom' ? sideOffset : undefined }}
+        style={offsetStyle[side]}
         {...props}
       >
         {children}

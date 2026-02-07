@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, ChevronRight, Tractor, Search, Filter, MapPin, User } from 'lucide-react';
+import { Calendar, Clock, ChevronRight, Tractor, Search, User } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
   Button,
@@ -20,37 +20,32 @@ import {
 import { bookingService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { useAppStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { useMyBookings } from '@/lib/hooks/use-booking-queries';
+import { bookingKeys } from '@/lib/hooks/query-keys';
 import toast from 'react-hot-toast';
 
 export default function RenterBookingsPage() {
   const { sidebarOpen } = useAppStore();
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: bookings = [], isLoading } = useMyBookings();
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Real-time subscription — updates TanStack Query cache directly
   useEffect(() => {
-    loadBookings();
-
-    // Set up real-time subscription
     const supabase = createClient();
-    let channel: any = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
         const {
           data: { user: currentUser },
         } = await supabase.auth.getUser();
-        if (!currentUser) {
-          console.log('No user found for real-time subscription');
-          return;
-        }
+        if (!currentUser) return;
 
-        console.log('Setting up renter real-time subscription for user:', currentUser.id);
-
-        // Subscribe to bookings table changes for this renter
         channel = supabase
           .channel('renter-bookings-changes')
           .on(
@@ -62,34 +57,28 @@ export default function RenterBookingsPage() {
               filter: `renter_id=eq.${currentUser.id}`,
             },
             async (payload) => {
-              console.log('Real-time booking update:', payload);
-
               if (payload.eventType === 'INSERT') {
-                console.log('New booking created');
-                // Fetch the new booking with full details
                 try {
                   const bookingData = payload.new as any;
                   const newBooking = await bookingService.getById(bookingData.id);
                   if (newBooking) {
-                    setBookings((prev) => [newBooking, ...prev]);
+                    queryClient.setQueryData<Booking[]>(bookingKeys.myBookings(), (old = []) => [
+                      newBooking,
+                      ...old,
+                    ]);
                   }
-                } catch (err) {
-                  console.error('Failed to fetch new booking:', err);
-                  refreshBookings();
+                } catch {
+                  queryClient.invalidateQueries({ queryKey: bookingKeys.myBookings() });
                 }
               } else if (payload.eventType === 'UPDATE') {
                 const newStatus = (payload.new as any).status;
                 const oldStatus = (payload.old as any)?.status;
                 const bookingData = payload.new as any;
 
-                // Update existing booking in place
-                setBookings((prev) =>
-                  prev.map((booking) =>
-                    booking.id === bookingData.id ? { ...booking, ...bookingData } : booking
-                  )
+                queryClient.setQueryData<Booking[]>(bookingKeys.myBookings(), (old = []) =>
+                  old.map((b) => (b.id === bookingData.id ? { ...b, ...bookingData } : b))
                 );
 
-                // Only show notification if status actually changed
                 if (newStatus !== oldStatus) {
                   if (newStatus === 'confirmed') {
                     toast.success('Your booking has been confirmed!', {
@@ -97,69 +86,32 @@ export default function RenterBookingsPage() {
                       icon: '✅',
                     });
                   } else if (newStatus === 'rejected' || newStatus === 'cancelled') {
-                    toast.error('Your booking was declined', {
-                      duration: 4000,
-                    });
+                    toast.error('Your booking was declined', { duration: 4000 });
                   } else if (newStatus === 'in_progress') {
-                    toast('Your booking is now in progress', {
-                      icon: '🚜',
-                    });
+                    toast('Your booking is now in progress', { icon: '🚜' });
                   } else if (newStatus === 'completed') {
-                    toast.success('Your booking is complete!', {
-                      icon: '✅',
-                    });
+                    toast.success('Your booking is complete!', { icon: '✅' });
                   }
                 }
               } else if (payload.eventType === 'DELETE') {
-                // Remove deleted booking
-                setBookings((prev) => prev.filter((booking) => booking.id !== payload.old.id));
+                queryClient.setQueryData<Booking[]>(bookingKeys.myBookings(), (old = []) =>
+                  old.filter((b) => b.id !== payload.old.id)
+                );
               }
             }
           )
-          .subscribe((status) => {
-            console.log('Renter subscription status:', status);
-            if (status === 'SUBSCRIBED') {
-              console.log('✅ Successfully subscribed to renter booking changes');
-            } else if (status === 'TIMED_OUT') {
-              console.error('❌ Subscription timed out');
-            }
-          });
-      } catch (error) {
-        console.error('Failed to setup real-time subscription:', error);
+          .subscribe();
+      } catch {
+        // Subscription setup failed silently
       }
     };
 
     setupRealtimeSubscription();
 
     return () => {
-      if (channel) {
-        console.log('Cleaning up renter real-time subscription');
-        supabase.removeChannel(channel);
-      }
+      if (channel) supabase.removeChannel(channel);
     };
-  }, []);
-
-  const loadBookings = async () => {
-    setIsLoading(true);
-    try {
-      const data = await bookingService.getMyBookings();
-      setBookings(data);
-    } catch (err) {
-      console.error('Failed to load bookings:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Silent refresh without loading state (for real-time updates)
-  const refreshBookings = async () => {
-    try {
-      const data = await bookingService.getMyBookings();
-      setBookings(data);
-    } catch (err) {
-      console.error('Failed to refresh bookings:', err);
-    }
-  };
+  }, [queryClient]);
 
   const getStatusBadge = (status: BookingStatus) => {
     const variants: Record<
@@ -190,14 +142,25 @@ export default function RenterBookingsPage() {
     return <Badge variant={variants[status]}>{labels[status]}</Badge>;
   };
 
-  const filterBookings = (status: string) => {
+  const tabCounts = useMemo(
+    () => ({
+      all: bookings.length,
+      active: bookings.filter((b) => ['pending', 'confirmed', 'in_progress'].includes(b.status))
+        .length,
+      completed: bookings.filter((b) => b.status === 'completed').length,
+      cancelled: bookings.filter((b) => ['cancelled', 'disputed'].includes(b.status)).length,
+    }),
+    [bookings]
+  );
+
+  const filteredBookings = useMemo(() => {
     let filtered = bookings;
 
-    if (status === 'active') {
+    if (activeTab === 'active') {
       filtered = bookings.filter((b) => ['pending', 'confirmed', 'in_progress'].includes(b.status));
-    } else if (status === 'completed') {
+    } else if (activeTab === 'completed') {
       filtered = bookings.filter((b) => b.status === 'completed');
-    } else if (status === 'cancelled') {
+    } else if (activeTab === 'cancelled') {
       filtered = bookings.filter((b) => ['cancelled', 'disputed'].includes(b.status));
     }
 
@@ -209,9 +172,7 @@ export default function RenterBookingsPage() {
     }
 
     return filtered;
-  };
-
-  const filteredBookings = filterBookings(activeTab);
+  }, [bookings, activeTab, searchQuery]);
 
   return (
     <div className="min-h-screen bg-[#020617]">
@@ -229,20 +190,20 @@ export default function RenterBookingsPage() {
                   <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#CBD5E1]">
                     <span className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-[#22C55E]"></div>
-                      {bookings.filter((b) => ['pending', 'confirmed', 'in_progress'].includes(b.status)).length} Active
+                      {tabCounts.active} Active
                     </span>
                     <span className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-[#3B82F6]"></div>
-                      {bookings.filter((b) => b.status === 'completed').length} Completed
+                      {tabCounts.completed} Completed
                     </span>
                     <span className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-[#64748B]"></div>
-                      {bookings.length} Total
+                      {tabCounts.all} Total
                     </span>
                   </div>
                 </div>
-                <Button 
-                  asChild 
+                <Button
+                  asChild
                   className="cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A] hover:shadow-lg hover:shadow-[#22C55E]/20"
                 >
                   <Link href="/equipment">Book Equipment</Link>
@@ -266,36 +227,29 @@ export default function RenterBookingsPage() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
               <TabsList className="mb-6 border-[#1E293B] bg-[#0F172A]">
-                <TabsTrigger 
+                <TabsTrigger
                   value="all"
                   className="cursor-pointer data-[state=active]:bg-[#22C55E] data-[state=active]:text-[#020617]"
                 >
-                  All ({bookings.length})
+                  All ({tabCounts.all})
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="active"
                   className="cursor-pointer data-[state=active]:bg-[#22C55E] data-[state=active]:text-[#020617]"
                 >
-                  Active (
-                  {
-                    bookings.filter((b) =>
-                      ['pending', 'confirmed', 'in_progress'].includes(b.status)
-                    ).length
-                  }
-                  )
+                  Active ({tabCounts.active})
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="completed"
                   className="cursor-pointer data-[state=active]:bg-[#22C55E] data-[state=active]:text-[#020617]"
                 >
-                  Completed ({bookings.filter((b) => b.status === 'completed').length})
+                  Completed ({tabCounts.completed})
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="cancelled"
                   className="cursor-pointer data-[state=active]:bg-[#22C55E] data-[state=active]:text-[#020617]"
                 >
-                  Cancelled (
-                  {bookings.filter((b) => ['cancelled', 'disputed'].includes(b.status)).length})
+                  Cancelled ({tabCounts.cancelled})
                 </TabsTrigger>
               </TabsList>
 
@@ -314,7 +268,7 @@ export default function RenterBookingsPage() {
                       : `No ${activeTab} bookings found`}
                   </p>
                   {activeTab === 'all' && (
-                    <Button 
+                    <Button
                       asChild
                       className="cursor-pointer bg-[#22C55E] text-[#020617] transition-all duration-200 hover:bg-[#16A34A]"
                     >
@@ -329,8 +283,8 @@ export default function RenterBookingsPage() {
                     const provider = (booking as Booking & { provider?: UserProfile }).provider;
 
                     return (
-                      <Link 
-                        key={booking.id} 
+                      <Link
+                        key={booking.id}
                         href={`/renter/bookings/${booking.id}`}
                         className="group cursor-pointer"
                       >
@@ -373,7 +327,15 @@ export default function RenterBookingsPage() {
                                   <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-[#64748B]" />
                                     <span className="truncate">
-                                      {new Date(booking.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(booking.end_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                      {new Date(booking.start_date).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                      })}{' '}
+                                      -{' '}
+                                      {new Date(booking.end_date).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                      })}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">

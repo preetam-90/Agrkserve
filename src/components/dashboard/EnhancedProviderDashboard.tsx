@@ -41,27 +41,86 @@ import { Equipment, Booking } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
-export function EnhancedProviderDashboard() {
+interface InitialData {
+  equipment?: any[];
+  bookings?: any[];
+  labourBookings?: any[];
+}
+
+export function EnhancedProviderDashboard({ initialData }: { initialData?: InitialData | null }) {
   const { sidebarOpen } = useAppStore();
 
-  const [myEquipment, setMyEquipment] = useState<Equipment[]>([]);
-  const [pendingBookings, setPendingBookings] = useState<Booking[]>([]);
-  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>([]);
-  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  const [stats, setStats] = useState({
-    totalEquipment: 0,
-    activeBookings: 0,
-    totalEarnings: 0,
-    averageRating: 0,
-    monthlyEarnings: 0,
-    pendingRequests: 0,
-    completionRate: 0,
-    responseTime: 0,
+  const hasSSRData = !!(initialData?.equipment || initialData?.bookings);
+
+  const [myEquipment, setMyEquipment] = useState<Equipment[]>(
+    hasSSRData ? (initialData!.equipment || []).slice(0, 4) : []
+  );
+  const [pendingBookings, setPendingBookings] = useState<Booking[]>(
+    hasSSRData
+      ? (initialData!.bookings || []).filter((b: any) => b.status === 'pending').slice(0, 5)
+      : []
+  );
+  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>(
+    hasSSRData
+      ? (initialData!.labourBookings || []).filter((b: any) => b.status === 'pending').slice(0, 5)
+      : []
+  );
+  const [recentBookings, setRecentBookings] = useState<Booking[]>(
+    hasSSRData ? (initialData!.bookings || []).slice(0, 5) : []
+  );
+  const [stats, setStats] = useState(() => {
+    if (hasSSRData) {
+      const allEquipment = initialData!.equipment || [];
+      const allBookings = initialData!.bookings || [];
+      const allLabour = initialData!.labourBookings || [];
+      const pending = allBookings.filter((b: any) => b.status === 'pending');
+      const pendingLabour = allLabour.filter((b: any) => b.status === 'pending');
+      const totalEarnings = allBookings
+        .filter((b: any) => b.status === 'completed')
+        .reduce((sum: number, b: any) => sum + b.total_amount, 0);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const monthlyEarnings = allBookings
+        .filter((b: any) => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
+        .reduce((sum: number, b: any) => sum + b.total_amount, 0);
+      const ratings = allEquipment.filter((e: any) => e.rating).map((e: any) => e.rating as number);
+      const avgRating =
+        ratings.length > 0
+          ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
+          : 0;
+      const completedCount = allBookings.filter((b: any) => b.status === 'completed').length;
+      const completionRate =
+        allBookings.length > 0 ? (completedCount / allBookings.length) * 100 : 0;
+      return {
+        totalEquipment: allEquipment.length,
+        activeBookings: allBookings.filter((b: any) =>
+          ['confirmed', 'in_progress'].includes(b.status)
+        ).length,
+        totalEarnings,
+        averageRating: avgRating,
+        monthlyEarnings,
+        pendingRequests: pending.length + pendingLabour.length,
+        completionRate,
+        responseTime: 2.5,
+      };
+    }
+    return {
+      totalEquipment: 0,
+      activeBookings: 0,
+      totalEarnings: 0,
+      averageRating: 0,
+      monthlyEarnings: 0,
+      pendingRequests: 0,
+      completionRate: 0,
+      responseTime: 0,
+    };
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!hasSSRData);
 
   useEffect(() => {
-    loadDashboardData();
+    if (!hasSSRData) {
+      loadDashboardData();
+    }
 
     const supabase = createClient();
     let channel: any = null;
@@ -69,8 +128,9 @@ export function EnhancedProviderDashboard() {
     const setupRealtimeSubscription = async () => {
       try {
         const {
-          data: { user: currentUser },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const currentUser = session?.user;
         if (!currentUser) return;
 
         const { data: equipmentData } = await supabase
@@ -132,10 +192,7 @@ export function EnhancedProviderDashboard() {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const monthlyEarnings = bookingsResult
-        .filter(
-          (b) =>
-            b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo
-        )
+        .filter((b) => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
         .reduce((sum, b) => sum + b.total_amount, 0);
 
       const ratings = equipmentResult.filter((e) => e.rating).map((e) => e.rating as number);
@@ -184,12 +241,12 @@ export function EnhancedProviderDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="relative overflow-hidden rounded-2xl border border-gray-800/50 bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 p-8 backdrop-blur-xl"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent"></div>
-        
+
         <div className="relative z-10">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -258,7 +315,7 @@ export function EnhancedProviderDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         {[
@@ -347,7 +404,7 @@ export function EnhancedProviderDashboard() {
             key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 + idx * 0.05 }}
+            transition={{ duration: 0.3, delay: 0.05 + idx * 0.05 }}
             className="group cursor-pointer"
           >
             <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
@@ -365,12 +422,8 @@ export function EnhancedProviderDashboard() {
                     <div className="absolute inset-0 rounded-xl bg-white/20 blur-xl"></div>
                     <stat.icon className="relative h-6 w-6 text-white" />
                   </motion.div>
-                  {stat.trend === 'up' && (
-                    <TrendingUp className="h-5 w-5 text-emerald-400" />
-                  )}
-                  {stat.trend === 'down' && (
-                    <TrendingDown className="h-5 w-5 text-red-400" />
-                  )}
+                  {stat.trend === 'up' && <TrendingUp className="h-5 w-5 text-emerald-400" />}
+                  {stat.trend === 'down' && <TrendingDown className="h-5 w-5 text-red-400" />}
                 </div>
                 <div>
                   <p className="mb-1 text-3xl font-bold text-white">{stat.value}</p>
@@ -391,7 +444,7 @@ export function EnhancedProviderDashboard() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -432,7 +485,7 @@ export function EnhancedProviderDashboard() {
                   key={booking.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
                 >
                   <Card className="group relative overflow-hidden border-0 border-l-4 border-l-orange-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-orange-500/20">
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -490,7 +543,7 @@ export function EnhancedProviderDashboard() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -531,7 +584,7 @@ export function EnhancedProviderDashboard() {
                   key={booking.id}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                  transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
                 >
                   <Card className="group relative overflow-hidden border-0 border-l-4 border-l-blue-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-blue-500/20">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -587,7 +640,7 @@ export function EnhancedProviderDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -615,7 +668,7 @@ export function EnhancedProviderDashboard() {
                 key={booking.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
               >
                 <Link href={`/provider/bookings/${booking.id}`}>
                   <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20">
@@ -638,10 +691,10 @@ export function EnhancedProviderDashboard() {
                           className={cn(
                             'mb-2 border',
                             booking.status === 'completed'
-                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                              ? 'border-emerald-500/30 bg-emerald-500/20 text-emerald-400'
                               : booking.status === 'confirmed'
-                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                              : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                ? 'border-blue-500/30 bg-blue-500/20 text-blue-400'
+                                : 'border-amber-500/30 bg-amber-500/20 text-amber-400'
                           )}
                         >
                           {booking.status}
@@ -662,7 +715,7 @@ export function EnhancedProviderDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -715,7 +768,7 @@ export function EnhancedProviderDashboard() {
                 key={equipment.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.15 + idx * 0.1 }}
               >
                 <Link href={`/provider/equipment/${equipment.id}`}>
                   <Card className="group h-full cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
@@ -790,7 +843,7 @@ export function EnhancedProviderDashboard() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.7 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
       >
         <h2 className="mb-4 text-2xl font-bold text-white">Quick Actions</h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
@@ -836,7 +889,7 @@ export function EnhancedProviderDashboard() {
               key={idx}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 + idx * 0.05 }}
+              transition={{ duration: 0.3, delay: 0.15 + idx * 0.05 }}
             >
               <Link href={action.href}>
                 <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20">

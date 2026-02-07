@@ -310,6 +310,8 @@ export function ChatWindow({
     setIsSending(true);
 
     try {
+      const replyToMessageId = replyingTo?.id;
+      
       if (selectedKlipyMedia) {
         // Send KLIPY media (GIF, Meme, Sticker, Clip)
         await sendKlipyMediaMessage(
@@ -324,18 +326,20 @@ export function ChatWindow({
             size_bytes: selectedKlipyMedia.size_bytes,
             thumbnail_url: selectedKlipyMedia.thumbnail_url,
           },
-          trimmedContent || undefined
+          trimmedContent || undefined,
+          replyToMessageId
         );
         clearMedia();
       } else if (selectedMedia && mediaType) {
         // Send regular media (image/video uploaded by user)
-        await sendMediaMessage(selectedMedia, mediaType, trimmedContent || undefined);
+        await sendMediaMessage(selectedMedia, mediaType, trimmedContent || undefined, replyToMessageId);
         clearMedia();
       } else {
         // Send text message
-        await sendMessage(trimmedContent);
+        await sendMessage(trimmedContent, replyToMessageId);
       }
       setInputValue('');
+      setReplyingTo(null); // Clear reply state after sending
     } catch (error) {
       console.error('Failed to send message:', error);
       if (!selectedMedia && !selectedKlipyMedia) {
@@ -793,13 +797,15 @@ function DeletedMessageBubble({ isOwn, showAvatar, senderName }: DeletedMessageB
       {/* Deleted message bubble */}
       <div
         className={cn(
-          'overflow-hidden rounded-2xl px-4 py-2',
-          isOwn ? 'bg-[#1a1a1a]' : 'bg-[#1a1a1a]'
+          'max-w-[70%] overflow-hidden rounded-2xl border border-dashed border-gray-700/50 bg-[#1a1a1a]/80 px-4 py-2.5 backdrop-blur-sm',
+          isOwn ? 'rounded-br-md' : 'rounded-bl-md'
         )}
       >
-        <div className="flex items-center gap-2 text-gray-500">
-          <Trash2 className="h-4 w-4" />
-          <span className="text-sm italic">This message was deleted</span>
+        <div className="flex items-center gap-2 text-gray-400">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-800">
+            <Trash2 className="h-3 w-3" />
+          </div>
+          <span className="text-xs italic text-gray-500 sm:text-sm">This message was deleted</span>
         </div>
       </div>
     </div>
@@ -878,6 +884,51 @@ function MessageBubble({
             hasMedia ? 'p-0' : 'px-3 py-2 sm:px-4 sm:py-2'
           )}
         >
+          {/* Reply Thread - Shows original message being replied to (like WhatsApp/Telegram style) */}
+          {message.reply_to_message && (
+            <div className={cn(
+              "group/reply cursor-pointer overflow-hidden rounded-t-lg border-l-4 border-blue-400 bg-gradient-to-r from-blue-500/15 via-blue-500/8 to-transparent p-2.5 transition-all hover:border-blue-300 hover:from-blue-500/20 hover:via-blue-500/10",
+              hasMedia ? "m-2 mb-0 rounded-lg" : ""
+            )}>
+              <div className="flex items-start gap-2">
+                {/* Reply icon indicator */}
+                <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-blue-500/25">
+                  <Reply className="h-3 w-3 text-blue-300" />
+                </div>
+                
+                <div className="min-w-0 flex-1">
+                  {/* Sender name with badge */}
+                  <div className="mb-1 flex items-center gap-1.5">
+                    <div className="h-1 w-1 rounded-full bg-blue-300 animate-pulse" />
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-blue-300">
+                      {message.reply_to_message.sender?.name || 'Unknown'}
+                    </p>
+                  </div>
+                  
+                  {/* Message preview */}
+                  <div className="flex items-center gap-2">
+                    {message.reply_to_message.media_url && (
+                      <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-blue-400/40">
+                        <img
+                          src={message.reply_to_message.media_url}
+                          alt="Media preview"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <p className="line-clamp-2 text-[11px] leading-relaxed text-gray-200">
+                      {message.reply_to_message.message_type === 'image' && !message.reply_to_message.content && '📷 Photo'}
+                      {message.reply_to_message.message_type === 'video' && !message.reply_to_message.content && '🎥 Video'}
+                      {message.reply_to_message.message_type === 'gif' && !message.reply_to_message.content && '🎬 GIF'}
+                      {message.reply_to_message.message_type === 'sticker' && !message.reply_to_message.content && '🎭 Sticker'}
+                      {message.reply_to_message.content || (message.reply_to_message.media_url ? '📎 Media' : 'Message')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Media content */}
           {hasMedia && (
             <div className="relative">
@@ -1005,18 +1056,6 @@ function MessageBubble({
                   {message.content}
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Reply indicator */}
-          {message.reply_to_message && (
-            <div className="mb-2 rounded-lg border-l-2 border-blue-400 bg-black/20 px-2.5 py-1 sm:px-3 sm:py-1.5">
-              <p className="text-[10px] text-blue-300 sm:text-xs">
-                {message.reply_to_message.sender?.name || 'Unknown'}
-              </p>
-              <p className="line-clamp-1 text-[10px] text-gray-400 sm:text-xs">
-                {message.reply_to_message.content || '📷 Media'}
-              </p>
             </div>
           )}
 

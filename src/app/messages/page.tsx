@@ -4,7 +4,20 @@ import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
-import { ChatList, ChatWindow } from '@/components/messages';
+import { ChatList } from '@/components/messages';
+import dynamic from 'next/dynamic';
+
+const ChatWindow = dynamic(
+  () => import('@/components/messages').then((mod) => ({ default: mod.ChatWindow })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-1 items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    ),
+  }
+);
 import { useAuthStore, useMessagesStore } from '@/lib/store';
 import { Spinner } from '@/components/ui';
 import { cn } from '@/lib/utils';

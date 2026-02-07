@@ -247,7 +247,7 @@ export const dmService = {
       throw error;
     }
 
-    // Fetch sender profiles for all messages
+    // Fetch sender profiles and replied messages for all messages
     const messages = data || [];
     if (messages.length > 0) {
       const senderIds = [...new Set(messages.map((m) => m.sender_id))];
@@ -258,12 +258,45 @@ export const dmService = {
 
       const senderMap = new Map(senders?.map((s) => [s.id, s]) || []);
 
+      // Fetch replied messages
+      const replyToIds = messages.filter((m) => m.reply_to_id).map((m) => m.reply_to_id);
+      let repliedMessagesMap = new Map();
+      
+      if (replyToIds.length > 0) {
+        const { data: repliedMessages } = await supabase
+          .from('dm_messages')
+          .select('id, content, message_type, sender_id, media_url')
+          .in('id', replyToIds);
+
+        if (repliedMessages) {
+          // Fetch sender profiles for replied messages
+          const repliedSenderIds = [...new Set(repliedMessages.map((m) => m.sender_id))];
+          const { data: repliedSenders } = await supabase
+            .from('user_profiles')
+            .select('id, name, profile_image')
+            .in('id', repliedSenderIds);
+
+          const repliedSenderMap = new Map(repliedSenders?.map((s) => [s.id, s]) || []);
+
+          repliedMessagesMap = new Map(
+            repliedMessages.map((m) => [
+              m.id,
+              {
+                ...m,
+                sender: repliedSenderMap.get(m.sender_id) || null,
+              },
+            ])
+          );
+        }
+      }
+
       return messages
         .map((m) => ({
           ...m,
           delivery_status: m.is_read ? ('read' as const) : ('delivered' as const),
           delivered_at: null,
           sender: senderMap.get(m.sender_id) || null,
+          reply_to_message: m.reply_to_id ? repliedMessagesMap.get(m.reply_to_id) || null : null,
         }))
         .reverse() as DirectMessage[];
     }
@@ -274,7 +307,7 @@ export const dmService = {
   /**
    * Send a message
    */
-  async sendMessage(conversationId: string, content: string): Promise<DirectMessage> {
+  async sendMessage(conversationId: string, content: string, replyToId?: string): Promise<DirectMessage> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -288,6 +321,7 @@ export const dmService = {
           sender_id: user.id,
           content: content.trim(),
           message_type: 'text',
+          reply_to_id: replyToId || null,
         })
         .select('*')
         .single();
@@ -310,10 +344,34 @@ export const dmService = {
         .eq('id', user.id)
         .single();
 
+      // Fetch replied message if this is a reply
+      let replyToMessage = null;
+      if (replyToId) {
+        const { data: repliedMsg } = await supabase
+          .from('dm_messages')
+          .select('id, content, message_type, sender_id, media_url')
+          .eq('id', replyToId)
+          .single();
+
+        if (repliedMsg) {
+          const { data: repliedSender } = await supabase
+            .from('user_profiles')
+            .select('id, name, profile_image')
+            .eq('id', repliedMsg.sender_id)
+            .single();
+
+          replyToMessage = {
+            ...repliedMsg,
+            sender: repliedSender,
+          };
+        }
+      }
+
       return {
         ...data,
         delivery_status: 'sent',
         sender,
+        reply_to_message: replyToMessage,
       } as DirectMessage;
     } catch (err) {
       if (err instanceof Error) {
@@ -330,7 +388,8 @@ export const dmService = {
     conversationId: string,
     file: File,
     mediaType: 'image' | 'video',
-    caption?: string
+    caption?: string,
+    replyToId?: string
   ): Promise<DirectMessage> {
     const {
       data: { user },
@@ -393,6 +452,7 @@ export const dmService = {
           media_duration_seconds: duration || null,
           media_width: width || null,
           media_height: height || null,
+          reply_to_id: replyToId || null,
         })
         .select('*')
         .single();
@@ -415,10 +475,34 @@ export const dmService = {
         .eq('id', user.id)
         .single();
 
+      // Fetch replied message if this is a reply
+      let replyToMessage = null;
+      if (replyToId) {
+        const { data: repliedMsg } = await supabase
+          .from('dm_messages')
+          .select('id, content, message_type, sender_id, media_url')
+          .eq('id', replyToId)
+          .single();
+
+        if (repliedMsg) {
+          const { data: repliedSender } = await supabase
+            .from('user_profiles')
+            .select('id, name, profile_image')
+            .eq('id', repliedMsg.sender_id)
+            .single();
+
+          replyToMessage = {
+            ...repliedMsg,
+            sender: repliedSender,
+          };
+        }
+      }
+
       return {
         ...data,
         delivery_status: 'sent',
         sender,
+        reply_to_message: replyToMessage,
       } as DirectMessage;
     } catch (err) {
       if (err instanceof Error) {
@@ -462,7 +546,8 @@ export const dmService = {
       size_bytes?: number;
       thumbnail_url?: string;
     },
-    caption?: string
+    caption?: string,
+    replyToId?: string
   ): Promise<DirectMessage> {
     const {
       data: { user },
@@ -494,6 +579,7 @@ export const dmService = {
         media_duration_seconds: klipyMedia.duration_seconds || null,
         media_width: klipyMedia.width || null,
         media_height: klipyMedia.height || null,
+        reply_to_id: replyToId || null,
       };
 
       // Try to add KLIPY fields (will be ignored if columns don't exist)
@@ -538,10 +624,34 @@ export const dmService = {
         .eq('id', user.id)
         .single();
 
+      // Fetch replied message if this is a reply
+      let replyToMessage = null;
+      if (replyToId) {
+        const { data: repliedMsg } = await supabase
+          .from('dm_messages')
+          .select('id, content, message_type, sender_id, media_url')
+          .eq('id', replyToId)
+          .single();
+
+        if (repliedMsg) {
+          const { data: repliedSender } = await supabase
+            .from('user_profiles')
+            .select('id, name, profile_image')
+            .eq('id', repliedMsg.sender_id)
+            .single();
+
+          replyToMessage = {
+            ...repliedMsg,
+            sender: repliedSender,
+          };
+        }
+      }
+
       return {
         ...data,
         delivery_status: 'sent',
         sender,
+        reply_to_message: replyToMessage,
       } as DirectMessage;
     } catch (err) {
       if (err instanceof Error) {

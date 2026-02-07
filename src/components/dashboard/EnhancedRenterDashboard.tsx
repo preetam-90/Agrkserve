@@ -38,24 +38,53 @@ import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
-export function EnhancedRenterDashboard() {
+interface RenterDashboardProps {
+  initialData?: any;
+}
+
+export function EnhancedRenterDashboard({ initialData }: RenterDashboardProps) {
   const { profile } = useAuthStore();
   const { userLocation } = useAppStore();
 
-  const [nearbyEquipment, setNearbyEquipment] = useState<Equipment[]>([]);
-  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  const [recentLabourBookings, setRecentLabourBookings] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Seed state from SSR data if available
+  const hasSSRData = initialData?.equipment || initialData?.bookings;
+
+  const [nearbyEquipment, setNearbyEquipment] = useState<Equipment[]>(
+    hasSSRData ? initialData.equipment || [] : []
+  );
+  const [recentBookings, setRecentBookings] = useState<Booking[]>(
+    hasSSRData ? (initialData.bookings || []).slice(0, 3) : []
+  );
+  const [recentLabourBookings, setRecentLabourBookings] = useState<any[]>(
+    hasSSRData ? (initialData.labourBookings || []).slice(0, 3) : []
+  );
+  const [isLoading, setIsLoading] = useState(!hasSSRData);
   const [searchQuery, setSearchQuery] = useState('');
-  const [stats, setStats] = useState({
-    totalSpent: 0,
-    activeBookings: 0,
-    completedBookings: 0,
-    savedItems: 0,
+  const [stats, setStats] = useState(() => {
+    if (hasSSRData) {
+      const bookings = initialData.bookings || [];
+      const activeCount = bookings.filter(
+        (b: any) => b.status === 'confirmed' || b.status === 'in_progress'
+      ).length;
+      const completedCount = bookings.filter((b: any) => b.status === 'completed').length;
+      const totalSpent = bookings
+        .filter((b: any) => b.status === 'completed')
+        .reduce((sum: number, b: any) => sum + (b.total_amount || 0), 0);
+      return {
+        totalSpent,
+        activeBookings: activeCount,
+        completedBookings: completedCount,
+        savedItems: 0,
+      };
+    }
+    return { totalSpent: 0, activeBookings: 0, completedBookings: 0, savedItems: 0 };
   });
 
   useEffect(() => {
-    loadDashboardData();
+    // Skip initial fetch if SSR data was provided
+    if (!hasSSRData) {
+      loadDashboardData();
+    }
 
     const supabase = createClient();
     let channel: any = null;
@@ -63,8 +92,9 @@ export function EnhancedRenterDashboard() {
     const setupRealtimeSubscription = async () => {
       try {
         const {
-          data: { user: currentUser },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const currentUser = session?.user;
         if (!currentUser) return;
 
         channel = supabase
@@ -156,9 +186,9 @@ export function EnhancedRenterDashboard() {
     <div className="space-y-8">
       {/* Header Section */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="relative overflow-hidden rounded-2xl border border-gray-800/50 bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 p-8 backdrop-blur-xl"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent"></div>
@@ -195,9 +225,9 @@ export function EnhancedRenterDashboard() {
 
       {/* Search Bar */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
       >
         <form onSubmit={handleSearch}>
           <div className="group relative flex gap-3">
@@ -231,9 +261,9 @@ export function EnhancedRenterDashboard() {
       </motion.div>
       {/* Stats Grid */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         {[
@@ -276,12 +306,12 @@ export function EnhancedRenterDashboard() {
         ].map((stat, idx) => (
           <motion.div
             key={idx}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 + idx * 0.1 }}
+            transition={{ duration: 0.3, delay: 0.05 + idx * 0.03 }}
             className="group cursor-pointer"
           >
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
+            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/20">
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
               ></div>
@@ -289,16 +319,14 @@ export function EnhancedRenterDashboard() {
               <CardContent className="relative p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
+                    whileHover={{ scale: 1.05, rotate: 3 }}
+                    transition={{ duration: 0.2 }}
                     className={`relative flex rounded-xl bg-gradient-to-br p-3 ${stat.iconBg} shadow-lg`}
                   >
                     <div className="absolute inset-0 rounded-xl bg-white/20 blur-xl"></div>
                     <stat.icon className="relative h-6 w-6 text-white" />
                   </motion.div>
-                  {stat.trend === 'up' && (
-                    <TrendingUp className="h-5 w-5 text-emerald-400" />
-                  )}
+                  {stat.trend === 'up' && <TrendingUp className="h-5 w-5 text-emerald-400" />}
                 </div>
                 <div>
                   <p className="mb-1 text-3xl font-bold text-white">{stat.value}</p>
@@ -312,9 +340,9 @@ export function EnhancedRenterDashboard() {
       </motion.div>
       {/* Quick Actions */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <h2 className="mb-4 text-2xl font-bold text-white">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -364,17 +392,19 @@ export function EnhancedRenterDashboard() {
           ].map((action, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 + idx * 0.05 }}
+              transition={{ duration: 0.3, delay: 0.1 + idx * 0.03 }}
             >
               <Link href={action.href}>
-                <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20">
-                  <div className={`absolute inset-0 bg-gradient-to-r ${action.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}></div>
+                <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/10">
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r ${action.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
+                  ></div>
                   <CardContent className="flex items-center gap-4 p-6">
                     <motion.div
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.3 }}
+                      whileHover={{ scale: 1.05, rotate: 3 }}
+                      transition={{ duration: 0.2 }}
                       className={`relative flex rounded-xl bg-gradient-to-br p-3 ${action.gradient}`}
                     >
                       <div className="absolute inset-0 rounded-xl bg-white/20 blur-xl"></div>
@@ -397,9 +427,9 @@ export function EnhancedRenterDashboard() {
       {/* Recent Activity Timeline */}
       {recentBookings.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-white">Recent Activity</h2>
@@ -415,17 +445,17 @@ export function EnhancedRenterDashboard() {
             {recentBookings.map((booking, idx) => (
               <motion.div
                 key={booking.id}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.1 + idx * 0.03 }}
               >
                 <Link href={`/renter/bookings/${booking.id}`}>
-                  <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-emerald-500/20">
+                  <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-200 hover:-translate-x-0.5 hover:shadow-lg hover:shadow-emerald-500/10">
                     <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                     <CardContent className="flex items-center gap-4 p-5">
                       <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.3 }}
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.2 }}
                         className="relative flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20"
                       >
                         <div className="absolute inset-0 rounded-xl bg-emerald-500/10 blur-xl"></div>
@@ -461,26 +491,26 @@ export function EnhancedRenterDashboard() {
       )}
       {/* Equipment Categories */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <h2 className="mb-4 text-2xl font-bold text-white">Browse by Category</h2>
         <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-8">
           {EQUIPMENT_CATEGORIES.slice(0, 8).map((category, idx) => (
             <motion.div
               key={category.value}
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.6 + idx * 0.05 }}
+              transition={{ duration: 0.3, delay: 0.1 + idx * 0.02 }}
             >
               <Link
                 href={`/equipment?category=${category.value}`}
-                className="group flex cursor-pointer flex-col items-center rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:shadow-xl hover:shadow-emerald-500/20"
+                className="hover:scale-102 group flex cursor-pointer flex-col items-center rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-xl transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:shadow-lg hover:shadow-emerald-500/10"
               >
                 <motion.span
-                  whileHover={{ rotate: 10, scale: 1.2 }}
-                  transition={{ duration: 0.3 }}
+                  whileHover={{ rotate: 5, scale: 1.1 }}
+                  transition={{ duration: 0.2 }}
                   className="mb-2 text-3xl"
                 >
                   {category.icon}
@@ -496,9 +526,9 @@ export function EnhancedRenterDashboard() {
 
       {/* Available Equipment */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">Available Near You</h2>
@@ -525,7 +555,7 @@ export function EnhancedRenterDashboard() {
             action={
               <Button
                 asChild
-                className="bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                className="hover:scale-102 bg-gradient-to-r from-emerald-500 to-green-500 shadow-lg transition-all duration-200 hover:shadow-lg"
               >
                 <Link href="/equipment">Browse All Equipment</Link>
               </Button>
@@ -536,26 +566,26 @@ export function EnhancedRenterDashboard() {
             {nearbyEquipment.map((equipment, idx) => (
               <motion.div
                 key={equipment.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.05 + idx * 0.02 }}
               >
                 <Link href={`/equipment/${equipment.id}`}>
-                  <Card className="group h-full cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
+                  <Card className="group h-full cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
                     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-700/50 to-gray-800/50">
                       {equipment.images?.[0] ? (
                         <Image
                           src={equipment.images[0]}
                           alt={equipment.name}
                           fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
                           <Tractor className="h-12 w-12 text-gray-600" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                       {equipment.is_available && (
                         <Badge className="absolute right-3 top-3 border-emerald-500/30 bg-emerald-500/90 text-white backdrop-blur-sm">
                           Available

@@ -38,8 +38,8 @@ interface MessagesActions {
 
   // Messages
   fetchMessages: (conversationId: string, loadMore?: boolean) => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
-  sendMediaMessage: (file: File, mediaType: 'image' | 'video', caption?: string) => Promise<void>;
+  sendMessage: (content: string, replyToId?: string) => Promise<void>;
+  sendMediaMessage: (file: File, mediaType: 'image' | 'video', caption?: string, replyToId?: string) => Promise<void>;
   sendKlipyMediaMessage: (
     klipyMedia: {
       slug: string;
@@ -52,7 +52,8 @@ interface MessagesActions {
       size_bytes?: number;
       thumbnail_url?: string;
     },
-    caption?: string
+    caption?: string,
+    replyToId?: string
   ) => Promise<void>;
   markAsRead: () => Promise<void>;
   markAsDelivered: (messageIds: string[]) => Promise<void>;
@@ -212,13 +213,13 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
     }
   },
 
-  sendMessage: async (content: string) => {
+  sendMessage: async (content: string, replyToId?: string) => {
     const { activeConversationId } = get();
 
     if (!activeConversationId || !content.trim()) return;
 
     try {
-      const message = await dmService.sendMessage(activeConversationId, content);
+      const message = await dmService.sendMessage(activeConversationId, content, replyToId);
 
       // Optimistically add the message if not already present
       const { messages } = get();
@@ -234,7 +235,7 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
     }
   },
 
-  sendMediaMessage: async (file: File, mediaType: 'image' | 'video', caption?: string) => {
+  sendMediaMessage: async (file: File, mediaType: 'image' | 'video', caption?: string, replyToId?: string) => {
     const { activeConversationId } = get();
 
     if (!activeConversationId) return;
@@ -244,7 +245,8 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
         activeConversationId,
         file,
         mediaType,
-        caption
+        caption,
+        replyToId
       );
 
       // Optimistically add the message if not already present
@@ -273,7 +275,8 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
       size_bytes?: number;
       thumbnail_url?: string;
     },
-    caption?: string
+    caption?: string,
+    replyToId?: string
   ) => {
     const { activeConversationId } = get();
 
@@ -283,7 +286,8 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
       const message = await dmService.sendKlipyMediaMessage(
         activeConversationId,
         klipyMedia,
-        caption
+        caption,
+        replyToId
       );
 
       // Optimistically add the message if not already present

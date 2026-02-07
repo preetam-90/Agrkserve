@@ -26,25 +26,71 @@ import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
-export function LabourDashboardView() {
+interface LabourDashboardProps {
+  initialData?: any;
+}
+
+export function LabourDashboardView({ initialData }: LabourDashboardProps) {
   const { sidebarOpen } = useAppStore();
   const { profile } = useAuthStore();
 
-  const [pendingJobs, setPendingJobs] = useState<any[]>([]);
-  const [upcomingJobs, setUpcomingJobs] = useState<any[]>([]);
-  const [completedJobs, setCompletedJobs] = useState<any[]>([]);
-  const [labourProfile, setLabourProfile] = useState<any>(null);
-  const [stats, setStats] = useState({
-    totalJobs: 0,
-    totalEarnings: 0,
-    averageRating: 0,
-    activeJobs: 0,
+  // Seed state from SSR data if available
+  const hasSSRData = initialData?.labourProfile || initialData?.labourBookings;
+
+  const [pendingJobs, setPendingJobs] = useState<any[]>(() => {
+    if (hasSSRData) {
+      return (initialData.labourBookings || [])
+        .filter((b: any) => b.status === 'pending')
+        .slice(0, 5);
+    }
+    return [];
+  });
+  const [upcomingJobs, setUpcomingJobs] = useState<any[]>(() => {
+    if (hasSSRData) {
+      return (initialData.labourBookings || [])
+        .filter((b: any) => ['confirmed', 'in_progress'].includes(b.status))
+        .slice(0, 4);
+    }
+    return [];
+  });
+  const [completedJobs, setCompletedJobs] = useState<any[]>(() => {
+    if (hasSSRData) {
+      return (initialData.labourBookings || [])
+        .filter((b: any) => b.status === 'completed')
+        .slice(0, 3);
+    }
+    return [];
+  });
+  const [labourProfile, setLabourProfile] = useState<any>(
+    hasSSRData ? initialData.labourProfile : null
+  );
+  const [stats, setStats] = useState(() => {
+    if (hasSSRData) {
+      const jobs = initialData.labourBookings || [];
+      const completed = jobs.filter((b: any) => b.status === 'completed');
+      const upcoming = jobs.filter((b: any) => ['confirmed', 'in_progress'].includes(b.status));
+      const totalEarnings = completed.reduce(
+        (sum: number, b: any) => sum + (b.total_amount || 0),
+        0
+      );
+      const avgRating = initialData.labourProfile?.rating || 0;
+      return {
+        totalJobs: jobs.length,
+        totalEarnings,
+        averageRating: avgRating,
+        activeJobs: upcoming.length,
+      };
+    }
+    return { totalJobs: 0, totalEarnings: 0, averageRating: 0, activeJobs: 0 };
   });
   const [isAvailable, setIsAvailable] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!hasSSRData);
 
   useEffect(() => {
-    loadDashboardData();
+    // Skip initial fetch if SSR data was provided
+    if (!hasSSRData) {
+      loadDashboardData();
+    }
 
     const supabase = createClient();
     let channel: any = null;
@@ -52,8 +98,9 @@ export function LabourDashboardView() {
     const setupRealtimeSubscription = async () => {
       try {
         const {
-          data: { user: currentUser },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const currentUser = session?.user;
         if (!currentUser) return;
 
         channel = supabase
@@ -87,8 +134,9 @@ export function LabourDashboardView() {
     try {
       const supabase = createClient();
       const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const currentUser = session?.user;
 
       if (!currentUser) return;
 
@@ -219,7 +267,7 @@ export function LabourDashboardView() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 shadow-2xl backdrop-blur-xl"
       >
         {/* Animated background effects */}
@@ -240,7 +288,7 @@ export function LabourDashboardView() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.3, delay: 0.05 }}
               className="mb-4 flex items-center gap-3"
             >
               <div className="relative">
@@ -262,7 +310,7 @@ export function LabourDashboardView() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ duration: 0.3, delay: 0.05 }}
               className="flex gap-3"
             >
               <Button
@@ -290,7 +338,7 @@ export function LabourDashboardView() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
             className="hidden lg:block"
           >
             <div className="relative">
@@ -307,7 +355,7 @@ export function LabourDashboardView() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
         className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
       >
         {statsCards.map((stat, idx) => (
@@ -315,7 +363,7 @@ export function LabourDashboardView() {
             key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 + idx * 0.1 }}
+            transition={{ duration: 0.3, delay: 0.05 + idx * 0.03 }}
             className="group relative"
           >
             <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-blue-500/20">
@@ -368,7 +416,7 @@ export function LabourDashboardView() {
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className="mb-8"
       >
         <div className="flex items-center justify-between">
@@ -410,7 +458,7 @@ export function LabourDashboardView() {
                 key={job.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
               >
                 <Card className="group relative overflow-hidden border-0 border-l-4 border-l-amber-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-amber-500/20">
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -472,7 +520,7 @@ export function LabourDashboardView() {
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className="mb-8"
       >
         <div className="flex items-center justify-between">
@@ -514,7 +562,7 @@ export function LabourDashboardView() {
                 key={job.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
+                transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
               >
                 <Card className="group relative overflow-hidden border-0 border-l-4 border-l-emerald-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-emerald-500/20">
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
@@ -560,7 +608,7 @@ export function LabourDashboardView() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.3, delay: 0.05 }}
         className="grid grid-cols-2 gap-4 lg:grid-cols-4"
       >
         {[
@@ -593,7 +641,7 @@ export function LabourDashboardView() {
             key={idx}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 + idx * 0.1 }}
+            transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
           >
             <Link href={action.href}>
               <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/20">
