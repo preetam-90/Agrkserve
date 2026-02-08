@@ -39,7 +39,12 @@ interface MessagesActions {
   // Messages
   fetchMessages: (conversationId: string, loadMore?: boolean) => Promise<void>;
   sendMessage: (content: string, replyToId?: string) => Promise<void>;
-  sendMediaMessage: (file: File, mediaType: 'image' | 'video', caption?: string, replyToId?: string) => Promise<void>;
+  sendMediaMessage: (
+    file: File,
+    mediaType: 'image' | 'video',
+    caption?: string,
+    replyToId?: string
+  ) => Promise<void>;
   sendKlipyMediaMessage: (
     klipyMedia: {
       slug: string;
@@ -112,7 +117,7 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
   },
 
   setActiveConversation: async (conversationId: string | null) => {
-    const { messagesChannel, readStatusChannel, unsubscribeAll: _unsubscribeAll } = get();
+    const { messagesChannel, readStatusChannel } = get();
 
     // Cleanup previous subscriptions
     if (messagesChannel) {
@@ -235,7 +240,12 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
     }
   },
 
-  sendMediaMessage: async (file: File, mediaType: 'image' | 'video', caption?: string, replyToId?: string) => {
+  sendMediaMessage: async (
+    file: File,
+    mediaType: 'image' | 'video',
+    caption?: string,
+    replyToId?: string
+  ) => {
     const { activeConversationId } = get();
 
     if (!activeConversationId) return;

@@ -27,7 +27,7 @@ export interface EmptyStateTemplateProps {
 /**
  * EmptyStateTemplate Component
  * Reusable template for empty state displays
- * 
+ *
  * Features:
  * - Positive, encouraging messaging
  * - Never resembles error state
@@ -41,7 +41,6 @@ export function EmptyStateTemplate({
   description,
   primaryAction,
   secondaryAction,
-  variant: _variant = 'default',
   className,
   tip,
 }: EmptyStateTemplateProps) {
@@ -66,40 +65,36 @@ export function EmptyStateTemplate({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center text-center px-4 py-8 md:py-12',
+        'flex flex-col items-center justify-center px-4 py-8 text-center md:py-12',
         className
       )}
       role="status"
       aria-live="polite"
     >
       {/* Illustration */}
-      <div className="w-48 h-48 md:w-56 md:h-56 mb-6">
-        {illustration}
-      </div>
+      <div className="mb-6 h-48 w-48 md:h-56 md:w-56">{illustration}</div>
 
       {/* Title */}
-      <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 max-w-xl">
+      <h2 className="mb-3 max-w-xl text-xl font-bold text-gray-900 md:text-2xl lg:text-3xl">
         {title}
       </h2>
 
       {/* Description */}
-      <p className="text-base md:text-lg text-gray-600 mb-6 max-w-lg">
-        {description}
-      </p>
+      <p className="mb-6 max-w-lg text-base text-gray-600 md:text-lg">{description}</p>
 
       {/* Tip (optional) */}
       {tip && (
-        <div className="mb-6 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg text-sm max-w-md">
+        <div className="mb-6 max-w-md rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700">
           <p className="whitespace-pre-line">{tip}</p>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           onClick={handlePrimaryAction}
           size="lg"
-          className="min-h-[44px] min-w-[140px] bg-green-600 hover:bg-green-700 text-white"
+          className="min-h-[44px] min-w-[140px] bg-green-600 text-white hover:bg-green-700"
         >
           {primaryAction.label}
         </Button>

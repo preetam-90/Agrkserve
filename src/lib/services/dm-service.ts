@@ -79,14 +79,13 @@ export const dmService = {
         // from the Supabase/Postgres client are non-enumerable and JSON.stringify
         // returns "{}". Attempt several fallbacks to surface useful details.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const errAny = error as any;
         let errMsg: string | undefined =
-          (error as any)?.message ||
-          (error as any)?.code ||
-          (error as any)?.details ||
-          (error as any)?.hint;
+          errAny?.message || errAny?.code || errAny?.details || errAny?.hint;
 
         if (!errMsg) {
           try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const props = Object.getOwnPropertyNames(error || ({} as any));
             if (props.length > 0) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -24,10 +24,8 @@ export function getNetworkStatus(): NetworkStatus {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const connection =
-    (navigator as any).connection ||
-    (navigator as any).mozConnection ||
-    (navigator as any).webkitConnection;
+  const nav = navigator as any;
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
   const status: NetworkStatus = {
     isOnline: navigator.onLine,

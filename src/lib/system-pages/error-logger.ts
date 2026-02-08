@@ -89,10 +89,8 @@ function getNetworkStatus(): 'online' | 'offline' | 'slow' {
 
   // Check connection quality if available
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const connection =
-    (navigator as any).connection ||
-    (navigator as any).mozConnection ||
-    (navigator as any).webkitConnection;
+  const nav = navigator as any;
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
   if (connection) {
     const effectiveType = connection.effectiveType;

@@ -105,6 +105,7 @@ async function fetchAuditLogs(filters?: Record<string, unknown>): Promise<{
   // environments (auth redirects, proxy errors, HTML error pages) the body can
   // be non-JSON. Try to parse JSON and fall back to raw text for a clearer
   // error message.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let data: any = null;
   let textBody: string | null = null;
   try {
