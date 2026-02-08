@@ -57,9 +57,10 @@ export async function trimVideo(
       .setDuration(trimRequest.duration)
       .output(output)
       .outputOptions([
-        '-c:v libx264', // H.264 codec
-        '-preset fast', // Encoding speed
-        '-c:a aac', // Audio codec
+        '-c:v libsvtav1', // AV1 codec
+        '-preset 10', // Faster preset for intermediate trim
+        '-crf 35',
+        '-c:a libopus',
         '-strict experimental',
       ])
       .on('end', () => resolve(output))
@@ -77,11 +78,11 @@ export async function compressVideo(
   outputPath?: string
 ): Promise<string> {
   const finalConfig = { ...DEFAULT_VIDEO_CONFIG, ...config };
-  const output = outputPath || join(tmpdir(), `compressed-${randomBytes(8).toString('hex')}.mp4`);
+  const output = outputPath || join(tmpdir(), `compressed-${randomBytes(8).toString('hex')}.webm`);
 
   // Get video metadata to calculate scaling
   const metadata = await getVideoMetadata(inputPath);
-  
+
   // Calculate scaling to maintain aspect ratio
   let scale = '';
   if (metadata.height > finalConfig.maxResolution) {
@@ -90,16 +91,14 @@ export async function compressVideo(
   }
 
   return new Promise((resolve, reject) => {
-    const command = ffmpeg(inputPath)
-      .output(output)
-      .outputOptions([
-        '-c:v libx264', // H.264 codec
-        '-preset medium', // Balance between compression and speed
-        '-crf 28', // Constant Rate Factor (18-28 is good, higher = more compression)
-        '-c:a aac', // Audio codec
-        '-b:a 128k', // Audio bitrate
-        '-movflags +faststart', // Enable streaming
-      ]);
+    const command = ffmpeg(inputPath).output(output).outputOptions([
+      '-c:v libsvtav1', // AV1 codec (SVT-AV1 is faster)
+      '-preset 8', // Encoding speed/quality trade-off (0-13, higher is faster)
+      '-crf 35', // Constant Rate Factor (0-63, lower is better quality)
+      '-c:a libopus', // Opus audio for WebM
+      '-b:a 128k', // Audio bitrate
+      '-deadline realtime', // Hint for speed
+    ]);
 
     // Apply scaling if needed
     if (scale) {

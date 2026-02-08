@@ -6,8 +6,12 @@ import { BackButton } from '@/components/ui/back-button';
 import { EnhancedProviderDashboard } from '@/components/dashboard/EnhancedProviderDashboard';
 import { InitialData } from '@/lib/types';
 import { ProviderDashboardSkeleton } from '@/components/dashboard/DashboardSkeletons';
+import { Metadata } from 'next';
 
-
+export const metadata: Metadata = {
+  title: 'Provider Dashboard - AgriServe',
+  description: 'Manage your farm equipment rentals, bookings, and earnings.',
+};
 
 async function getProviderDashboardData() {
   try {

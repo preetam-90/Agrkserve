@@ -1,13 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  useMotionTemplate,
-} from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, useMotionTemplate } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, ChevronDown, Sparkles } from 'lucide-react';
 
@@ -55,7 +49,10 @@ export function HeroSection() {
   const spotlightGradient = useMotionTemplate`radial-gradient(600px circle at ${mouseX}% ${mouseY}%, rgba(34, 197, 94, 0.15), transparent 40%)`;
 
   return (
-    <section ref={containerRef} className="relative h-screen w-full max-w-full overflow-hidden bg-[#0A0F0C]">
+    <section
+      ref={containerRef}
+      className="relative h-screen w-full max-w-full overflow-hidden bg-[#0A0F0C]"
+    >
       {/* Animated Background Pattern */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#22c55e08_1px,transparent_1px),linear-gradient(to_bottom,#22c55e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />
@@ -77,9 +74,19 @@ export function HeroSection() {
           playsInline
           className="h-full w-full object-cover opacity-60 transition-opacity duration-1000"
           style={{ filter: 'contrast(1.1) saturate(1.2)' }}
+          onError={(e) => {
+            const video = e.currentTarget;
+            video.style.display = 'none';
+            const fallback = video.parentElement?.querySelector('.video-fallback');
+            if (fallback) (fallback as HTMLElement).style.display = 'block';
+          }}
         >
-          <source src="/Landingpagevideo.mp4" type="video/mp4" />
+          <source src="/Landingpagevideo.webm" type="video/webm" />
         </video>
+        {/* Fallback Image */}
+        <div className="video-fallback absolute inset-0 hidden bg-gradient-to-br from-emerald-900/20 via-teal-900/10 to-emerald-900/20">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#22c55e08_1px,transparent_1px),linear-gradient(to_bottom,#22c55e08_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-b from-[#0A0F0C]/90 via-[#0A0F0C]/50 to-[#0A0F0C]/95" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(10,15,12,0.9)_100%)]" />
       </motion.div>

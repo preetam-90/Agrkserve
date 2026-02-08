@@ -1,11 +1,11 @@
-'use client';
+import { Metadata } from 'next';
+import MessagesClient from './MessagesClient';
 
-import { MessagesView } from '@/components/messages/messages-view';
+export const metadata: Metadata = {
+  title: 'Messages - AgriServe',
+  description: 'Your conversations with providers.',
+};
 
 export default function RenterMessagesPage() {
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <MessagesView />
-    </div>
-  );
+  return <MessagesClient />;
 }

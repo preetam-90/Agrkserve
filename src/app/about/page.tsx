@@ -1,62 +1,123 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import AboutPage from './AboutClient';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
 
 export const metadata: Metadata = {
-  title: 'About Us | AgriServe',
-  description: 'Learn about AgriServe - India\'s trusted platform for agricultural equipment rental and skilled labor hiring.',
+  title: "About AgriServe - India's Trusted Agricultural Equipment & Labour Platform",
+  description:
+    "Learn about AgriServe — India's leading platform for renting farm equipment and hiring agricultural labour. " +
+    'Serving farmers across Punjab, Haryana, Uttar Pradesh, Rajasthan, Madhya Pradesh, Bihar, Maharashtra, and 20+ states. ' +
+    'किसानों के लिए कृषि उपकरण किराया और मजदूर बुकिंग प्लेटफॉर्म।',
+  keywords: [
+    'about AgriServe',
+    'agricultural platform India',
+    'farm equipment rental company',
+    'tractor rental India',
+    'harvester rental India',
+    'agricultural labour hiring',
+    'कृषि सेवा प्लेटफॉर्म',
+    'किसान सेवा',
+    'AgriServe team',
+    'farming technology India',
+    'rural India agriculture',
+    'krishi seva company',
+    'agricultural marketplace',
+    'farm machinery rental',
+    'labour booking platform',
+  ],
+  openGraph: {
+    title: "About AgriServe - India's Trusted Agricultural Equipment & Labour Platform",
+    description:
+      "Learn about AgriServe — India's leading agricultural platform connecting farmers with equipment providers and labour across 20+ Indian states.",
+    url: `${BASE_URL}/about`,
+    siteName: 'AgriServe',
+    type: 'website',
+    locale: 'en_IN',
+    images: [
+      {
+        url: `${BASE_URL}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'About AgriServe - Agricultural Platform for Indian Farmers',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "About AgriServe - India's Agricultural Equipment & Labour Platform",
+    description:
+      'Discover how AgriServe empowers Indian farmers with easy access to tractors, harvesters, cultivators, and skilled agricultural labour.',
+    images: [`${BASE_URL}/og-image.jpg`],
+  },
+  alternates: {
+    canonical: `${BASE_URL}/about`,
+    languages: {
+      'en-IN': `${BASE_URL}/about`,
+      'hi-IN': `${BASE_URL}/about?lang=hi`,
+    },
+  },
 };
 
-export default function AboutPage() {
+// About page JSON-LD structured data
+const aboutJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: 'About AgriServe',
+  description: "India's leading hyperlocal agricultural marketplace platform",
+  url: `${BASE_URL}/about`,
+  mainEntity: {
+    '@type': 'Organization',
+    name: 'AgriServe',
+    url: BASE_URL,
+    logo: `${BASE_URL}/agriserveLogo.png`,
+    description:
+      'AgriServe is a technology-driven platform that connects Indian farmers with agricultural equipment providers and skilled labour across 20+ states.',
+    foundingDate: '2024',
+    founders: [
+      { '@type': 'Person', name: 'Anubhav', jobTitle: 'CEO & Co-Founder' },
+      { '@type': 'Person', name: 'Nancy', jobTitle: 'COO & Co-Founder' },
+      { '@type': 'Person', name: 'Saurabh', jobTitle: 'CTO & Co-Founder' },
+      { '@type': 'Person', name: 'Kuldeep', jobTitle: 'Head of Operations' },
+    ],
+    areaServed: [
+      { '@type': 'Country', name: 'India' },
+      { '@type': 'State', name: 'Punjab' },
+      { '@type': 'State', name: 'Haryana' },
+      { '@type': 'State', name: 'Uttar Pradesh' },
+      { '@type': 'State', name: 'Rajasthan' },
+      { '@type': 'State', name: 'Madhya Pradesh' },
+      { '@type': 'State', name: 'Bihar' },
+      { '@type': 'State', name: 'Uttarakhand' },
+      { '@type': 'State', name: 'Himachal Pradesh' },
+      { '@type': 'State', name: 'Jharkhand' },
+      { '@type': 'State', name: 'Chhattisgarh' },
+      { '@type': 'State', name: 'Maharashtra' },
+      { '@type': 'State', name: 'Gujarat' },
+      { '@type': 'State', name: 'Karnataka' },
+      { '@type': 'State', name: 'Tamil Nadu' },
+      { '@type': 'State', name: 'Andhra Pradesh' },
+      { '@type': 'State', name: 'Telangana' },
+      { '@type': 'State', name: 'Kerala' },
+      { '@type': 'State', name: 'West Bengal' },
+      { '@type': 'State', name: 'Odisha' },
+      { '@type': 'State', name: 'Assam' },
+      { '@type': 'AdministrativeArea', name: 'Delhi NCR' },
+      { '@type': 'AdministrativeArea', name: 'Chandigarh' },
+      { '@type': 'AdministrativeArea', name: 'Jammu & Kashmir' },
+    ],
+    sameAs: ['https://twitter.com/agriserve_in'],
+  },
+};
+
+export default function AboutPageWrapper() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4">
-            About AgriServe
-          </h1>
-          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-            Empowering farmers across India with quality agricultural equipment and skilled labor
-          </p>
-        </div>
-
-        <div className="prose prose-lg dark:prose-invert max-w-4xl mx-auto">
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">Our Mission</h2>
-            <p className="text-slate-600 dark:text-slate-400">
-              AgriServe is dedicated to revolutionizing agriculture in India by providing easy access to 
-              modern farming equipment and skilled agricultural labor. We believe that every farmer deserves 
-              access to the tools and expertise needed to maximize their productivity and profitability.
-            </p>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">What We Do</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-2">Equipment Rental</h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Access a wide range of agricultural machinery from tractors to harvesters at affordable rates.
-                </p>
-              </div>
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold mb-2">Labor Hiring</h3>
-                <p className="text-slate-600 dark:text-slate-400">
-                  Connect with skilled agricultural workers for seasonal and permanent positions.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold mb-4">Our Values</h2>
-            <ul className="space-y-3 text-slate-600 dark:text-slate-400">
-              <li>✓ <strong>Farmer First:</strong> We prioritize the needs of farmers in everything we do</li>
-              <li>✓ <strong>Quality:</strong> We ensure all equipment is well-maintained and reliable</li>
-              <li>✓ <strong>Affordability:</strong> Fair pricing that makes modern farming accessible to all</li>
-              <li>✓ <strong>Sustainability:</strong> Promoting eco-friendly farming practices</li>
-            </ul>
-          </section>
-        </div>
-      </div>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd) }}
+      />
+      <AboutPage />
+    </>
   );
 }

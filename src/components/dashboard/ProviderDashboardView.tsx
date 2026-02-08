@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Plus,
@@ -33,7 +33,9 @@ interface ProviderDashboardProps {
   initialData?: InitialData;
 }
 
-export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
+export const ProviderDashboardView = React.memo(function ProviderDashboardView({
+  initialData,
+}: ProviderDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { sidebarOpen } = useAppStore();
 
@@ -78,6 +80,52 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
     return { totalEquipment: 0, activeBookings: 0, totalEarnings: 0, averageRating: 0 };
   });
   const [isLoading, setIsLoading] = useState(!hasSSRData);
+
+  const statsCards = useMemo(
+    () => [
+      {
+        icon: Tractor,
+        value: stats.totalEquipment,
+        label: 'Total Equipment',
+        gradient: 'from-blue-500 to-cyan-500',
+        bgGradient: 'from-blue-500/10 to-cyan-500/10',
+        iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+        trend: '+12%',
+        trendUp: true,
+      },
+      {
+        icon: Calendar,
+        value: stats.activeBookings,
+        label: 'Active Bookings',
+        gradient: 'from-emerald-500 to-green-500',
+        bgGradient: 'from-emerald-500/10 to-green-500/10',
+        iconBg: 'bg-gradient-to-br from-emerald-500 to-green-500',
+        trend: '+8%',
+        trendUp: true,
+      },
+      {
+        icon: IndianRupee,
+        value: formatCurrency(stats.totalEarnings),
+        label: 'Total Earnings',
+        gradient: 'from-purple-500 to-pink-500',
+        bgGradient: 'from-purple-500/10 to-pink-500/10',
+        iconBg: 'bg-gradient-to-br from-purple-500 to-pink-500',
+        trend: '+23%',
+        trendUp: true,
+      },
+      {
+        icon: Star,
+        value: stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A',
+        label: 'Average Rating',
+        gradient: 'from-amber-500 to-orange-500',
+        bgGradient: 'from-amber-500/10 to-orange-500/10',
+        iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
+        trend: '4.8/5',
+        trendUp: true,
+      },
+    ],
+    [stats.totalEquipment, stats.activeBookings, stats.totalEarnings, stats.averageRating]
+  );
 
   useEffect(() => {
     // Skip initial fetch if SSR data was provided
@@ -185,49 +233,6 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
       </div>
     );
   }
-
-  const statsCards = [
-    {
-      icon: Tractor,
-      value: stats.totalEquipment,
-      label: 'Total Equipment',
-      gradient: 'from-blue-500 to-cyan-500',
-      bgGradient: 'from-blue-500/10 to-cyan-500/10',
-      iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-500',
-      trend: '+12%',
-      trendUp: true,
-    },
-    {
-      icon: Calendar,
-      value: stats.activeBookings,
-      label: 'Active Bookings',
-      gradient: 'from-emerald-500 to-green-500',
-      bgGradient: 'from-emerald-500/10 to-green-500/10',
-      iconBg: 'bg-gradient-to-br from-emerald-500 to-green-500',
-      trend: '+8%',
-      trendUp: true,
-    },
-    {
-      icon: IndianRupee,
-      value: formatCurrency(stats.totalEarnings),
-      label: 'Total Earnings',
-      gradient: 'from-purple-500 to-pink-500',
-      bgGradient: 'from-purple-500/10 to-pink-500/10',
-      iconBg: 'bg-gradient-to-br from-purple-500 to-pink-500',
-      trend: '+23%',
-      trendUp: true,
-    },
-    {
-      icon: Star,
-      value: stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A',
-      label: 'Average Rating',
-      gradient: 'from-amber-500 to-orange-500',
-      bgGradient: 'from-amber-500/10 to-orange-500/10',
-      iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
-      trend: '4.8/5',
-      trendUp: true,
-    },
-  ];
 
   return (
     <>
@@ -617,12 +622,15 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
               <Button
                 asChild
                 size="lg"
-                className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-green-500 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                className="bg-gradient-to-r from-emerald-500 to-green-500 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl"
               >
-                <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]"></div>
-                <Link href="/provider/equipment/new" className="flex items-center gap-2">
+                <Link
+                  href="/provider/equipment/new"
+                  className="group relative flex items-center gap-2 overflow-hidden"
+                >
                   <Plus className="h-5 w-5" />
-                  Add Your First Equipment
+                  <span className="relative z-10">Add Your First Equipment</span>
+                  <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]"></div>
                 </Link>
               </Button>
             </CardContent>
@@ -771,4 +779,4 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
       </motion.div>
     </>
   );
-}
+});

@@ -45,6 +45,16 @@ body {
   position: relative;
 }
 
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Prevent horizontal scroll on main container */
 #__next {
   overflow-x: hidden;
@@ -256,6 +266,19 @@ footer {
 
 .animate-typing {
   animation: typing 1.4s ease-in-out infinite;
+}
+
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 60s linear infinite;
 }
 
 /* Glassmorphism utilities */

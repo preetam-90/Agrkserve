@@ -1,0 +1,595 @@
+'use client';
+
+import {
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Scale,
+  ChevronDown,
+  Search,
+  Clock,
+  Shield,
+  Users,
+  DollarSign,
+  Gavel,
+  AlertOctagon,
+  History,
+  Phone,
+  Mail,
+  MapPin,
+} from 'lucide-react';
+import { useState } from 'react';
+import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
+import { cn } from '@/lib/utils';
+
+// TermsOfService JSON-LD for SEO
+const termsJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Terms and Conditions',
+  description:
+    'AgriServe Terms and Conditions - Legal agreement governing the use of our agricultural equipment rental and labor hiring platform in India.',
+  url: 'https://agriserve.in/terms',
+  inLanguage: 'en-IN',
+  datePublished: '2025-01-01',
+  dateModified: '2026-01-01',
+  author: {
+    '@type': 'Organization',
+    name: 'AgriServe',
+    url: 'https://agriserve.in',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'AgriServe',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://agriserve.in/logo.png',
+    },
+  },
+  mainEntity: {
+    '@type': 'TermsOfService',
+    name: 'AgriServe Terms and Conditions',
+    url: 'https://agriserve.in/terms',
+    datePublished: '2025-01-01',
+    dateModified: '2026-01-01',
+    author: {
+      '@type': 'Organization',
+      name: 'AgriServe',
+    },
+    applicableJurisdiction: {
+      '@type': 'Place',
+      name: 'India',
+      containsPlace: {
+        '@type': 'Place',
+        name: 'Karnataka',
+      },
+    },
+    tosSections: [
+      'Introduction',
+      'Use of Service',
+      'Bookings and Payments',
+      'Cancellation and Refunds',
+      'Responsibility and Liability',
+      'Prohibited Activities',
+      'Account Suspension',
+      'Dispute Resolution',
+      'Changes to Terms',
+    ],
+  },
+};
+
+// Terms data structure
+const termsSections = [
+  {
+    id: 'intro',
+    title: 'परिचय | Introduction',
+    icon: FileText,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          AgriServe का उपयोग करके, आप इन नियमों और शर्तों से सहमत होते हैं। कृपया ध्यान से पढ़ें।
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          By using AgriServe, you agree to these terms and conditions. Please read carefully.
+        </p>
+        <div className="rounded-r-lg border-l-4 border-green-500 bg-green-50 p-4 dark:bg-green-900/20">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+            <p className="text-sm text-green-800 dark:text-green-200">
+              आपकी सहमति के लिए धन्यवाद! | Thank you for your consent!
+            </p>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'use-of-service',
+    title: 'सेवा का उपयोग | Use of Service',
+    icon: Shield,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          AgriServe एक कृषि उपकरण किराया मंच है। आप सहमत हैं कि:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          AgriServe is an agricultural equipment rental platform. You agree that:
+        </p>
+        <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
+          <li>आप 18 वर्ष या उससे अधिक आयु के हैं | You are 18 years or older</li>
+          <li>आप सही जानकारी प्रदान करेंगे | You will provide accurate information</li>
+          <li>
+            आप अपने खाते की सुरक्षा के लिए जिम्मेदार हैं | You are responsible for your account
+            security
+          </li>
+          <li>
+            आप कानूनी उद्देश्यों के लिए सेवा का उपयोग करेंगे | You will use the service for legal
+            purposes
+          </li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'bookings-payments',
+    title: 'बुकिंग और भुगतान | Bookings and Payments',
+    icon: DollarSign,
+    content: (
+      <div className="space-y-6">
+        <div>
+          <p className="mb-3 font-semibold text-gray-900 dark:text-white">
+            किराएदार के लिए | For Renters:
+          </p>
+          <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
+            <li>बुकिंग पुष्टि के बाद भुगतान करें | Pay after booking confirmation</li>
+            <li>उपकरण को अच्छी स्थिति में रखें | Keep equipment in good condition</li>
+            <li>समय पर उपकरण वापस करें | Return equipment on time</li>
+            <li>किसी भी क्षति की रिपोर्ट करें | Report any damage</li>
+          </ul>
+        </div>
+        <div>
+          <p className="mb-3 font-semibold text-gray-900 dark:text-white">
+            उपकरण मालिकों के लिए | For Equipment Owners:
+          </p>
+          <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
+            <li>सही उपकरण विवरण प्रदान करें | Provide accurate equipment details</li>
+            <li>उपकरण अच्छी कार्य स्थिति में हो | Equipment must be in good working condition</li>
+            <li>समय पर उपकरण उपलब्ध कराएं | Provide equipment on time</li>
+            <li>उचित मूल्य निर्धारण करें | Set fair pricing</li>
+          </ul>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'cancellation-refunds',
+    title: 'रद्दीकरण और रिफंड | Cancellation and Refunds',
+    icon: Clock,
+    content: (
+      <div className="space-y-4">
+        <p className="font-medium text-gray-700 dark:text-gray-300">
+          रद्दीकरण नीति | Cancellation Policy:
+        </p>
+        <div className="grid gap-3">
+          <div className="flex items-center gap-3 rounded-lg bg-green-50 p-3 dark:bg-green-900/20">
+            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              24 घंटे पहले रद्द करने पर 100% रिफंड | 100% refund if cancelled 24 hours before
+            </span>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg bg-yellow-50 p-3 dark:bg-yellow-900/20">
+            <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              12-24 घंटे पहले रद्द करने पर 50% रिफंड | 50% refund if cancelled 12-24 hours before
+            </span>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <span className="text-gray-700 dark:text-gray-300">
+              12 घंटे से कम समय पर कोई रिफंड नहीं | No refund if cancelled less than 12 hours
+            </span>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          रिफंड 5-7 कार्य दिवसों में | Refunds within 5-7 business days
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          विस्तृत रिफंड नीति के लिए,{' '}
+          <a
+            href="/refund-policy"
+            className="text-green-600 underline hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+          >
+            यहां क्लिक करें
+          </a>
+          ।
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'liability',
+    title: 'जिम्मेदारी और देयता | Responsibility and Liability',
+    icon: AlertOctagon,
+    content: (
+      <div className="space-y-4">
+        <div className="rounded-r-lg border-l-4 border-yellow-500 bg-yellow-50 p-4 dark:bg-yellow-900/20">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600 dark:text-yellow-400" />
+            <div className="space-y-2">
+              <p className="font-medium text-yellow-800 dark:text-yellow-200">
+                महत्वपूर्ण | Important:
+              </p>
+              <ul className="list-inside list-disc space-y-1 text-sm text-yellow-700 dark:text-yellow-300">
+                <li>
+                  AgriServe केवल एक मंच है, उपकरण का मालिक नहीं | AgriServe is only a platform, not
+                  equipment owner
+                </li>
+                <li>
+                  उपकरण की गुणवत्ता मालिक की जिम्मेदारी है | Equipment quality is owner&apos;s
+                  responsibility
+                </li>
+                <li>
+                  किराएदार उपकरण क्षति के लिए जिम्मेदार है | Renter is responsible for equipment
+                  damage
+                </li>
+                <li>
+                  दुर्घटना या चोट के लिए AgriServe जिम्मेदार नहीं | AgriServe not liable for
+                  accidents or injuries
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'prohibited-activities',
+    title: 'निषिद्ध गतिविधियां | Prohibited Activities',
+    icon: Gavel,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          निम्नलिखित गतिविधियां निषिद्ध हैं | The following activities are prohibited:
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {[
+            { text: 'झूठी जानकारी प्रदान करना | Providing false information', icon: XCircle },
+            { text: 'धोखाधड़ी या घोटाला | Fraud or scam', icon: XCircle },
+            { text: 'अवैध गतिविधियां | Illegal activities', icon: XCircle },
+            { text: 'दूसरों को परेशान करना | Harassing others', icon: XCircle },
+            { text: 'मंच का दुरुपयोग | Platform misuse', icon: XCircle },
+            { text: 'स्पैम या अवांछित संदेश | Spam or unwanted messages', icon: XCircle },
+          ].map((item, index) => (
+            <div
+              key={index}
+              className="flex items-start gap-2 rounded-lg bg-red-50 p-2 dark:bg-red-900/10"
+            >
+              <item.icon className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500 dark:text-red-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'account-suspension',
+    title: 'खाता निलंबन | Account Suspension',
+    icon: Users,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          हम निम्नलिखित स्थितियों में खाता निलंबित कर सकते हैं:
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          We may suspend accounts in the following situations:
+        </p>
+        <ul className="ml-4 list-inside list-disc space-y-2 text-gray-700 dark:text-gray-300">
+          <li>नियमों का उल्लंघन | Violation of terms</li>
+          <li>धोखाधड़ी की गतिविधि | Fraudulent activity</li>
+          <li>कई शिकायतें | Multiple complaints</li>
+          <li>भुगतान विफलता | Payment failure</li>
+          <li>अनुचित व्यवहार | Inappropriate behavior</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'dispute-resolution',
+    title: 'विवाद समाधान | Dispute Resolution',
+    icon: Scale,
+    content: (
+      <div className="space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          विवाद की स्थिति में | In case of disputes:
+        </p>
+        <ol className="ml-4 list-inside list-decimal space-y-2 text-gray-700 dark:text-gray-300">
+          <li>पहले दूसरे पक्ष से बात करें | First talk to the other party</li>
+          <li>AgriServe सहायता से संपर्क करें | Contact AgriServe support</li>
+          <li>हम मध्यस्थता करने का प्रयास करेंगे | We will try to mediate</li>
+          <li>यदि आवश्यक हो तो कानूनी कार्रवाई | Legal action if necessary</li>
+        </ol>
+        <div className="rounded-r-lg border-l-4 border-blue-500 bg-blue-50 p-4 dark:bg-blue-900/20">
+          <p className="text-blue-800 dark:text-blue-200">
+            सभी विवाद भारतीय कानून के अधीन होंगे। | All disputes will be subject to Indian law.
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'changes-to-terms',
+    title: 'नियमों में बदलाव | Changes to Terms',
+    icon: History,
+    content: (
+      <div className="space-y-4">
+        <div className="rounded-r-lg border-l-4 border-green-500 bg-green-50 p-4 dark:bg-green-900/20">
+          <div className="flex items-start gap-3">
+            <History className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600 dark:text-green-400" />
+            <div className="space-y-2">
+              <p className="text-gray-700 dark:text-gray-300">
+                हम किसी भी समय इन नियमों को बदल सकते हैं। महत्वपूर्ण बदलावों के बारे में हम आपको
+                सूचित करेंगे।
+              </p>
+              <p className="text-gray-700 dark:text-gray-300">
+                We may change these terms at any time. We will notify you of significant changes.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                सेवा का निरंतर उपयोग नए नियमों की स्वीकृति माना जाएगा। | Continued use of the
+                service will be considered acceptance of new terms.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+];
+
+// Client component for accordion sections
+function TermsAccordionSection({
+  section,
+  isOpen,
+  onToggle,
+  index,
+}: {
+  section: (typeof termsSections)[0];
+  isOpen: boolean;
+  onToggle: () => void;
+  index: number;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-200 transition-all duration-300 hover:shadow-lg dark:border-gray-700 dark:hover:shadow-xl dark:hover:shadow-green-900/10">
+      <button
+        onClick={onToggle}
+        className={cn(
+          'flex w-full items-center justify-between px-6 py-4 text-left transition-colors duration-300',
+          isOpen
+            ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/10'
+            : 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700'
+        )}
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-300',
+              isOpen ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-gray-700'
+            )}
+          >
+            <section.icon
+              className={cn(
+                'h-5 w-5 transition-colors duration-300',
+                isOpen ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-300'
+              )}
+            />
+          </div>
+          <div>
+            <span className="text-xs font-medium text-green-600 dark:text-green-400">
+              0{index + 1}
+            </span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{section.title}</h2>
+          </div>
+        </div>
+        <ChevronDown
+          className={cn(
+            'h-5 w-5 text-gray-400 transition-transform duration-300',
+            isOpen && 'rotate-180'
+          )}
+        />
+      </button>
+
+      <div
+        className={cn(
+          'overflow-hidden transition-all duration-300 ease-in-out',
+          isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+        )}
+      >
+        <div className="border-t border-gray-100 bg-white p-6 text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100">
+          {section.content}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Searchable Table of Contents
+function TableOfContents({
+  activeId,
+  onNavigate,
+}: {
+  activeId: string | null;
+  onNavigate: (id: string) => void;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSections = termsSections.filter((section) =>
+    section.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="sticky top-32 rounded-xl border border-gray-100 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      <div className="mb-6">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+          Table of Contents
+        </h3>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search terms..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-gray-900 placeholder-gray-400 transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+      </div>
+
+      <nav className="space-y-1">
+        {filteredSections.map((section, index) => (
+          <button
+            key={section.id}
+            onClick={() => onNavigate(section.id)}
+            className={cn(
+              'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-all duration-200',
+              activeId === section.id
+                ? 'bg-green-100 font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
+            )}
+          >
+            <span className="font-mono text-green-600 dark:text-green-400">0{index + 1}.</span>
+            <span className="truncate">
+              {section.title.split('|')[1]?.trim() || section.title.split('|')[0]}
+            </span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+// Hero Section Component
+function TermsHero() {
+  return (
+    <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 md:p-12 dark:from-green-900/20 dark:via-emerald-900/10 dark:to-teal-900/10">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -right-40 -top-40 h-80 w-80 rounded-full bg-green-200/30 blur-3xl dark:bg-green-800/20" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-teal-200/30 blur-3xl dark:bg-teal-800/20" />
+      </div>
+
+      <div className="relative z-10 text-center">
+        <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg">
+          <Scale className="h-10 w-10 text-white" />
+        </div>
+        <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl lg:text-5xl dark:text-white">
+          नियम और शर्तें | Terms & Conditions
+        </h1>
+        <p className="mb-4 text-lg text-gray-600 dark:text-gray-300">
+          अंतिम अपडेट: जनवरी 2026 | Last Updated: January 2026
+        </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <span className="rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            ✓ बाध्यकारी | Binding
+          </span>
+          <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            ✓ कानूनी | Legal
+          </span>
+          <span className="rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+            ✓ अद्यतन | Updated
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Contact Card Component
+function ContactCard() {
+  return (
+    <div className="rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white">
+      <h3 className="mb-4 text-xl font-bold">संपर्क करें | Contact Us</h3>
+      <p className="mb-4 text-green-100">
+        नियमों से संबंधित प्रश्नों के लिए: | For questions about terms:
+      </p>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+            <Mail className="h-5 w-5" />
+          </div>
+          <span>legal@agriserve.in</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+            <Phone className="h-5 w-5" />
+          </div>
+          <span>+91 1800-XXX-XXXX</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <span>AgriServe Technologies, Bangalore, India</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main Page Component with client-side interactivity
+export default function TermsPage() {
+  const [openSection, setOpenSection] = useState<string | null>('intro');
+  const [activeId, setActiveId] = useState<string | null>('intro');
+
+  const handleNavigate = (id: string) => {
+    setOpenSection(id);
+    setActiveId(id);
+  };
+
+  return (
+    <SystemPageLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(termsJsonLd) }}
+      />
+      <div className="mx-auto max-w-7xl">
+        {/* Hero Section */}
+        <TermsHero />
+
+        <div className="grid gap-8 lg:grid-cols-4">
+          {/* Table of Contents - Sidebar */}
+          <div className="lg:col-span-1">
+            <TableOfContents activeId={activeId} onNavigate={handleNavigate} />
+          </div>
+
+          {/* Main Content */}
+          <div className="space-y-6 lg:col-span-3">
+            {termsSections.map((section, index) => (
+              <TermsAccordionSection
+                key={section.id}
+                section={section}
+                index={index}
+                isOpen={openSection === section.id}
+                onToggle={() => setOpenSection(openSection === section.id ? null : section.id)}
+              />
+            ))}
+
+            {/* Contact Section */}
+            <div className="mt-8">
+              <ContactCard />
+            </div>
+
+            {/* Last Updated */}
+            <div className="mt-8 border-t border-gray-200 pt-8 text-center dark:border-gray-700">
+              <p className="text-gray-500 dark:text-gray-400">
+                ये नियम अंतिम बार जनवरी 2026 में अपडेट किए गए थे। | These terms were last updated in
+                January 2026.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </SystemPageLayout>
+  );
+}

@@ -527,15 +527,15 @@ export function FuturisticHeader() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 right-0 top-0 z-50 flex w-[320px] flex-col border-l border-cyan-500/20 bg-slate-950 p-8 lg:hidden"
+              className="fixed bottom-0 right-0 top-0 z-50 flex w-[320px] flex-col border-l border-emerald-500/20 bg-[#0A0F0C] p-8 lg:hidden"
             >
               {/* Header */}
               <div className="mb-10 flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold tracking-wider text-white">
-                    <span className="text-cyan-400">MENU</span>
+                    <span className="text-emerald-400">MENU</span>
                   </h2>
-                  <div className="mt-2 h-[2px] w-12 bg-gradient-to-r from-cyan-400 to-purple-500" />
+                  <div className="mt-2 h-[2px] w-12 bg-gradient-to-r from-emerald-400 to-teal-500" />
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -559,9 +559,9 @@ export function FuturisticHeader() {
                       <Link
                         href={link.href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="group flex items-center gap-4 rounded-xl border border-transparent px-4 py-4 text-slate-400 transition-all duration-200 hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-white"
+                        className="group flex items-center gap-4 rounded-xl border border-transparent px-4 py-4 text-slate-400 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-white"
                       >
-                        <Icon className="h-5 w-5 text-cyan-400 transition-transform group-hover:scale-110" />
+                        <Icon className="h-5 w-5 text-emerald-400 transition-transform group-hover:scale-110" />
                         <span className="text-lg font-medium">{link.label}</span>
                         <ArrowRight className="ml-auto h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                       </Link>
@@ -610,7 +610,7 @@ export function FuturisticHeader() {
                   </div>
                 ) : (
                   <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 py-6 font-semibold text-white hover:from-cyan-400 hover:to-purple-500">
+                    <Button className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-6 font-semibold text-white hover:from-emerald-400 hover:to-teal-500">
                       Get Started
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>

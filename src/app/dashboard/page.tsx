@@ -1,6 +1,17 @@
+import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getDashboardData } from './actions';
-import DashboardClient from './DashboardClient';
+import dynamic from 'next/dynamic';
+
+const DashboardClient = dynamic(() => import('./DashboardClient'));
+
+export const metadata: Metadata = {
+  title: 'Dashboard - AgriServe',
+  description: 'View your activity, bookings, and performance overview.',
+};
+
+export const revalidate = 60; // Enable ISR, revalidate every 60 seconds
+
 import { Header, Footer } from '@/components/layout';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeletons';
 

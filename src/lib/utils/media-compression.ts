@@ -21,6 +21,7 @@ export const SUPPORTED_IMAGE_FORMATS = [
   'image/png',
   'image/webp',
   'image/gif',
+  'image/avif',
 ];
 export const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/webm', 'video/quicktime'];
 
@@ -144,7 +145,8 @@ export async function compressImage(
       maxSizeMB: MAX_IMAGE_SIZE_MB,
       maxWidthOrHeight: 1920,
       useWebWorker: true,
-      fileType: file.type,
+      fileType: 'image/avif', // Convert to AVIF
+      initialQuality: 0.8,
       onProgress: (percentage: number) => {
         onProgress?.({
           stage: 'compressing',
@@ -156,13 +158,43 @@ export async function compressImage(
 
     const compressedFile = await imageCompression(file, options);
 
+    // Convert to AVIF using canvas as fallback/enhancement if library doesn't support it fully in all browsers
+    // Note: browser-image-compression might return the original type if conversion isn't supported
+    // so we force a check here.
+    let finalFile = compressedFile;
+
+    // Check if we need to manually convert to AVIF (if the library didn't do it)
+    if (finalFile.type !== 'image/avif') {
+      try {
+        const bitmap = await createImageBitmap(finalFile);
+        const canvas = document.createElement('canvas');
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(bitmap, 0, 0);
+          const blob = await new Promise<Blob | null>((resolve) =>
+            canvas.toBlob(resolve, 'image/avif', 0.8)
+          );
+          if (blob) {
+            finalFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.avif', {
+              type: 'image/avif',
+              lastModified: Date.now(),
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('AVIF conversion failed, falling back to compressed original', e);
+      }
+    }
+
     onProgress?.({
       stage: 'complete',
       progress: 100,
       message: 'Image compressed successfully',
     });
 
-    return compressedFile;
+    return finalFile;
   } catch (error) {
     onProgress?.({
       stage: 'error',

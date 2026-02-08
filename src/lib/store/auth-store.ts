@@ -143,31 +143,31 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             if (error.code === '42P01') {
               // Table doesn't exist - assign default renter role
               const defaultRoles: UserRole[] = ['renter'];
-              set({ roles: defaultRoles, activeRole: 'renter' });
+              set({ roles: defaultRoles, activeRole: activeRole || 'renter' });
             } else {
               console.error('Failed to fetch roles:', error);
-              // Still set default role on error
-              set({ roles: ['renter'], activeRole: 'renter' });
+              // Still set default role on error, but preserve activeRole if exists
+              set({ roles: ['renter'], activeRole: activeRole || 'renter' });
             }
             return;
           }
 
           const roles = data?.map((r) => r.role as UserRole) || [];
 
-          // If no roles found, default to 'renter'
+          // If no roles found, default to 'renter', but preserve activeRole if exists
           if (roles.length === 0) {
-            set({ roles: ['renter'], activeRole: 'renter' });
+            set({ roles: ['renter'], activeRole: activeRole || 'renter' });
           } else {
             set({ roles });
-            // Set active role if not already set
+            // Only set active role if not already set
             if (!activeRole) {
               set({ activeRole: roles[0] });
             }
           }
         } catch (error) {
           console.error('Error fetching roles:', error);
-          // Set default role on any error
-          set({ roles: ['renter'], activeRole: 'renter' });
+          // Set default role on any error, but preserve activeRole if exists
+          set({ roles: ['renter'], activeRole: activeRole || 'renter' });
         }
       },
 

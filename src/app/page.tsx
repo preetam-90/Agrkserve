@@ -1,4 +1,62 @@
+import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+
+export const metadata: Metadata = {
+  title: 'AgriServe - Rent Farm Equipment & Hire Agricultural Labour | All India',
+  description:
+    "India's trusted platform for renting farm equipment (tractors, harvesters, cultivators, rotavators) and hiring agricultural labour. Available across Punjab, Haryana, Uttar Pradesh, Rajasthan, Madhya Pradesh, Bihar, Maharashtra, Gujarat, Karnataka, and all Indian states. किसानों के लिए कृषि उपकरण किराये और श्रमिक सेवा।",
+  keywords: [
+    'farm equipment rental india',
+    'tractor on rent',
+    'agricultural labour hire',
+    'harvester booking',
+    'cultivator rental',
+    'krishi upkaran kiraya',
+    'कृषि उपकरण किराया',
+    'ट्रैक्टर किराये पर',
+    'कृषि मजदूर',
+    'farm machinery rental',
+    'agriserve',
+    'rent farm equipment near me',
+    'agricultural equipment booking',
+    'tractor rental punjab',
+    'farm labour haryana',
+    'kisan seva',
+  ],
+  openGraph: {
+    title: 'AgriServe - Rent Farm Equipment & Hire Agricultural Labour | All India',
+    description:
+      "India's leading platform for renting farm equipment and hiring agricultural labour. Tractors, harvesters, cultivators available across all states.",
+    url: siteUrl,
+    type: 'website',
+    locale: 'en_IN',
+    siteName: 'AgriServe',
+    images: [
+      {
+        url: `${siteUrl}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'AgriServe - Farm Equipment Rental & Agricultural Labour Platform India',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AgriServe - Rent Farm Equipment & Hire Labour | All India',
+    description:
+      'Rent tractors, harvesters, cultivators and hire agricultural labour across India.',
+    images: [`${siteUrl}/og-image.jpg`],
+  },
+  alternates: {
+    canonical: siteUrl,
+    languages: {
+      'en-IN': siteUrl,
+      'hi-IN': `${siteUrl}?lang=hi`,
+    },
+  },
+};
 import { HeroSection } from '@/components/landing/HeroSection';
 import { StatsSection } from '@/components/landing/StatsSection';
 import { CategoriesSection } from '@/components/landing/CategoriesSection';
@@ -81,7 +139,7 @@ export default async function HomePage() {
         <HeroSection />
         <StatsSection stats={stats} />
         <CategoriesSection />
-        <FeaturedEquipmentSection equipment={equipment} isLoading={false} />
+        <FeaturedEquipmentSection equipment={equipment} />
         <TimelineSection />
         <FinalCTASection />
       </main>

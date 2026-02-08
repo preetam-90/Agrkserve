@@ -50,11 +50,11 @@ export function AnimatedCounter({
   }, [end, duration]);
 
   const formattedCount =
-    decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString();
+    decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString('en-IN');
 
   return (
     <div ref={ref} role="status" aria-live="polite">
-      <span className="sr-only">{`${prefix}${end.toLocaleString()}${suffix} ${label}`}</span>
+      <span className="sr-only">{`${prefix}${end.toLocaleString('en-IN')}${suffix} ${label}`}</span>
       <span aria-hidden="true" className={className || 'text-4xl font-bold md:text-5xl'}>
         {prefix}
         {formattedCount}

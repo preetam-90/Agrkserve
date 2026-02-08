@@ -1,15 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SystemPageLayout } from '@/components/system-pages/SystemPageLayout';
 import { ErrorPageTemplate } from '@/components/system-pages/ErrorPageTemplate';
-import { ErrorIllustration } from '@/components/system-pages/illustrations';
-import { logError, sanitizeErrorMessage } from '@/lib/system-pages/error-logger';
+import { logError } from '@/lib/system-pages/error-logger';
+import { AlertCircle } from 'lucide-react';
 
-/**
- * Global Error Page
- * Catches unhandled errors in the application
- */
 export default function ErrorPage({
   error,
   reset,
@@ -17,28 +13,58 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
-    // Log error without exposing stack trace to user
-    logError('500', sanitizeErrorMessage(error), {
+    // Log the error for debugging
+    console.error('Unhandled Application Error:', error);
+
+    // Log to system pages error logger
+    logError('500', error.message || 'Unknown error', {
       digest: error.digest,
-      name: error.name,
+      stack: error.stack,
     });
+
+    // Delay showing the error page to avoid "immediate" flash on transient errors
+    // and give the system a small window to potentially recover or for the user to not notice a flicker
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 7000);
+
+    return () => clearTimeout(timer);
   }, [error]);
+
+  // While waiting, show a simple loading state or nothing to prevent the "immediate" error display
+  if (!isMounted) {
+    return (
+      <SystemPageLayout>
+        <div className="flex min-h-[400px] animate-pulse flex-col items-center justify-center">
+          <div className="mb-4 h-12 w-12 rounded-full bg-gray-100" />
+          <div className="mb-2 h-4 w-48 rounded bg-gray-100" />
+          <div className="h-3 w-32 rounded bg-gray-50" />
+        </div>
+      </SystemPageLayout>
+    );
+  }
 
   return (
     <SystemPageLayout>
       <ErrorPageTemplate
         errorCode="500"
-        title="कुछ गलत हो गया | Something Went Wrong"
-        description="हमें तकनीकी समस्या हो रही है। हमारी टीम इसे ठीक कर रही है। कृपया बाद में पुनः प्रयास करें। | We are experiencing technical difficulties. Our team is working to fix this. Please try again later."
-        illustration={<ErrorIllustration className="w-full h-full" />}
+        title="Something went wrong!"
+        description="An unexpected error occurred. Our team has been notified and is working to fix it."
+        illustration={
+          <div className="flex h-full w-full items-center justify-center rounded-2xl bg-red-50">
+            <AlertCircle className="h-24 w-24 text-red-500" />
+          </div>
+        }
         primaryAction={{
-          label: "पुनः प्रयास करें | Try Again",
+          label: 'Try Again',
           onClick: () => reset(),
         }}
         secondaryAction={{
-          label: "होम पर जाएं | Go Home",
-          href: "/",
+          label: 'Go Home',
+          href: '/',
         }}
       />
     </SystemPageLayout>

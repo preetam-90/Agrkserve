@@ -17,9 +17,12 @@ import type {
   MediaAnalytics,
 } from '@/lib/types/cloudinary-admin';
 
+const cloudName =
+  process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+
 // Ensure Cloudinary is configured
-if (!process.env.CLOUDINARY_CLOUD_NAME) {
-  console.error('CLOUDINARY_CLOUD_NAME is not set');
+if (!cloudName) {
+  console.error('CLOUDINARY_CLOUD_NAME (or NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) is not set');
 }
 if (!process.env.CLOUDINARY_API_KEY) {
   console.error('CLOUDINARY_API_KEY is not set');
@@ -29,13 +32,13 @@ if (!process.env.CLOUDINARY_API_SECRET) {
 }
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  cloud_name: cloudName,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 console.log('Cloudinary configured:', {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  cloud_name: cloudName,
   api_key: process.env.CLOUDINARY_API_KEY ? '***' : 'MISSING',
   api_secret: process.env.CLOUDINARY_API_SECRET ? '***' : 'MISSING',
 });
@@ -578,7 +581,10 @@ export async function replaceAsset(
 /**
  * Disable asset delivery (soft disable)
  */
-export async function disableAsset(publicId: string, resourceType: string = 'image'): Promise<unknown> {
+export async function disableAsset(
+  publicId: string,
+  resourceType: string = 'image'
+): Promise<unknown> {
   return await cloudinary.uploader.explicit(publicId, {
     type: 'upload',
     resource_type: resourceType as 'image' | 'video' | 'raw',
@@ -589,7 +595,10 @@ export async function disableAsset(publicId: string, resourceType: string = 'ima
 /**
  * Enable asset delivery (re-enable public access)
  */
-export async function enableAsset(publicId: string, resourceType: string = 'image'): Promise<unknown> {
+export async function enableAsset(
+  publicId: string,
+  resourceType: string = 'image'
+): Promise<unknown> {
   return await cloudinary.uploader.explicit(publicId, {
     type: 'upload',
     resource_type: resourceType as 'image' | 'video' | 'raw',

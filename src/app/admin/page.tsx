@@ -1,5 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
 import AdminDashboardClient from './page-client';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin Dashboard - AgriServe',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 async function getAdminStats(timeRange: string = 'last_7_days') {
   const supabase = await createClient();
@@ -290,9 +299,7 @@ async function getSystemHealth() {
     await supabase.rpc('get_database_stats').single();
 
     // Get connection count
-    const { data: connections } = await supabase
-      .rpc('get_connection_count')
-      .single();
+    const { data: connections } = await supabase.rpc('get_connection_count').single();
 
     // Get storage usage from storage.objects
     const { data: storageData, error: storageError } = await supabase.storage

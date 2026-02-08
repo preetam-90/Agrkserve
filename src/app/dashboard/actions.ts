@@ -71,7 +71,7 @@ export async function getDashboardData(): Promise<ServerDashboardData | null> {
     avatarUrl: profile?.avatar_url || user.user_metadata?.avatar_url,
   };
 
-  // 3. Fetch role-specific data in parallel
+  // 3. Fetch role-specific data in parallel with optimized queries
   const baseData: ServerDashboardData = {
     user: dashboardUser,
     profile,
@@ -86,19 +86,19 @@ export async function getDashboardData(): Promise<ServerDashboardData | null> {
         .select('*')
         .eq('status', 'available')
         .order('created_at', { ascending: false })
-        .limit(8),
+        .limit(6), // limit for performance
       supabase
         .from('bookings')
-        .select('*, equipment:equipment(id, name, images, category, price_per_day)')
+        .select('*')
         .eq('renter_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10),
+        .limit(5), // limit for performance
       supabase
         .from('labour_bookings')
         .select('*')
         .eq('employer_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10),
+        .limit(5), // limit for performance
     ]);
     baseData.equipment = equipmentRes.data || [];
     baseData.bookings = bookingsRes.data || [];
@@ -111,19 +111,20 @@ export async function getDashboardData(): Promise<ServerDashboardData | null> {
         .from('equipment')
         .select('*')
         .eq('owner_id', user.id)
-        .order('created_at', { ascending: false }),
+        .order('created_at', { ascending: false })
+        .limit(8), // limit for performance
       supabase
         .from('bookings')
-        .select('*, equipment:equipment!inner(id, name, images, category, price_per_day, owner_id)')
+        .select('*')
         .eq('equipment.owner_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(20),
+        .limit(10), // limit for performance
       supabase
         .from('labour_bookings')
         .select('*')
         .eq('employer_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(20),
+        .limit(10), // limit for performance
     ]);
     baseData.equipment = myEquipmentRes.data || [];
     baseData.bookings = bookingsRes.data || [];
@@ -134,7 +135,7 @@ export async function getDashboardData(): Promise<ServerDashboardData | null> {
     // Get labour profile first
     const labourProfileRes = await supabase
       .from('labour_profiles')
-      .select('*')
+      .select('id, user_id, location_name, city, rating')
       .eq('user_id', user.id)
       .single();
 
@@ -146,7 +147,8 @@ export async function getDashboardData(): Promise<ServerDashboardData | null> {
         .from('labour_bookings')
         .select('*')
         .eq('labour_id', labourProfile.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(15); // limit for performance
       baseData.labourBookings = bookingsRes.data || [];
     } else {
       baseData.labourBookings = [];

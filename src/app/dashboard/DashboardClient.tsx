@@ -1,15 +1,29 @@
 'use client';
 
-import { useEffect, useRef, useLayoutEffect } from 'react';
+import { useEffect, useRef, useLayoutEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import { ProviderDashboardView } from '@/components/dashboard/ProviderDashboardView';
-import { EnhancedRenterDashboard } from '@/components/dashboard/EnhancedRenterDashboard';
-import { LabourDashboardView } from '@/components/dashboard/LabourDashboardView';
 import { BackButton } from '@/components/ui/back-button';
 import type { ServerDashboardData } from '@/app/dashboard/actions';
 import type { User } from '@supabase/supabase-js';
 import type { UserProfile, UserRole } from '@/lib/types';
+
+// Code splitting: Load dashboard components dynamically
+const ProviderDashboardView = lazy(() =>
+  import('@/components/dashboard/ProviderDashboardView').then((mod) => ({
+    default: mod.ProviderDashboardView,
+  }))
+);
+const EnhancedRenterDashboard = lazy(() =>
+  import('@/components/dashboard/EnhancedRenterDashboard').then((mod) => ({
+    default: mod.EnhancedRenterDashboard,
+  }))
+);
+const LabourDashboardView = lazy(() =>
+  import('@/components/dashboard/LabourDashboardView').then((mod) => ({
+    default: mod.LabourDashboardView,
+  }))
+);
 
 interface DashboardClientProps {
   serverData: ServerDashboardData | null;
@@ -78,13 +92,45 @@ export default function DashboardClient({ serverData }: DashboardClientProps) {
       <div className="mb-4">
         <BackButton variant="minimal" />
       </div>
-      {role === 'provider' ? (
-        <ProviderDashboardView initialData={serverData ? { equipment: serverData.equipment, bookings: serverData.bookings, labourBookings: serverData.labourBookings } : undefined} />
-      ) : role === 'labour' ? (
-        <LabourDashboardView initialData={serverData ? { equipment: serverData.equipment, bookings: serverData.bookings, labourBookings: serverData.labourBookings } : undefined} />
-      ) : (
-        <EnhancedRenterDashboard initialData={serverData ? { equipment: serverData.equipment, bookings: serverData.bookings, labourBookings: serverData.labourBookings } : undefined} />
-      )}
+      <Suspense fallback={<div className="p-8 text-center">Loading dashboard...</div>}>
+        {role === 'provider' ? (
+          <ProviderDashboardView
+            initialData={
+              serverData
+                ? {
+                    equipment: serverData.equipment,
+                    bookings: serverData.bookings,
+                    labourBookings: serverData.labourBookings,
+                  }
+                : undefined
+            }
+          />
+        ) : role === 'labour' ? (
+          <LabourDashboardView
+            initialData={
+              serverData
+                ? {
+                    equipment: serverData.equipment,
+                    bookings: serverData.bookings,
+                    labourBookings: serverData.labourBookings,
+                  }
+                : undefined
+            }
+          />
+        ) : (
+          <EnhancedRenterDashboard
+            initialData={
+              serverData
+                ? {
+                    equipment: serverData.equipment,
+                    bookings: serverData.bookings,
+                    labourBookings: serverData.labourBookings,
+                  }
+                : undefined
+            }
+          />
+        )}
+      </Suspense>
     </>
   );
 }

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import {
-  processVideo,
-  validateVideo,
-  cleanupTempFile,
-} from '@/lib/utils/video-processor';
+import { processVideo, validateVideo, cleanupTempFile } from '@/lib/utils/video-processor';
 import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/utils/cloudinary';
 import { writeFile, readFile } from 'fs/promises';
 import { join } from 'path';
@@ -48,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Convert File to Buffer and save to temp file
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     tempInputPath = join(tmpdir(), `input-${randomBytes(8).toString('hex')}.mp4`);
     await writeFile(tempInputPath, buffer);
 
@@ -57,11 +53,11 @@ export async function POST(request: NextRequest) {
 
     if (!validation.valid) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: validation.error,
           metadata: validation.metadata,
-          requiresTrim: validation.error?.includes('exceeds') 
+          requiresTrim: validation.error?.includes('exceeds'),
         },
         { status: 400 }
       );
@@ -73,10 +69,7 @@ export async function POST(request: NextRequest) {
       try {
         trimRequest = JSON.parse(trimDataStr);
       } catch {
-        return NextResponse.json(
-          { success: false, error: 'Invalid trim data' },
-          { status: 400 }
-        );
+        return NextResponse.json({ success: false, error: 'Invalid trim data' }, { status: 400 });
       }
     }
 
@@ -91,23 +84,23 @@ export async function POST(request: NextRequest) {
     const maxSize = 20 * 1024 * 1024; // 20MB
     if (processedBuffer.length > maxSize) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Processed video file too large. Try reducing video length or quality.' 
+        {
+          success: false,
+          error: 'Processed video file too large. Try reducing video length or quality.',
         },
         { status: 400 }
       );
     }
 
     // Generate unique filename
-    const fileName = `${user.id}-${randomBytes(8).toString('hex')}.mp4`;
+    const fileName = `${user.id}-${randomBytes(8).toString('hex')}.webm`;
 
     // Upload to Cloudinary
     const uploadResult = await uploadToCloudinary(processedBuffer, {
       folder: folder,
       fileName: fileName,
       resourceType: 'video',
-      format: 'mp4',
+      format: 'webm',
     });
 
     // Cleanup temp files
@@ -124,7 +117,7 @@ export async function POST(request: NextRequest) {
         height: metadata.height,
         duration: metadata.duration,
         size: processedBuffer.length,
-        format: 'mp4',
+        format: 'webm',
       },
     });
   } catch (error) {
@@ -133,10 +126,7 @@ export async function POST(request: NextRequest) {
     if (tempOutputPath) cleanupTempFile(tempOutputPath);
 
     console.error('Video upload error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -171,9 +161,6 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Video delete error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

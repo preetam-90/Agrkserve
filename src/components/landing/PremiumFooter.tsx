@@ -15,12 +15,7 @@ import {
   Sprout,
   ChevronRight,
 } from 'lucide-react';
-import { 
-  FaFacebook, 
-  FaTwitter, 
-  FaInstagram, 
-  FaLinkedin 
-} from 'react-icons/fa';
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 30 },
@@ -67,20 +62,39 @@ export function PremiumFooter() {
   };
 
   const socialLinks = [
-    { icon: FaFacebook, href: contactInfo.social.facebook || 'https://facebook.com/agriserve', label: 'Facebook', color: '#1877F2' },
-    { icon: FaTwitter, href: contactInfo.social.twitter || 'https://twitter.com/agriserve', label: 'Twitter', color: '#1DA1F2' },
-    { icon: FaInstagram, href: contactInfo.social.instagram || 'https://instagram.com/agriserve', label: 'Instagram', color: '#E4405F' },
-    { icon: FaLinkedin, href: contactInfo.social.linkedin || 'https://linkedin.com/company/agriserve', label: 'LinkedIn', color: '#0A66C2' },
+    {
+      icon: FaFacebook,
+      href: contactInfo.social.facebook || 'https://facebook.com/agriserve',
+      label: 'Facebook',
+      color: '#1877F2',
+    },
+    {
+      icon: FaTwitter,
+      href: contactInfo.social.twitter || 'https://twitter.com/agriserve',
+      label: 'Twitter',
+      color: '#1DA1F2',
+    },
+    {
+      icon: FaInstagram,
+      href: contactInfo.social.instagram || 'https://instagram.com/agriserve',
+      label: 'Instagram',
+      color: '#E4405F',
+    },
+    {
+      icon: FaLinkedin,
+      href: contactInfo.social.linkedin || 'https://linkedin.com/company/agriserve',
+      label: 'LinkedIn',
+      color: '#0A66C2',
+    },
   ];
-
 
   return (
     <footer className="relative w-full max-w-full overflow-hidden bg-[#0A0F0C]">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Gradient Orbs */}
         <motion.div
-          className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-20"
+          className="absolute -right-40 -top-40 h-96 w-96 rounded-full opacity-20"
           style={{
             background: 'radial-gradient(circle, rgba(34, 197, 94, 0.4) 0%, transparent 70%)',
           }}
@@ -95,7 +109,7 @@ export function PremiumFooter() {
           }}
         />
         <motion.div
-          className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full opacity-15"
+          className="absolute -bottom-20 -left-20 h-80 w-80 rounded-full opacity-15"
           style={{
             background: 'radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%)',
           }}
@@ -113,7 +127,7 @@ export function PremiumFooter() {
 
         {/* Floating Agricultural Icons */}
         <motion.div
-          className="absolute top-20 left-[10%] text-green-500/10"
+          className="absolute left-[10%] top-20 text-green-500/10"
           animate={{
             y: [0, -20, 0],
             rotate: [0, 10, 0],
@@ -124,10 +138,10 @@ export function PremiumFooter() {
             ease: 'easeInOut',
           }}
         >
-          <Leaf className="w-16 h-16" />
+          <Leaf className="h-16 w-16" />
         </motion.div>
         <motion.div
-          className="absolute top-40 right-[15%] text-green-500/10"
+          className="absolute right-[15%] top-40 text-green-500/10"
           animate={{
             y: [0, 15, 0],
             rotate: [0, -10, 0],
@@ -139,7 +153,7 @@ export function PremiumFooter() {
             delay: 1,
           }}
         >
-          <Wheat className="w-20 h-20" />
+          <Wheat className="h-20 w-20" />
         </motion.div>
         <motion.div
           className="absolute bottom-40 left-[20%] text-green-500/10"
@@ -154,7 +168,7 @@ export function PremiumFooter() {
             delay: 2,
           }}
         >
-          <Sprout className="w-14 h-14" />
+          <Sprout className="h-14 w-14" />
         </motion.div>
 
         {/* Grid Pattern */}
@@ -170,11 +184,10 @@ export function PremiumFooter() {
         />
       </div>
 
-
       {/* Main Footer Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8"
+          className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-12 lg:gap-8"
           variants={staggerContainer}
           initial="initial"
           whileInView="animate"
@@ -182,9 +195,9 @@ export function PremiumFooter() {
         >
           {/* Brand Column */}
           <motion.div className="lg:col-span-4" variants={fadeInUp}>
-            <Link href="/" className="flex items-center gap-3 mb-6 group">
+            <Link href="/" className="group mb-6 flex items-center gap-3">
               <motion.div
-                className="relative w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                className="relative flex h-14 w-14 items-center justify-center rounded-xl shadow-lg"
                 style={{ background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)' }}
                 whileHover={scaleOnHover}
                 whileTap={{ scale: 0.95 }}
@@ -193,51 +206,55 @@ export function PremiumFooter() {
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 4, repeat: Infinity, repeatDelay: 5 }}
                 >
-                  <Tractor className="w-7 h-7 text-white" />
+                  <Tractor className="h-7 w-7 text-white" />
                 </motion.div>
                 {/* Glow Effect */}
-                <div className="absolute inset-0 rounded-xl bg-green-500/30 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 rounded-xl bg-green-500/30 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
               </motion.div>
               <span
-                className="text-2xl font-bold bg-gradient-to-r from-white via-green-100 to-green-400 bg-clip-text text-transparent"
+                className="bg-gradient-to-r from-white via-green-100 to-green-400 bg-clip-text text-2xl font-bold text-transparent"
                 style={{ fontFamily: '"Playfair Display", serif' }}
               >
                 AgriServe
               </span>
             </Link>
             <p
-              className="mb-8 max-w-sm text-green-200/80 leading-relaxed"
+              className="mb-8 max-w-sm leading-relaxed text-green-200/80"
               style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
             >
-              India&apos;s trusted platform for renting agricultural equipment and hiring skilled labor.
-              Empowering farmers across the nation with quality machinery at fair prices.
+              India&apos;s trusted platform for renting agricultural equipment and hiring skilled
+              labor. Empowering farmers across the nation with quality machinery at fair prices.
             </p>
 
             {/* Contact Info */}
             <div className="space-y-4" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
               {[
                 { icon: Mail, text: contactInfo.email, href: `mailto:${contactInfo.email}` },
-                { icon: Phone, text: contactInfo.phone, href: `tel:${contactInfo.phone.replace(/\s/g, '')}` },
+                {
+                  icon: Phone,
+                  text: contactInfo.phone,
+                  href: `tel:${contactInfo.phone.replace(/\s/g, '')}`,
+                },
                 { icon: MapPin, text: contactInfo.address, href: null },
               ].map((item, index) => (
                 <motion.div
                   key={index}
-                  className="flex items-center gap-3 group"
+                  className="group flex items-center gap-3"
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 * index }}
                 >
                   <motion.div
-                    className="w-10 h-10 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10"
                     whileHover={{ scale: 1.1, backgroundColor: 'rgba(34, 197, 94, 0.2)' }}
                   >
-                    <item.icon className="w-5 h-5 text-green-400" />
+                    <item.icon className="h-5 w-5 text-green-400" />
                   </motion.div>
                   {item.href ? (
                     <a
                       href={item.href}
-                      className="text-green-200/70 group-hover:text-green-400 transition-colors duration-300"
+                      className="text-green-200/70 transition-colors duration-300 group-hover:text-green-400"
                     >
                       {item.text}
                     </a>
@@ -252,10 +269,10 @@ export function PremiumFooter() {
           {/* Product Links */}
           <motion.div className="lg:col-span-2" variants={fadeInUp}>
             <h3
-              className="font-bold text-lg mb-6 text-white flex items-center gap-2"
+              className="mb-6 flex items-center gap-2 text-lg font-bold text-white"
               style={{ fontFamily: '"Playfair Display", serif' }}
             >
-              <span className="w-8 h-px bg-gradient-to-r from-green-500 to-transparent" />
+              <span className="h-px w-8 bg-gradient-to-r from-green-500 to-transparent" />
               Product
             </h3>
             <ul className="space-y-3" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
@@ -269,17 +286,17 @@ export function PremiumFooter() {
                 >
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-2 text-green-200/70 hover:text-green-400 transition-all duration-300"
+                    className="group flex items-center gap-2 text-green-200/70 transition-all duration-300 hover:text-green-400"
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                   >
                     <motion.span
-                      className="w-0 group-hover:w-4 h-px bg-green-400 transition-all duration-300"
+                      className="h-px w-0 bg-green-400 transition-all duration-300 group-hover:w-4"
                       initial={false}
                       animate={{ width: hoveredLink === link.id ? 16 : 0 }}
                     />
                     <span>{link.label}</span>
-                    <ChevronRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                    <ChevronRight className="h-3 w-3 -translate-x-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                   </Link>
                 </motion.li>
               ))}
@@ -289,10 +306,10 @@ export function PremiumFooter() {
           {/* Company Links */}
           <motion.div className="lg:col-span-2" variants={fadeInUp}>
             <h3
-              className="font-bold text-lg mb-6 text-white flex items-center gap-2"
+              className="mb-6 flex items-center gap-2 text-lg font-bold text-white"
               style={{ fontFamily: '"Playfair Display", serif' }}
             >
-              <span className="w-8 h-px bg-gradient-to-r from-green-500 to-transparent" />
+              <span className="h-px w-8 bg-gradient-to-r from-green-500 to-transparent" />
               Company
             </h3>
             <ul className="space-y-3" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
@@ -306,17 +323,17 @@ export function PremiumFooter() {
                 >
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-2 text-green-200/70 hover:text-green-400 transition-all duration-300"
+                    className="group flex items-center gap-2 text-green-200/70 transition-all duration-300 hover:text-green-400"
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                   >
                     <motion.span
-                      className="w-0 group-hover:w-4 h-px bg-green-400 transition-all duration-300"
+                      className="h-px w-0 bg-green-400 transition-all duration-300 group-hover:w-4"
                       initial={false}
                       animate={{ width: hoveredLink === link.id ? 16 : 0 }}
                     />
                     <span>{link.label}</span>
-                    <ChevronRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                    <ChevronRight className="h-3 w-3 -translate-x-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                   </Link>
                 </motion.li>
               ))}
@@ -326,10 +343,10 @@ export function PremiumFooter() {
           {/* Support Links */}
           <motion.div className="lg:col-span-2" variants={fadeInUp}>
             <h3
-              className="font-bold text-lg mb-6 text-white flex items-center gap-2"
+              className="mb-6 flex items-center gap-2 text-lg font-bold text-white"
               style={{ fontFamily: '"Playfair Display", serif' }}
             >
-              <span className="w-8 h-px bg-gradient-to-r from-green-500 to-transparent" />
+              <span className="h-px w-8 bg-gradient-to-r from-green-500 to-transparent" />
               Support
             </h3>
             <ul className="space-y-3" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
@@ -343,17 +360,17 @@ export function PremiumFooter() {
                 >
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-2 text-green-200/70 hover:text-green-400 transition-all duration-300"
+                    className="group flex items-center gap-2 text-green-200/70 transition-all duration-300 hover:text-green-400"
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                   >
                     <motion.span
-                      className="w-0 group-hover:w-4 h-px bg-green-400 transition-all duration-300"
+                      className="h-px w-0 bg-green-400 transition-all duration-300 group-hover:w-4"
                       initial={false}
                       animate={{ width: hoveredLink === link.id ? 16 : 0 }}
                     />
                     <span>{link.label}</span>
-                    <ChevronRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                    <ChevronRight className="h-3 w-3 -translate-x-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                   </Link>
                 </motion.li>
               ))}
@@ -363,10 +380,10 @@ export function PremiumFooter() {
           {/* Quick Access */}
           <motion.div className="lg:col-span-2" variants={fadeInUp}>
             <h3
-              className="font-bold text-lg mb-6 text-white flex items-center gap-2"
+              className="mb-6 flex items-center gap-2 text-lg font-bold text-white"
               style={{ fontFamily: '"Playfair Display", serif' }}
             >
-              <span className="w-8 h-px bg-gradient-to-r from-green-500 to-transparent" />
+              <span className="h-px w-8 bg-gradient-to-r from-green-500 to-transparent" />
               Quick Access
             </h3>
             <ul className="space-y-3" style={{ fontFamily: '"Inter", system-ui, sans-serif' }}>
@@ -385,17 +402,17 @@ export function PremiumFooter() {
                 >
                   <Link
                     href={link.href}
-                    className="group flex items-center gap-2 text-green-200/70 hover:text-green-400 transition-all duration-300"
+                    className="group flex items-center gap-2 text-green-200/70 transition-all duration-300 hover:text-green-400"
                     onMouseEnter={() => setHoveredLink(link.id)}
                     onMouseLeave={() => setHoveredLink(null)}
                   >
                     <motion.span
-                      className="w-0 group-hover:w-4 h-px bg-green-400 transition-all duration-300"
+                      className="h-px w-0 bg-green-400 transition-all duration-300 group-hover:w-4"
                       initial={false}
                       animate={{ width: hoveredLink === link.id ? 16 : 0 }}
                     />
                     <span>{link.label}</span>
-                    <ChevronRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                    <ChevronRight className="h-3 w-3 -translate-x-2 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                   </Link>
                 </motion.li>
               ))}
@@ -405,21 +422,21 @@ export function PremiumFooter() {
 
         {/* Bottom Bar */}
         <motion.div
-          className="mt-16 pt-8 border-t border-green-500/10"
+          className="mt-16 border-t border-green-500/10 pt-8"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col items-center justify-between gap-6 lg:flex-row">
             {/* Copyright */}
             <motion.p
-              className="text-sm text-green-200/50 flex items-center gap-2"
+              className="flex items-center gap-2 text-sm text-green-200/50"
               style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
               whileHover={{ color: 'rgba(134, 239, 172, 0.8)' }}
             >
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              © {new Date().getFullYear()} AgriServe. All rights reserved.
+              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />©{' '}
+              {new Date().getFullYear()} AgriServe. All rights reserved.
             </motion.p>
 
             {/* Social Links */}
@@ -431,7 +448,7 @@ export function PremiumFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.label}
-                  className="group relative w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden"
+                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl"
                   style={{
                     background: 'rgba(34, 197, 94, 0.05)',
                     border: '1px solid rgba(34, 197, 94, 0.15)',
@@ -445,13 +462,13 @@ export function PremiumFooter() {
                 >
                   {/* Hover Background */}
                   <motion.div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                     style={{
                       background: `linear-gradient(135deg, ${social.color}20 0%, ${social.color}40 100%)`,
                     }}
                   />
                   <social.icon
-                    className="relative w-5 h-5 text-green-400/70 group-hover:text-white transition-colors duration-300"
+                    className="relative h-5 w-5 text-green-400/70 transition-colors duration-300 group-hover:text-white"
                     style={{ color: social.color }}
                   />
                 </motion.a>
@@ -461,18 +478,18 @@ export function PremiumFooter() {
             {/* Back to Top */}
             <motion.button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500/5 border border-green-500/20 hover:bg-green-500/10 hover:border-green-500/40 transition-all duration-300"
+              className="group flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/5 px-4 py-2 transition-all duration-300 hover:border-green-500/40 hover:bg-green-500/10"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span className="text-sm text-green-200/60 group-hover:text-green-400 transition-colors">
+              <span className="text-sm text-green-200/60 transition-colors group-hover:text-green-400">
                 Back to top
               </span>
               <motion.div
                 animate={{ y: [0, -3, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
-                <ArrowRight className="w-4 h-4 text-green-400 rotate-[-90deg]" />
+                <ArrowRight className="h-4 w-4 rotate-[-90deg] text-green-400" />
               </motion.div>
             </motion.button>
           </div>
@@ -480,31 +497,31 @@ export function PremiumFooter() {
 
         {/* Trust Badges */}
         <motion.div
-          className="mt-8 flex flex-wrap justify-center items-center gap-6 text-green-200/30 text-xs"
+          className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-green-200/30"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
           <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
             </svg>
             Secure Payments
           </span>
-          <span className="w-1 h-1 rounded-full bg-green-500/30" />
+          <span className="h-1 w-1 rounded-full bg-green-500/30" />
           <span className="flex items-center gap-1">
-            <Leaf className="w-3 h-3" />
+            <Leaf className="h-3 w-3" />
             Eco-Friendly
           </span>
-          <span className="w-1 h-1 rounded-full bg-green-500/30" />
+          <span className="h-1 w-1 rounded-full bg-green-500/30" />
           <span className="flex items-center gap-1">
-            <Sprout className="w-3 h-3" />
+            <Sprout className="h-3 w-3" />
             Farmer First
           </span>
-          <span className="w-1 h-1 rounded-full bg-green-500/30" />
+          <span className="h-1 w-1 rounded-full bg-green-500/30" />
           <span className="flex items-center gap-1">
-            <Wheat className="w-3 h-3" />
+            <Wheat className="h-3 w-3" />
             Made in India
           </span>
         </motion.div>

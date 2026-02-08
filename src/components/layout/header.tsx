@@ -12,6 +12,7 @@ import {
   ArrowRight,
   LayoutDashboard,
   Sprout,
+  Wifi,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -38,6 +39,7 @@ import { NotificationBell } from '@/components/notifications/notification-bell';
 import { MessageBadge } from '@/components/messages';
 import { getRoleDisplayName, getRoleIcon } from '@/lib/navigation';
 import { RoleSwitcher } from '@/components/layout/role-switcher';
+import { addNetworkListeners } from '@/lib/system-pages/network-detector';
 
 const publicNav = [
   { href: '/', label: 'Home', icon: Sprout },
@@ -80,6 +82,7 @@ export function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showOnlinePulse, setShowOnlinePulse] = useState(false);
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
   const headerRef = useRef<HTMLElement>(null);
   const shouldReduceMotion = useReducedMotion();
@@ -113,16 +116,31 @@ export function Header() {
 
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('mousemove', handleMouseMove);
+
+    // Network status listener
+    const cleanupNetwork = addNetworkListeners(
+      () => {
+        console.log('Network: Back Online');
+        setShowOnlinePulse(true);
+        const timer = setTimeout(() => setShowOnlinePulse(false), 8000);
+        return () => clearTimeout(timer);
+      },
+      () => {
+        console.log('Network: Offline');
+        setShowOnlinePulse(false);
+      }
+    );
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
+      cleanupNetwork();
     };
   }, [mouseX, mouseY]);
 
   useEffect(() => {
-
-// eslint-disable-next-line react-hooks/set-state-in-effect
-        setMobileMenuOpen(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMobileMenuOpen(false);
   }, [pathname]);
 
   const getDashboardLink = useCallback(() => {
@@ -254,15 +272,33 @@ export function Header() {
                 </motion.div>
 
                 <div className="flex flex-col">
-                  <motion.span
-                    className="text-2xl font-bold tracking-tight"
-                    style={{ fontFamily: '"Playfair Display", serif' }}
-                  >
-                    <span className="text-white/90">Agri</span>
-                    <span className="animate-gradient-x bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 bg-clip-text text-transparent">
-                      Serve
-                    </span>
-                  </motion.span>
+                  <div className="flex items-center gap-2">
+                    <motion.span
+                      className="text-2xl font-bold tracking-tight"
+                      style={{ fontFamily: '"Playfair Display", serif' }}
+                    >
+                      <span className="text-white/90">Agri</span>
+                      <span className="animate-gradient-x bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 bg-clip-text text-transparent">
+                        Serve
+                      </span>
+                    </motion.span>
+
+                    <AnimatePresence>
+                      {showOnlinePulse && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.5, x: -10 }}
+                          animate={{ opacity: 1, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.5, x: 10 }}
+                          className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5"
+                        >
+                          <Wifi className="h-3 w-3 text-emerald-400" />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                            Online
+                          </span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                   <motion.div
                     className="h-0.5 w-full rounded-full bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500"
                     initial={{ scaleX: 0, opacity: 0 }}

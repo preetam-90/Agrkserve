@@ -1,20 +1,11 @@
-'use client';
+import { Metadata } from 'next';
+import ProviderLandingClient from './ProviderLandingClient';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Spinner } from '@/components/ui';
+export const metadata: Metadata = {
+  title: 'Provider Portal - AgriServe',
+  description: 'Manage your provider account.',
+};
 
-export default function ProviderRedirect() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Redirect to unified dashboard
-    router.push('/dashboard');
-  }, [router]);
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <Spinner size="lg" />
-    </div>
-  );
+export default function ProviderPage() {
+  return <ProviderLandingClient />;
 }
