@@ -3,7 +3,6 @@ import type {
   KlipyMediaType,
   KlipySearchResponse,
   KlipyCategory,
-  KlipyAutocompleteResult,
   KlipyRecentItem,
   KlipySharePayload,
   KlipyApiItem,

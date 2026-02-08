@@ -3,7 +3,6 @@ import type {
   Notification,
   NotificationPreferences,
   CreateNotificationParams,
-  NotificationEventType,
   NotificationFilters,
   NotificationStats,
   NotificationCategory,
@@ -88,7 +87,8 @@ export class NotificationService {
   // =====================================================
   // GET UNREAD COUNT
   // =====================================================
-  async getUnreadCount(userId: string): Promise<number> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async getUnreadCount(_userId: string): Promise<number> {
     const { data, error } = await this.supabase.rpc('get_unread_notification_count');
 
     if (error) {
@@ -180,9 +180,10 @@ export class NotificationService {
   // CREATE NOTIFICATION
   // =====================================================
   async createNotification(
-    params: CreateNotificationParams & { context?: Record<string, any> }
+    params: CreateNotificationParams & { context?: Record<string, unknown> }
   ): Promise<Notification | null> {
-    const { context = {}, ...baseParams } = params;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { context: _context = {}, ...baseParams } = params;
 
     // Build message if not provided
     const title = baseParams.title;
@@ -237,7 +238,7 @@ export class NotificationService {
   // =====================================================
   async createBulkNotifications(
     userIds: string[],
-    params: Omit<CreateNotificationParams, 'user_id'> & { context?: Record<string, any> }
+    params: Omit<CreateNotificationParams, 'user_id'> & { context?: Record<string, unknown> }
   ): Promise<void> {
     const promises = userIds.map((userId) =>
       this.createNotification({ ...params, user_id: userId })
@@ -263,7 +264,8 @@ export class NotificationService {
   // =====================================================
   // MARK ALL AS READ
   // =====================================================
-  async markAllAsRead(userId: string): Promise<number> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async markAllAsRead(_userId: string): Promise<number> {
     const { data, error } = await this.supabase.rpc('mark_all_notifications_read');
 
     if (error) {

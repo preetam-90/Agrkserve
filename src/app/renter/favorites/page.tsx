@@ -51,7 +51,7 @@ export default function FavoritesPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Favorites Yet</h2>
           <p className="text-gray-500 max-w-sm mb-6">
-            You haven't added any equipment or labour profiles to your favorites yet. Browse our listings to find what you need.
+            You haven&apos;t added any equipment or labour profiles to your favorites yet. Browse our listings to find what you need.
           </p>
           <div className="flex gap-4">
             <Button asChild>

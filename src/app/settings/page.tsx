@@ -38,7 +38,6 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
-import { cn } from '@/lib/utils';
 import { BackButton } from '@/components/ui/back-button';
 import toast from 'react-hot-toast';
 
@@ -510,7 +509,7 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                       <p className="text-sm font-semibold text-[#F8FAFC]">Password Security Tips</p>
                       <ul className="space-y-1 text-xs text-[#94A3B8]">
-                        <li>• Use a unique password you don't use elsewhere</li>
+                        <li>• Use a unique password you don&apos;t use elsewhere</li>
                         <li>• Include a mix of letters, numbers, and symbols</li>
                         <li>• Avoid common words or personal information</li>
                         <li>• Consider using a password manager</li>

@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { deleteMultipleAssets } from '@/lib/services/cloudinary-admin-service';
 import { requirePermission } from '@/lib/utils/admin-rbac';
 import { createMediaAuditLog, extractRequestMetadata } from '@/lib/services/media-audit-service';
-import type { MediaType, BulkDeleteRequest } from '@/lib/types/cloudinary-admin';
+import type { BulkDeleteRequest } from '@/lib/types/cloudinary-admin';
 
 export const runtime = 'nodejs';
 

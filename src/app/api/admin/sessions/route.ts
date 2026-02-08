@@ -11,9 +11,12 @@ export async function GET() {
     if (error) throw error;
 
     return NextResponse.json({ sessions: data || [] });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching active sessions:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -46,10 +49,16 @@ export async function DELETE(request: NextRequest) {
       if (error) throw error;
       return NextResponse.json({ success: true, revoked: data });
     } else {
-      return NextResponse.json({ error: 'session_id, user_id, or force_all required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'session_id, user_id, or force_all required' },
+        { status: 400 }
+      );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error revoking session:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }

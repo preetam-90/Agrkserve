@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { execSync } = require('child_process');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const net = require('net');
 
 // ANSI color codes
@@ -58,7 +60,7 @@ function getProcessOnPort(port) {
 
       return processInfo.join('\n');
     }
-  } catch (err) {
+  } catch {
     return null;
   }
 }

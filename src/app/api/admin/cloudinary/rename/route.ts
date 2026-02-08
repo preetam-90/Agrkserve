@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const body: RenameAssetRequest = await request.json();
     const { publicId, newPublicId } = body;
-    const resourceType = (body as any).resourceType || ('image' as MediaType);
+    const resourceType = (body.resourceType ?? 'image') as MediaType;
 
     if (!publicId || !newPublicId) {
       return NextResponse.json(

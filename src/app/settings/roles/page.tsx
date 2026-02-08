@@ -76,7 +76,8 @@ export default function RoleManagementPage() {
   const router = useRouter();
   const { user, roles, activeRole, fetchRoles } = useAuthStore();
   const [enabledRoles, setEnabledRoles] = useState<UserRole[]>(roles);
-  const [isLoading, setIsLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isLoading, _setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -217,7 +218,7 @@ export default function RoleManagementPage() {
           <div className="mb-6 flex items-center gap-3 rounded-xl border border-[#FCD34D]/30 bg-[#FCD34D]/10 p-4">
             <AlertCircle className="h-5 w-5 text-[#FCD34D]" />
             <p className="text-sm font-medium text-[#FCD34D]">
-              You have unsaved changes. Click "Save Changes" to apply them.
+              You have unsaved changes. Click &quot;Save Changes&quot; to apply them.
             </p>
           </div>
         )}

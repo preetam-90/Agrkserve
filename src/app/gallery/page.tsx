@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable */
+
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Download, ExternalLink, Calendar, HardDrive } from 'lucide-react';

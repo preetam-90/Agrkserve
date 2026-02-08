@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Phone } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui';
 
 interface PhoneModalProps {
@@ -39,8 +39,8 @@ export function PhoneModal({ isOpen, onClose, onSubmit, isLoading }: PhoneModalP
 
     try {
       await onSubmit(phoneNumber);
-    } catch (err: any) {
-      setError(err.message || 'Failed to save phone number');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to save phone number');
     }
   };
 

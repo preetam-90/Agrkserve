@@ -2,10 +2,8 @@
 
 import { useState } from 'react';
 import {
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Filter,
   Search,
   Download,
   MoreHorizontal,
@@ -15,23 +13,29 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DataItem = Record<string, any>;
+
 interface Column {
   key: string;
   label: string;
-  render?: (item: any) => React.ReactNode;
+  render?: (item: DataItem) => React.ReactNode;
   sortable?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type IconComponent = React.ComponentType<any>;
+
 interface Action {
-  label: string | ((item: any) => string);
-  onClick: (item: any) => void;
-  icon?: any | ((item: any) => any);
-  danger?: boolean | ((item: any) => boolean);
+  label: string | ((item: DataItem) => string);
+  onClick: (item: DataItem) => void;
+  icon?: IconComponent | ((item: DataItem) => IconComponent);
+  danger?: boolean | ((item: DataItem) => boolean);
 }
 
 interface DataTableProps {
   columns: Column[];
-  data: any[];
+  data: DataItem[];
   actions?: Action[];
   isLoading?: boolean;
   onSearch?: (query: string) => void;
@@ -64,7 +68,7 @@ export default function DataTable({
       .map((item) =>
         columns
           .map((col) => {
-            const value = col.render ? String(col.render(item)).replace(/,/g, ';') : item[col.key];
+            const value = col.render ? String(col.render(item)).replace(/,/g, ';') : String(item[col.key] ?? '');
             return `"${value}"`;
           })
           .join(',')
@@ -91,8 +95,10 @@ export default function DataTable({
   const getSortedData = () => {
     if (!sortConfig) return data;
     return [...data].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+      const aVal = a[sortConfig.key];
+      const bVal = b[sortConfig.key];
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
   };
@@ -221,10 +227,12 @@ export default function DataTable({
                                     typeof action.label === 'function'
                                       ? action.label(item)
                                       : action.label;
-                                  const Icon =
-                                    typeof action.icon === 'function'
-                                      ? action.icon(item)
-                                      : action.icon;
+                                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                  const iconProp = action.icon as any;
+                                  const Icon: IconComponent | undefined =
+                                    typeof iconProp === 'function' && !(iconProp.$$typeof || iconProp.prototype?.isReactComponent)
+                                      ? iconProp(item)
+                                      : iconProp;
                                   const isDanger =
                                     typeof action.danger === 'function'
                                       ? action.danger(item)

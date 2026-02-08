@@ -209,7 +209,7 @@ export function PremiumFooter() {
               className="mb-8 max-w-sm text-green-200/80 leading-relaxed"
               style={{ fontFamily: '"Inter", system-ui, sans-serif' }}
             >
-              India's trusted platform for renting agricultural equipment and hiring skilled labor.
+              India&apos;s trusted platform for renting agricultural equipment and hiring skilled labor.
               Empowering farmers across the nation with quality machinery at fair prices.
             </p>
 

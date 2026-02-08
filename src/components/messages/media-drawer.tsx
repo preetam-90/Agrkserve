@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Search, Loader2, TrendingUp, Clock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import type { KlipyMedia, KlipyMediaType } from '@/lib/types/klipy';
-import { klipyService } from '@/lib/services/klipy-service';
+import type { KlipyMedia } from '@/lib/types/klipy';import { klipyService } from '@/lib/services/klipy-service';
 import { KlipyMediaGrid } from './klipy-media-grid';
 import { useAuthStore } from '@/lib/store';
 
@@ -87,6 +86,7 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
         setLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeTab, viewMode, debouncedQuery, user?.id, page]
   );
 
@@ -95,6 +95,7 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
     if (isOpen) {
       loadContent(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, activeTab, viewMode, debouncedQuery]);
 
   // Infinite scroll handler
@@ -284,7 +285,7 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
 
           {/* No More Items */}
           {!loading && !hasMore && items.length > 0 && (
-            <div className="py-4 text-center text-xs text-gray-500">That's all for now! 🎉</div>
+            <div className="py-4 text-center text-xs text-gray-500">That&apos;s all for now! 🎉</div>
           )}
         </div>
 

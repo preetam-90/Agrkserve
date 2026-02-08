@@ -16,12 +16,12 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
-import { Button, Card, CardContent, Input, Textarea, Spinner } from '@/components/ui';
+import { Button, Card, CardContent, Input, Textarea } from '@/components/ui';
 import { Calendar } from '@/components/ui/calendar';
 import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { Equipment, Booking } from '@/lib/types';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { addDays, format, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { DateRange } from 'react-day-picker';
@@ -34,7 +34,8 @@ export default function BookEquipmentPage() {
   const equipmentId = params.id as string;
 
   const [equipment, setEquipment] = useState<Equipment | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]); // Store existing bookings
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_bookings, setBookings] = useState<Booking[]>([]); // Store existing bookings
   const [bookedDates, setBookedDates] = useState<Date[]>([]); // Array of all booked dates
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,9 +129,10 @@ export default function BookEquipmentPage() {
       if (profile?.address) {
         setFormData((prev) => ({ ...prev, deliveryAddress: profile.address! }));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('CRITICAL LOAD ERROR:', err);
-      toast.error(`Failed to load: ${err?.message || 'Unknown error'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      toast.error(`Failed to load: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -256,10 +258,11 @@ export default function BookEquipmentPage() {
       toast.dismiss(processingToast);
       toast.success('Payment successful! Booking created.');
       router.push(`/renter/bookings?success=true`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.dismiss(processingToast);
       console.error('Failed to create booking:', err);
-      toast.error(`Failed to create booking: ${err?.message || 'Unknown error'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      toast.error(`Failed to create booking: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }

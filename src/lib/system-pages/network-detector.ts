@@ -22,11 +22,13 @@ export function getNetworkStatus(): NetworkStatus {
       saveData: false,
     };
   }
-  
-  const connection = (navigator as any).connection || 
-                     (navigator as any).mozConnection || 
-                     (navigator as any).webkitConnection;
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const connection =
+    (navigator as any).connection ||
+    (navigator as any).mozConnection ||
+    (navigator as any).webkitConnection;
+
   const status: NetworkStatus = {
     isOnline: navigator.onLine,
     effectiveType: connection?.effectiveType || 'unknown',
@@ -34,7 +36,7 @@ export function getNetworkStatus(): NetworkStatus {
     rtt: connection?.rtt,
     saveData: connection?.saveData || false,
   };
-  
+
   return status;
 }
 
@@ -43,24 +45,24 @@ export function getNetworkStatus(): NetworkStatus {
  */
 export function isSlowConnection(): boolean {
   const status = getNetworkStatus();
-  
+
   if (!status.isOnline) return false;
-  
+
   // Consider 2g and slow-2g as slow
   if (status.effectiveType === '2g' || status.effectiveType === 'slow-2g') {
     return true;
   }
-  
+
   // Consider connections with high RTT as slow
   if (status.rtt && status.rtt > 500) {
     return true;
   }
-  
+
   // Consider connections with low downlink as slow
   if (status.downlink && status.downlink < 1) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -75,17 +77,14 @@ export function isOffline(): boolean {
 /**
  * Adds event listeners for network status changes
  */
-export function addNetworkListeners(
-  onOnline: () => void,
-  onOffline: () => void
-): () => void {
+export function addNetworkListeners(onOnline: () => void, onOffline: () => void): () => void {
   if (typeof window === 'undefined') {
     return () => {};
   }
-  
+
   window.addEventListener('online', onOnline);
   window.addEventListener('offline', onOffline);
-  
+
   // Return cleanup function
   return () => {
     window.removeEventListener('online', onOnline);
@@ -116,28 +115,28 @@ export async function retryWithBackoff<T>(
   baseDelay: number = 1000
 ): Promise<T> {
   let lastError: Error | undefined;
-  
+
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error as Error;
-      
+
       // Don't retry if offline
       if (isOffline()) {
         throw new Error('Device is offline');
       }
-      
+
       // Don't retry on last attempt
       if (attempt === maxAttempts - 1) {
         break;
       }
-      
+
       // Wait before retrying
       const delay = exponentialBackoff(attempt, baseDelay);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
-  
+
   throw lastError || new Error('Max retry attempts reached');
 }

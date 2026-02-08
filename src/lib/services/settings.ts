@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/client';
 
 export interface SystemSettings {
   platform_name: string;

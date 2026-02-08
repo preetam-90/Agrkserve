@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Mail,
   Phone,
@@ -22,7 +23,7 @@ import {
 export interface ContactField {
   key: string;
   label: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   type: 'text' | 'email' | 'tel' | 'url' | 'textarea';
   placeholder?: string;
   category: string;
@@ -347,10 +348,13 @@ export const contactFieldsConfig: ContactField[] = [
 ];
 
 // Group fields by category
-export const groupedContactFields = contactFieldsConfig.reduce((acc, field) => {
-  if (!acc[field.category]) {
-    acc[field.category] = [];
-  }
-  acc[field.category].push(field);
-  return acc;
-}, {} as Record<string, ContactField[]>);
+export const groupedContactFields = contactFieldsConfig.reduce(
+  (acc, field) => {
+    if (!acc[field.category]) {
+      acc[field.category] = [];
+    }
+    acc[field.category].push(field);
+    return acc;
+  },
+  {} as Record<string, ContactField[]>
+);

@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 export default function FloatingParticles() {
-  const particles = useMemo(() => {
+  const [particles] = useState(() => {
     return Array.from({ length: 15 }).map(() => {
       const x = `${Math.random() * 100}%`;
       const y = `${Math.random() * 100}%`;
@@ -13,7 +13,7 @@ export default function FloatingParticles() {
       const delay = Math.random() * 2;
       return { x, y, yAnim, duration, delay };
     });
-  }, []);
+  });
 
   return (
     <>

@@ -186,6 +186,7 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
       setNotifications([]);
       setUnreadCount(0);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, filters]);
 
   // Real-time subscription

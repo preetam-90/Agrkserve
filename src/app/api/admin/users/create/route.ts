@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       password,
       // mark email as confirmed since admin is provisioning the account
       email_confirm: true,
-    } as any);
+    });
 
     if (createError) {
       console.error('Supabase admin.createUser error:', createError);
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const createdUser = (createData as any)?.user;
+    const createdUser = (createData as { user?: { id: string; email: string } })?.user;
     if (!createdUser || !createdUser.id) {
       return NextResponse.json({ success: false, error: 'Failed to create user' }, { status: 500 });
     }

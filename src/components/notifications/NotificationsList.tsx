@@ -13,8 +13,8 @@ interface NotificationsListProps {
   activeTab: 'all' | 'unread' | 'read';
   onTabChange: (tab: 'all' | 'unread' | 'read') => void;
   groupedNotifications: NotificationGroupType[];
-  filteredNotifications: any[];
-  notifications: any[];
+  filteredNotifications: unknown[];
+  notifications: unknown[];
   unreadCount: number;
   loading: boolean;
   error: { message: string } | null;
@@ -60,7 +60,7 @@ export function NotificationsList({
               ) : (
                 <>
                   <div className="h-5 w-5 text-emerald-400" />
-                  <CardDescription className="text-lg text-slate-300">You're all caught up! 🎉</CardDescription>
+                  <CardDescription className="text-lg text-slate-300">You&apos;re all caught up! 🎉</CardDescription>
                 </>
               )}
             </div>

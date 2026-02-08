@@ -21,9 +21,17 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'AgriServe - Rent Farm Equipment | India\'s Trusted Agricultural Platform',
-  description: 'Rent quality tractors, harvesters, and agricultural equipment from verified providers across India. Trusted by 50,000+ farmers for fair prices and reliable service.',
-  keywords: ['farm equipment rental', 'tractor rental India', 'agricultural machinery', 'farm tools', 'harvester rental', 'agriculture marketplace'],
+  title: "AgriServe - Rent Farm Equipment | India's Trusted Agricultural Platform",
+  description:
+    'Rent quality tractors, harvesters, and agricultural equipment from verified providers across India. Trusted by 50,000+ farmers for fair prices and reliable service.',
+  keywords: [
+    'farm equipment rental',
+    'tractor rental India',
+    'agricultural machinery',
+    'farm tools',
+    'harvester rental',
+    'agriculture marketplace',
+  ],
   authors: [{ name: 'AgriServe' }],
   manifest: '/site.webmanifest',
   icons: {
@@ -33,16 +41,13 @@ export const metadata: Metadata = {
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon.svg', type: 'image/svg+xml' },
     ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    other: [
-      { rel: 'mask-icon', url: '/favicon.svg', color: '#D4A853' },
-    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    other: [{ rel: 'mask-icon', url: '/favicon.svg', color: '#D4A853' }],
   },
   openGraph: {
-    title: 'AgriServe - Rent Farm Equipment | India\'s Trusted Platform',
-    description: 'Rent quality tractors, harvesters, and agricultural equipment from verified providers across India.',
+    title: "AgriServe - Rent Farm Equipment | India's Trusted Platform",
+    description:
+      'Rent quality tractors, harvesters, and agricultural equipment from verified providers across India.',
     type: 'website',
     locale: 'en_IN',
     siteName: 'AgriServe',
@@ -62,15 +67,14 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className="scroll-smooth overflow-x-hidden">
+    <html lang="en" suppressHydrationWarning className="overflow-x-hidden scroll-smooth">
       <head>
-        <meta name="google-site-verification" content="GhdPRhFhjOdtX1XTMrvsexiyCYFHD8KPTtKhOyZWlDM" />
+        <meta
+          name="google-site-verification"
+          content="GhdPRhFhjOdtX1XTMrvsexiyCYFHD8KPTtKhOyZWlDM"
+        />
         <script
           defer
           src="https://cloud.umami.is/script.js"
@@ -82,12 +86,10 @@ export default function RootLayout({
           data-website-id="a2a1c58a-8322-46dd-a7f3-2944863a2740"
         />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} antialiased overflow-x-hidden`}>
+      <body className={`${inter.variable} ${playfair.variable} overflow-x-hidden antialiased`}>
         <Providers>
           <NetworkStatus />
-          <AuthenticatedLayout>
-            {children}
-          </AuthenticatedLayout>
+          <AuthenticatedLayout>{children}</AuthenticatedLayout>
         </Providers>
         <Analytics />
         <SpeedInsights />

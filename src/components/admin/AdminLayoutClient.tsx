@@ -6,7 +6,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  user?: any;
+  user?: { profile?: { profile_image?: string; name?: string }; email?: string; name?: string } | null;
 }
 
 export default function AdminLayoutClient({ children, user }: AdminLayoutProps) {
@@ -44,7 +44,7 @@ export default function AdminLayoutClient({ children, user }: AdminLayoutProps) 
           sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[280px]'
         }`}
       >
-        <AdminHeader onMenuClick={() => setSidebarOpen(true)} user={user} />
+        <AdminHeader onMenuClick={() => setSidebarOpen(true)} user={user ?? null} />
 
         <main className="relative z-10 mx-auto w-full max-w-7xl flex-1 p-6 lg:p-8">{children}</main>
       </div>

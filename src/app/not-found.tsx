@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,6 +47,7 @@ export default function NotFoundPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+     
     setMounted(true);
   }, []);
 

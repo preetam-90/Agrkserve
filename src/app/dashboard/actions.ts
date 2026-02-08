@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import type { Equipment, Booking, LabourBooking } from '@/lib/types';
 
 export type DashboardRole = 'admin' | 'provider' | 'labour' | 'renter';
 
@@ -29,11 +30,11 @@ export interface ServerDashboardData {
   roles: string[];
   activeRole: DashboardRole;
   // Shared data keys (match what dashboard components expect)
-  equipment?: any[];
-  bookings?: any[];
-  labourBookings?: any[];
+  equipment?: Equipment[];
+  bookings?: Booking[];
+  labourBookings?: LabourBooking[];
   // Labour-specific
-  labourProfile?: any;
+  labourProfile?: unknown;
 }
 
 export async function getDashboardData(): Promise<ServerDashboardData | null> {
@@ -55,7 +56,7 @@ export async function getDashboardData(): Promise<ServerDashboardData | null> {
   ]);
 
   const profile = profileResult.data;
-  const roles = rolesResult.data?.map((r: any) => r.role) || ['renter'];
+  const roles = rolesResult.data?.map((r: { role: string }) => r.role) || ['renter'];
 
   // Determine active role (priority: admin > provider > labour > renter)
   let activeRole: DashboardRole = 'renter';

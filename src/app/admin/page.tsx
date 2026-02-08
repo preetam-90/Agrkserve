@@ -83,7 +83,8 @@ async function getAdminStats(timeRange: string = 'last_7_days') {
     .in('status', ['completed', 'confirmed', 'in_progress'])
     .gte('created_at', startDate.toISOString());
 
-  const bookingsRevenue = completedBookings?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) || 0;
+  const bookingsRevenue =
+    completedBookings?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) || 0;
 
   // Use whichever is greater (payments table takes precedence if it has data)
   const totalRevenue = paymentsRevenue > 0 ? paymentsRevenue : bookingsRevenue;
@@ -96,7 +97,8 @@ async function getAdminStats(timeRange: string = 'last_7_days') {
     .gte('created_at', previousStartDate.toISOString())
     .lt('created_at', previousEndDate.toISOString());
 
-  const previousPaymentsRevenue = previousPayments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) || 0;
+  const previousPaymentsRevenue =
+    previousPayments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) || 0;
 
   const { data: previousCompletedBookings } = await supabase
     .from('bookings')
@@ -105,9 +107,11 @@ async function getAdminStats(timeRange: string = 'last_7_days') {
     .gte('created_at', previousStartDate.toISOString())
     .lt('created_at', previousEndDate.toISOString());
 
-  const previousBookingsRevenue = previousCompletedBookings?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) || 0;
+  const previousBookingsRevenue =
+    previousCompletedBookings?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) || 0;
 
-  const previousRevenue = previousPaymentsRevenue > 0 ? previousPaymentsRevenue : previousBookingsRevenue;
+  const previousRevenue =
+    previousPaymentsRevenue > 0 ? previousPaymentsRevenue : previousBookingsRevenue;
 
   // Get pending bookings
   const { count: pendingBookings } = await supabase
@@ -204,7 +208,7 @@ async function getRecentUsers(timeRange: string = 'last_7_days') {
   }
 
   // Transform the data to match the expected interface
-  return (users || []).map(user => ({
+  return (users || []).map((user) => ({
     id: user.id,
     name: user.name || 'Unknown User',
     email: user.email || '',
@@ -260,18 +264,20 @@ async function getActivityFeed(timeRange: string = 'last_7_days') {
 
   // Combine and sort
   const activities = [
-    ...(recentBookings?.map((b: any) => ({
+    ...(recentBookings?.map((b) => ({
       type: 'booking',
-      message: `${b.renter?.name || 'User'} booked ${b.equipment?.name || 'equipment'}`,
+      message: `${(b as { renter?: { name?: string } })?.renter?.name || 'User'} booked ${(b as { equipment?: { name?: string } })?.equipment?.name || 'equipment'}`,
       time: b.created_at,
       status: b.status,
     })) || []),
-    ...(recentUsers?.map((u: any) => ({
+    ...(recentUsers?.map((u) => ({
       type: 'user',
-      message: `${u.name} joined the platform`,
+      message: `${(u as { name?: string }).name || 'User'} joined the platform`,
       time: u.created_at,
     })) || []),
-  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+  ]
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+    .slice(0, 5);
 
   return activities;
 }
@@ -281,18 +287,15 @@ async function getSystemHealth() {
 
   try {
     // Get database stats
-    const { data: dbStats, error: dbError } = await supabase
-      .rpc('get_database_stats')
-      .single();
+    await supabase.rpc('get_database_stats').single();
 
     // Get connection count
-    const { data: connections, error: connError } = await supabase
+    const { data: connections } = await supabase
       .rpc('get_connection_count')
       .single();
 
     // Get storage usage from storage.objects
-    const { data: storageData, error: storageError } = await supabase
-      .storage
+    const { data: storageData, error: storageError } = await supabase.storage
       .from('equipment-images')
       .list();
 
@@ -301,12 +304,12 @@ async function getSystemHealth() {
     if (storageData && !storageError) {
       // Get size from all buckets
       const buckets = ['equipment-images', 'equipment-videos', 'chat-media', 'profile-pictures'];
-      
+
       for (const bucket of buckets) {
         const { data: files } = await supabase.storage.from(bucket).list();
         if (files) {
-          totalStorageBytes += files.reduce((sum: number, file: any) => {
-            return sum + (file.metadata?.size || 0);
+          totalStorageBytes += files.reduce((sum: number, file) => {
+            return sum + ((file as { metadata?: { size?: number } })?.metadata?.size || 0);
           }, 0);
         }
       }
@@ -319,7 +322,8 @@ async function getSystemHealth() {
 
     // Database load (based on connection count)
     const maxConnections = 100;
-    const connectionCount = typeof connections === 'number' ? connections : Number(connections) || 0;
+    const connectionCount =
+      typeof connections === 'number' ? connections : Number(connections) || 0;
     const dbLoadPercentage = Math.min((connectionCount / maxConnections) * 100, 100);
 
     return {
@@ -347,7 +351,7 @@ export default async function AdminDashboard({
 }) {
   const params = await searchParams;
   const timeRange = params.timeRange || 'last_7_days';
-  
+
   const [stats, recentBookings, systemHealth, recentUsers, activityFeed] = await Promise.all([
     getAdminStats(timeRange),
     getRecentBookings(timeRange),

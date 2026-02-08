@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { Bell, Mail, MessageSquare, Moon, RefreshCw, Loader2, CheckCircle, Smartphone, Clock, Zap, Shield, Volume2 } from 'lucide-react';
+import { Bell, Mail, MessageSquare, Moon, RefreshCw, CheckCircle, Smartphone, Clock, Zap, Shield, Volume2, LucideIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -16,9 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
-const PREFERENCE_LABELS: Record<string, { label: string; description: string; icon: any }> = {
+const PREFERENCE_LABELS: Record<string, { label: string; description: string; icon: LucideIcon }> = {
   booking_notifications: {
     label: 'Booking Updates',
     description: 'Get notified about booking status changes and confirmations',
@@ -353,7 +351,7 @@ export function NotificationPreferencesPage() {
               Quiet Hours (Do Not Disturb)
             </CardTitle>
             <CardDescription className="text-[#94A3B8]">
-              Set a time window when you don't want to be disturbed
+              Set a time window when you don&apos;t want to be disturbed
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

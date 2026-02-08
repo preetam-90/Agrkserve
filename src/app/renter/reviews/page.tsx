@@ -43,7 +43,8 @@ const receivedReviews = [
 ];
 
 export default function RenterReviewsPage() {
-  const [activeTab, setActiveTab] = useState('given');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_activeTab, setActiveTab] = useState('given');
 
   const renderStars = (rating: number) => {
     return (

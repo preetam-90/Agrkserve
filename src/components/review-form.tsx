@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, Camera, X } from 'lucide-react';
+import { Star, Camera } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

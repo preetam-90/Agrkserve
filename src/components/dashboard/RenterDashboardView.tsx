@@ -13,27 +13,26 @@ import {
   Star,
   Clock,
   Users,
-  Flame,
   Sparkles,
-  TrendingUp,
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
+import { Button, Input, Card, CardContent, Badge, EmptyState } from '@/components/ui';
 import { equipmentService, bookingService, labourService } from '@/lib/services';
 import { useAuthStore, useAppStore } from '@/lib/store';
-import { Equipment, Booking } from '@/lib/types';
+import { Equipment, Booking, LabourBooking } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 export function RenterDashboardView() {
   const { profile } = useAuthStore();
-  const { userLocation, sidebarOpen } = useAppStore();
+  const { userLocation } = useAppStore();
 
   const [nearbyEquipment, setNearbyEquipment] = useState<Equipment[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  const [recentLabourBookings, setRecentLabourBookings] = useState<any[]>([]);
+  const [recentLabourBookings, setRecentLabourBookings] = useState<LabourBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -41,7 +40,7 @@ export function RenterDashboardView() {
     loadDashboardData();
 
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
@@ -107,7 +106,8 @@ export function RenterDashboardView() {
     window.location.href = `/equipment?search=${encodeURIComponent(searchQuery)}`;
   };
 
-  const getStatusColor = (status: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
         return 'success';
@@ -451,7 +451,7 @@ export function RenterDashboardView() {
                       </motion.div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-white">
-                          {booking.labour?.user?.full_name || 'Labour'}
+                          {booking.labour?.user?.name || 'Labour'}
                         </p>
                         <p className="mt-1 flex items-center gap-1 text-sm text-gray-400">
                           <Clock className="h-3 w-3" />

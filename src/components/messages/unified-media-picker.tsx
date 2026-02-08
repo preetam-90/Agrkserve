@@ -103,6 +103,7 @@ export function UnifiedMediaPicker({
       }
     },
     // Remove 'loading' from dependencies to prevent flickering loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeTab, viewMode, debouncedQuery, user?.id, page]
   );
 
@@ -359,7 +360,7 @@ export function UnifiedMediaPicker({
 
               {/* No More Items */}
               {!loading && !hasMore && items.length > 0 && (
-                <div className="py-4 text-center text-xs text-gray-500">That's all for now! 🎉</div>
+                <div className="py-4 text-center text-xs text-gray-500">That&apos;s all for now! 🎉</div>
               )}
             </div>
           )}

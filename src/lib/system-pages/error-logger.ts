@@ -26,17 +26,21 @@ export interface ErrorLogEntry {
  */
 function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
   if (typeof window === 'undefined') return 'desktop';
-  
+
   const ua = navigator.userAgent.toLowerCase();
-  
+
   if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
     return 'tablet';
   }
-  
-  if (/mobile|iphone|ipod|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(ua)) {
+
+  if (
+    /mobile|iphone|ipod|android|blackberry|opera mini|opera mobi|skyfire|maemo|windows phone|palm|iemobile|symbian|symbianos|fennec/i.test(
+      ua
+    )
+  ) {
     return 'mobile';
   }
-  
+
   return 'desktop';
 }
 
@@ -45,15 +49,16 @@ function getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
  */
 function getOS(): string {
   if (typeof window === 'undefined') return 'unknown';
-  
+
   const ua = navigator.userAgent;
-  
+
   if (ua.indexOf('Win') !== -1) return 'Windows';
   if (ua.indexOf('Mac') !== -1) return 'MacOS';
   if (ua.indexOf('Linux') !== -1) return 'Linux';
   if (ua.indexOf('Android') !== -1) return 'Android';
-  if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) return 'iOS';
-  
+  if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1)
+    return 'iOS';
+
   return 'unknown';
 }
 
@@ -62,15 +67,15 @@ function getOS(): string {
  */
 function getBrowser(): string {
   if (typeof window === 'undefined') return 'unknown';
-  
+
   const ua = navigator.userAgent;
-  
+
   if (ua.indexOf('Firefox') !== -1) return 'Firefox';
   if (ua.indexOf('Chrome') !== -1) return 'Chrome';
   if (ua.indexOf('Safari') !== -1) return 'Safari';
   if (ua.indexOf('Edge') !== -1) return 'Edge';
   if (ua.indexOf('Opera') !== -1 || ua.indexOf('OPR') !== -1) return 'Opera';
-  
+
   return 'unknown';
 }
 
@@ -79,19 +84,23 @@ function getBrowser(): string {
  */
 function getNetworkStatus(): 'online' | 'offline' | 'slow' {
   if (typeof window === 'undefined') return 'online';
-  
+
   if (!navigator.onLine) return 'offline';
-  
+
   // Check connection quality if available
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const connection =
+    (navigator as any).connection ||
+    (navigator as any).mozConnection ||
+    (navigator as any).webkitConnection;
+
   if (connection) {
     const effectiveType = connection.effectiveType;
     if (effectiveType === 'slow-2g' || effectiveType === '2g') {
       return 'slow';
     }
   }
-  
+
   return 'online';
 }
 
@@ -100,14 +109,14 @@ function getNetworkStatus(): 'online' | 'offline' | 'slow' {
  */
 function getSessionId(): string {
   if (typeof window === 'undefined') return 'server-session';
-  
+
   let sessionId = sessionStorage.getItem('agriServeSessionId');
-  
+
   if (!sessionId) {
     sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     sessionStorage.setItem('agriServeSessionId', sessionId);
   }
-  
+
   return sessionId;
 }
 
@@ -121,7 +130,7 @@ export function logError(
 ): void {
   // Only run on client side
   if (typeof window === 'undefined') return;
-  
+
   try {
     const errorLog: ErrorLogEntry = {
       timestamp: new Date(),
@@ -139,12 +148,12 @@ export function logError(
       },
       additionalContext,
     };
-    
+
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
       console.log('[Error Logger]', errorLog);
     }
-    
+
     // In production, send to external logging service
     // Example: Sentry, LogRocket, etc.
     // This is a placeholder for integration
@@ -165,7 +174,7 @@ export function logError(
  */
 export function sanitizeErrorMessage(error: Error | string): string {
   const message = typeof error === 'string' ? error : error.message;
-  
+
   // Remove file paths, line numbers, and stack traces
   return message
     .replace(/at\s+.*\s+\(.*:\d+:\d+\)/g, '')

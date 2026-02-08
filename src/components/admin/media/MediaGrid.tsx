@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   Image as ImageIcon,
   Film,
-  MoreVertical,
   Trash2,
   Edit3,
   Eye,
@@ -124,11 +124,15 @@ export function MediaGrid({
                 onClick={() => onPreview(asset)}
               >
                 {asset.thumbnail_url ? (
-                  <img
+                   
+
+                  <Image
                     src={asset.thumbnail_url}
                     alt={asset.public_id}
-                    className="h-full w-full object-cover"
+                    fill
+                    className="object-cover"
                     loading="lazy"
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">

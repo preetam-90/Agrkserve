@@ -4,14 +4,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  searchAssets,
-  getAssetsByUser,
-  getUserMediaSummary,
-} from '@/lib/services/cloudinary-admin-service';
+import { searchAssets, getAssetsByUser } from '@/lib/services/cloudinary-admin-service';
 import { requirePermission } from '@/lib/utils/admin-rbac';
 import { createMediaAuditLog, extractRequestMetadata } from '@/lib/services/media-audit-service';
-import type { MediaFilters } from '@/lib/types/cloudinary-admin';
+import type { MediaFilters, MediaType, MediaStatus } from '@/lib/types/cloudinary-admin';
 
 export const runtime = 'nodejs';
 
@@ -24,17 +20,19 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const filters: MediaFilters = {
-      resourceType: (searchParams.get('resourceType') as any) || 'all',
+      resourceType: (searchParams.get('resourceType') as 'all' | MediaType | undefined) || 'all',
       folder: searchParams.get('folder') || undefined,
       userId: searchParams.get('userId') || undefined,
-      status: (searchParams.get('status') as any) || 'all',
+      status: (searchParams.get('status') as 'all' | MediaStatus | undefined) || 'all',
       dateFrom: searchParams.get('dateFrom') || undefined,
       dateTo: searchParams.get('dateTo') || undefined,
       search: searchParams.get('search') || undefined,
       page: parseInt(searchParams.get('page') || '1', 10),
       limit: Math.min(parseInt(searchParams.get('limit') || '50', 10), 100),
-      sortBy: (searchParams.get('sortBy') as any) || 'created_at',
-      sortOrder: (searchParams.get('sortOrder') as any) || 'desc',
+      sortBy:
+        (searchParams.get('sortBy') as 'created_at' | 'bytes' | 'public_id' | undefined) ||
+        'created_at',
+      sortOrder: (searchParams.get('sortOrder') as 'desc' | 'asc' | undefined) || 'desc',
     };
 
     // If userId is specified, get assets for that user

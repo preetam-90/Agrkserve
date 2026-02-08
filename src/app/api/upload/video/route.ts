@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     if (trimDataStr) {
       try {
         trimRequest = JSON.parse(trimDataStr);
-      } catch (e) {
+      } catch {
         return NextResponse.json(
           { success: false, error: 'Invalid trim data' },
           { status: 400 }

@@ -539,6 +539,7 @@ export async function getAssetDetails(publicId: string): Promise<CloudinaryAsset
  */
 export async function getFolders(): Promise<string[]> {
   const result = await cloudinary.api.root_folders();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result.folders.map((folder: any) => folder.name);
 }
 
@@ -549,7 +550,7 @@ export async function replaceAsset(
   publicId: string,
   file: File,
   resourceType: string = 'image'
-): Promise<any> {
+): Promise<unknown> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
@@ -577,7 +578,7 @@ export async function replaceAsset(
 /**
  * Disable asset delivery (soft disable)
  */
-export async function disableAsset(publicId: string, resourceType: string = 'image'): Promise<any> {
+export async function disableAsset(publicId: string, resourceType: string = 'image'): Promise<unknown> {
   return await cloudinary.uploader.explicit(publicId, {
     type: 'upload',
     resource_type: resourceType as 'image' | 'video' | 'raw',
@@ -588,7 +589,7 @@ export async function disableAsset(publicId: string, resourceType: string = 'ima
 /**
  * Enable asset delivery (re-enable public access)
  */
-export async function enableAsset(publicId: string, resourceType: string = 'image'): Promise<any> {
+export async function enableAsset(publicId: string, resourceType: string = 'image'): Promise<unknown> {
   return await cloudinary.uploader.explicit(publicId, {
     type: 'upload',
     resource_type: resourceType as 'image' | 'video' | 'raw',

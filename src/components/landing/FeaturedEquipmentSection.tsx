@@ -32,7 +32,8 @@ interface FeaturedEquipmentSectionProps {
 
 export function FeaturedEquipmentSection({ equipment, isLoading }: FeaturedEquipmentSectionProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_hoveredId, setHoveredId] = useState<string | null>(null);
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const autoScrollInterval = useRef<NodeJS.Timeout | null>(null);
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useMessagesStore, useAuthStore } from '@/lib/store';
 import { Avatar, Spinner, EmptyState } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -59,8 +59,11 @@ export function ChatList({
     return conversations.filter((c) => {
       const parts: string[] = [];
       if (c.other_user_name) parts.push(c.other_user_name);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((c as any).other_participant?.name) parts.push((c as any).other_participant.name);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((c as any).participant_1_name) parts.push((c as any).participant_1_name);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((c as any).participant_2_name) parts.push((c as any).participant_2_name);
       if (c.last_message) parts.push(c.last_message);
       if (c.other_user_id) parts.push(c.other_user_id);
@@ -75,14 +78,14 @@ export function ChatList({
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
       try {
-        // eslint-disable-next-line no-console
+         
         console.debug(
           '[ChatList] searchQuery:',
           searchQuery,
           'results:',
           filteredConversations.length
         );
-      } catch (e) {
+      } catch {
         // ignore
       }
     }
@@ -188,6 +191,7 @@ export function ChatList({
                     onClick={() => handleStartConversationWithUser(u.id)}
                     className="group flex w-full items-center gap-2 border-b border-[#1a1a1a] p-2.5 text-left transition-all duration-150 hover:bg-[#1a1a1a] sm:gap-3 sm:p-3"
                   >
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     <Avatar src={(u as any).profile_image} name={u.name} size="md" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">

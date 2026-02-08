@@ -1,17 +1,25 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar, Clock, ChevronRight, Tractor, CheckCircle, XCircle, Search, Filter, TrendingUp, DollarSign, Package } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  ChevronRight,
+  Tractor,
+  CheckCircle,
+  XCircle,
+  Search,
+  TrendingUp,
+  DollarSign,
+  Package,
+} from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Card,
   CardContent,
-  Badge,
-  Spinner,
-  EmptyState,
   Input,
   Tabs,
   TabsList,
@@ -26,12 +34,12 @@ import {
 import { bookingService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
 import { formatCurrency, formatDate, cn } from '@/lib/utils';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import toast from 'react-hot-toast';
 
 export default function ProviderBookingsPage() {
-  const { sidebarOpen } = useAppStore();
   const { user } = useAuthStore();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +56,7 @@ export default function ProviderBookingsPage() {
 
     // Set up real-time subscription
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     // Get current user's equipment IDs to filter bookings
     const setupRealtimeSubscription = async () => {
@@ -100,7 +108,12 @@ export default function ProviderBookingsPage() {
               console.log('Real-time booking event received:', payload);
 
               // Filter client-side to only process bookings for our equipment
-              const bookingData = payload.new as any;
+              const bookingData = payload.new as {
+                equipment_id: string;
+                id: string;
+                status: BookingStatus;
+                updated_at: string;
+              };
               if (!bookingData || !equipmentIds.includes(bookingData.equipment_id)) {
                 console.log('Booking not for our equipment, ignoring');
                 return;
@@ -210,9 +223,9 @@ export default function ProviderBookingsPage() {
     try {
       await bookingService.updateBookingStatus(bookingId, 'confirmed', user.id);
       toast.success('Booking confirmed!');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to confirm booking:', err);
-      const errorMessage = err?.message || 'Failed to confirm booking';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to confirm booking';
       toast.error(errorMessage);
       // Revert optimistic update on error
       setBookings((prev) =>
@@ -239,9 +252,9 @@ export default function ProviderBookingsPage() {
     try {
       await bookingService.cancelBooking(bookingId, 'Rejected by provider', user.id);
       toast.success('Booking rejected');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to reject booking:', err);
-      const errorMessage = err?.message || 'Failed to reject booking';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to reject booking';
       toast.error(errorMessage);
       // Revert optimistic update on error
       setBookings((prev) =>
@@ -293,60 +306,60 @@ export default function ProviderBookingsPage() {
   const getStatusBadge = (status: BookingStatus) => {
     const config: Record<
       BookingStatus,
-      { 
-        variant: 'default' | 'success' | 'warning' | 'destructive' | 'secondary'; 
+      {
+        variant: 'default' | 'success' | 'warning' | 'destructive' | 'secondary';
         label: string;
         bgColor: string;
         textColor: string;
       }
     > = {
-      pending: { 
-        variant: 'warning', 
+      pending: {
+        variant: 'warning',
         label: 'Pending Review',
         bgColor: 'bg-[#FEF3C7]/20',
-        textColor: 'text-[#FCD34D]'
+        textColor: 'text-[#FCD34D]',
       },
-      approved: { 
-        variant: 'success', 
+      approved: {
+        variant: 'success',
         label: 'Approved',
         bgColor: 'bg-[#D1FAE5]/20',
-        textColor: 'text-[#22C55E]'
+        textColor: 'text-[#22C55E]',
       },
-      rejected: { 
-        variant: 'destructive', 
+      rejected: {
+        variant: 'destructive',
         label: 'Rejected',
         bgColor: 'bg-[#FEE2E2]/20',
-        textColor: 'text-[#EF4444]'
+        textColor: 'text-[#EF4444]',
       },
-      confirmed: { 
-        variant: 'success', 
+      confirmed: {
+        variant: 'success',
         label: 'Confirmed',
         bgColor: 'bg-[#DBEAFE]/20',
-        textColor: 'text-[#60A5FA]'
+        textColor: 'text-[#60A5FA]',
       },
-      in_progress: { 
-        variant: 'default', 
+      in_progress: {
+        variant: 'default',
         label: 'In Progress',
         bgColor: 'bg-[#E0E7FF]/20',
-        textColor: 'text-[#818CF8]'
+        textColor: 'text-[#818CF8]',
       },
-      completed: { 
-        variant: 'success', 
+      completed: {
+        variant: 'success',
         label: 'Completed',
         bgColor: 'bg-[#D1FAE5]/20',
-        textColor: 'text-[#22C55E]'
+        textColor: 'text-[#22C55E]',
       },
-      cancelled: { 
-        variant: 'destructive', 
+      cancelled: {
+        variant: 'destructive',
         label: 'Cancelled',
         bgColor: 'bg-[#FEE2E2]/20',
-        textColor: 'text-[#EF4444]'
+        textColor: 'text-[#EF4444]',
       },
-      disputed: { 
-        variant: 'destructive', 
+      disputed: {
+        variant: 'destructive',
         label: 'Disputed',
         bgColor: 'bg-[#FEE2E2]/20',
-        textColor: 'text-[#EF4444]'
+        textColor: 'text-[#EF4444]',
       },
     };
     const { label, bgColor, textColor } = config[status];
@@ -387,7 +400,9 @@ export default function ProviderBookingsPage() {
 
   const filteredBookings = filterBookings(activeTab);
   const pendingCount = bookings.filter((b) => b.status === 'pending').length;
-  const confirmedCount = bookings.filter((b) => ['confirmed', 'in_progress'].includes(b.status)).length;
+  const confirmedCount = bookings.filter((b) =>
+    ['confirmed', 'in_progress'].includes(b.status)
+  ).length;
   const completedCount = bookings.filter((b) => b.status === 'completed').length;
   const totalRevenue = bookings
     .filter((b) => b.status === 'completed')
@@ -458,7 +473,9 @@ export default function ProviderBookingsPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-[#94A3B8]">Revenue</p>
-                      <p className="mt-2 text-2xl font-bold text-[#22C55E]">{formatCurrency(totalRevenue)}</p>
+                      <p className="mt-2 text-2xl font-bold text-[#22C55E]">
+                        {formatCurrency(totalRevenue)}
+                      </p>
                     </div>
                     <div className="rounded-full bg-[#D1FAE5]/10 p-3">
                       <DollarSign className="h-6 w-6 text-[#22C55E]" />
@@ -485,8 +502,8 @@ export default function ProviderBookingsPage() {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
               <TabsList className="mb-6 border-[#1E293B] bg-[#0F172A]/80">
-                <TabsTrigger 
-                  value="pending" 
+                <TabsTrigger
+                  value="pending"
                   className="relative data-[state=active]:bg-[#22C55E]/10 data-[state=active]:text-[#22C55E]"
                 >
                   Pending
@@ -496,19 +513,19 @@ export default function ProviderBookingsPage() {
                     </span>
                   )}
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="confirmed"
                   className="data-[state=active]:bg-[#22C55E]/10 data-[state=active]:text-[#22C55E]"
                 >
                   Active
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="completed"
                   className="data-[state=active]:bg-[#22C55E]/10 data-[state=active]:text-[#22C55E]"
                 >
                   History
                 </TabsTrigger>
-                <TabsTrigger 
+                <TabsTrigger
                   value="all"
                   className="data-[state=active]:bg-[#22C55E]/10 data-[state=active]:text-[#22C55E]"
                 >
@@ -543,8 +560,8 @@ export default function ProviderBookingsPage() {
                     const renter = (booking as Booking & { renter?: UserProfile }).renter;
 
                     return (
-                      <Card 
-                        key={booking.id} 
+                      <Card
+                        key={booking.id}
                         className="group cursor-pointer overflow-hidden border-[#1E293B] bg-[#0F172A]/80 backdrop-blur-sm transition-all duration-200 hover:border-[#22C55E]/30 hover:shadow-lg hover:shadow-[#22C55E]/10"
                       >
                         <CardContent className="p-0">
@@ -595,7 +612,8 @@ export default function ProviderBookingsPage() {
                                   <div>
                                     <p className="text-xs text-[#64748B]">Duration</p>
                                     <p className="text-sm font-medium text-[#F8FAFC]">
-                                      {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
+                                      {formatDate(booking.start_date)} -{' '}
+                                      {formatDate(booking.end_date)}
                                     </p>
                                   </div>
                                 </div>
@@ -613,7 +631,9 @@ export default function ProviderBookingsPage() {
                               {booking.delivery_address && (
                                 <div className="mt-3 rounded-lg bg-[#1E293B]/30 p-3">
                                   <p className="text-xs text-[#64748B]">Delivery Location</p>
-                                  <p className="mt-1 text-sm text-[#94A3B8]">{booking.delivery_address}</p>
+                                  <p className="mt-1 text-sm text-[#94A3B8]">
+                                    {booking.delivery_address}
+                                  </p>
                                 </div>
                               )}
 
@@ -657,8 +677,8 @@ export default function ProviderBookingsPage() {
                                   )}
 
                                   <Link href={`/provider/bookings/${booking.id}`}>
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       variant="outline"
                                       className="border-[#1E293B] bg-transparent text-[#F8FAFC] hover:border-[#22C55E]/50 hover:bg-[#22C55E]/10"
                                     >
@@ -691,11 +711,13 @@ export default function ProviderBookingsPage() {
                 <>
                   Request from{' '}
                   <span className="font-semibold text-[#22C55E]">
-                    {(selectedBooking as Booking & { renter?: UserProfile }).renter?.name || 'Renter'}
+                    {(selectedBooking as Booking & { renter?: UserProfile }).renter?.name ||
+                      'Renter'}
                   </span>{' '}
                   for{' '}
                   <span className="font-semibold text-[#22C55E]">
-                    {(selectedBooking as Booking & { equipment?: Equipment }).equipment?.name || 'Equipment'}
+                    {(selectedBooking as Booking & { equipment?: Equipment }).equipment?.name ||
+                      'Equipment'}
                   </span>
                 </>
               )}
@@ -725,9 +747,7 @@ export default function ProviderBookingsPage() {
                   <p className="text-sm font-semibold text-[#F8FAFC]">
                     {selectedBooking.start_time}
                   </p>
-                  <p className="text-sm font-semibold text-[#F8FAFC]">
-                    {selectedBooking.end_time}
-                  </p>
+                  <p className="text-sm font-semibold text-[#F8FAFC]">{selectedBooking.end_time}</p>
                 </div>
               </div>
 
@@ -764,9 +784,9 @@ export default function ProviderBookingsPage() {
               <XCircle className="mr-2 h-4 w-4" />
               Reject Request
             </Button>
-            <Button 
-              onClick={handleConfirmBooking} 
-              loading={isProcessing} 
+            <Button
+              onClick={handleConfirmBooking}
+              loading={isProcessing}
               className="flex-1 bg-[#22C55E] text-[#0F172A] hover:bg-[#16A34A]"
             >
               <CheckCircle className="mr-2 h-4 w-4" />

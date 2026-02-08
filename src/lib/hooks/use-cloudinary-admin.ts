@@ -4,7 +4,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
-  CloudinaryAssetWithUser,
   MediaFilters,
   PaginatedMediaResponse,
   MediaAnalytics,
@@ -12,8 +11,6 @@ import type {
   MediaAuditLog,
   BulkDeleteRequest,
   RenameAssetRequest,
-  FlagMediaRequest,
-  MediaActionResponse,
 } from '@/lib/types/cloudinary-admin';
 
 // Query keys
@@ -24,7 +21,7 @@ export const cloudinaryKeys = {
   users: () => [...cloudinaryKeys.all, 'users'] as const,
   user: (userId: string) => [...cloudinaryKeys.all, 'user', userId] as const,
   analytics: () => [...cloudinaryKeys.all, 'analytics'] as const,
-  auditLogs: (filters?: Record<string, any>) =>
+  auditLogs: (filters?: Record<string, unknown>) =>
     [...cloudinaryKeys.all, 'auditLogs', filters] as const,
 };
 
@@ -85,7 +82,7 @@ async function fetchAnalytics(): Promise<MediaAnalytics & { usersWithMedia: User
   return data.data;
 }
 
-async function fetchAuditLogs(filters?: Record<string, any>): Promise<{
+async function fetchAuditLogs(filters?: Record<string, unknown>): Promise<{
   logs: MediaAuditLog[];
   total: number;
   page: number;
@@ -94,13 +91,13 @@ async function fetchAuditLogs(filters?: Record<string, any>): Promise<{
 }> {
   const params = new URLSearchParams();
 
-  if (filters?.adminId) params.set('adminId', filters.adminId);
-  if (filters?.action) params.set('action', filters.action);
-  if (filters?.publicId) params.set('publicId', filters.publicId);
-  if (filters?.dateFrom) params.set('dateFrom', filters.dateFrom);
-  if (filters?.dateTo) params.set('dateTo', filters.dateTo);
-  if (filters?.page) params.set('page', filters.page.toString());
-  if (filters?.limit) params.set('limit', filters.limit.toString());
+  if (filters?.adminId) params.set('adminId', String(filters.adminId));
+  if (filters?.action) params.set('action', String(filters.action));
+  if (filters?.publicId) params.set('publicId', String(filters.publicId));
+  if (filters?.dateFrom) params.set('dateFrom', String(filters.dateFrom));
+  if (filters?.dateTo) params.set('dateTo', String(filters.dateTo));
+  if (filters?.page) params.set('page', String(filters.page));
+  if (filters?.limit) params.set('limit', String(filters.limit));
 
   const response = await fetch(`/api/admin/cloudinary/audit-logs?${params}`);
 
@@ -254,7 +251,7 @@ export function useCloudinaryAnalytics() {
   });
 }
 
-export function useCloudinaryAuditLogs(filters?: Record<string, any>) {
+export function useCloudinaryAuditLogs(filters?: Record<string, unknown>) {
   return useQuery({
     queryKey: cloudinaryKeys.auditLogs(filters),
     queryFn: () => fetchAuditLogs(filters),

@@ -39,8 +39,8 @@ export function RenameAssetModal({
       setNewName('');
       setReason('');
       setError('');
-    } catch (err: any) {
-      setError(err.message || 'Failed to rename asset');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to rename asset');
     }
   };
 

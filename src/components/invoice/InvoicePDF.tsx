@@ -18,7 +18,8 @@ interface InvoicePDFProps {
 const BRAND_PRIMARY = '#059669';
 const BRAND_SECONDARY = '#047857';
 const BRAND_ACCENT = '#f59e0b';
-const BRAND_LIGHT = '#ecfdf5';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _BRAND_LIGHT = '#ecfdf5';
 const PAGE_BG = '#ffffff';
 const SECTION_BG = '#f8fafc';
 const BORDER_COLOR = '#cbd5e1';
@@ -368,7 +369,8 @@ const styles = StyleSheet.create({
   },
 });
 
-function HeaderSection({ booking }: { booking: InvoicePDFProps['booking'] }) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function HeaderSection({ booking: _booking }: { booking: InvoicePDFProps['booking'] }) {
   return (
     <View style={styles.headerContainer}>
       <View style={styles.brandSection}>

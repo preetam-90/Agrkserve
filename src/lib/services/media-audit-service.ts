@@ -69,9 +69,7 @@ export async function createMediaAuditLog(
 /**
  * Get media audit logs with filters
  */
-export async function getMediaAuditLogs(
-  filters: MediaAuditLogFilters = {}
-): Promise<{
+export async function getMediaAuditLogs(filters: MediaAuditLogFilters = {}): Promise<{
   logs: MediaAuditLog[];
   total: number;
   page: number;
@@ -236,6 +234,7 @@ export async function getAuditLogStats(
 /**
  * Transform database row to MediaAuditLog type
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function transformAuditLog(row: any): MediaAuditLog {
   return {
     id: row.id,

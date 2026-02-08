@@ -2,9 +2,6 @@ import {
   LayoutDashboard,
   Search,
   CalendarDays,
-  MessageSquare,
-  Settings,
-  Wallet,
   User,
   Tractor,
   Package,
@@ -17,7 +14,6 @@ import {
   Heart,
   History,
   Clock,
-  MapPin,
   ToggleLeft,
   TrendingUp,
 } from 'lucide-react';
@@ -26,7 +22,7 @@ import type { UserRole } from '@/lib/types';
 export interface NavItem {
   href: string;
   label: string;
-  icon: any;
+  icon: unknown;
   requiredRoles?: UserRole[];
   excludedRoles?: UserRole[];
   badge?: string | number;
@@ -331,8 +327,7 @@ export function getGroupedNavItems(
     {
       section: 'Management',
       items: navItems.filter(
-        (item) =>
-          item.href.includes('/admin/') && !item.href.includes('/admin/settings')
+        (item) => item.href.includes('/admin/') && !item.href.includes('/admin/settings')
       ),
     },
   ];
@@ -368,8 +363,8 @@ export function getRoleDisplayName(role: UserRole): string {
 /**
  * Get role icon
  */
-export function getRoleIcon(role: UserRole): any {
-  const roleIcons: Record<UserRole, any> = {
+export function getRoleIcon(role: UserRole): React.ComponentType<{ className?: string }> {
+  const roleIcons: Record<UserRole, React.ComponentType<{ className?: string }>> = {
     renter: User,
     provider: Tractor,
     labour: Users,

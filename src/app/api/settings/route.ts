@@ -7,13 +7,14 @@ export async function GET() {
     const supabase = createClient();
 
     // Try to fetch using RPC function first (for contact/general categories)
-    const { data: rpcData, error: rpcError } = await supabase
-      .rpc('get_system_settings', { p_category: null });
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_system_settings', {
+      p_category: null,
+    });
 
     if (!rpcError && rpcData) {
       // Convert to key-value object
-      const settings: Record<string, any> = {};
-      rpcData.forEach((item: any) => {
+      const settings: Record<string, unknown> = {};
+      rpcData.forEach((item: { key: string; value: unknown }) => {
         settings[item.key] = item.value;
       });
 
@@ -37,14 +38,14 @@ export async function GET() {
     }
 
     // Convert to key-value object
-    const settings: Record<string, any> = {};
-    data?.forEach((item: any) => {
+    const settings: Record<string, unknown> = {};
+    data?.forEach((item: { key: string; value: unknown }) => {
       settings[item.key] = item.value;
     });
 
     console.log('📊 Settings API (Direct) - Total fields:', Object.keys(settings).length);
     return NextResponse.json({ settings });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Error in settings API:', error);
     return NextResponse.json(
       {

@@ -160,7 +160,7 @@ export function ProfilePictureUpload({
                 } else {
                   reject(new Error(data.error || 'Upload failed'));
                 }
-              } catch (parseError) {
+              } catch {
                 reject(new Error('Invalid server response'));
               }
             } else {

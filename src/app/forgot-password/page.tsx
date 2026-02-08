@@ -315,7 +315,7 @@ export default function ForgotPasswordPage() {
 
                       <div className="space-y-3">
                         <p className="text-center text-sm text-stone-400">
-                          Didn't receive the email?
+                          Didn&apos;t receive the email?
                         </p>
                         <motion.button
                           whileHover={{ scale: 1.02 }}

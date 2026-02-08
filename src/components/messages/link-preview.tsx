@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ExternalLink, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ExternalLink } from 'lucide-react';
 
 interface LinkPreviewProps {
   url: string;
@@ -37,6 +35,7 @@ export function LinkPreview({ url, preview, isLoading }: LinkPreviewProps) {
       <div className="flex">
         {preview.image && (
           <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview.image}
               alt={preview.title}

@@ -14,7 +14,7 @@ export default function ContactPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
   const [mounted, setMounted] = useState(false);
-  const { contactInfo, loading } = useContactInfo();
+  const { contactInfo } = useContactInfo();
   const [particles, setParticles] = useState<
     Array<{
       id: number;
@@ -61,18 +61,6 @@ export default function ContactPage() {
 
   const fadeInLeft = {
     hidden: { opacity: 0, x: -60 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-  };
-
-  const fadeInRight = {
-    hidden: { opacity: 0, x: 60 },
     visible: {
       opacity: 1,
       x: 0,
@@ -168,7 +156,7 @@ export default function ContactPage() {
               }}
             >
               <Sparkles className="h-4 w-4 text-emerald-400" />
-              <span className="text-sm text-emerald-300">We're Here To Help</span>
+              <span className="text-sm text-emerald-300">We&apos;re Here To Help</span>
             </motion.div>
 
             <h1 className="mb-6 text-4xl font-bold md:text-5xl lg:text-6xl">
@@ -200,7 +188,7 @@ export default function ContactPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
-              We're here to help. Contact us for any questions.
+              We&apos;re here to help. Contact us for any questions.
             </motion.p>
           </motion.div>
 
@@ -358,7 +346,9 @@ export default function ContactPage() {
                         hi: 'रविवार',
                         en: 'Sunday',
                         time: contactInfo.hours.sunday,
-                        isClosed: contactInfo.hours.sunday.toLowerCase().includes('closed') || contactInfo.hours.sunday.toLowerCase().includes('बंद'),
+                        isClosed:
+                          contactInfo.hours.sunday.toLowerCase().includes('closed') ||
+                          contactInfo.hours.sunday.toLowerCase().includes('बंद'),
                       },
                     ].map((schedule, index) => (
                       <motion.div

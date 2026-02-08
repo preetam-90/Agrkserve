@@ -89,6 +89,12 @@ export interface LabourProfileFormData {
   certifications?: string[];
 }
 
+export interface InitialData {
+  equipment?: import('./database').Equipment[];
+  bookings?: import('./database').Booking[];
+  labourBookings?: import('./database').LabourBooking[];
+}
+
 // UI types
 export interface NavItem {
   title: string;

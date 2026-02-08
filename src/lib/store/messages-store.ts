@@ -112,7 +112,7 @@ export const useMessagesStore = create<MessagesState & MessagesActions>((set, ge
   },
 
   setActiveConversation: async (conversationId: string | null) => {
-    const { messagesChannel, readStatusChannel, unsubscribeAll } = get();
+    const { messagesChannel, readStatusChannel, unsubscribeAll: _unsubscribeAll } = get();
 
     // Cleanup previous subscriptions
     if (messagesChannel) {

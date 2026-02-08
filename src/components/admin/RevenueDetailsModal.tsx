@@ -1,6 +1,6 @@
 'use client';
 
-import { X, TrendingUp, Calendar, CreditCard, ArrowUp, ArrowDown, Download } from 'lucide-react';
+import { X, TrendingUp, Calendar, CreditCard, ArrowUp, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface RevenueDetailsModalProps {

@@ -14,65 +14,72 @@ import {
   ArrowUpRight,
   BarChart3,
   MapPin,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
 } from 'lucide-react';
-import { Button, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
+import { Button, Card, CardContent, Badge, Spinner } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { useAppStore, useAuthStore } from '@/lib/store';
 import { formatCurrency, cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
-import Image from 'next/image';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
+import { InitialData, LabourProfile, LabourBooking } from '@/lib/types';
+
+interface LabourInitialData extends InitialData {
+  labourProfile?: LabourProfile;
+}
 
 interface LabourDashboardProps {
-  initialData?: any;
+  initialData?: LabourInitialData;
 }
 
 export function LabourDashboardView({ initialData }: LabourDashboardProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { sidebarOpen } = useAppStore();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { profile } = useAuthStore();
 
   // Seed state from SSR data if available
   const hasSSRData = initialData?.labourProfile || initialData?.labourBookings;
 
-  const [pendingJobs, setPendingJobs] = useState<any[]>(() => {
+  const [pendingJobs, setPendingJobs] = useState<LabourBooking[]>(() => {
     if (hasSSRData) {
       return (initialData.labourBookings || [])
-        .filter((b: any) => b.status === 'pending')
+        .filter((b: LabourBooking) => b.status === 'pending')
         .slice(0, 5);
     }
     return [];
   });
-  const [upcomingJobs, setUpcomingJobs] = useState<any[]>(() => {
+  const [upcomingJobs, setUpcomingJobs] = useState<LabourBooking[]>(() => {
     if (hasSSRData) {
-      return (initialData.labourBookings || [])
-        .filter((b: any) => ['confirmed', 'in_progress'].includes(b.status))
-        .slice(0, 4);
+          return (initialData.labourBookings || [])
+            .filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status))
+            .slice(0, 4);
     }
     return [];
   });
-  const [completedJobs, setCompletedJobs] = useState<any[]>(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_completedJobs, setCompletedJobs] = useState<unknown[]>(() => {
     if (hasSSRData) {
-      return (initialData.labourBookings || [])
-        .filter((b: any) => b.status === 'completed')
-        .slice(0, 3);
+          return (initialData.labourBookings || [])
+            .filter((b: LabourBooking) => b.status === 'completed')
+            .slice(0, 3);
     }
     return [];
   });
-  const [labourProfile, setLabourProfile] = useState<any>(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_labourProfile, setLabourProfile] = useState<unknown>(
     hasSSRData ? initialData.labourProfile : null
   );
   const [stats, setStats] = useState(() => {
     if (hasSSRData) {
       const jobs = initialData.labourBookings || [];
-      const completed = jobs.filter((b: any) => b.status === 'completed');
-      const upcoming = jobs.filter((b: any) => ['confirmed', 'in_progress'].includes(b.status));
-      const totalEarnings = completed.reduce(
-        (sum: number, b: any) => sum + (b.total_amount || 0),
-        0
-      );
+      const completed = jobs.filter((b: LabourBooking) => b.status === 'completed');
+      const upcoming = jobs.filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status));
+          const totalEarnings = completed.reduce(
+            (sum: number, b: LabourBooking) => sum + (b.total_amount || 0),
+            0
+          );
       const avgRating = initialData.labourProfile?.rating || 0;
       return {
         totalJobs: jobs.length,
@@ -93,7 +100,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     }
 
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
@@ -127,6 +134,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboardData = async () => {
@@ -477,18 +485,18 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
 
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-lg font-semibold text-white">
-                            {job.employer?.full_name || 'Employer'}
+                            {job.employer?.name || 'Employer'}
                           </p>
                           <p className="mt-1 flex items-center gap-2 text-sm text-gray-400">
                             <MapPin className="h-4 w-4" />
-                            {job.location_name || 'Location'}
+                            {job.labour?.location_name || job.labour?.city || 'Location'}
                           </p>
                           <p className="mt-1 text-xs text-gray-500">
                             {new Date(job.start_date).toLocaleDateString()} -{' '}
                             {new Date(job.end_date).toLocaleDateString()}
                           </p>
                           <p className="mt-1 text-xs text-gray-500">
-                            Duration: {job.total_days} days • {job.workers_required} workers
+                            Duration: {job.total_days} days
                           </p>
                         </div>
                       </div>
@@ -580,11 +588,11 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
 
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-lg font-semibold text-white">
-                          {job.employer?.full_name || 'Employer'}
+                          {job.employer?.name || 'Employer'}
                         </p>
                         <p className="mt-1 flex items-center gap-2 text-sm text-gray-400">
                           <MapPin className="h-4 w-4" />
-                          {job.location_name || 'Location'}
+                          {job.labour?.location_name || job.labour?.city || 'Location'}
                         </p>
                         <p className="mt-1 text-xs text-gray-500">
                           {new Date(job.start_date).toLocaleDateString()} -{' '}

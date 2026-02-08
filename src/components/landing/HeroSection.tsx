@@ -6,7 +6,6 @@ import {
   useScroll,
   useTransform,
   useSpring,
-  useMotionValue,
   useMotionTemplate,
 } from 'framer-motion';
 import Link from 'next/link';
@@ -15,7 +14,8 @@ import { ArrowRight, ChevronDown, Sparkles } from 'lucide-react';
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { scrollY } = useScroll();
 
   // Smooth spring animations
@@ -24,7 +24,8 @@ export function HeroSection() {
   const mouseY = useSpring(0, springConfig);
 
   // Parallax transforms
-  const y = useTransform(scrollY, [0, 500], [0, 200]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _y = useTransform(scrollY, [0, 500], [0, 200]);
   const opacity = useTransform(scrollY, [0, 300], [1, 0]);
   const scale = useTransform(scrollY, [0, 500], [1, 1.15]);
   const textY = useTransform(scrollY, [0, 400], [0, 100]);
@@ -132,7 +133,7 @@ export function HeroSection() {
           </motion.span>
           <Sparkles className="h-4 w-4 text-emerald-400" />
           <span className="text-sm font-medium uppercase tracking-wider text-emerald-300">
-            India's Trusted Farm Equipment Network
+            India&apos;s Trusted Farm Equipment Network
           </span>
         </motion.div>
 

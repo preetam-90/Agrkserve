@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import SearchFilterBar from '@/components/admin/SearchFilterBar';
-import Link from 'next/link';
 import { Eye, Truck, User } from 'lucide-react';
-import { ITEMS_PER_PAGE, BOOKING_STATUS_OPTIONS, STATUS_COLORS } from '@/lib/utils/admin-constants';
+import NextImage from 'next/image';
+// Rename to avoid potential conflicts
+import { ITEMS_PER_PAGE, BOOKING_STATUS_OPTIONS } from '@/lib/utils/admin-constants';
 import DataTable from '@/components/admin/DataTable';
 
 export default function BookingsPage() {
@@ -16,11 +19,10 @@ export default function BookingsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const supabase = createClient();
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
+      const supabase = createClient();
       let query = supabase.from('bookings').select(
         `
           *,
@@ -69,11 +71,11 @@ export default function BookingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, statusFilter, currentPage]);
 
   useEffect(() => {
     fetchBookings();
-  }, [search, statusFilter, currentPage]);
+  }, [fetchBookings]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -87,6 +89,7 @@ export default function BookingsPage() {
     {
       key: 'id',
       label: 'Booking ID',
+
       render: (item: any) => (
         <span className="font-mono text-xs text-slate-500">{item.id.slice(0, 8)}...</span>
       ),
@@ -94,13 +97,16 @@ export default function BookingsPage() {
     {
       key: 'equipment',
       label: 'Equipment',
+
       render: (item: any) => (
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
             {item.equipment?.images?.[0] ? (
-              <img
+              <NextImage
                 src={item.equipment.images[0]}
                 alt={item.equipment.name}
+                width={40}
+                height={40}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -119,6 +125,7 @@ export default function BookingsPage() {
     {
       key: 'renter',
       label: 'Renter',
+
       render: (item: any) => (
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800">
@@ -136,6 +143,7 @@ export default function BookingsPage() {
     {
       key: 'dates',
       label: 'Schedule',
+
       render: (item: any) => (
         <div className="flex flex-col text-xs">
           <span className="text-slate-700 dark:text-slate-300">
@@ -149,6 +157,7 @@ export default function BookingsPage() {
       key: 'amount',
       label: 'Amount',
       sortable: true,
+
       render: (item: any) => (
         <div className="flex flex-col">
           <span className="font-mono font-medium text-slate-900 dark:text-white">
@@ -161,6 +170,7 @@ export default function BookingsPage() {
     {
       key: 'status',
       label: 'Status',
+
       render: (item: any) => (
         <span
           className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium capitalize ${
@@ -183,6 +193,7 @@ export default function BookingsPage() {
     {
       label: 'View Booking',
       icon: Eye,
+
       onClick: (item: any) => (window.location.href = `/admin/bookings/${item.id}`),
     },
   ];
@@ -206,6 +217,7 @@ export default function BookingsPage() {
           {
             label: 'Status',
             value: statusFilter,
+
             options: BOOKING_STATUS_OPTIONS as any,
             onChange: setStatusFilter,
           },

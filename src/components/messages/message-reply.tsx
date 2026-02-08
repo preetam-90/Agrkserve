@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { X, MapPin, Reply } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { cn } from '@/lib/utils';
 
 interface ReplyPreviewProps {
   message: {
@@ -123,14 +123,16 @@ export function ImagePreviewBeforeSend({ file, onRemove }: ImagePreviewProps) {
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+
+// eslint-disable-next-line react-hooks/set-state-in-effect
+        setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
   return (
     <div className="relative mb-3 inline-block">
       <div className="relative h-32 w-32 overflow-hidden rounded-xl border border-[#333333]">
-        <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+        <Image src={previewUrl} alt="Preview" fill className="object-cover" sizes="128px" />
       </div>
       <button
         onClick={onRemove}

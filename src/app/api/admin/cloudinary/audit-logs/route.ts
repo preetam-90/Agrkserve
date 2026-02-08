@@ -7,20 +7,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getMediaAuditLogs } from '@/lib/services/media-audit-service';
 import { requirePermission } from '@/lib/utils/admin-rbac';
 import type { MediaAuditLogFilters } from '@/lib/services/media-audit-service';
+import type { MediaActionType } from '@/lib/types/cloudinary-admin';
 
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
     // Check permission
-    const admin = await requirePermission('canViewAuditLogs');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _admin = await requirePermission('canViewAuditLogs');
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
 
     const filters: MediaAuditLogFilters = {
       adminId: searchParams.get('adminId') || undefined,
-      action: (searchParams.get('action') as any) || undefined,
+      action: (searchParams.get('action') as MediaActionType | undefined) || undefined,
       publicId: searchParams.get('publicId') || undefined,
       dateFrom: searchParams.get('dateFrom') || undefined,
       dateTo: searchParams.get('dateTo') || undefined,

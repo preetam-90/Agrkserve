@@ -60,14 +60,19 @@ export async function POST(request: NextRequest) {
       success: true,
       data: result,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Disable/enable asset error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update asset status';
+    const errorStatus =
+      error instanceof Error && 'statusCode' in error
+        ? (error as { statusCode?: number }).statusCode || 500
+        : 500;
     return NextResponse.json(
       {
         success: false,
-        error: error.message || 'Failed to update asset status',
+        error: errorMessage,
       },
-      { status: error.statusCode || 500 }
+      { status: errorStatus }
     );
   }
 }

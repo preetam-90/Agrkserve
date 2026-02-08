@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable */
+
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';

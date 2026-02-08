@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   Image as ImageIcon,
@@ -14,7 +15,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  FileText,
 } from 'lucide-react';
 import type { CloudinaryAssetWithUser, AdminPermissions } from '@/lib/types/cloudinary-admin';
 import { format } from 'date-fns';
@@ -154,11 +154,15 @@ export function MediaTable({
                     <div className="flex items-center gap-3">
                       <div className="relative h-12 w-12 overflow-hidden rounded-lg bg-[#0f0f0f]">
                         {asset.thumbnail_url ? (
-                          <img
+                           
+
+                          <Image
                             src={asset.thumbnail_url}
                             alt={asset.public_id}
-                            className="h-full w-full object-cover"
+                            fill
+                            className="object-cover"
                             loading="lazy"
+                            sizes="48px"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">

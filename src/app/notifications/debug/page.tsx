@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable */
+
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';

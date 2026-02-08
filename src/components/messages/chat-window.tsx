@@ -8,14 +8,8 @@ import {
   Smile,
   Image as ImageIcon,
   Send,
-  MoreHorizontal,
   X,
   Reply,
-  Copy,
-  ChevronDown,
-  Download,
-  Eye,
-  EyeOff,
   Loader2,
   Trash2,
   Paperclip,
@@ -31,7 +25,6 @@ import { cn } from '@/lib/utils';
 import {
   compressImage,
   compressVideo,
-  generateVideoThumbnail,
   formatFileSize,
   formatDuration,
   type CompressionProgress,
@@ -43,8 +36,8 @@ import { UnifiedMediaPicker } from './unified-media-picker';
 import { MessageReactions, QuickReactionPicker } from './message-reactions';
 import { MessageActions } from './message-actions';
 import { LinkPreview, extractUrls } from './link-preview';
-import { ReplyPreview, LocationShare, ImagePreviewBeforeSend } from './message-reply';
-import type { DirectMessage, MessageType, KlipyMedia } from '@/lib/types';
+import { ReplyPreview, LocationShare } from './message-reply';
+import type { DirectMessage, KlipyMedia } from '@/lib/types';
 import { klipyService } from '@/lib/services/klipy-service';
 
 // Helper to get video metadata
@@ -111,15 +104,12 @@ export function ChatWindow({
   const [showVideoTrimmer, setShowVideoTrimmer] = useState(false);
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
   const [viewingMediaId, setViewingMediaId] = useState<string | null>(null);
-  const [showMediaDrawer, setShowMediaDrawer] = useState(false);
+  const [, setShowMediaDrawer] = useState(false);
   const [selectedKlipyMedia, setSelectedKlipyMedia] = useState<KlipyMedia | null>(null);
   const [showUnifiedPicker, setShowUnifiedPicker] = useState(false);
 
   // New features state
   const [replyingTo, setReplyingTo] = useState<DirectMessage | null>(null);
-  const [linkPreviews, setLinkPreviews] = useState<
-    Record<string, { title: string; description: string; image: string; url: string }>
-  >({});
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -311,7 +301,7 @@ export function ChatWindow({
 
     try {
       const replyToMessageId = replyingTo?.id;
-      
+
       if (selectedKlipyMedia) {
         // Send KLIPY media (GIF, Meme, Sticker, Clip)
         await sendKlipyMediaMessage(
@@ -332,7 +322,12 @@ export function ChatWindow({
         clearMedia();
       } else if (selectedMedia && mediaType) {
         // Send regular media (image/video uploaded by user)
-        await sendMediaMessage(selectedMedia, mediaType, trimmedContent || undefined, replyToMessageId);
+        await sendMediaMessage(
+          selectedMedia,
+          mediaType,
+          trimmedContent || undefined,
+          replyToMessageId
+        );
         clearMedia();
       } else {
         // Send text message
@@ -832,8 +827,10 @@ function MessageBubble({
   message,
   isOwn,
   showAvatar,
-  isFirstInGroup,
-  isLastInGroup,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isFirstInGroup: _isFirstInGroup,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isLastInGroup: _isLastInGroup,
   onMediaClick,
   onReply,
   onReact,
@@ -841,7 +838,8 @@ function MessageBubble({
   onDelete,
   currentUserId,
   isHovered,
-  onHover,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onHover: _onHover,
 }: MessageBubbleProps) {
   const time = format(new Date(message.created_at), 'h:mm a');
   const deliveryStatus = message.delivery_status || (message.is_read ? 'read' : 'delivered');
@@ -886,29 +884,32 @@ function MessageBubble({
         >
           {/* Reply Thread - Shows original message being replied to (like WhatsApp/Telegram style) */}
           {message.reply_to_message && (
-            <div className={cn(
-              "group/reply cursor-pointer overflow-hidden rounded-t-lg border-l-4 border-blue-400 bg-gradient-to-r from-blue-500/15 via-blue-500/8 to-transparent p-2.5 transition-all hover:border-blue-300 hover:from-blue-500/20 hover:via-blue-500/10",
-              hasMedia ? "m-2 mb-0 rounded-lg" : ""
-            )}>
+            <div
+              className={cn(
+                'group/reply via-blue-500/8 cursor-pointer overflow-hidden rounded-t-lg border-l-4 border-blue-400 bg-gradient-to-r from-blue-500/15 to-transparent p-2.5 transition-all hover:border-blue-300 hover:from-blue-500/20 hover:via-blue-500/10',
+                hasMedia ? 'm-2 mb-0 rounded-lg' : ''
+              )}
+            >
               <div className="flex items-start gap-2">
                 {/* Reply icon indicator */}
                 <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-blue-500/25">
                   <Reply className="h-3 w-3 text-blue-300" />
                 </div>
-                
+
                 <div className="min-w-0 flex-1">
                   {/* Sender name with badge */}
                   <div className="mb-1 flex items-center gap-1.5">
-                    <div className="h-1 w-1 rounded-full bg-blue-300 animate-pulse" />
+                    <div className="h-1 w-1 animate-pulse rounded-full bg-blue-300" />
                     <p className="text-[10px] font-bold uppercase tracking-wide text-blue-300">
                       {message.reply_to_message.sender?.name || 'Unknown'}
                     </p>
                   </div>
-                  
+
                   {/* Message preview */}
                   <div className="flex items-center gap-2">
                     {message.reply_to_message.media_url && (
                       <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded border border-blue-400/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={message.reply_to_message.media_url}
                           alt="Media preview"
@@ -917,11 +918,20 @@ function MessageBubble({
                       </div>
                     )}
                     <p className="line-clamp-2 text-[11px] leading-relaxed text-gray-200">
-                      {message.reply_to_message.message_type === 'image' && !message.reply_to_message.content && '📷 Photo'}
-                      {message.reply_to_message.message_type === 'video' && !message.reply_to_message.content && '🎥 Video'}
-                      {message.reply_to_message.message_type === 'gif' && !message.reply_to_message.content && '🎬 GIF'}
-                      {message.reply_to_message.message_type === 'sticker' && !message.reply_to_message.content && '🎭 Sticker'}
-                      {message.reply_to_message.content || (message.reply_to_message.media_url ? '📎 Media' : 'Message')}
+                      {message.reply_to_message.message_type === 'image' &&
+                        !message.reply_to_message.content &&
+                        '📷 Photo'}
+                      {message.reply_to_message.message_type === 'video' &&
+                        !message.reply_to_message.content &&
+                        '🎥 Video'}
+                      {message.reply_to_message.message_type === 'gif' &&
+                        !message.reply_to_message.content &&
+                        '🎬 GIF'}
+                      {message.reply_to_message.message_type === 'sticker' &&
+                        !message.reply_to_message.content &&
+                        '🎭 Sticker'}
+                      {message.reply_to_message.content ||
+                        (message.reply_to_message.media_url ? '📎 Media' : 'Message')}
                     </p>
                   </div>
                 </div>

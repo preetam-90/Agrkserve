@@ -121,8 +121,12 @@ export interface Payment {
   razorpay_payment_id: string | null;
   razorpay_signature: string | null;
   status: PaymentStatus;
+  transaction_id: string | null;
+  payment_method: string | null;
   created_at: string;
   updated_at: string;
+  // Joined fields
+  booking?: Booking;
 }
 
 // Review

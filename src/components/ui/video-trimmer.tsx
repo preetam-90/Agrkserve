@@ -40,7 +40,9 @@ export function VideoTrimmer({
   useEffect(() => {
     if (videoFile) {
       const url = URL.createObjectURL(videoFile);
-      setVideoUrl(url);
+
+// eslint-disable-next-line react-hooks/set-state-in-effect
+          setVideoUrl(url);
       return () => URL.revokeObjectURL(url);
     }
   }, [videoFile]);

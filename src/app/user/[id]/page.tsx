@@ -12,8 +12,6 @@ import {
   Users,
   Briefcase,
   CheckCircle,
-  Mail,
-  Phone,
   User as UserIcon,
   Calendar,
   IndianRupee,
@@ -37,7 +35,7 @@ import {
 import { equipmentService, labourService, authService } from '@/lib/services';
 import { useAuthStore, useMessagesStore } from '@/lib/store';
 import { Equipment, LabourProfile, UserProfile } from '@/lib/types';
-import { formatCurrency, EQUIPMENT_CATEGORIES } from '@/lib/utils';
+import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 
 export default function PublicUserProfilePage() {
   const params = useParams();
@@ -59,6 +57,7 @@ export default function PublicUserProfilePage() {
 
   useEffect(() => {
     loadUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const loadUserData = async () => {
@@ -81,7 +80,7 @@ export default function PublicUserProfilePage() {
         if (labourData && equipmentData.length === 0) {
           setActiveTab('labour');
         }
-      } catch (err) {
+      } catch {
         // Labour profile doesn't exist, which is fine
         console.log('No labour profile found');
       }

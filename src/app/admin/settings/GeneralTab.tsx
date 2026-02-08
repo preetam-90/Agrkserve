@@ -1,18 +1,30 @@
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, Activity, Zap, Save, Edit, Calendar, Truck, Briefcase, Star, CreditCard } from 'lucide-react';
+import { Users, Activity, Zap, Save, Edit } from 'lucide-react';
 import { groupedContactFields } from './ContactFieldsConfig';
 
+interface ColorConfig {
+  gradient: string;
+  bg: string;
+  text: string;
+}
+
 interface GeneralTabProps {
-  profile: any;
+  profile: { name?: string; email?: string } | { name: string | null; email: string | null } | null;
   stats: { users: number; equipment: number; bookings: number; labour: number };
-  settings: any;
-  setSettings: (settings: any) => void;
+  settings: Record<string, unknown>;
+  setSettings: (settings: Record<string, unknown>) => void;
   editingSettings: boolean;
   setEditingSettings: (editing: boolean) => void;
   savingSettings: boolean;
   handleSaveSettings: () => void;
-  quickActions: any[];
-  colorMap: any;
+  quickActions: {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    href?: string;
+    color?: string;
+  }[];
+  colorMap: Record<string, ColorConfig>;
 }
 
 export default function GeneralTab({
@@ -28,7 +40,7 @@ export default function GeneralTab({
   colorMap,
 }: GeneralTabProps) {
   const handleFieldChange = (key: string, value: string) => {
-    setSettings({ ...settings, [key]: value });
+    setSettings({ ...(settings as Record<string, unknown>), [key]: value });
   };
 
   return (
@@ -47,12 +59,18 @@ export default function GeneralTab({
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-xl border border-[#262626] bg-[#1a1a1a] p-4">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">Name</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                  Name
+                </p>
                 <p className="text-lg font-semibold text-white">{profile?.name || 'Admin User'}</p>
               </div>
               <div className="rounded-xl border border-[#262626] bg-[#1a1a1a] p-4">
-                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">Email</p>
-                <p className="text-lg font-semibold text-white">{profile?.email || 'admin@agriServe.com'}</p>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                  Email
+                </p>
+                <p className="text-lg font-semibold text-white">
+                  {profile?.email || 'admin@agriServe.com'}
+                </p>
               </div>
             </div>
           </div>
@@ -74,9 +92,14 @@ export default function GeneralTab({
               { label: 'Bookings', value: stats.bookings, color: 'purple' },
               { label: 'Labour', value: stats.labour, color: 'amber' },
             ].map((stat) => (
-              <div key={stat.label} className="flex items-center justify-between rounded-xl border border-[#262626] bg-[#1a1a1a] p-3">
+              <div
+                key={stat.label}
+                className="flex items-center justify-between rounded-xl border border-[#262626] bg-[#1a1a1a] p-3"
+              >
                 <span className="text-sm text-neutral-400">{stat.label}</span>
-                <span className={`font-mono text-lg font-bold text-${stat.color}-400`}>{stat.value}</span>
+                <span className={`font-mono text-lg font-bold text-${stat.color}-400`}>
+                  {stat.value}
+                </span>
               </div>
             ))}
           </div>
@@ -146,21 +169,21 @@ export default function GeneralTab({
                       </label>
                       {field.type === 'textarea' ? (
                         <textarea
-                          value={settings[field.key] || ''}
+                          value={(settings[field.key] as string) || ''}
                           onChange={(e) => handleFieldChange(field.key, e.target.value)}
                           disabled={!editingSettings}
                           placeholder={field.placeholder}
                           rows={3}
-                          className="w-full rounded-xl border border-[#262626] bg-[#1a1a1a] px-4 py-3 text-white outline-none transition-all disabled:opacity-50 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
+                          className="w-full rounded-xl border border-[#262626] bg-[#1a1a1a] px-4 py-3 text-white outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50"
                         />
                       ) : (
                         <input
                           type={field.type}
-                          value={settings[field.key] || ''}
+                          value={(settings[field.key] as string) || ''}
                           onChange={(e) => handleFieldChange(field.key, e.target.value)}
                           disabled={!editingSettings}
                           placeholder={field.placeholder}
-                          className="w-full rounded-xl border border-[#262626] bg-[#1a1a1a] px-4 py-3 text-white outline-none transition-all disabled:opacity-50 focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
+                          className="w-full rounded-xl border border-[#262626] bg-[#1a1a1a] px-4 py-3 text-white outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 disabled:opacity-50"
                         />
                       )}
                     </div>
@@ -184,7 +207,7 @@ export default function GeneralTab({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {quickActions.map((action) => {
             const Icon = action.icon;
-            const colors = colorMap[action.color];
+            const colors = colorMap[action.color ?? 'default'];
             return (
               <motion.a
                 key={action.href}
@@ -193,7 +216,9 @@ export default function GeneralTab({
                 whileTap={{ scale: 0.98 }}
                 className="group relative overflow-hidden rounded-xl border border-[#262626] bg-[#1a1a1a] p-4 transition-all hover:border-emerald-500/30"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 transition-opacity group-hover:opacity-5`} />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 transition-opacity group-hover:opacity-5`}
+                />
                 <div className="relative flex items-center gap-3">
                   <div className={`rounded-lg ${colors.bg} p-2.5 ${colors.text}`}>
                     <Icon className="h-5 w-5" />

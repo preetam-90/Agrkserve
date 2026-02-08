@@ -36,7 +36,6 @@ import {
   Pencil,
   Monitor,
   MapPinned,
-  Info,
 } from 'lucide-react';
 import { BackButton } from '@/components/ui/back-button';
 import {
@@ -55,7 +54,6 @@ import {
   Progress,
   Separator,
 } from '@/components/ui';
-import { ProfilePictureUpload } from '@/components/profile-picture-upload';
 import { ImageCropper } from '@/components/image-cropper';
 import { authService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
@@ -86,7 +84,8 @@ const itemVariants = {
   },
 };
 
-const scaleInVariants = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _scaleInVariants = {
   hidden: { opacity: 0, scale: 0.9 },
   visible: {
     opacity: 1,
@@ -98,7 +97,8 @@ const scaleInVariants = {
   },
 };
 
-const slideInVariants = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _slideInVariants = {
   hidden: { opacity: 0, x: -20 },
   visible: {
     opacity: 1,
@@ -367,7 +367,7 @@ export default function ProfilePage() {
       <div className="fixed left-4 top-20 z-50">
         <BackButton variant="floating" />
       </div>
-      
+
       {/* Image Cropper Modal */}
       {cropImage && (
         <ImageCropper

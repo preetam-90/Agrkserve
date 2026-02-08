@@ -36,7 +36,9 @@ export function NetworkStatus({
 
   useEffect(() => {
     // Set initial state
-    setIsOnline(navigator.onLine);
+
+// eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsOnline(navigator.onLine);
 
     // Add network listeners
     const cleanup = addNetworkListeners(

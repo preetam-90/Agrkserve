@@ -10,45 +10,26 @@ import {
   Send,
   Settings as SettingsIcon,
   Shield,
-  Zap,
   Users,
   Calendar,
   Truck,
   Briefcase,
   Star,
   CreditCard,
-  Database,
   Server,
   Activity,
   CheckCircle,
-  AlertCircle,
   Eye,
   X,
-  Sparkles,
-  Globe,
-  Lock,
-  Mail,
-  Phone,
-  MapPin,
-  Facebook,
-  Twitter,
-  Linkedin,
-  Instagram,
-  Clock,
-  Power,
-  Wrench,
-  LogOut,
-  Trash2,
-  Save,
 } from 'lucide-react';
 
 type Tab = 'general' | 'notifications' | 'system' | 'security';
 
-interface SystemSettings {
+export interface SystemSettings {
   platform_name: string;
   platform_version: string;
   environment: string;
-  
+
   // Primary Contact
   support_email_primary: string;
   support_email_secondary: string;
@@ -57,7 +38,7 @@ interface SystemSettings {
   support_phone_secondary: string;
   whatsapp_number: string;
   toll_free_number: string;
-  
+
   // Business Address
   business_address_line1: string;
   business_address_line2: string;
@@ -65,11 +46,11 @@ interface SystemSettings {
   business_state: string;
   business_country: string;
   business_postal_code: string;
-  
+
   // Additional Contact
   fax_number: string;
   emergency_contact: string;
-  
+
   // Social Media
   facebook_url: string;
   twitter_url: string;
@@ -78,30 +59,30 @@ interface SystemSettings {
   youtube_url: string;
   tiktok_url: string;
   pinterest_url: string;
-  
+
   // Messaging Apps
   telegram_username: string;
   discord_server: string;
   slack_workspace: string;
-  
+
   // Business Hours
   business_hours_weekday: string;
   business_hours_saturday: string;
   business_hours_sunday: string;
   timezone: string;
-  
+
   // Additional Info
   company_registration: string;
   tax_id: string;
   website_url: string;
   support_portal_url: string;
   help_center_url: string;
-  
+
   // Map & Location
   google_maps_url: string;
   latitude: string;
   longitude: string;
-  
+
   // Legacy/Backward Compatibility
   support_email?: string;
   support_phone?: string;
@@ -112,15 +93,15 @@ interface SystemSettings {
     linkedin: string;
     instagram: string;
   };
-  
+
   session_timeout: number;
 }
 
 interface MaintenanceMode {
   is_enabled: boolean;
   message: string;
-  scheduled_start: string | null;
-  scheduled_end: string | null;
+  scheduled_start?: string;
+  scheduled_end?: string;
   whitelisted_ips: string[];
 }
 
@@ -150,7 +131,9 @@ export default function SettingsPage() {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [recentBroadcasts, setRecentBroadcasts] = useState<any[]>([]);
+  const [recentBroadcasts, setRecentBroadcasts] = useState<
+    { id: string; title: string; message: string; created_at: string }[]
+  >([]);
   const [stats, setStats] = useState({ users: 0, equipment: 0, bookings: 0, labour: 0 });
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -161,7 +144,7 @@ export default function SettingsPage() {
     platform_name: 'AgriServe',
     platform_version: '1.0.0',
     environment: 'production',
-    
+
     // Primary Contact
     support_email_primary: 'support@agriServe.com',
     support_email_secondary: 'info@agriServe.com',
@@ -172,7 +155,7 @@ export default function SettingsPage() {
     toll_free_number: '1-800-AGRISERVE',
     fax_number: '',
     emergency_contact: '+1-555-HELP',
-    
+
     // Business Address
     business_address_line1: '123 Farm Road',
     business_address_line2: 'Suite 100',
@@ -180,7 +163,7 @@ export default function SettingsPage() {
     business_state: 'AC',
     business_country: 'United States',
     business_postal_code: '12345',
-    
+
     // Social Media
     facebook_url: '',
     twitter_url: '',
@@ -189,30 +172,30 @@ export default function SettingsPage() {
     youtube_url: '',
     tiktok_url: '',
     pinterest_url: '',
-    
+
     // Messaging Apps
     telegram_username: '',
     discord_server: '',
     slack_workspace: '',
-    
+
     // Business Hours
     business_hours_weekday: 'Monday - Friday: 9:00 AM - 6:00 PM',
     business_hours_saturday: 'Saturday: 10:00 AM - 4:00 PM',
     business_hours_sunday: 'Sunday: Closed',
     timezone: 'America/New_York',
-    
+
     // Additional Info
     company_registration: '',
     tax_id: '',
     website_url: 'https://agriServe.com',
     support_portal_url: 'https://support.agriServe.com',
     help_center_url: 'https://help.agriServe.com',
-    
+
     // Map & Location
     google_maps_url: '',
     latitude: '',
     longitude: '',
-    
+
     session_timeout: 3600,
   });
   const [editingSettings, setEditingSettings] = useState(false);
@@ -221,9 +204,9 @@ export default function SettingsPage() {
   // Maintenance mode state
   const [maintenance, setMaintenance] = useState<MaintenanceMode>({
     is_enabled: false,
-    message: 'We are currently performing scheduled maintenance. Please check back soon.',
-    scheduled_start: null,
-    scheduled_end: null,
+    message: '',
+    scheduled_start: undefined,
+    scheduled_end: undefined,
     whitelisted_ips: [],
   });
   const [newIp, setNewIp] = useState('');
@@ -254,6 +237,7 @@ export default function SettingsPage() {
     if (activeTab === 'security') {
       fetchActiveSessions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchStats = async () => {
@@ -282,12 +266,18 @@ export default function SettingsPage() {
       .limit(5);
 
     if (data) {
-      const broadcasts = data.reduce((acc: any[], notif) => {
-        if (!acc.find((b) => b.title === notif.title && b.message === notif.message)) {
-          acc.push(notif);
-        }
-        return acc;
-      }, []);
+      const broadcasts = data.reduce(
+        (
+          acc: { id: string; title: string; message: string; created_at: string }[],
+          notif: { id: string; title: string; message: string; created_at: string }
+        ) => {
+          if (!acc.find((b) => b.title === notif.title && b.message === notif.message)) {
+            acc.push(notif);
+          }
+          return acc;
+        },
+        []
+      );
       setRecentBroadcasts(broadcasts);
     }
   };
@@ -301,18 +291,22 @@ export default function SettingsPage() {
           platform_name: data.settings.platform_name || 'AgriServe',
           platform_version: data.settings.platform_version || '1.0.0',
           environment: data.settings.environment || 'production',
-          
+
           // Primary Contact
-          support_email_primary: data.settings.support_email_primary || data.settings.support_email || 'support@agriServe.com',
+          support_email_primary:
+            data.settings.support_email_primary ||
+            data.settings.support_email ||
+            'support@agriServe.com',
           support_email_secondary: data.settings.support_email_secondary || 'info@agriServe.com',
           sales_email: data.settings.sales_email || 'sales@agriServe.com',
-          support_phone_primary: data.settings.support_phone_primary || data.settings.support_phone || '+1-555-0123',
+          support_phone_primary:
+            data.settings.support_phone_primary || data.settings.support_phone || '+1-555-0123',
           support_phone_secondary: data.settings.support_phone_secondary || '+1-555-0124',
           whatsapp_number: data.settings.whatsapp_number || '+1-555-0123',
           toll_free_number: data.settings.toll_free_number || '1-800-AGRISERVE',
           fax_number: data.settings.fax_number || '',
           emergency_contact: data.settings.emergency_contact || '+1-555-HELP',
-          
+
           // Business Address
           business_address_line1: data.settings.business_address_line1 || '123 Farm Road',
           business_address_line2: data.settings.business_address_line2 || 'Suite 100',
@@ -320,7 +314,7 @@ export default function SettingsPage() {
           business_state: data.settings.business_state || 'AC',
           business_country: data.settings.business_country || 'United States',
           business_postal_code: data.settings.business_postal_code || '12345',
-          
+
           // Social Media
           facebook_url: data.settings.facebook_url || data.settings.social_links?.facebook || '',
           twitter_url: data.settings.twitter_url || data.settings.social_links?.twitter || '',
@@ -329,30 +323,32 @@ export default function SettingsPage() {
           youtube_url: data.settings.youtube_url || '',
           tiktok_url: data.settings.tiktok_url || '',
           pinterest_url: data.settings.pinterest_url || '',
-          
+
           // Messaging Apps
           telegram_username: data.settings.telegram_username || '',
           discord_server: data.settings.discord_server || '',
           slack_workspace: data.settings.slack_workspace || '',
-          
+
           // Business Hours
-          business_hours_weekday: data.settings.business_hours_weekday || 'Monday - Friday: 9:00 AM - 6:00 PM',
-          business_hours_saturday: data.settings.business_hours_saturday || 'Saturday: 10:00 AM - 4:00 PM',
+          business_hours_weekday:
+            data.settings.business_hours_weekday || 'Monday - Friday: 9:00 AM - 6:00 PM',
+          business_hours_saturday:
+            data.settings.business_hours_saturday || 'Saturday: 10:00 AM - 4:00 PM',
           business_hours_sunday: data.settings.business_hours_sunday || 'Sunday: Closed',
           timezone: data.settings.timezone || 'America/New_York',
-          
+
           // Additional Info
           company_registration: data.settings.company_registration || '',
           tax_id: data.settings.tax_id || '',
           website_url: data.settings.website_url || 'https://agriServe.com',
           support_portal_url: data.settings.support_portal_url || 'https://support.agriServe.com',
           help_center_url: data.settings.help_center_url || 'https://help.agriServe.com',
-          
+
           // Map & Location
           google_maps_url: data.settings.google_maps_url || '',
           latitude: data.settings.latitude || '',
           longitude: data.settings.longitude || '',
-          
+
           session_timeout: data.settings.session_timeout || 3600,
         });
       }
@@ -497,9 +493,7 @@ export default function SettingsPage() {
 
       if (response.ok) {
         setMaintenance({ ...maintenance, is_enabled: !maintenance.is_enabled });
-        showSuccessToast(
-          `Maintenance mode ${!maintenance.is_enabled ? 'enabled' : 'disabled'}`
-        );
+        showSuccessToast(`Maintenance mode ${!maintenance.is_enabled ? 'enabled' : 'disabled'}`);
       }
     } catch (error) {
       console.error('Error toggling maintenance:', error);
@@ -531,7 +525,7 @@ export default function SettingsPage() {
 
   const handleAddWhitelistIp = async () => {
     if (!newIp.trim()) return;
-    
+
     const updatedIps = [...maintenance.whitelisted_ips, newIp.trim()];
     setUpdatingMaintenance(true);
     try {
@@ -599,7 +593,8 @@ export default function SettingsPage() {
   };
 
   const handleForceLogoutAll = async () => {
-    if (!confirm('Are you sure you want to force logout ALL users? This action cannot be undone.')) return;
+    if (!confirm('Are you sure you want to force logout ALL users? This action cannot be undone.'))
+      return;
 
     try {
       const response = await fetch('/api/admin/sessions?force_all=true', {
@@ -691,7 +686,9 @@ export default function SettingsPage() {
     { label: 'Payments', href: '/admin/payments', icon: CreditCard, color: 'emerald' },
   ];
 
-  const colorMap: any = {
+  type ColorMapType = { bg: string; text: string; border: string; gradient: string };
+
+  const colorMap: Record<string, ColorMapType> = {
     blue: {
       bg: 'bg-blue-500/10',
       text: 'text-blue-400',
@@ -789,8 +786,8 @@ export default function SettingsPage() {
             <GeneralTab
               profile={profile}
               stats={stats}
-              settings={settings}
-              setSettings={setSettings}
+              settings={settings as unknown as Record<string, unknown>}
+              setSettings={setSettings as unknown as (settings: Record<string, unknown>) => void}
               editingSettings={editingSettings}
               setEditingSettings={setEditingSettings}
               savingSettings={savingSettings}
@@ -982,8 +979,8 @@ export default function SettingsPage() {
 
           {activeTab === 'security' && (
             <SecurityTab
-              settings={settings}
-              setSettings={setSettings}
+              settings={settings as unknown as Record<string, unknown>}
+              setSettings={setSettings as unknown as (settings: Record<string, unknown>) => void}
               sessions={sessions}
               loadingSessions={loadingSessions}
               handleRevokeSession={handleRevokeSession}

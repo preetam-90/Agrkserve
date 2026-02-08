@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable */
+
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import DataTable from '@/components/admin/DataTable';

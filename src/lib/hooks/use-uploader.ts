@@ -4,7 +4,7 @@ export async function uploadToServer(
   onProgress?: (percent: number) => void,
   bucket: string = 'chat-media',
   path?: string
-): Promise<any> {
+): Promise<unknown> {
   return new Promise((resolve, reject) => {
     try {
       const xhr = new XMLHttpRequest();
@@ -22,7 +22,7 @@ export async function uploadToServer(
           const percent = Math.round((e.loaded / e.total) * 100);
           try {
             onProgress?.(percent);
-          } catch (e) {
+          } catch {
             // swallow
           }
         }
@@ -34,7 +34,7 @@ export async function uploadToServer(
             try {
               const res = JSON.parse(xhr.responseText);
               resolve(res);
-            } catch (err) {
+            } catch {
               resolve({ success: true, raw: xhr.responseText });
             }
           } else {

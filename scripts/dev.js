@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { spawn, execSync } = require('child_process');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const net = require('net');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fs = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
 
 // Function to check if a port is in use
@@ -53,7 +57,7 @@ function cleanNextCache() {
       fs.unlinkSync(lockFile);
       console.log('🧹 Removed Next.js lock file');
     }
-  } catch (err) {
+  } catch {
     // Ignore errors
   }
 
@@ -61,7 +65,7 @@ function cleanNextCache() {
     if (fs.existsSync(traceDir)) {
       fs.rmSync(traceDir, { recursive: true, force: true });
     }
-  } catch (err) {
+  } catch {
     // Ignore errors
   }
 
@@ -69,7 +73,7 @@ function cleanNextCache() {
     if (fs.existsSync(serverDir)) {
       fs.rmSync(serverDir, { recursive: true, force: true });
     }
-  } catch (err) {
+  } catch {
     // Ignore errors
   }
 }
@@ -94,7 +98,7 @@ function killProcessOnPort(port) {
 
           execSync(killCommand);
           console.log(`✅ Process ${pid} terminated`);
-        } catch (killErr) {
+        } catch {
           // Ignore individual kill errors
         }
       });
@@ -102,7 +106,7 @@ function killProcessOnPort(port) {
       // Wait a moment for the port to be released
       return new Promise((resolve) => setTimeout(resolve, 2000));
     }
-  } catch (err) {
+  } catch {
     // No process found or unable to kill, continue
   }
 }

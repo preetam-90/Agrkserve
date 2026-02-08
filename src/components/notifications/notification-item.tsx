@@ -19,7 +19,6 @@ import {
   TrendingUp,
   Shield,
   Clock,
-  Circle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -127,6 +126,7 @@ export function NotificationItem({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         handleDelete(e as any);
       }
     };

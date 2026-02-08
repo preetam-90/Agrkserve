@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,7 +8,6 @@ import {
   motion,
   AnimatePresence,
   useMotionTemplate,
-  useSpring,
   useMotionValue,
 } from 'framer-motion';
 import {
@@ -27,17 +26,14 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   XCircle,
-  Upload,
   Sparkles,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { Checkbox } from '@/components/ui';
 import {
   Button,
-  Card,
   CardContent,
   Badge,
-  Spinner,
   EmptyState,
   Input,
   DropdownMenu,
@@ -65,9 +61,9 @@ import {
   RATING_OPTIONS,
   cn,
 } from '@/lib/utils';
-import { useAppStore } from '@/lib/store';
+
 import toast from 'react-hot-toast';
-import { createClient } from '@/lib/supabase/client';
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -103,8 +99,6 @@ const cardHoverVariants = {
 
 export default function ProviderEquipmentPage() {
   const router = useRouter();
-  const { sidebarOpen } = useAppStore();
-  const supabase = createClient();
   const [equipment, setEquipment] = useState<Equipment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,7 +111,6 @@ export default function ProviderEquipmentPage() {
   );
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [uploadedImages, setUploadedImages] = useState<Record<string, string[]>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
@@ -129,24 +122,9 @@ export default function ProviderEquipmentPage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const mouseX = useMotionValue(0);
-  const [isHovered, setIsHovered] = useState(false);
-  const showCheckbox = isHovered || selectedIds.length > 0;
   const mouseY = useMotionValue(0);
+  const showCheckbox = selectedIds.length > 0;
 
-  const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
-
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        mouseX.set(x);
-        mouseY.set(y);
-      }
-    },
-    [mouseX, mouseY]
-  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -239,7 +217,7 @@ export default function ProviderEquipmentPage() {
         `${selectedIds.length} equipment marked as ${makeAvailable ? 'available' : 'unavailable'}`
       );
       setSelectedIds([]);
-    } catch (err) {
+    } catch {
       toast.error('Failed to update equipment');
     }
   };
@@ -253,7 +231,7 @@ export default function ProviderEquipmentPage() {
       setEquipment((prev) => prev.filter((e) => !selectedIds.includes(e.id)));
       toast.success(`${selectedIds.length} equipment deleted`);
       setSelectedIds([]);
-    } catch (err) {
+    } catch {
       toast.error('Failed to delete equipment');
     }
   };

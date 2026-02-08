@@ -3,12 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, MapPin, Briefcase, IndianRupee, Plus, X, Loader2, Sparkles, Target } from 'lucide-react';
+import {
+  ArrowLeft,
+  MapPin,
+  Briefcase,
+  IndianRupee,
+  Plus,
+  X,
+  Loader2,
+  Sparkles,
+  Target,
+} from 'lucide-react';
 import { Header } from '@/components/layout';
 import {
   Button,
-  Card,
-  CardContent,
   Input,
   Textarea,
   Select,
@@ -19,7 +27,7 @@ import {
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { cn } from '@/lib/utils';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 
 const COMMON_SKILLS = [
@@ -41,7 +49,6 @@ const COMMON_SKILLS = [
 
 export default function CreateLabourProfilePage() {
   const router = useRouter();
-  const { sidebarOpen } = useAppStore();
   const { user, profile } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
@@ -208,11 +215,11 @@ export default function CreateLabourProfilePage() {
           <div className="mx-auto max-w-4xl">
             {/* Header */}
             <div className="mb-6 flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 asChild
-                className="text-slate-400 hover:text-white hover:bg-slate-800/50"
+                className="text-slate-400 hover:bg-slate-800/50 hover:text-white"
               >
                 <Link href="/provider/labour">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -240,10 +247,12 @@ export default function CreateLabourProfilePage() {
                     <Briefcase className="h-5 w-5 text-teal-400" />
                     Skills &amp; Experience
                   </h2>
-                  <p className="mt-1 text-sm text-slate-400">Showcase your expertise and qualifications</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Showcase your expertise and qualifications
+                  </p>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="space-y-6 p-6">
                   <div>
                     <label className="mb-3 block text-sm font-medium text-slate-300">
                       Skills <span className="text-red-400">*</span>
@@ -255,7 +264,7 @@ export default function CreateLabourProfilePage() {
                           type="button"
                           onClick={() => addSkill(skill)}
                           className={cn(
-                            'rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 cursor-pointer',
+                            'cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200',
                             formData.skills.includes(skill)
                               ? 'border-teal-500/50 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
                               : 'border-slate-600/50 bg-slate-800/50 text-slate-300 hover:border-teal-500/30 hover:bg-slate-700/50'
@@ -268,18 +277,20 @@ export default function CreateLabourProfilePage() {
 
                     {formData.skills.length > 0 && (
                       <div className="mb-4 rounded-xl bg-slate-800/50 p-4">
-                        <span className="mb-2 block text-sm font-medium text-slate-400">Selected Skills:</span>
+                        <span className="mb-2 block text-sm font-medium text-slate-400">
+                          Selected Skills:
+                        </span>
                         <div className="flex flex-wrap gap-2">
                           {formData.skills.map((skill) => (
                             <span
                               key={skill}
-                              className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-500/30 px-3 py-1.5 text-sm font-medium text-teal-300"
+                              className="inline-flex items-center gap-2 rounded-lg border border-teal-500/30 bg-gradient-to-r from-teal-500/20 to-cyan-500/20 px-3 py-1.5 text-sm font-medium text-teal-300"
                             >
                               {skill}
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => removeSkill(skill)}
-                                className="hover:text-red-400 transition-colors duration-200"
+                                className="transition-colors duration-200 hover:text-red-400"
                               >
                                 <X className="h-3.5 w-3.5" />
                               </button>
@@ -302,9 +313,9 @@ export default function CreateLabourProfilePage() {
                         }}
                         className="border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         onClick={() => addSkill(newSkill)}
                         className="border-slate-600/50 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
                       >
@@ -344,13 +355,13 @@ export default function CreateLabourProfilePage() {
                           {formData.certifications.map((cert) => (
                             <span
                               key={cert}
-                              className="inline-flex items-center gap-2 rounded-lg bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 text-sm font-medium text-blue-300"
+                              className="inline-flex items-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-1.5 text-sm font-medium text-blue-300"
                             >
                               {cert}
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => removeCertification(cert)}
-                                className="hover:text-red-400 transition-colors duration-200"
+                                className="transition-colors duration-200 hover:text-red-400"
                               >
                                 <X className="h-3.5 w-3.5" />
                               </button>
@@ -372,9 +383,9 @@ export default function CreateLabourProfilePage() {
                         }}
                         className="border-slate-600/50 bg-slate-800/50 text-white placeholder:text-slate-500 focus:border-teal-500/50 focus:ring-teal-500/20"
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         onClick={addCertification}
                         className="border-slate-600/50 bg-slate-800/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
                       >
@@ -445,7 +456,7 @@ export default function CreateLabourProfilePage() {
                   <p className="mt-1 text-sm text-slate-400">Where you provide your services</p>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="space-y-6 p-6">
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
                       <label className="mb-3 block text-sm font-medium text-slate-300">
@@ -490,7 +501,8 @@ export default function CreateLabourProfilePage() {
                   {formData.latitude !== 0 && (
                     <div className="rounded-lg bg-slate-800/50 p-3">
                       <p className="text-xs text-slate-400">
-                        📍 Coordinates: {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
+                        📍 Coordinates: {formData.latitude.toFixed(4)},{' '}
+                        {formData.longitude.toFixed(4)}
                       </p>
                     </div>
                   )}
@@ -525,7 +537,9 @@ export default function CreateLabourProfilePage() {
                     <Target className="h-5 w-5 text-teal-400" />
                     About You
                   </h2>
-                  <p className="mt-1 text-sm text-slate-400">Tell farmers what makes you stand out</p>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Tell farmers what makes you stand out
+                  </p>
                 </div>
 
                 <div className="p-6">
@@ -554,7 +568,7 @@ export default function CreateLabourProfilePage() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600 transition-all duration-200 shadow-lg shadow-teal-500/20"
+                  className="flex-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/20 transition-all duration-200 hover:from-teal-600 hover:to-cyan-600"
                 >
                   {isSubmitting ? (
                     <>

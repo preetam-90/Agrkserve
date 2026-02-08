@@ -11,7 +11,6 @@ import {
   CardContent,
   Badge,
   Spinner,
-  EmptyState,
   Input,
   Tabs,
   TabsList,
@@ -19,8 +18,7 @@ import {
 } from '@/components/ui';
 import { bookingService } from '@/lib/services';
 import { Booking, Equipment, UserProfile, BookingStatus } from '@/lib/types';
-import { formatCurrency, cn } from '@/lib/utils';
-import { useAppStore } from '@/lib/store';
+import { formatCurrency } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMyBookings } from '@/lib/hooks/use-booking-queries';
@@ -28,7 +26,6 @@ import { bookingKeys } from '@/lib/hooks/query-keys';
 import toast from 'react-hot-toast';
 
 export default function RenterBookingsPage() {
-  const { sidebarOpen } = useAppStore();
   const queryClient = useQueryClient();
   const { data: bookings = [], isLoading } = useMyBookings();
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
@@ -59,7 +56,7 @@ export default function RenterBookingsPage() {
             async (payload) => {
               if (payload.eventType === 'INSERT') {
                 try {
-                  const bookingData = payload.new as any;
+                  const bookingData = payload.new as { id: string };
                   const newBooking = await bookingService.getById(bookingData.id);
                   if (newBooking) {
                     queryClient.setQueryData<Booking[]>(bookingKeys.myBookings(), (old = []) => [
@@ -71,9 +68,9 @@ export default function RenterBookingsPage() {
                   queryClient.invalidateQueries({ queryKey: bookingKeys.myBookings() });
                 }
               } else if (payload.eventType === 'UPDATE') {
-                const newStatus = (payload.new as any).status;
-                const oldStatus = (payload.old as any)?.status;
-                const bookingData = payload.new as any;
+                const newStatus = (payload.new as { status: string }).status;
+                const oldStatus = (payload.old as { status: string })?.status;
+                const bookingData = payload.new as { id: string };
 
                 queryClient.setQueryData<Booking[]>(bookingKeys.myBookings(), (old = []) =>
                   old.map((b) => (b.id === bookingData.id ? { ...b, ...bookingData } : b))

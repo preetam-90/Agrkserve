@@ -1,6 +1,5 @@
 import ffmpeg from 'fluent-ffmpeg';
-import { promisify } from 'util';
-import { createWriteStream, createReadStream, unlinkSync } from 'fs';
+import { unlinkSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
@@ -155,7 +154,7 @@ export async function processVideo(
     tempFiles.forEach((file) => {
       try {
         unlinkSync(file);
-      } catch (e) {
+      } catch {
         // Ignore cleanup errors
       }
     });
@@ -195,7 +194,7 @@ export async function validateVideo(
     }
 
     return { valid: true, metadata };
-  } catch (error) {
+  } catch {
     return {
       valid: false,
       error: 'Failed to read video metadata. File may be corrupted.',

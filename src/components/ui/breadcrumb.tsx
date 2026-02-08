@@ -70,7 +70,8 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
 export function createEquipmentBreadcrumb(
   category: { label: string; icon?: React.ReactNode } | null,
   equipmentName: string,
-  equipmentId?: string
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _equipmentId?: string
 ): BreadcrumbItem[] {
   const items: BreadcrumbItem[] = [{ label: 'Equipment', href: '/equipment' }];
 

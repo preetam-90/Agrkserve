@@ -4,11 +4,11 @@ import type {
   BookingStatus,
   PaginatedResponse
 } from '@/lib/types';
-import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 import { calculateDaysBetween } from '@/lib/utils';
+import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 import { notificationService } from './notification-service';
 import { auditLogService } from './audit-log-service';
-import { addDays, isSameDay, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 
 const supabase = createClient();
 

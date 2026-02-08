@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import SearchFilterBar from '@/components/admin/SearchFilterBar';
 import Pagination from '@/components/admin/Pagination';
-import { Eye, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { ITEMS_PER_PAGE } from '@/lib/utils/admin-constants';
+import type { Review } from '@/lib/types/database';
 
 export default function ReviewsPage() {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -51,17 +53,17 @@ export default function ReviewsPage() {
 
       // Fetch reviewer profiles separately
       if (data && data.length > 0) {
-        const reviewerIds = [...new Set(data.map(r => r.reviewer_id))];
+        const reviewerIds = [...new Set(data.map((r) => r.reviewer_id))];
         const { data: profiles } = await supabase
           .from('user_profiles')
           .select('id, name, email, profile_image')
           .in('id', reviewerIds);
 
         // Map profiles to reviews
-        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-        const reviewsWithProfiles = data.map(review => ({
+        const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
+        const reviewsWithProfiles = data.map((review) => ({
           ...review,
-          reviewer: profileMap.get(review.reviewer_id) || null
+          reviewer: profileMap.get(review.reviewer_id) || null,
         }));
 
         setReviews(reviewsWithProfiles);
@@ -70,9 +72,13 @@ export default function ReviewsPage() {
       }
 
       setTotalCount(count || 0);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching reviews:', err);
-      setError(err.message || 'Failed to load reviews. Please check your permissions.');
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to load reviews. Please check your permissions.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -80,6 +86,7 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, ratingFilter, currentPage]);
 
   const handleDeleteReview = async (reviewId: string) => {
@@ -95,9 +102,13 @@ export default function ReviewsPage() {
 
       alert('Review deleted successfully');
       fetchReviews();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting review:', err);
-      alert(err.message || 'Failed to delete review. Please check your permissions.');
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Failed to delete review. Please check your permissions.';
+      alert(errorMessage);
     }
   };
 
@@ -143,7 +154,7 @@ export default function ReviewsPage() {
           </div>
         ) : error ? (
           <div className="py-8 text-center">
-            <p className="text-red-500 mb-2">{error}</p>
+            <p className="mb-2 text-red-500">{error}</p>
             <button
               onClick={fetchReviews}
               className="admin-btn admin-btn-primary px-4 py-2 text-sm"
@@ -165,11 +176,16 @@ export default function ReviewsPage() {
                     <div className="flex flex-1 gap-4">
                       {/* Equipment Image */}
                       {review.equipment?.images?.[0] && (
-                        <img
-                          src={review.equipment.images[0]}
-                          alt={review.equipment.name}
-                          className="h-20 w-20 rounded object-cover"
-                        />
+                        <div className="relative h-20 w-20 shrink-0">
+                          <Image
+                            src={review.equipment.images[0]}
+                            alt={review.equipment.name}
+                            fill
+                            className="rounded object-cover"
+                            loading="lazy"
+                            sizes="80px"
+                          />
+                        </div>
                       )}
 
                       <div className="flex-1">
@@ -179,11 +195,16 @@ export default function ReviewsPage() {
                         {/* Reviewer Info */}
                         <div className="mt-1 flex items-center gap-2">
                           {review.reviewer?.profile_image ? (
-                            <img
-                              src={review.reviewer.profile_image}
-                              alt={review.reviewer.name}
-                              className="h-6 w-6 rounded-full object-cover"
-                            />
+                            <div className="relative h-6 w-6 shrink-0">
+                              <Image
+                                src={review.reviewer.profile_image}
+                                alt={review.reviewer.name || ''}
+                                fill
+                                className="rounded-full object-cover"
+                                loading="lazy"
+                                sizes="24px"
+                              />
+                            </div>
                           ) : (
                             <div className="bg-primary/20 flex h-6 w-6 items-center justify-center rounded-full">
                               <span className="text-primary text-xs font-semibold">
@@ -215,12 +236,16 @@ export default function ReviewsPage() {
                         {review.images && review.images.length > 0 && (
                           <div className="mt-3 flex gap-2">
                             {review.images.slice(0, 4).map((img: string, idx: number) => (
-                              <img
-                                key={idx}
-                                src={img}
-                                alt={`Review ${idx + 1}`}
-                                className="h-16 w-16 cursor-pointer rounded object-cover hover:opacity-80"
-                              />
+                              <div key={idx} className="relative h-16 w-16 cursor-pointer overflow-hidden rounded hover:opacity-80">
+                                <Image
+                                  src={img}
+                                  alt={`Review ${idx + 1}`}
+                                  fill
+                                  className="object-cover"
+                                  loading="lazy"
+                                  sizes="64px"
+                                />
+                              </div>
                             ))}
                             {review.images.length > 4 && (
                               <div className="text-text-secondary flex h-16 w-16 items-center justify-center rounded bg-gray-200 text-sm">

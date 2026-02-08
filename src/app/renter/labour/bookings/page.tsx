@@ -2,16 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  Calendar,
-  Clock,
-  ChevronRight,
-  Users,
-  CheckCircle,
-  XCircle,
-  Search,
-  User,
-} from 'lucide-react';
+import { Calendar, Clock, ChevronRight, Users, CheckCircle, XCircle, Search } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
   Button,
@@ -32,13 +23,12 @@ import {
   DialogDescription,
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
-import { LabourBooking, LabourProfile, UserProfile } from '@/lib/types';
-import { formatCurrency, formatDate, cn } from '@/lib/utils';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { LabourBooking, LabourProfile } from '@/lib/types';
+import { formatCurrency, formatDate } from '@/lib/utils';
+import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 
 export default function RenterLabourBookingsPage() {
-  const { sidebarOpen } = useAppStore();
   const { user } = useAuthStore();
   const [bookings, setBookings] = useState<LabourBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);

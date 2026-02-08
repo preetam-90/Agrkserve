@@ -18,59 +18,58 @@ import {
   Zap,
   Award,
   BarChart3,
-  Activity,
 } from 'lucide-react';
-import { Button, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
+import { Button, Card, CardContent, Badge, Spinner } from '@/components/ui';
 import { equipmentService, bookingService, labourService } from '@/lib/services';
 import { useAppStore } from '@/lib/store';
-import { Equipment, Booking } from '@/lib/types';
+import { Equipment, Booking, InitialData, LabourBooking } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface ProviderDashboardProps {
-  initialData?: any;
+  initialData?: InitialData;
 }
 
 export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { sidebarOpen } = useAppStore();
 
   // Seed state from SSR data if available
-  const hasSSRData = initialData?.equipment || initialData?.bookings;
+  const hasSSRData = !!(initialData?.equipment || initialData?.bookings);
 
   const [myEquipment, setMyEquipment] = useState<Equipment[]>(
-    hasSSRData ? (initialData.equipment || []).slice(0, 4) : []
+    hasSSRData ? (initialData?.equipment || []).slice(0, 4) : []
   );
   const [pendingBookings, setPendingBookings] = useState<Booking[]>(() => {
     if (hasSSRData) {
-      return (initialData.bookings || []).filter((b: any) => b.status === 'pending').slice(0, 5);
+      return (initialData?.bookings || []).filter((b) => b.status === 'pending').slice(0, 5);
     }
     return [];
   });
-  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>(() => {
+  const [pendingLabourBookings, setPendingLabourBookings] = useState<LabourBooking[]>(() => {
     if (hasSSRData) {
-      return (initialData.labourBookings || [])
-        .filter((b: any) => b.status === 'pending')
-        .slice(0, 5);
+      return (initialData?.labourBookings || []).filter((b) => b.status === 'pending').slice(0, 5);
     }
     return [];
   });
   const [stats, setStats] = useState(() => {
     if (hasSSRData) {
-      const equipment = initialData.equipment || [];
-      const bookings = initialData.bookings || [];
+      const equipment = initialData?.equipment || [];
+      const bookings = initialData?.bookings || [];
       const totalEarnings = bookings
-        .filter((b: any) => b.status === 'completed')
-        .reduce((sum: number, b: any) => sum + (b.total_amount || 0), 0);
-      const ratings = equipment.filter((e: any) => e.rating).map((e: any) => e.rating as number);
+        .filter((b) => b.status === 'completed')
+        .reduce((sum: number, b) => sum + (b.total_amount || 0), 0);
+      const ratings = equipment.filter((e) => e.rating).map((e) => e.rating as number);
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
           : 0;
       return {
         totalEquipment: equipment.length,
-        activeBookings: bookings.filter((b: any) => ['confirmed', 'in_progress'].includes(b.status))
+        activeBookings: bookings.filter((b) => ['confirmed', 'in_progress'].includes(b.status))
           .length,
         totalEarnings,
         averageRating: avgRating,
@@ -87,7 +86,7 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
     }
 
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
@@ -111,7 +110,7 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
             'postgres_changes',
             { event: '*', schema: 'public', table: 'bookings' },
             async (payload) => {
-              const bookingData = payload.new as any;
+              const bookingData = payload.new as Booking;
               if (bookingData && equipmentIds.includes(bookingData.equipment_id)) {
                 loadDashboardData();
               }
@@ -128,6 +127,7 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboardData = async () => {
@@ -541,7 +541,7 @@ export function ProviderDashboardView({ initialData }: ProviderDashboardProps) {
 
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-lg font-semibold text-white">
-                            {booking.employer?.full_name || 'Employer'}
+                            {booking.employer?.name || 'Employer'}
                           </p>
                           <p className="mt-1 text-sm text-gray-400">
                             {new Date(booking.start_date).toLocaleDateString()} -{' '}

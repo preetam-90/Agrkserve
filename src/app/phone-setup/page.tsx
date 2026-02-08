@@ -7,6 +7,7 @@ import { Phone, ArrowRight, User, Tractor, Wheat, Leaf } from 'lucide-react';
 import { Textarea } from '@/components/ui';
 import { authService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
+import type { UserProfile } from '@/lib/types';
 import toast from 'react-hot-toast';
 import { ProfilePictureUpload } from '@/components/profile-picture-upload';
 
@@ -79,9 +80,10 @@ export default function PhoneSetupPage() {
       await refreshProfile();
       toast.success('Phone number saved!');
       setStep('details');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Phone update error:', err);
-      setError(err.message || 'Failed to save phone number');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save phone number';
+      setError(errorMessage);
       toast.error('Failed to save phone number');
     } finally {
       setIsLoading(false);
@@ -100,7 +102,7 @@ export default function PhoneSetupPage() {
 
     setIsLoading(true);
     try {
-      const updateData: any = {};
+      const updateData: Partial<UserProfile> = {};
 
       if (address) {
         updateData.address = address;
@@ -122,7 +124,7 @@ export default function PhoneSetupPage() {
       } else {
         router.push('/dashboard');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Profile update error:', err);
       toast.error('Failed to update profile');
     } finally {

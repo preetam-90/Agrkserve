@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Upload, AlertCircle, Loader2, Image as ImageIcon, Film } from 'lucide-react';
 import type { CloudinaryAssetWithUser } from '@/lib/types/cloudinary-admin';
@@ -70,8 +71,8 @@ export function ReplaceAssetModal({
       setReason('');
       setError('');
       setPreview(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to replace asset');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to replace asset');
     }
   };
 
@@ -132,10 +133,14 @@ export function ReplaceAssetModal({
                 <div className="mt-2 flex items-center gap-3">
                   <div className="h-16 w-16 overflow-hidden rounded-lg bg-[#0f0f0f]">
                     {asset.thumbnail_url ? (
-                      <img
+                       
+
+                      <Image
                         src={asset.thumbnail_url}
                         alt={asset.public_id}
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="64px"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
@@ -192,7 +197,9 @@ export function ReplaceAssetModal({
                         {isVideo ? (
                           <video src={preview} className="h-full w-full object-cover" />
                         ) : (
-                          <img src={preview} alt="Preview" className="h-full w-full object-cover" />
+                           
+
+                          <Image src={preview} alt="Preview" fill className="object-cover" sizes="64px" />
                         )}
                       </div>
                       <div>

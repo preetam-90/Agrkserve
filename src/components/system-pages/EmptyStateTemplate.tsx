@@ -41,7 +41,7 @@ export function EmptyStateTemplate({
   description,
   primaryAction,
   secondaryAction,
-  variant = 'default',
+  variant: _variant = 'default',
   className,
   tip,
 }: EmptyStateTemplateProps) {

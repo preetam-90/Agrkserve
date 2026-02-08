@@ -9,15 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Briefcase, 
-  CheckCircle, 
-  ArrowRight,
+import {
+  Briefcase,
+  CheckCircle,
   User,
   DollarSign,
   Award,
-  MapPin,
-  Loader2
+  Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -56,7 +54,7 @@ export default function LabourOnboardingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.skills.length === 0) {
       toast.error('Please select at least one skill');
       return;
@@ -120,7 +118,8 @@ export default function LabourOnboardingPage() {
             Welcome, Agricultural Worker! 👨‍🌾
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-[#94A3B8]">
-            You're now registered as Agricultural Labour. Let's set up your profile so farmers can find and hire you!
+            You&apos;re now registered as Agricultural Labour. Let&apos;s set up your profile so
+            farmers can find and hire you!
           </p>
         </motion.div>
 
@@ -291,7 +290,7 @@ export default function LabourOnboardingPage() {
               onClick={handleSkip}
               disabled={isLoading}
             >
-              I'll Do This Later
+              I&apos;ll Do This Later
             </Button>
           </div>
         </form>

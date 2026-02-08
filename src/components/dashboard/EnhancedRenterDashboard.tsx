@@ -17,29 +17,23 @@ import {
   Users,
   TrendingUp,
   DollarSign,
-  Package,
-  AlertCircle,
   Heart,
   Bell,
   Settings,
   BarChart3,
-  Activity,
-  Zap,
-  Shield,
-  Award,
   CheckCircle2,
-  XCircle,
 } from 'lucide-react';
-import { Button, Input, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
-import { equipmentService, bookingService, labourService } from '@/lib/services';
+import { Button, Input, Card, CardContent, Badge, EmptyState } from '@/components/ui';
+import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore, useAppStore } from '@/lib/store';
-import { Equipment, Booking } from '@/lib/types';
+import { Equipment, Booking, InitialData } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface RenterDashboardProps {
-  initialData?: any;
+  initialData?: InitialData;
 }
 
 export function EnhancedRenterDashboard({ initialData }: RenterDashboardProps) {
@@ -55,21 +49,18 @@ export function EnhancedRenterDashboard({ initialData }: RenterDashboardProps) {
   const [recentBookings, setRecentBookings] = useState<Booking[]>(
     hasSSRData ? (initialData.bookings || []).slice(0, 3) : []
   );
-  const [recentLabourBookings, setRecentLabourBookings] = useState<any[]>(
-    hasSSRData ? (initialData.labourBookings || []).slice(0, 3) : []
-  );
   const [isLoading, setIsLoading] = useState(!hasSSRData);
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState(() => {
     if (hasSSRData) {
       const bookings = initialData.bookings || [];
       const activeCount = bookings.filter(
-        (b: any) => b.status === 'confirmed' || b.status === 'in_progress'
+        (b) => b.status === 'confirmed' || b.status === 'in_progress'
       ).length;
-      const completedCount = bookings.filter((b: any) => b.status === 'completed').length;
+      const completedCount = bookings.filter((b) => b.status === 'completed').length;
       const totalSpent = bookings
-        .filter((b: any) => b.status === 'completed')
-        .reduce((sum: number, b: any) => sum + (b.total_amount || 0), 0);
+        .filter((b) => b.status === 'completed')
+        .reduce((sum: number, b) => sum + (b.total_amount || 0), 0);
       return {
         totalSpent,
         activeBookings: activeCount,
@@ -87,7 +78,7 @@ export function EnhancedRenterDashboard({ initialData }: RenterDashboardProps) {
     }
 
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
@@ -124,20 +115,18 @@ export function EnhancedRenterDashboard({ initialData }: RenterDashboardProps) {
         supabase.removeChannel(channel);
       }
     };
-  }, [userLocation]);
+  }, [userLocation, hasSSRData]);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const [equipmentResult, bookingsResult, labourBookingsResult] = await Promise.all([
+      const [equipmentResult, bookingsResult] = await Promise.all([
         equipmentService.getEquipment({ limit: 8 }),
         bookingService.getMyBookings(),
-        labourService.getMyEmployerBookings(),
       ]);
 
       setNearbyEquipment(equipmentResult.data);
       setRecentBookings(bookingsResult.slice(0, 3));
-      setRecentLabourBookings(labourBookingsResult.slice(0, 3));
 
       // Calculate stats
       const activeCount = bookingsResult.filter(

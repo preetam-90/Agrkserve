@@ -65,7 +65,9 @@ export function ErrorPageTemplate({
   // Countdown timer for rate limiting
   useEffect(() => {
     if (countdown && countdown > 0) {
-      setRemainingTime(countdown);
+
+// eslint-disable-next-line react-hooks/set-state-in-effect
+          setRemainingTime(countdown);
       const timer = setInterval(() => {
         setRemainingTime((prev) => {
           if (prev <= 1) {

@@ -14,6 +14,8 @@ export function RoleRegistrationBanner() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     // Check if banner was previously dismissed
     const dismissed = localStorage.getItem('role-banner-dismissed');

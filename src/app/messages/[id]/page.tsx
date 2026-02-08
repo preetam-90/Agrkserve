@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Header, Footer } from '@/components/layout';
+import { Header } from '@/components/layout';
 import { ChatWindow } from '@/components/messages';
 import { useAuthStore, useMessagesStore } from '@/lib/store';
 import { Spinner } from '@/components/ui';

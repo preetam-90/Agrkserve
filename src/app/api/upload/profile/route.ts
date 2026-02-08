@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Upload to Supabase Storage
-    const { data, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, buffer, {
         contentType: file.type,
@@ -54,10 +54,13 @@ export async function POST(request: NextRequest) {
       filePath,
       fileName,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Profile upload error:', error);
     return NextResponse.json(
-      { error: 'Failed to process upload', details: error.message },
+      {
+        error: 'Failed to process upload',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

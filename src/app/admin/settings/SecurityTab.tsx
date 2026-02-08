@@ -12,9 +12,19 @@ import {
 } from 'lucide-react';
 
 interface SecurityTabProps {
-  settings: any;
-  setSettings: (settings: any) => void;
-  sessions: any[];
+  settings: { session_timeout?: unknown };
+  setSettings: (settings: Record<string, unknown>) => void;
+  sessions: Array<{
+    session_id: string;
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    created_at: string;
+    expires_at: string;
+    ip_address: string;
+    user_agent: string;
+    last_activity: string;
+  }>;
   loadingSessions: boolean;
   handleRevokeSession: (sessionId: string) => void;
   handleForceLogoutAll: () => void;
@@ -48,7 +58,7 @@ export default function SecurityTab({
             </label>
             <input
               type="number"
-              value={settings.session_timeout}
+              value={settings.session_timeout as number}
               onChange={(e) =>
                 setSettings({ ...settings, session_timeout: parseInt(e.target.value) })
               }
@@ -57,7 +67,7 @@ export default function SecurityTab({
               className="w-full rounded-xl border border-[#262626] bg-[#1a1a1a] px-4 py-3 text-white outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
             />
             <p className="mt-2 text-xs text-neutral-500">
-              {Math.floor(settings.session_timeout / 60)} minutes
+              {Math.floor((settings.session_timeout as number) / 60)} minutes
             </p>
           </div>
 

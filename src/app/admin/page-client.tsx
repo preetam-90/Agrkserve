@@ -2,8 +2,32 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import StatsCard from '@/components/admin/StatsCard';
-import { Users, Truck, Calendar, DollarSign, TrendingUp, Activity, Package, Clock } from 'lucide-react';
+import {
+  Users,
+  Truck,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  Activity,
+  Package,
+  Clock,
+} from 'lucide-react';
+
+interface BookingItem {
+  id?: string;
+  equipment?: {
+    name?: string;
+    images?: string[];
+  };
+  renter?: {
+    name?: string;
+    email?: string;
+  };
+  total_amount?: number;
+  status?: string;
+}
 
 interface AdminDashboardClientProps {
   stats: {
@@ -19,7 +43,7 @@ interface AdminDashboardClientProps {
       equipment: { value: number; isUp: boolean };
     };
   };
-  recentBookings: any[];
+  recentBookings: BookingItem[];
   systemHealth: {
     dbLoad: number;
     dbStatus: string;
@@ -69,32 +93,6 @@ export default function AdminDashboardClient({
     router.push(`/admin?${params.toString()}`);
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-purple-100 text-purple-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getTimeRangeLabel = (range: string) => {
-    const labels: Record<string, string> = {
-      last_7_days: 'Last 7 Days',
-      last_30_days: 'Last 30 Days',
-      this_year: 'This Year',
-    };
-    return labels[range] || 'Last 7 Days';
-  };
-
-  const getHealthColor = (percentage: number) => {
-    if (percentage < 50) return 'from-emerald-500 to-emerald-600';
-    if (percentage < 80) return 'from-amber-500 to-amber-600';
-    return 'from-red-500 to-red-600';
-  };
-
   const getHealthTextColor = (percentage: number) => {
     if (percentage < 50) return 'text-[var(--admin-success)]';
     if (percentage < 80) return 'text-[var(--admin-warning)]';
@@ -112,17 +110,6 @@ export default function AdminDashboardClient({
     return `${Math.floor(seconds / 86400)}d ago`;
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      pending: '#f59e0b',
-      confirmed: '#3b82f6',
-      in_progress: '#8b5cf6',
-      completed: '#10b981',
-      cancelled: '#ef4444',
-    };
-    return colors[status] || '#6b7280';
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -130,7 +117,9 @@ export default function AdminDashboardClient({
           <h1 className="font-['Fira_Code'] text-3xl font-bold tracking-tight text-white">
             DASHBOARD <span className="text-[var(--admin-primary)]">OVERVIEW</span>
           </h1>
-          <p className="mt-2 text-[var(--admin-text-secondary)]">Welcome back, monitor your platform in real-time.</p>
+          <p className="mt-2 text-[var(--admin-text-secondary)]">
+            Welcome back, monitor your platform in real-time.
+          </p>
         </div>
         <div className="flex gap-3">
           <select
@@ -188,10 +177,10 @@ export default function AdminDashboardClient({
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         {/* Recent Users */}
         <div className="admin-glass-card overflow-hidden">
-          <div className="border-b border-[var(--admin-border)] bg-gradient-to-br from-[var(--admin-primary)]/10 to-transparent p-6">
+          <div className="from-[var(--admin-primary)]/10 border-b border-[var(--admin-border)] bg-gradient-to-br to-transparent p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--admin-secondary)]/10 border border-[var(--admin-secondary)]/30">
+                <div className="bg-[var(--admin-secondary)]/10 border-[var(--admin-secondary)]/30 flex h-10 w-10 items-center justify-center rounded-lg border">
                   <Users className="h-5 w-5 text-[var(--admin-secondary)]" />
                 </div>
                 <div>
@@ -199,10 +188,7 @@ export default function AdminDashboardClient({
                   <p className="text-sm text-[var(--admin-text-secondary)]">New registrations</p>
                 </div>
               </div>
-              <Link
-                href="/admin/users"
-                className="admin-btn-neon px-3 py-1.5 text-xs"
-              >
+              <Link href="/admin/users" className="admin-btn-neon px-3 py-1.5 text-xs">
                 VIEW ALL
               </Link>
             </div>
@@ -210,17 +196,26 @@ export default function AdminDashboardClient({
           <div className="p-6">
             <div className="space-y-3">
               {recentUsers.length === 0 ? (
-                <p className="py-8 text-center text-[var(--admin-text-secondary)]">No recent users</p>
+                <p className="py-8 text-center text-[var(--admin-text-secondary)]">
+                  No recent users
+                </p>
               ) : (
                 recentUsers.map((user) => (
                   <Link
                     key={user.id}
                     href={`/admin/users?id=${user.id}`}
-                    className="admin-glass-card flex items-center gap-3 p-3 transition-all hover:scale-[1.02] cursor-pointer"
+                    className="admin-glass-card flex cursor-pointer items-center gap-3 p-3 transition-all hover:scale-[1.02]"
                   >
                     <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)]">
                       {user.avatar_url ? (
-                        <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
+                        <Image
+                          src={user.avatar_url}
+                          alt={user.name}
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-cover"
+                          unoptimized
+                        />
                       ) : (
                         <Users className="h-5 w-5 text-[var(--admin-text-muted)]" />
                       )}
@@ -229,7 +224,7 @@ export default function AdminDashboardClient({
                       <div className="flex items-center gap-2">
                         <h3 className="font-medium text-white">{user.name}</h3>
                         {user.phone_verified && (
-                          <span className="admin-badge admin-badge-success text-[10px] px-2 py-0.5">
+                          <span className="admin-badge admin-badge-success px-2 py-0.5 text-[10px]">
                             VERIFIED
                           </span>
                         )}
@@ -237,10 +232,12 @@ export default function AdminDashboardClient({
                       <p className="text-xs text-[var(--admin-text-secondary)]">{user.email}</p>
                     </div>
                     <div className="text-right">
-                      <span className="admin-badge admin-badge-info text-[10px] px-2 py-1 capitalize">
+                      <span className="admin-badge admin-badge-info px-2 py-1 text-[10px] capitalize">
                         {user.role}
                       </span>
-                      <p className="mt-1 font-['Fira_Code'] text-xs text-[var(--admin-text-muted)]">{getTimeAgo(user.created_at)}</p>
+                      <p className="mt-1 font-['Fira_Code'] text-xs text-[var(--admin-text-muted)]">
+                        {getTimeAgo(user.created_at)}
+                      </p>
                     </div>
                   </Link>
                 ))
@@ -251,9 +248,9 @@ export default function AdminDashboardClient({
 
         {/* Activity Feed */}
         <div className="admin-glass-card overflow-hidden">
-          <div className="border-b border-[var(--admin-border)] bg-gradient-to-br from-[var(--admin-warning)]/10 to-transparent p-6">
+          <div className="from-[var(--admin-warning)]/10 border-b border-[var(--admin-border)] bg-gradient-to-br to-transparent p-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--admin-warning)]/10 border border-[var(--admin-warning)]/30">
+              <div className="bg-[var(--admin-warning)]/10 border-[var(--admin-warning)]/30 flex h-10 w-10 items-center justify-center rounded-lg border">
                 <Activity className="h-5 w-5 text-[var(--admin-warning)]" />
               </div>
               <div>
@@ -265,18 +262,17 @@ export default function AdminDashboardClient({
           <div className="p-6">
             <div className="space-y-3">
               {activityFeed.length === 0 ? (
-                <p className="py-8 text-center text-[var(--admin-text-secondary)]">No recent activity</p>
+                <p className="py-8 text-center text-[var(--admin-text-secondary)]">
+                  No recent activity
+                </p>
               ) : (
                 activityFeed.map((activity, index) => (
-                  <div
-                    key={index}
-                    className="admin-glass-card flex items-start gap-3 p-3"
-                  >
+                  <div key={index} className="admin-glass-card flex items-start gap-3 p-3">
                     <div
                       className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full ${
                         activity.type === 'booking'
-                          ? 'border border-[var(--admin-success)]/30 bg-[var(--admin-success)]/10'
-                          : 'border border-[var(--admin-secondary)]/30 bg-[var(--admin-secondary)]/10'
+                          ? 'border-[var(--admin-success)]/30 bg-[var(--admin-success)]/10 border'
+                          : 'border-[var(--admin-secondary)]/30 bg-[var(--admin-secondary)]/10 border'
                       }`}
                     >
                       {activity.type === 'booking' ? (
@@ -289,13 +285,17 @@ export default function AdminDashboardClient({
                       <p className="text-sm text-[var(--admin-text-primary)]">{activity.message}</p>
                       <div className="mt-1 flex items-center gap-2">
                         <Clock className="h-3 w-3 text-[var(--admin-text-muted)]" />
-                        <span className="font-['Fira_Code'] text-xs text-[var(--admin-text-secondary)]">{getTimeAgo(activity.time)}</span>
+                        <span className="font-['Fira_Code'] text-xs text-[var(--admin-text-secondary)]">
+                          {getTimeAgo(activity.time)}
+                        </span>
                         {activity.status && (
                           <span
-                            className={`ml-auto admin-badge text-[10px] px-2 py-0.5 capitalize ${
-                              activity.status === 'completed' ? 'admin-badge-success' :
-                              activity.status === 'pending' ? 'admin-badge-warning' :
-                              'admin-badge-info'
+                            className={`admin-badge ml-auto px-2 py-0.5 text-[10px] capitalize ${
+                              activity.status === 'completed'
+                                ? 'admin-badge-success'
+                                : activity.status === 'pending'
+                                  ? 'admin-badge-warning'
+                                  : 'admin-badge-info'
                             }`}
                           >
                             {activity.status}
@@ -316,8 +316,10 @@ export default function AdminDashboardClient({
         <div className="space-y-8 lg:col-span-2">
           {/* Recent Bookings */}
           <div className="admin-table-container">
-            <div className="flex items-center justify-between border-b border-[var(--admin-border)] bg-gradient-to-br from-[var(--admin-primary)]/10 to-transparent p-6">
-              <h2 className="font-['Fira_Code'] text-lg font-bold text-white">RECENT TRANSACTIONS</h2>
+            <div className="from-[var(--admin-primary)]/10 flex items-center justify-between border-b border-[var(--admin-border)] bg-gradient-to-br to-transparent p-6">
+              <h2 className="font-['Fira_Code'] text-lg font-bold text-white">
+                RECENT TRANSACTIONS
+              </h2>
               <button
                 onClick={() => router.push('/admin/bookings')}
                 className="admin-btn-neon px-3 py-1.5 text-xs"
@@ -338,13 +340,16 @@ export default function AdminDashboardClient({
                 <tbody>
                   {recentBookings.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-[var(--admin-text-secondary)]">
+                      <td
+                        colSpan={4}
+                        className="px-6 py-8 text-center text-[var(--admin-text-secondary)]"
+                      >
                         No recent activity
                       </td>
                     </tr>
                   ) : (
-                    recentBookings.map((booking: any) => (
-                      <tr 
+                    recentBookings.map((booking) => (
+                      <tr
                         key={booking.id}
                         onClick={() => router.push(`/admin/bookings?id=${booking.id}`)}
                         className="cursor-pointer hover:bg-white/5"
@@ -353,10 +358,13 @@ export default function AdminDashboardClient({
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)]">
                               {booking.equipment?.images?.[0] ? (
-                                <img
+                                <Image
                                   src={booking.equipment.images[0]}
-                                  className="h-full w-full object-cover"
                                   alt=""
+                                  width={40}
+                                  height={40}
+                                  className="h-full w-full object-cover"
+                                  unoptimized
                                 />
                               ) : (
                                 <Truck className="h-5 w-5 text-[var(--admin-text-muted)]" />
@@ -378,14 +386,16 @@ export default function AdminDashboardClient({
                           </div>
                         </td>
                         <td className="px-6 py-4 font-['Fira_Code'] font-medium text-[var(--admin-primary)]">
-                          {formatCurrency(booking.total_amount)}
+                          {formatCurrency(booking.total_amount || 0)}
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`admin-badge ${
-                              booking.status === 'completed' ? 'admin-badge-success' : 
-                              booking.status === 'pending' ? 'admin-badge-warning' : 
-                              'admin-badge-info'
+                              booking.status === 'completed'
+                                ? 'admin-badge-success'
+                                : booking.status === 'pending'
+                                  ? 'admin-badge-warning'
+                                  : 'admin-badge-info'
                             }`}
                           >
                             {booking.status}
@@ -404,20 +414,20 @@ export default function AdminDashboardClient({
         <div className="space-y-6">
           {/* Quick Actions */}
           <div className="admin-glass-card p-6">
-            <h3 className="font-['Fira_Code'] mb-4 font-bold text-white">QUICK ACTIONS</h3>
+            <h3 className="mb-4 font-['Fira_Code'] font-bold text-white">QUICK ACTIONS</h3>
             <div className="space-y-3">
               <Link
                 href="/admin/bookings?status=pending"
-                className="group flex w-full items-center justify-between rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 transition-all hover:border-[var(--admin-primary)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98]"
+                className="hover:border-[var(--admin-primary)]/30 group flex w-full cursor-pointer items-center justify-between rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 transition-all hover:scale-[1.02] hover:bg-[var(--admin-bg-hover)] active:scale-[0.98]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-success)]/30 bg-[var(--admin-success)]/10 text-[var(--admin-success)] group-hover:bg-[var(--admin-success)]/20 transition-colors">
+                  <div className="border-[var(--admin-success)]/30 bg-[var(--admin-success)]/10 group-hover:bg-[var(--admin-success)]/20 flex h-8 w-8 items-center justify-center rounded-lg border text-[var(--admin-success)] transition-colors">
                     <Calendar className="h-4 w-4" />
                   </div>
                   <span className="text-sm font-medium text-white">Pending Bookings</span>
                 </div>
-                <span 
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--admin-success)] font-['Fira_Code'] text-xs font-bold text-[var(--admin-bg-base)] group-hover:scale-110 transition-transform"
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--admin-success)] font-['Fira_Code'] text-xs font-bold text-[var(--admin-bg-base)] transition-transform group-hover:scale-110"
                   style={{
                     boxShadow: '0 0 10px var(--admin-primary-glow)',
                   }}
@@ -427,27 +437,27 @@ export default function AdminDashboardClient({
               </Link>
               <Link
                 href="/admin/users"
-                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-secondary)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98] group"
+                className="hover:border-[var(--admin-secondary)]/30 group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:scale-[1.02] hover:bg-[var(--admin-bg-hover)] active:scale-[0.98]"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-secondary)]/30 bg-[var(--admin-secondary)]/10 text-[var(--admin-secondary)] group-hover:bg-[var(--admin-secondary)]/20 transition-colors">
+                <div className="border-[var(--admin-secondary)]/30 bg-[var(--admin-secondary)]/10 group-hover:bg-[var(--admin-secondary)]/20 flex h-8 w-8 items-center justify-center rounded-lg border text-[var(--admin-secondary)] transition-colors">
                   <Users className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">Add New User</span>
               </Link>
               <Link
                 href="/admin/equipment"
-                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-primary)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98] group"
+                className="hover:border-[var(--admin-primary)]/30 group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:scale-[1.02] hover:bg-[var(--admin-bg-hover)] active:scale-[0.98]"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-primary)]/30 bg-[var(--admin-primary)]/10 text-[var(--admin-primary)] group-hover:bg-[var(--admin-primary)]/20 transition-colors">
+                <div className="border-[var(--admin-primary)]/30 bg-[var(--admin-primary)]/10 group-hover:bg-[var(--admin-primary)]/20 flex h-8 w-8 items-center justify-center rounded-lg border text-[var(--admin-primary)] transition-colors">
                   <Package className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">Manage Equipment</span>
               </Link>
               <Link
                 href="/admin/analytics"
-                className="flex w-full items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:border-[var(--admin-warning)]/30 hover:bg-[var(--admin-bg-hover)] hover:scale-[1.02] cursor-pointer active:scale-[0.98] group"
+                className="hover:border-[var(--admin-warning)]/30 group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-bg-elevated)] p-3 text-white transition-all hover:scale-[1.02] hover:bg-[var(--admin-bg-hover)] active:scale-[0.98]"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--admin-warning)]/30 bg-[var(--admin-warning)]/10 text-[var(--admin-warning)]">
+                <div className="border-[var(--admin-warning)]/30 bg-[var(--admin-warning)]/10 flex h-8 w-8 items-center justify-center rounded-lg border text-[var(--admin-warning)]">
                   <TrendingUp className="h-4 w-4" />
                 </div>
                 <span className="text-sm font-medium">View Analytics</span>
@@ -456,8 +466,11 @@ export default function AdminDashboardClient({
           </div>
 
           {/* System Health */}
-          <Link href="/admin/analytics" className="admin-glass-card block p-6 cursor-pointer transition-all hover:scale-[1.02]">
-            <h3 className="font-['Fira_Code'] mb-4 font-bold text-white">SYSTEM STATUS</h3>
+          <Link
+            href="/admin/analytics"
+            className="admin-glass-card block cursor-pointer p-6 transition-all hover:scale-[1.02]"
+          >
+            <h3 className="mb-4 font-['Fira_Code'] font-bold text-white">SYSTEM STATUS</h3>
             <div className="space-y-4">
               <div>
                 <div className="mb-2 flex justify-between font-['Fira_Code'] text-xs font-medium">

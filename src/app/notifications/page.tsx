@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNotifications, useNotificationStats } from '@/lib/services/notifications';
 import type {
   NotificationFilters as FilterType,
   NotificationGroup,
   NotificationCategory,
   NotificationPriority,
+  Notification,
 } from '@/lib/types/notifications';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -73,11 +73,12 @@ import {
   Scissors,
   CircleDollarSign,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import type { ComponentType } from 'react';
+
 // Agriculture-themed notification icons mapping
-const NOTIFICATION_ICONS: Record<NotificationCategory, any> = {
+const NOTIFICATION_ICONS: Record<NotificationCategory, ComponentType<{ className?: string }>> = {
   booking: Tractor,
   message: MessageSquare,
   payment: CircleDollarSign,
@@ -392,7 +393,11 @@ const CATEGORY_COLORS: Record<
 };
 
 // Agriculture-themed categories for filters
-const CATEGORIES: { value: NotificationCategory; label: string; icon: any }[] = [
+const CATEGORIES: {
+  value: NotificationCategory;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+}[] = [
   { value: 'booking', label: 'Bookings', icon: Tractor },
   { value: 'equipment', label: 'Equipment', icon: Truck },
   { value: 'labor', label: 'Labor', icon: Users },
@@ -622,7 +627,7 @@ export default function NotificationsPage() {
     setExpandedGroups(newExpanded);
   };
 
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: Notification) => {
     if (!notification.is_read) {
       try {
         await markAsRead(notification.id);
@@ -1103,7 +1108,7 @@ export default function NotificationsPage() {
                   ) : (
                     <span className="flex items-center gap-2 font-medium text-emerald-400">
                       <CheckCircle className="h-4 w-4" />
-                      You're all caught up! Great job staying on top of your farm operations 🌾
+                      You&apos;re all caught up! Great job staying on top of your farm operations 🌾
                     </span>
                   )}
                 </CardDescription>

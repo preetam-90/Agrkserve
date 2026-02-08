@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { BackButton } from '@/components/ui/back-button';
@@ -15,7 +14,6 @@ import {
   Calendar,
   MapPin
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const steps = [
   {
@@ -50,8 +48,6 @@ const steps = [
 
 export default function ProviderOnboardingPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
-
   const handleGetStarted = () => {
     router.push('/provider/equipment');
   };
@@ -81,7 +77,7 @@ export default function ProviderOnboardingPage() {
             Welcome, Equipment Provider! 🚜
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-[#94A3B8]">
-            You're now registered as an Equipment Provider. Let's get your equipment listed and start earning!
+            You&apos;re now registered as an Equipment Provider. Let&apos;s get your equipment listed and start earning!
           </p>
         </motion.div>
 
@@ -166,7 +162,7 @@ export default function ProviderOnboardingPage() {
             className="border-[#1E293B] text-[#94A3B8] hover:bg-[#1E293B] hover:text-[#F8FAFC]"
             onClick={handleSkip}
           >
-            I'll Do This Later
+            I&apos;ll Do This Later
           </Button>
         </div>
       </div>

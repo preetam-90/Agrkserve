@@ -46,7 +46,8 @@ export function RatingDisplay({
     },
   };
 
-  const avgRating = useMemo(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _avgRating = useMemo(() => {
     return rating || 0;
   }, [rating]);
 

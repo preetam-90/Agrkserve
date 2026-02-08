@@ -17,7 +17,6 @@ import {
   XCircle,
   Tractor,
   CreditCard,
-  FileText,
   Package,
   TrendingUp,
   User,
@@ -258,7 +257,7 @@ function BookingDetailPageContent() {
             <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-400" />
             <h1 className="mb-2 text-2xl font-bold text-[#F8FAFC]">Booking Not Found</h1>
             <p className="mb-6 text-[#94A3B8]">
-              The booking you're looking for doesn't exist or has been removed.
+              The booking you&apos;re looking for doesn&apos;t exist or has been removed.
             </p>
             <Button
               asChild

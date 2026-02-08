@@ -14,9 +14,25 @@ import {
 } from 'lucide-react';
 
 interface SystemTabProps {
-  settings: any;
-  maintenance: any;
-  setMaintenance: (maintenance: any) => void;
+  settings: {
+    platform_name: string;
+    platform_version: string;
+    environment: string;
+  };
+  maintenance: {
+    is_enabled: boolean;
+    message: string;
+    scheduled_start?: string;
+    scheduled_end?: string;
+    whitelisted_ips: string[];
+  };
+  setMaintenance: (maintenance: {
+    is_enabled: boolean;
+    message: string;
+    scheduled_start?: string;
+    scheduled_end?: string;
+    whitelisted_ips: string[];
+  }) => void;
   updatingMaintenance: boolean;
   handleToggleMaintenance: () => void;
   handleUpdateMaintenanceMessage: () => void;
@@ -24,7 +40,13 @@ interface SystemTabProps {
   setNewIp: (ip: string) => void;
   handleAddWhitelistIp: () => void;
   handleRemoveWhitelistIp: (ip: string) => void;
-  healthMetrics: any;
+  healthMetrics: {
+    apiResponseTime: number;
+    dbLoad: number;
+    storageUsage: number;
+    uptime: number;
+    totalRecords: number;
+  };
   loadingHealth: boolean;
   fetchHealthMetrics: () => void;
 }
@@ -123,7 +145,9 @@ export default function SystemTab({
             <div className="h-2 overflow-hidden rounded-full border border-[#262626] bg-[#1a1a1a]">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${Math.min((healthMetrics.apiResponseTime / 500) * 100, 100)}%` }}
+                animate={{
+                  width: `${Math.min((healthMetrics.apiResponseTime / 500) * 100, 100)}%`,
+                }}
                 transition={{ duration: 1, ease: 'easeOut' }}
                 className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600"
               />

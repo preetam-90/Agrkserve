@@ -24,10 +24,11 @@ export function ImageCropper({ open, imageFile, onCrop, onCancel }: ImageCropper
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CroppedAreaPixels | null>(null);
-  const [imageUrl, setImageUrl] = useState<string>(() => URL.createObjectURL(imageFile));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [imageUrl, _setImageUrl] = useState<string>(() => URL.createObjectURL(imageFile));
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: CroppedAreaPixels) => {
+  const onCropComplete = useCallback((_croppedArea: unknown, croppedAreaPixels: CroppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 

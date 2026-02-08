@@ -45,9 +45,6 @@ async function applyMigration() {
 
     console.log(`📝 Found ${statements.length} SQL statements to execute\n`);
 
-    let successCount = 0;
-    let errorCount = 0;
-
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
 
@@ -70,10 +67,8 @@ async function applyMigration() {
           // So we'll note this and continue
         }
 
-        successCount++;
         console.log(`✅ Statement ${i + 1}/${statements.length} executed`);
       } catch (err) {
-        errorCount++;
         console.log(`⚠️  Statement ${i + 1}/${statements.length}: ${err.message}`);
       }
     }

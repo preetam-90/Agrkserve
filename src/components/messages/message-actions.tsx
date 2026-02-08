@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Copy, Reply, Trash2, MoreVertical, Check, X } from 'lucide-react';
+import { Copy, Reply, Trash2, MoreVertical, X } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { cn } from '@/lib/utils';
 import type { DirectMessage } from '@/lib/types';
 
 interface MessageActionsProps {

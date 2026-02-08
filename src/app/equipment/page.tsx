@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef, Suspense, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -236,6 +235,7 @@ function EquipmentCard({
     if (showCalendar) {
       fetchBookedDates();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showCalendar, equipment.id]);
 
   const fetchBookedDates = async () => {
@@ -244,15 +244,18 @@ function EquipmentCard({
       const bookedData = await bookingService.getEquipmentAvailability(equipment.id);
       console.log(`[Calendar] ${equipment.name}: Found ${bookedData.length} occupied dates`);
       setBookedDates(bookedData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Better error logging for Supabase objects
       const detail =
-        error?.message ||
-        error?.details ||
-        error?.code ||
-        (typeof error === 'object'
-          ? JSON.stringify(error, Object.getOwnPropertyNames(error))
-          : String(error));
+        error instanceof Error
+          ? error.message
+          : error && typeof error === 'object' && 'details' in error
+            ? (error as { details?: string }).details
+            : error && typeof error === 'object' && 'code' in error
+              ? (error as { code?: string }).code
+              : typeof error === 'object'
+                ? JSON.stringify(error, Object.getOwnPropertyNames(error))
+                : String(error);
       console.error('[Calendar API Error]:', detail);
     } finally {
       setIsLoadingBooked(false);

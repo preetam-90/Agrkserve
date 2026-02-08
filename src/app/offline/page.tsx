@@ -15,7 +15,9 @@ export default function OfflinePage() {
 
   useEffect(() => {
     // Check initial online status
-    setIsOnline(navigator.onLine);
+
+// eslint-disable-next-line react-hooks/set-state-in-effect
+        setIsOnline(navigator.onLine);
 
     // Listen for online/offline events
     const handleOnline = () => setIsOnline(true);

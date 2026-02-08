@@ -1,11 +1,13 @@
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { BackButton } from '@/components/ui/back-button';
 import { EnhancedProviderDashboard } from '@/components/dashboard/EnhancedProviderDashboard';
+import { InitialData } from '@/lib/types';
 import { ProviderDashboardSkeleton } from '@/components/dashboard/DashboardSkeletons';
+
+
 
 async function getProviderDashboardData() {
   try {
@@ -50,7 +52,11 @@ async function getProviderDashboardData() {
   }
 }
 
-async function ProviderDashboardResolver({ dataPromise }: { dataPromise: Promise<any> }) {
+async function ProviderDashboardResolver({
+  dataPromise,
+}: {
+  dataPromise: Promise<InitialData | null | undefined>;
+}) {
   const data = await dataPromise;
   return <EnhancedProviderDashboard initialData={data} />;
 }

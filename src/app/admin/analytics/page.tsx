@@ -66,35 +66,44 @@ export default function AnalyticsPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Try to fetch analytics
         let analyticsData;
         try {
           analyticsData = await adminService.getAnalytics();
           console.log('Analytics data fetched:', analyticsData);
-        } catch (analyticsError: any) {
-          console.error('Analytics fetch error:', analyticsError?.message || analyticsError);
+        } catch (analyticsError: unknown) {
+          console.error(
+            'Analytics fetch error:',
+            analyticsError instanceof Error ? analyticsError.message : analyticsError
+          );
           throw analyticsError;
         }
-        
+
         // Try to fetch revenue stats
         let revenueData;
         try {
           revenueData = await adminService.getRevenueStats(timeRange as 'week' | 'month' | 'year');
           console.log('Revenue data fetched:', revenueData);
-        } catch (revenueError: any) {
-          console.error('Revenue fetch error:', revenueError?.message || revenueError);
+        } catch (revenueError: unknown) {
+          console.error(
+            'Revenue fetch error:',
+            revenueError instanceof Error ? revenueError.message : revenueError
+          );
           throw revenueError;
         }
-        
+
         // Fetch system health
         let healthData;
         try {
           healthData = await adminService.getSystemHealth();
           console.log('System health fetched:', healthData);
           setSystemHealth(healthData);
-        } catch (healthError: any) {
-          console.error('Health fetch error:', healthError?.message || healthError);
+        } catch (healthError: unknown) {
+          console.error(
+            'Health fetch error:',
+            healthError instanceof Error ? healthError.message : healthError
+          );
           // Use fallback health data
           setSystemHealth({
             status: 'operational',
@@ -107,11 +116,14 @@ export default function AnalyticsPage() {
             },
           });
         }
-        
+
         setAnalytics(analyticsData);
         setRevenueStats(revenueData);
-      } catch (error: any) {
-        console.error('Failed to fetch analytics. Using mock data.', error?.message || error);
+      } catch (error: unknown) {
+        console.error(
+          'Failed to fetch analytics. Using mock data.',
+          error instanceof Error ? error.message : error
+        );
         // Use mock data as fallback
         setAnalytics({
           total_users: 3240,
@@ -125,11 +137,11 @@ export default function AnalyticsPage() {
           active_disputes: 8,
           date: new Date().toISOString(),
         });
-        
+
         // Generate mock revenue data based on time range
         const mockRevenueData = generateMockRevenueData(timeRange);
         setRevenueStats(mockRevenueData);
-        
+
         // Set fallback health data
         setSystemHealth({
           status: 'operational',
@@ -166,8 +178,23 @@ export default function AnalyticsPage() {
       };
     } else {
       return {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        values: [45000, 52000, 48000, 61000, 55000, 67000, 72000, 84000, 79000, 89000, 94000, 102000],
+        labels: [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ],
+        values: [
+          45000, 52000, 48000, 61000, 55000, 67000, 72000, 84000, 79000, 89000, 94000, 102000,
+        ],
         total: 848000,
       };
     }
@@ -175,7 +202,7 @@ export default function AnalyticsPage() {
 
   const handleExportReport = () => {
     if (!analytics) return;
-    
+
     const csvContent = [
       ['Metric', 'Value'],
       ['Total Users', analytics.total_users],
@@ -261,9 +288,10 @@ export default function AnalyticsPage() {
     },
   ];
 
-  const completionRate = analytics.total_bookings > 0 
-    ? ((analytics.completed_bookings / analytics.total_bookings) * 100).toFixed(1)
-    : '0';
+  const completionRate =
+    analytics.total_bookings > 0
+      ? ((analytics.completed_bookings / analytics.total_bookings) * 100).toFixed(1)
+      : '0';
 
   const maxRevenue = revenueStats ? Math.max(...revenueStats.values) : 1;
 
@@ -287,19 +315,19 @@ export default function AnalyticsPage() {
                 <SelectValue placeholder="Time Range" />
               </SelectTrigger>
               <SelectContent className="border-[#262626] bg-[#1a1a1a]">
-                <SelectItem 
+                <SelectItem
                   value="week"
                   className="text-neutral-300 focus:bg-emerald-500/10 focus:text-emerald-400"
                 >
                   This Week
                 </SelectItem>
-                <SelectItem 
+                <SelectItem
                   value="month"
                   className="text-neutral-300 focus:bg-emerald-500/10 focus:text-emerald-400"
                 >
                   This Month
                 </SelectItem>
-                <SelectItem 
+                <SelectItem
                   value="year"
                   className="text-neutral-300 focus:bg-emerald-500/10 focus:text-emerald-400"
                 >
@@ -307,10 +335,10 @@ export default function AnalyticsPage() {
                 </SelectItem>
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
-              className="gap-1.5 border-[#262626] bg-[#1a1a1a] text-sm text-white transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-400 sm:gap-2" 
+              className="gap-1.5 border-[#262626] bg-[#1a1a1a] text-sm text-white transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-400 sm:gap-2"
               onClick={handleExportReport}
             >
               <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -325,18 +353,24 @@ export default function AnalyticsPage() {
             if (metric.isModal) {
               return (
                 <div key={index} onClick={metric.onClick} className="block cursor-pointer">
-                  <Card 
-                    className="group relative overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
+                  <Card className="group relative cursor-pointer overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]">
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
+                    />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2">
-                      <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">{metric.title}</CardTitle>
-                      <div className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}>
+                      <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">
+                        {metric.title}
+                      </CardTitle>
+                      <div
+                        className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}
+                      >
                         <metric.icon className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
                       </div>
                     </CardHeader>
                     <CardContent className="pb-2.5 sm:pb-3">
-                      <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">{metric.value}</div>
+                      <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">
+                        {metric.value}
+                      </div>
                       <div className="mt-0.5 flex items-center text-[10px] sm:mt-1 sm:text-xs">
                         {metric.trend === 'up' ? (
                           <span className="flex items-center font-medium text-emerald-400">
@@ -356,21 +390,27 @@ export default function AnalyticsPage() {
                 </div>
               );
             }
-            
+
             return (
               <Link key={index} href={metric.link || '#'} className="block">
-                <Card 
-                  className="group relative overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />
+                <Card className="group relative cursor-pointer overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-slate-700 hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]">
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${metric.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
+                  />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2">
-                    <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">{metric.title}</CardTitle>
-                    <div className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}>
+                    <CardTitle className="text-[10px] font-medium text-slate-400 sm:text-xs">
+                      {metric.title}
+                    </CardTitle>
+                    <div
+                      className={`rounded-lg bg-gradient-to-br ${metric.gradient} p-1 opacity-80 sm:p-1.5`}
+                    >
                       <metric.icon className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
                     </div>
                   </CardHeader>
                   <CardContent className="pb-2.5 sm:pb-3">
-                    <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">{metric.value}</div>
+                    <div className="text-lg font-bold text-white sm:text-xl lg:text-2xl">
+                      {metric.value}
+                    </div>
                     <div className="mt-0.5 flex items-center text-[10px] sm:mt-1 sm:text-xs">
                       {metric.trend === 'up' ? (
                         <span className="flex items-center font-medium text-emerald-400">
@@ -405,13 +445,19 @@ export default function AnalyticsPage() {
                       <TrendingUp className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" />
                     </div>
                     <div>
-                      <CardTitle className="text-sm font-bold text-white sm:text-base">Revenue Analytics</CardTitle>
+                      <CardTitle className="text-sm font-bold text-white sm:text-base">
+                        Revenue Analytics
+                      </CardTitle>
                       <p className="text-[10px] text-slate-500 sm:text-xs">
-                        {timeRange === 'week' ? 'Last 7 days' : timeRange === 'month' ? 'Last 4 weeks' : 'Last 12 months'}
+                        {timeRange === 'week'
+                          ? 'Last 7 days'
+                          : timeRange === 'month'
+                            ? 'Last 4 weeks'
+                            : 'Last 12 months'}
                       </p>
                     </div>
                   </div>
-                  
+
                   {revenueStats && revenueStats.total > 0 && (
                     <div className="flex items-baseline gap-1.5 sm:gap-2">
                       <span className="text-xl font-bold text-white sm:text-2xl">
@@ -424,7 +470,7 @@ export default function AnalyticsPage() {
                     </div>
                   )}
                 </div>
-                
+
                 {revenueStats && revenueStats.values.length > 0 && (
                   <div className="flex gap-3 text-left sm:gap-4 sm:text-right">
                     <div>
@@ -452,7 +498,9 @@ export default function AnalyticsPage() {
                     {[...Array(5)].map((_, i) => (
                       <div key={i} className="flex items-center gap-1.5 sm:gap-2">
                         <span className="w-8 text-right text-[9px] font-medium text-slate-600 sm:w-10 sm:text-[10px]">
-                          {maxRevenue > 0 ? `₹${((maxRevenue * (1 - i / 4)) / 1000).toFixed(0)}k` : '₹0'}
+                          {maxRevenue > 0
+                            ? `₹${((maxRevenue * (1 - i / 4)) / 1000).toFixed(0)}k`
+                            : '₹0'}
                         </span>
                         <div className="h-px flex-1 bg-slate-800/30" />
                       </div>
@@ -464,17 +512,21 @@ export default function AnalyticsPage() {
                     {revenueStats.values.map((value, i) => {
                       const height = maxRevenue > 0 ? (value / maxRevenue) * 100 : 0;
                       const isHighest = value === Math.max(...revenueStats.values) && value > 0;
-                      
+
                       return (
-                        <div 
-                          key={i} 
+                        <div
+                          key={i}
                           className="group relative flex flex-1 flex-col items-center gap-1.5 sm:gap-2"
                         >
                           {/* Responsive Tooltip */}
                           <div className="absolute -top-14 left-1/2 z-30 -translate-x-1/2 opacity-0 transition-all duration-200 group-hover:opacity-100 sm:-top-16">
                             <div className="relative rounded-lg border border-slate-700/50 bg-slate-800/95 p-1.5 shadow-xl backdrop-blur-sm sm:p-2">
-                              <p className="text-[9px] font-medium text-slate-400 sm:text-[10px]">{revenueStats.labels[i]}</p>
-                              <p className="text-xs font-bold text-white sm:text-sm">₹{value.toLocaleString()}</p>
+                              <p className="text-[9px] font-medium text-slate-400 sm:text-[10px]">
+                                {revenueStats.labels[i]}
+                              </p>
+                              <p className="text-xs font-bold text-white sm:text-sm">
+                                ₹{value.toLocaleString()}
+                              </p>
                               <div className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-slate-700/50 bg-slate-800/95" />
                             </div>
                           </div>
@@ -486,12 +538,12 @@ export default function AnalyticsPage() {
                                 isHighest
                                   ? 'bg-gradient-to-t from-emerald-600 via-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/40'
                                   : value > 0
-                                  ? 'bg-gradient-to-t from-emerald-600/50 via-emerald-500/70 to-emerald-400/90'
-                                  : 'bg-slate-800/30'
+                                    ? 'bg-gradient-to-t from-emerald-600/50 via-emerald-500/70 to-emerald-400/90'
+                                    : 'bg-slate-800/30'
                               } hover:shadow-xl hover:shadow-emerald-500/30`}
-                              style={{ 
+                              style={{
                                 height: `${Math.max(height, 1)}%`,
-                                minHeight: value > 0 ? '10px' : '4px'
+                                minHeight: value > 0 ? '10px' : '4px',
                               }}
                             >
                               <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -516,8 +568,12 @@ export default function AnalyticsPage() {
                     <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 sm:mb-3 sm:h-14 sm:w-14">
                       <TrendingUp className="h-5 w-5 text-slate-600 sm:h-7 sm:w-7" />
                     </div>
-                    <p className="text-xs font-semibold text-slate-400 sm:text-sm">No Revenue Data</p>
-                    <p className="mt-0.5 text-[10px] text-slate-600 sm:mt-1 sm:text-xs">Complete bookings to see revenue</p>
+                    <p className="text-xs font-semibold text-slate-400 sm:text-sm">
+                      No Revenue Data
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-slate-600 sm:mt-1 sm:text-xs">
+                      Complete bookings to see revenue
+                    </p>
                   </div>
                 </div>
               )}
@@ -527,13 +583,15 @@ export default function AnalyticsPage() {
           {/* Platform Overview - Responsive */}
           <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
             <CardHeader className="pb-2.5 sm:pb-3">
-              <CardTitle className="text-sm font-bold text-white sm:text-base">Platform Overview</CardTitle>
+              <CardTitle className="text-sm font-bold text-white sm:text-base">
+                Platform Overview
+              </CardTitle>
               <p className="text-[10px] text-slate-400 sm:text-xs">Key metrics</p>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 sm:space-y-2.5 md:space-y-3">
                 <Link href="/admin/users?filter=renter">
-                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                  <div className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:scale-[1.02] hover:bg-slate-800/50 active:scale-[0.98] sm:p-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="rounded-md bg-blue-500/10 p-1 sm:p-1.5">
                         <Users className="h-3.5 w-3.5 text-blue-400 sm:h-4 sm:w-4" />
@@ -543,27 +601,33 @@ export default function AnalyticsPage() {
                         <p className="text-[9px] text-slate-500 sm:text-[10px]">Renters</p>
                       </div>
                     </div>
-                    <p className="text-base font-bold text-white sm:text-lg">{analytics.total_farmers}</p>
+                    <p className="text-base font-bold text-white sm:text-lg">
+                      {analytics.total_farmers}
+                    </p>
                   </div>
                 </Link>
 
                 <Link href="/admin/users?filter=provider">
-                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                  <div className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:scale-[1.02] hover:bg-slate-800/50 active:scale-[0.98] sm:p-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="rounded-md bg-emerald-500/10 p-1 sm:p-1.5">
                         <Package className="h-3.5 w-3.5 text-emerald-400 sm:h-4 sm:w-4" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Providers</p>
+                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">
+                          Providers
+                        </p>
                         <p className="text-[9px] text-slate-500 sm:text-[10px]">Owners</p>
                       </div>
                     </div>
-                    <p className="text-base font-bold text-white sm:text-lg">{analytics.total_providers}</p>
+                    <p className="text-base font-bold text-white sm:text-lg">
+                      {analytics.total_providers}
+                    </p>
                   </div>
                 </Link>
 
                 <Link href="/admin/labour">
-                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                  <div className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:scale-[1.02] hover:bg-slate-800/50 active:scale-[0.98] sm:p-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="rounded-md bg-amber-500/10 p-1 sm:p-1.5">
                         <Wrench className="h-3.5 w-3.5 text-amber-400 sm:h-4 sm:w-4" />
@@ -573,22 +637,28 @@ export default function AnalyticsPage() {
                         <p className="text-[9px] text-slate-500 sm:text-[10px]">Workers</p>
                       </div>
                     </div>
-                    <p className="text-base font-bold text-white sm:text-lg">{analytics.total_labour}</p>
+                    <p className="text-base font-bold text-white sm:text-lg">
+                      {analytics.total_labour}
+                    </p>
                   </div>
                 </Link>
 
                 <Link href="/admin/disputes">
-                  <div className="flex items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:bg-slate-800/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98] sm:p-2.5">
+                  <div className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-800/30 p-2 transition-all hover:scale-[1.02] hover:bg-slate-800/50 active:scale-[0.98] sm:p-2.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                       <div className="rounded-md bg-red-500/10 p-1 sm:p-1.5">
                         <AlertCircle className="h-3.5 w-3.5 text-red-400 sm:h-4 sm:w-4" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">Disputes</p>
+                        <p className="text-[10px] font-medium text-slate-300 sm:text-xs">
+                          Disputes
+                        </p>
                         <p className="text-[9px] text-slate-500 sm:text-[10px]">Active</p>
                       </div>
                     </div>
-                    <p className="text-base font-bold text-white sm:text-lg">{analytics.active_disputes}</p>
+                    <p className="text-base font-bold text-white sm:text-lg">
+                      {analytics.active_disputes}
+                    </p>
                   </div>
                 </Link>
               </div>
@@ -601,7 +671,9 @@ export default function AnalyticsPage() {
           {/* Booking Success - Responsive */}
           <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
             <CardHeader className="pb-2.5 sm:pb-3">
-              <CardTitle className="text-sm font-bold text-white sm:text-base">Booking Success</CardTitle>
+              <CardTitle className="text-sm font-bold text-white sm:text-base">
+                Booking Success
+              </CardTitle>
               <p className="text-[10px] text-slate-400 sm:text-xs">Completion rate</p>
             </CardHeader>
             <CardContent>
@@ -613,20 +685,22 @@ export default function AnalyticsPage() {
                   </span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-slate-800 sm:h-2">
-                  <div 
+                  <div
                     className="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 sm:h-2"
                     style={{ width: `${completionRate}%` }}
                   />
                 </div>
                 <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-slate-400">Total</span>
-                  <span className="font-medium text-slate-300">
-                    {analytics.total_bookings}
-                  </span>
+                  <span className="font-medium text-slate-300">{analytics.total_bookings}</span>
                 </div>
                 <div className="mt-2 rounded-lg bg-emerald-500/10 p-2.5 text-center sm:mt-3 sm:p-3">
-                  <p className="text-xl font-bold text-emerald-400 sm:text-2xl">{completionRate}%</p>
-                  <p className="mt-0.5 text-[10px] text-slate-400 sm:mt-1 sm:text-xs">Success Rate</p>
+                  <p className="text-xl font-bold text-emerald-400 sm:text-2xl">
+                    {completionRate}%
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-slate-400 sm:mt-1 sm:text-xs">
+                    Success Rate
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -635,17 +709,35 @@ export default function AnalyticsPage() {
           {/* User Distribution - Responsive */}
           <Card className="border-slate-800 bg-slate-900/50 backdrop-blur-sm">
             <CardHeader className="pb-2.5 sm:pb-3">
-              <CardTitle className="text-sm font-bold text-white sm:text-base">User Distribution</CardTitle>
+              <CardTitle className="text-sm font-bold text-white sm:text-base">
+                User Distribution
+              </CardTitle>
               <p className="text-[10px] text-slate-400 sm:text-xs">By role type</p>
             </CardHeader>
             <CardContent>
               <div className="space-y-2.5 sm:space-y-3">
                 {[
-                  { label: 'Farmers', value: analytics.total_farmers, color: 'bg-blue-500', total: analytics.total_users },
-                  { label: 'Providers', value: analytics.total_providers, color: 'bg-emerald-500', total: analytics.total_users },
-                  { label: 'Labour', value: analytics.total_labour, color: 'bg-amber-500', total: analytics.total_users },
+                  {
+                    label: 'Farmers',
+                    value: analytics.total_farmers,
+                    color: 'bg-blue-500',
+                    total: analytics.total_users,
+                  },
+                  {
+                    label: 'Providers',
+                    value: analytics.total_providers,
+                    color: 'bg-emerald-500',
+                    total: analytics.total_users,
+                  },
+                  {
+                    label: 'Labour',
+                    value: analytics.total_labour,
+                    color: 'bg-amber-500',
+                    total: analytics.total_users,
+                  },
                 ].map((item, i) => {
-                  const percentage = item.total > 0 ? ((item.value / item.total) * 100).toFixed(1) : '0';
+                  const percentage =
+                    item.total > 0 ? ((item.value / item.total) * 100).toFixed(1) : '0';
                   return (
                     <div key={i}>
                       <div className="mb-1 flex items-center justify-between text-[10px] sm:mb-1.5 sm:text-xs">
@@ -656,7 +748,7 @@ export default function AnalyticsPage() {
                         <span className="font-medium text-slate-400">{percentage}%</span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-slate-800">
-                        <div 
+                        <div
                           className={`h-1.5 rounded-full ${item.color} transition-all duration-500`}
                           style={{ width: `${percentage}%` }}
                         />
@@ -671,7 +763,9 @@ export default function AnalyticsPage() {
           {/* System Health - Responsive with Real Data */}
           <Card className="border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 backdrop-blur-sm">
             <CardHeader className="pb-2.5 sm:pb-3">
-              <CardTitle className="text-sm font-bold text-white sm:text-base">System Health</CardTitle>
+              <CardTitle className="text-sm font-bold text-white sm:text-base">
+                System Health
+              </CardTitle>
               <p className="text-[10px] text-slate-400 sm:text-xs">Real-time status</p>
             </CardHeader>
             <CardContent>
@@ -683,22 +777,30 @@ export default function AnalyticsPage() {
                         <Zap className="h-3 w-3 text-emerald-400 sm:h-3.5 sm:w-3.5" />
                         <span className="text-slate-300">API Response</span>
                       </div>
-                      <span className={`font-bold ${
-                        systemHealth.metrics.apiResponseTime < 100 ? 'text-emerald-400' :
-                        systemHealth.metrics.apiResponseTime < 300 ? 'text-amber-400' :
-                        'text-red-400'
-                      }`}>
+                      <span
+                        className={`font-bold ${
+                          systemHealth.metrics.apiResponseTime < 100
+                            ? 'text-emerald-400'
+                            : systemHealth.metrics.apiResponseTime < 300
+                              ? 'text-amber-400'
+                              : 'text-red-400'
+                        }`}
+                      >
                         {systemHealth.metrics.apiResponseTime}ms
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-slate-800">
-                      <div 
+                      <div
                         className={`h-1.5 rounded-full transition-all duration-500 ${
-                          systemHealth.metrics.apiResponseTime < 100 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' :
-                          systemHealth.metrics.apiResponseTime < 300 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
-                          'bg-gradient-to-r from-red-500 to-rose-500'
+                          systemHealth.metrics.apiResponseTime < 100
+                            ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                            : systemHealth.metrics.apiResponseTime < 300
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                              : 'bg-gradient-to-r from-red-500 to-rose-500'
                         }`}
-                        style={{ width: `${Math.min((systemHealth.metrics.apiResponseTime / 500) * 100, 100)}%` }}
+                        style={{
+                          width: `${Math.min((systemHealth.metrics.apiResponseTime / 500) * 100, 100)}%`,
+                        }}
                       />
                     </div>
                   </div>
@@ -709,20 +811,26 @@ export default function AnalyticsPage() {
                         <Server className="h-3 w-3 text-blue-400 sm:h-3.5 sm:w-3.5" />
                         <span className="text-slate-300">Server Load</span>
                       </div>
-                      <span className={`font-bold ${
-                        systemHealth.metrics.serverLoad < 50 ? 'text-blue-400' :
-                        systemHealth.metrics.serverLoad < 80 ? 'text-amber-400' :
-                        'text-red-400'
-                      }`}>
+                      <span
+                        className={`font-bold ${
+                          systemHealth.metrics.serverLoad < 50
+                            ? 'text-blue-400'
+                            : systemHealth.metrics.serverLoad < 80
+                              ? 'text-amber-400'
+                              : 'text-red-400'
+                        }`}
+                      >
                         {systemHealth.metrics.serverLoad}%
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-slate-800">
-                      <div 
+                      <div
                         className={`h-1.5 rounded-full transition-all duration-500 ${
-                          systemHealth.metrics.serverLoad < 50 ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
-                          systemHealth.metrics.serverLoad < 80 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
-                          'bg-gradient-to-r from-red-500 to-rose-500'
+                          systemHealth.metrics.serverLoad < 50
+                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500'
+                            : systemHealth.metrics.serverLoad < 80
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                              : 'bg-gradient-to-r from-red-500 to-rose-500'
                         }`}
                         style={{ width: `${systemHealth.metrics.serverLoad}%` }}
                       />
@@ -735,37 +843,49 @@ export default function AnalyticsPage() {
                         <Database className="h-3 w-3 text-violet-400 sm:h-3.5 sm:w-3.5" />
                         <span className="text-slate-300">Database</span>
                       </div>
-                      <span className={`font-bold ${
-                        systemHealth.metrics.dbLoad < 50 ? 'text-violet-400' :
-                        systemHealth.metrics.dbLoad < 80 ? 'text-amber-400' :
-                        'text-red-400'
-                      }`}>
+                      <span
+                        className={`font-bold ${
+                          systemHealth.metrics.dbLoad < 50
+                            ? 'text-violet-400'
+                            : systemHealth.metrics.dbLoad < 80
+                              ? 'text-amber-400'
+                              : 'text-red-400'
+                        }`}
+                      >
                         {systemHealth.metrics.dbLoad}%
                       </span>
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-slate-800">
-                      <div 
+                      <div
                         className={`h-1.5 rounded-full transition-all duration-500 ${
-                          systemHealth.metrics.dbLoad < 50 ? 'bg-gradient-to-r from-violet-500 to-purple-500' :
-                          systemHealth.metrics.dbLoad < 80 ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
-                          'bg-gradient-to-r from-red-500 to-rose-500'
+                          systemHealth.metrics.dbLoad < 50
+                            ? 'bg-gradient-to-r from-violet-500 to-purple-500'
+                            : systemHealth.metrics.dbLoad < 80
+                              ? 'bg-gradient-to-r from-amber-500 to-orange-500'
+                              : 'bg-gradient-to-r from-red-500 to-rose-500'
                         }`}
                         style={{ width: `${systemHealth.metrics.dbLoad}%` }}
                       />
                     </div>
                   </div>
 
-                  <div className={`mt-3 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[10px] sm:mt-4 sm:gap-2 sm:py-2.5 sm:text-xs ${
-                    systemHealth.status === 'operational' ? 'bg-emerald-500/10 text-emerald-400' :
-                    systemHealth.status === 'degraded' ? 'bg-amber-500/10 text-amber-400' :
-                    'bg-red-500/10 text-red-400'
-                  }`}>
+                  <div
+                    className={`mt-3 flex items-center justify-center gap-1.5 rounded-lg py-2 text-[10px] sm:mt-4 sm:gap-2 sm:py-2.5 sm:text-xs ${
+                      systemHealth.status === 'operational'
+                        ? 'bg-emerald-500/10 text-emerald-400'
+                        : systemHealth.status === 'degraded'
+                          ? 'bg-amber-500/10 text-amber-400'
+                          : 'bg-red-500/10 text-red-400'
+                    }`}
+                  >
                     <Activity className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                    {systemHealth.status === 'operational' ? 'All systems operational' :
-                     systemHealth.status === 'degraded' ? 'Performance degraded' :
-                     'System error detected'}
+                    {systemHealth.status === 'operational'
+                      ? 'All systems operational'
+                      : systemHealth.status === 'degraded'
+                        ? 'Performance degraded'
+                        : 'System error detected'}
                   </div>
-                  
+
                   <div className="mt-2 border-t border-slate-800 pt-2 sm:mt-3 sm:pt-3">
                     <div className="flex items-center justify-between text-[10px] sm:text-xs">
                       <span className="text-slate-500">Uptime</span>

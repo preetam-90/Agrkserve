@@ -78,6 +78,7 @@ export const dmService = {
         // Try to produce a helpful human-readable message. Some error objects
         // from the Supabase/Postgres client are non-enumerable and JSON.stringify
         // returns "{}". Attempt several fallbacks to surface useful details.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let errMsg: string | undefined =
           (error as any)?.message ||
           (error as any)?.code ||
@@ -88,9 +89,10 @@ export const dmService = {
           try {
             const props = Object.getOwnPropertyNames(error || ({} as any));
             if (props.length > 0) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               errMsg = props.map((k) => `${k}:${(error as any)[k]}`).join(', ');
             }
-          } catch (e) {
+          } catch {
             // ignore
           }
         }
@@ -261,7 +263,7 @@ export const dmService = {
       // Fetch replied messages
       const replyToIds = messages.filter((m) => m.reply_to_id).map((m) => m.reply_to_id);
       let repliedMessagesMap = new Map();
-      
+
       if (replyToIds.length > 0) {
         const { data: repliedMessages } = await supabase
           .from('dm_messages')
@@ -307,7 +309,11 @@ export const dmService = {
   /**
    * Send a message
    */
-  async sendMessage(conversationId: string, content: string, replyToId?: string): Promise<DirectMessage> {
+  async sendMessage(
+    conversationId: string,
+    content: string,
+    replyToId?: string
+  ): Promise<DirectMessage> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -403,7 +409,8 @@ export const dmService = {
       const filePath = `${user.id}/${conversationId}/${timestamp}.${fileExt}`;
 
       // Upload file to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { data: _uploadData, error: uploadError } = await supabase.storage
         .from('chat-media')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -568,7 +575,8 @@ export const dmService = {
       }
 
       // Build insert data - conditionally include KLIPY fields if columns exist
-      const insertData: any = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const insertData: Record<string, any> = {
         conversation_id: conversationId,
         sender_id: user.id,
         content: caption?.trim() || null,
@@ -586,7 +594,7 @@ export const dmService = {
       try {
         insertData.klipy_slug = klipyMedia.slug;
         insertData.klipy_blur_preview = klipyMedia.blur_preview || null;
-      } catch (e) {
+      } catch {
         // KLIPY columns don't exist yet - that's OK, migration pending
       }
 

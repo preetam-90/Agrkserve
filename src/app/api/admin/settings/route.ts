@@ -15,15 +15,18 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     // Convert to key-value object
-    const settings: Record<string, any> = {};
-    data?.forEach((item: any) => {
+    const settings: Record<string, unknown> = {};
+    data?.forEach((item: { key: string; value: unknown }) => {
       settings[item.key] = item.value;
     });
 
     return NextResponse.json({ settings, raw: data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching system settings:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -46,8 +49,11 @@ export async function PUT(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, updated: data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating system setting:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }

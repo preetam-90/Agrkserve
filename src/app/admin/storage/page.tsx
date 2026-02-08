@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import Image from 'next/image';
 import {
   HardDrive,
   FileText,
@@ -28,13 +28,18 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface FileMetadata {
+  mimetype: string;
+  size: number;
+}
+
 interface FileItem {
   name: string;
   id: string | null;
   updated_at: string | null;
   created_at: string | null;
   last_accessed_at: string | null;
-  metadata: Record<string, any> | null;
+  metadata: FileMetadata | null;
 }
 
 interface BucketStats {
@@ -45,7 +50,7 @@ interface BucketStats {
 }
 
 export default function StoragePage() {
-  const [buckets, setBuckets] = useState<any[]>([]);
+  const [buckets, setBuckets] = useState<{ name: string; public: boolean }[]>([]);
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,9 +63,6 @@ export default function StoragePage() {
   const [sortBy, setSortBy] = useState<'name' | 'size' | 'date'>('name');
   const [bucketStats, setBucketStats] = useState<BucketStats | null>(null);
   const [showAnalytics, setShowAnalytics] = useState(false);
-
-  const supabase = createClient();
-  const SUPABASE_URL = 'https://csmylqtojxzmdbkaexqu.supabase.co';
 
   const fetchBuckets = async () => {
     setLoading(true);
@@ -117,7 +119,7 @@ export default function StoragePage() {
     fileList.forEach((file) => {
       if (file.metadata) {
         fileCount++;
-        totalSize += file.metadata.size || 0;
+        totalSize += (file.metadata.size as number) || 0;
         const ext = file.name.split('.').pop()?.toLowerCase() || 'unknown';
         fileTypes[ext] = (fileTypes[ext] || 0) + 1;
       } else {
@@ -130,11 +132,13 @@ export default function StoragePage() {
 
   useEffect(() => {
     fetchBuckets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     fetchFiles();
     setSelectedFiles(new Set());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBucket, path]);
 
   const formatSize = (bytes: number) => {
@@ -178,7 +182,7 @@ export default function StoragePage() {
     if (!selectedBucket) return '';
     const currentPath = path.join('/');
     const fullPath = currentPath ? `${currentPath}/${file.name}` : file.name;
-    return `${SUPABASE_URL}/storage/v1/object/public/${selectedBucket}/${fullPath}`;
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${selectedBucket}/${fullPath}`;
   };
 
   const handleFileDelete = async (file: FileItem) => {
@@ -269,8 +273,8 @@ export default function StoragePage() {
       } else {
         fetchFiles();
       }
-    } catch (error: any) {
-      alert('Upload failed: ' + error.message);
+    } catch (error: unknown) {
+      alert('Upload failed: ' + (error instanceof Error ? error.message : String(error)));
     }
 
     setUploading(false);
@@ -297,7 +301,7 @@ export default function StoragePage() {
   };
 
   const filteredAndSortedFiles = useMemo(() => {
-    let filtered = files.filter((file) => {
+    const filtered = files.filter((file) => {
       if (searchQuery && !file.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
@@ -526,7 +530,7 @@ export default function StoragePage() {
             {/* Sort */}
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'name' | 'size' | 'date')}
               className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             >
               <option value="name">Sort by Name</option>
@@ -606,10 +610,12 @@ export default function StoragePage() {
                       className="relative aspect-video cursor-pointer overflow-hidden bg-slate-50 dark:bg-slate-900"
                     >
                       {isImageFile(file) ? (
-                        <img
+                        <Image
                           src={getFileUrl(file)}
                           alt={file.name}
+                          fill
                           className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          unoptimized
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">
@@ -719,11 +725,15 @@ export default function StoragePage() {
               {/* Content */}
               <div className="max-h-[70vh] overflow-auto p-6">
                 {previewFile.metadata?.mimetype.startsWith('image/') ? (
-                  <img
-                    src={getFileUrl(previewFile)}
-                    alt={previewFile.name}
-                    className="mx-auto max-h-[60vh] rounded-lg"
-                  />
+                  <div className="relative mx-auto aspect-square max-h-[60vh] w-auto">
+                    <Image
+                      src={getFileUrl(previewFile)}
+                      alt={previewFile.name}
+                      fill
+                      className="rounded-lg object-contain"
+                      unoptimized
+                    />
+                  </div>
                 ) : previewFile.metadata?.mimetype.includes('pdf') ? (
                   <iframe
                     src={getFileUrl(previewFile)}

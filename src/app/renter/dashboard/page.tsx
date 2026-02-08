@@ -19,19 +19,19 @@ import { Header, Footer } from '@/components/layout';
 import { Button, Input, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
 import { equipmentService, bookingService, labourService } from '@/lib/services';
 import { useAuthStore, useAppStore } from '@/lib/store';
-import { Equipment, Booking } from '@/lib/types';
+import { Equipment, Booking, LabourBooking } from '@/lib/types';
 import { EQUIPMENT_CATEGORIES, formatCurrency } from '@/lib/utils';
-import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import Image from 'next/image';
 
 export default function RenterDashboard() {
   const { profile } = useAuthStore();
-  const { userLocation, sidebarOpen } = useAppStore();
+  const { userLocation } = useAppStore();
 
   const [nearbyEquipment, setNearbyEquipment] = useState<Equipment[]>([]);
   const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
-  const [recentLabourBookings, setRecentLabourBookings] = useState<any[]>([]);
+  const [recentLabourBookings, setRecentLabourBookings] = useState<LabourBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -40,7 +40,7 @@ export default function RenterDashboard() {
 
     // Set up real-time subscription
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
@@ -55,25 +55,28 @@ export default function RenterDashboard() {
         console.log('Setting up renter dashboard subscription');
 
         // Subscribe to bookings changes for this renter
-        channel = supabase
-          .channel('renter-dashboard-bookings')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'bookings',
-              filter: `renter_id=eq.${currentUser.id}`,
-            },
-            async (payload) => {
-              console.log('Renter dashboard real-time update:', payload);
-              // Reload dashboard data to get updated bookings
-              loadDashboardData();
-            }
-          )
-          .subscribe((status) => {
-            console.log('Renter dashboard subscription status:', status);
-          });
+        const ch = supabase.channel('renter-dashboard-bookings');
+
+        ch.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings',
+            filter: `renter_id=eq.${currentUser.id}`,
+          },
+          async (payload) => {
+            console.log('Renter dashboard real-time update:', payload);
+            // Reload dashboard data to get updated bookings
+            loadDashboardData();
+          }
+        );
+
+        ch.subscribe((status) => {
+          console.log('Renter dashboard subscription status:', status);
+        });
+
+        channel = ch;
       } catch (error) {
         console.error('Failed to setup renter dashboard subscription:', error);
       }
@@ -278,7 +281,7 @@ export default function RenterDashboard() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {recentBookings.map((booking) => (
+                {recentBookings.map((booking: Booking) => (
                   <Link key={booking.id} href={`/renter/bookings/${booking.id}`}>
                     <Card className="transition-shadow hover:shadow-md">
                       <CardContent className="flex items-center gap-4 p-4">
@@ -321,7 +324,7 @@ export default function RenterDashboard() {
                 </Link>
               </div>
               <div className="space-y-3">
-                {recentLabourBookings.map((booking) => (
+                {recentLabourBookings.map((booking: LabourBooking) => (
                   <Link key={booking.id} href={`/renter/labour/bookings`}>
                     <Card className="transition-shadow hover:shadow-md">
                       <CardContent className="flex items-center gap-4 p-4">
@@ -330,7 +333,7 @@ export default function RenterDashboard() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-medium text-gray-900">
-                            {booking.labour?.user?.full_name || 'Labour'}
+                            {booking.labour?.user?.name || 'Labour'}
                           </p>
                           <p className="flex items-center gap-1 text-sm text-gray-500">
                             <Clock className="h-3 w-3" />

@@ -1,37 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import SearchFilterBar from '@/components/admin/SearchFilterBar';
 import Link from 'next/link';
-import { 
-  Eye, 
-  Edit, 
-  Trash2, 
-  Tractor, 
-  Plus, 
-  TrendingUp, 
-  DollarSign, 
+import Image from 'next/image';
+import {
+  Eye,
+  Edit,
+  Trash2,
+  Tractor,
+  Plus,
+  TrendingUp,
+  DollarSign,
   Package,
   AlertCircle,
   CheckCircle2,
-  XCircle
+  XCircle,
 } from 'lucide-react';
-import { ITEMS_PER_PAGE, EQUIPMENT_CATEGORY_OPTIONS } from '@/lib/utils/admin-constants';
+import { ITEMS_PER_PAGE } from '@/lib/utils/admin-constants';
 import DataTable from '@/components/admin/DataTable';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
+interface EquipmentItem {
+  id?: string;
+  name?: string;
+  category?: string;
+  brand?: string;
+  price_per_day?: number;
+  is_available?: boolean;
+  rating?: number;
+  review_count?: number;
+  images?: string[];
+  owner?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+}
+
 export default function EquipmentPage() {
-  const [equipment, setEquipment] = useState<any[]>([]);
+  const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
-  const [uploadedImages, setUploadedImages] = useState<Record<string, string[]>>({});
-  const [isUploading, setIsUploading] = useState(false);
   const [stats, setStats] = useState({
     totalAssets: 0,
     availableCount: 0,
@@ -41,7 +55,8 @@ export default function EquipmentPage() {
 
   const supabase = createClient();
 
-  const fetchEquipment = async () => {
+  const fetchEquipment = useCallback(async () => {
+    const supabase = createClient();
     setLoading(true);
     try {
       // Build base query for paginated data
@@ -75,7 +90,9 @@ export default function EquipmentPage() {
       let statsQuery = supabase.from('equipment').select('is_available, price_per_day');
 
       if (search) {
-        statsQuery = statsQuery.or(`name.ilike.%${search}%,brand.ilike.%${search}%,model.ilike.%${search}%`);
+        statsQuery = statsQuery.or(
+          `name.ilike.%${search}%,brand.ilike.%${search}%,model.ilike.%${search}%`
+        );
       }
 
       if (categoryFilter) {
@@ -103,11 +120,11 @@ export default function EquipmentPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, categoryFilter, currentPage]);
 
   useEffect(() => {
     fetchEquipment();
-  }, [search, categoryFilter, currentPage]);
+  }, [fetchEquipment]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -121,73 +138,80 @@ export default function EquipmentPage() {
     {
       key: 'name',
       label: 'Equipment',
-      render: (item: any) => (
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm transition-transform hover:scale-105 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
-            {item.images?.[0] ? (
-              <img 
-                src={item.images[0]} 
-                alt={item.name} 
-                className="h-full w-full object-cover" 
-              />
-            ) : (
-              <Tractor className="h-7 w-7 text-slate-400 dark:text-slate-500" />
-            )}
-            {/* Status indicator badge */}
-            <div className={`absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-800 ${
-              item.is_available ? 'bg-green-500' : 'bg-amber-500'
-            }`} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="line-clamp-1 font-semibold text-slate-900 dark:text-white">
-              {item.name}
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                {item.category}
-              </span>
-              {item.brand && (
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  {item.brand}
-                </span>
+      render: (item: unknown) => {
+        const eq = item as EquipmentItem;
+        return (
+          <div className="flex items-center gap-3">
+            <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm transition-transform hover:scale-105 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+              {eq.images?.[0] ? (
+                <Image
+                  src={eq.images[0]}
+                  alt={eq.name || 'Equipment'}
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Tractor className="h-7 w-7 text-slate-400 dark:text-slate-500" />
               )}
+              <div
+                className={`absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white dark:border-slate-800 ${eq.is_available ? 'bg-green-500' : 'bg-amber-500'}`}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-1 font-semibold text-slate-900 dark:text-white">{eq.name}</p>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                  {eq.category}
+                </span>
+                {eq.brand && (
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{eq.brand}</span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: 'owner',
       label: 'Owner',
-      render: (item: any) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-slate-900 dark:text-white">
-            {item.owner?.name || 'Unknown'}
-          </span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {item.owner?.phone || 'No phone'}
-          </span>
-        </div>
-      ),
+      render: (item: unknown) => {
+        const eq = item as EquipmentItem;
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium text-slate-900 dark:text-white">
+              {eq.owner?.name || 'Unknown'}
+            </span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {eq.owner?.phone || 'No phone'}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: 'price',
       label: 'Price / Day',
       sortable: true,
-      render: (item: any) => (
-        <div className="flex flex-col">
-          <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
-            {formatCurrency(item.price_per_day)}
-          </span>
-          <span className="text-xs text-slate-500">per day</span>
-        </div>
-      ),
+      render: (item: unknown) => {
+        const eq = item as EquipmentItem;
+        return (
+          <div className="flex flex-col">
+            <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
+              {formatCurrency(eq.price_per_day || 0)}
+            </span>
+            <span className="text-xs text-slate-500">per day</span>
+          </div>
+        );
+      },
     },
     {
       key: 'status',
       label: 'Availability',
-      render: (item: any) =>
-        item.is_available ? (
+      render: (item: unknown) => {
+        const eq = item as EquipmentItem;
+        return eq.is_available ? (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 dark:border-green-900/30 dark:bg-green-900/20 dark:text-green-400">
             <CheckCircle2 className="h-3.5 w-3.5" />
             Available
@@ -197,25 +221,27 @@ export default function EquipmentPage() {
             <XCircle className="h-3.5 w-3.5" />
             Rented
           </span>
-        ),
+        );
+      },
     },
     {
       key: 'rating',
       label: 'Rating',
       sortable: true,
-      render: (item: any) => (
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <span className="text-lg text-amber-400">★</span>
-            <span className="text-sm font-bold text-slate-900 dark:text-white">
-              {item.rating?.toFixed(1) || '0.0'}
-            </span>
+      render: (item: unknown) => {
+        const eq = item as EquipmentItem;
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <span className="text-lg text-amber-400">★</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
+                {eq.rating?.toFixed(1) || '0.0'}
+              </span>
+            </div>
+            <span className="text-xs text-slate-400">({eq.review_count || 0} reviews)</span>
           </div>
-          <span className="text-xs text-slate-400">
-            ({item.review_count || 0} reviews)
-          </span>
-        </div>
-      ),
+        );
+      },
     },
   ];
 
@@ -242,66 +268,22 @@ export default function EquipmentPage() {
     {
       label: 'View Details',
       icon: Eye,
-      onClick: (item: any) => (window.location.href = `/admin/equipment/${item.id}`),
+      onClick: (item: unknown) =>
+        (window.location.href = `/admin/equipment/${(item as { id?: string }).id}`),
     },
     {
       label: 'Edit',
       icon: Edit,
-      onClick: (item: any) => (window.location.href = `/admin/equipment/${item.id}/edit`),
+      onClick: (item: unknown) =>
+        (window.location.href = `/admin/equipment/${(item as { id?: string }).id}/edit`),
     },
     {
       label: 'Delete',
       icon: Trash2,
       danger: true,
-      onClick: (item: any) => deleteEquipment(item.id),
+      onClick: (item: unknown) => deleteEquipment((item as { id?: string }).id || ''),
     },
   ];
-
-  // Handle equipment image upload completion
-  const handleEquipmentImageUpload = async (
-    equipmentId: string,
-    files: Array<{ url: string; name: string; size: number }>
-  ) => {
-    if (files.length === 0) return;
-
-    const imageUrls = files.map((f) => f.url);
-
-    // Get current images from the equipment item
-    const equipmentItem = equipment.find((e) => e.id === equipmentId);
-    const currentImages = equipmentItem?.images || [];
-    const updatedImages = [...currentImages, ...imageUrls];
-
-    setIsUploading(true);
-    try {
-      // Update equipment with new images
-      const { error } = await supabase
-        .from('equipment')
-        .update({
-          images: updatedImages,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', equipmentId);
-
-      if (error) throw error;
-
-      // Update local state
-      setEquipment((prev) =>
-        prev.map((e) => (e.id === equipmentId ? { ...e, images: updatedImages } : e))
-      );
-
-      setUploadedImages((prev) => ({
-        ...prev,
-        [equipmentId]: imageUrls,
-      }));
-
-      toast.success('Equipment images uploaded successfully!');
-    } catch (err: any) {
-      console.error('Failed to save equipment images:', err);
-      toast.error('Failed to save equipment images');
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -335,9 +317,7 @@ export default function EquipmentPage() {
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                Total Assets
-              </p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Total Assets</p>
               <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
                 {stats.totalAssets}
               </h3>
@@ -359,9 +339,7 @@ export default function EquipmentPage() {
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                Available
-              </p>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Available</p>
               <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
                 {stats.availableCount}
               </h3>
@@ -434,11 +412,10 @@ export default function EquipmentPage() {
             <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-blue-900 dark:text-blue-100">
-              No equipment found
-            </h3>
+            <h3 className="font-semibold text-blue-900 dark:text-blue-100">No equipment found</h3>
             <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
-              Get started by adding your first equipment item. Click the "Add Equipment" button above to begin.
+              Get started by adding your first equipment item. Click the &quot;Add Equipment&quot;
+              button above to begin.
             </p>
           </div>
         </motion.div>

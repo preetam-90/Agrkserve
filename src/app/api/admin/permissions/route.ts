@@ -9,7 +9,8 @@ import { ROLE_PERMISSIONS } from '@/lib/types/cloudinary-admin';
 
 export const runtime = 'nodejs';
 
-export async function GET(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function GET(_request: NextRequest) {
   try {
     const admin = await getAdminUserWithRole();
 
@@ -20,10 +21,13 @@ export async function GET(request: NextRequest) {
     const permissions = ROLE_PERMISSIONS[admin.role] || {};
 
     return NextResponse.json({ success: true, data: { user: admin, permissions } });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching admin permissions:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch permissions' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch permissions',
+      },
       { status: 500 }
     );
   }

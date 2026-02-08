@@ -1,14 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import type { NotificationFilters as FilterType, NotificationCategory, NotificationPriority } from '@/lib/types/notifications';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Filter, X, Eye, CheckCircle, Inbox } from 'lucide-react';
+import { Eye, CheckCircle, Inbox } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 interface NotificationFiltersProps {
   filters: FilterType;

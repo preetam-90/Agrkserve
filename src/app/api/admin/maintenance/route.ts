@@ -11,9 +11,12 @@ export async function GET() {
     if (error) throw error;
 
     return NextResponse.json({ maintenance: data?.[0] || null });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching maintenance mode:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }
 
@@ -39,8 +42,11 @@ export async function PUT(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, updated: data });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating maintenance mode:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
   }
 }

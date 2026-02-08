@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Download, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui';
@@ -59,6 +59,7 @@ export function MediaViewer({ messages, currentMessageId, onClose, onNavigate }:
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasPrev, hasNext, isZoomed, onClose]);
 
   // Prevent body scroll when modal is open

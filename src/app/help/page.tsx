@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from 'react';
 import {
   Mail,
   Phone,
-  BookOpen,
   Users,
   ChevronDown,
   Sparkles,
@@ -176,6 +175,7 @@ export default function HelpPage() {
 
   // Fix hydration: Generate particles only on client
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -295,7 +295,7 @@ export default function HelpPage() {
           <div className="mb-6">
             <BackButton variant="minimal" />
           </div>
-          
+
           {/* Hero Section */}
           <motion.div
             style={{ opacity: opacity1 }}
@@ -366,7 +366,7 @@ export default function HelpPage() {
             viewport={{ once: true, margin: '-100px' }}
             variants={containerVariants}
           >
-            {helpCards.map((card, index) => {
+            {helpCards.map((card) => {
               const Icon = card.icon;
               return (
                 <motion.div

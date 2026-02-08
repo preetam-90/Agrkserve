@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -62,7 +62,8 @@ const givenReviews = [
 ];
 
 export default function ProviderReviewsPage() {
-  const [activeTab, setActiveTab] = useState('received');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_activeTab, setActiveTab] = useState('received');
 
   const renderStars = (rating: number) => {
     return (

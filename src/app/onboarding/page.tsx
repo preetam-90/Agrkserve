@@ -654,7 +654,7 @@ export default function OnboardingPage() {
             >
               <div className="text-center">
                 <h1 className="mb-3 text-3xl font-bold text-stone-100">Where are you located?</h1>
-                <p className="text-stone-400">We'll show you equipment and services nearby</p>
+                <p className="text-stone-400">We&apos;ll show you equipment and services nearby</p>
               </div>
 
               <div className="relative">

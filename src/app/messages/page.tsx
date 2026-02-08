@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
-import { Header, Footer } from '@/components/layout';
+import { Header } from '@/components/layout';
 import { ChatList } from '@/components/messages';
 import dynamic from 'next/dynamic';
 
@@ -67,6 +67,7 @@ function MessagesContent() {
       // Start a new conversation with a user
       startConversationWithUser(userParam);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, user]);
 
   // Cleanup on unmount

@@ -12,7 +12,6 @@ import {
   Film,
   Calendar,
   User,
-  Folder,
 } from 'lucide-react';
 import type { MediaFilters, MediaType } from '@/lib/types/cloudinary-admin';
 

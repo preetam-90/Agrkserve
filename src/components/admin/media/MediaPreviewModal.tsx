@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -26,6 +27,13 @@ import type { AdminPermissions } from '@/lib/types/cloudinary-admin';
 import type { CloudinaryAssetWithUser } from '@/lib/types/cloudinary-admin';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
+
+interface AuditLogCountResponse {
+  success: boolean;
+  data: {
+    total: number;
+  };
+}
 
 interface MediaPreviewModalProps {
   isOpen: boolean;
@@ -80,10 +88,10 @@ export function MediaPreviewModal({
             // Defensive parsing: some error responses may be non-JSON (HTML error pages,
             // proxies, or empty bodies). Attempt to parse JSON and fall back to raw
             // text for diagnostics.
-            let countJson: any = null;
+            let countJson: unknown = null;
             let countText: string | null = null;
             try {
-              countJson = await countRes.clone().json();
+              countJson = (await countRes.clone().json()) as AuditLogCountResponse;
             } catch (parseErr) {
               try {
                 countText = await countRes.clone().text();
@@ -114,10 +122,10 @@ export function MediaPreviewModal({
               return;
             }
 
-            if (countJson && countJson.success && countJson.data) {
+            if (countJson && (countJson as AuditLogCountResponse).success && (countJson as AuditLogCountResponse).data) {
               if (!mounted) return;
-              setAuditCount(Number(countJson.data.total || 0));
-            } else if (countJson && !countJson.success) {
+              setAuditCount(Number((countJson as AuditLogCountResponse).data.total || 0));
+            } else if (countJson && !(countJson as AuditLogCountResponse).success) {
               console.warn('Audit count endpoint returned success=false', countJson);
               setAuditCount(null);
             } else {
@@ -142,8 +150,6 @@ export function MediaPreviewModal({
   if (!isOpen || !asset) return null;
 
   const isVideo = asset.resource_type === 'video';
-  const isImage = asset.resource_type === 'image';
-
   // Navigation
   const currentIndex = assets.findIndex((a) => a.public_id === asset.public_id);
   const hasPrev = currentIndex > 0;
@@ -171,7 +177,7 @@ export function MediaPreviewModal({
       setCopiedField(field);
       toast.success(`Copied ${field} to clipboard`);
       setTimeout(() => setCopiedField(null), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Failed to copy');
     }
   };
@@ -261,11 +267,16 @@ export function MediaPreviewModal({
                       onLoadedData={() => setIsLoading(false)}
                     />
                   ) : (
-                    <img
+                     
+
+                    <Image
                       src={asset.secure_url}
                       alt={asset.public_id}
-                      className="max-h-full max-w-full rounded-lg object-contain"
+                      fill
+                      className="rounded-lg object-contain"
                       onLoad={() => setIsLoading(false)}
+                      sizes="(max-width: 1024px) 100vw, 75vw"
+                      priority
                     />
                   )}
 
@@ -275,7 +286,6 @@ export function MediaPreviewModal({
                       {hasPrev && (
                         <button
                           onClick={() => {
-                            const prevAsset = assets[currentIndex - 1];
                             onClose();
                             setTimeout(() => {
                               // This would need to be handled by parent component
@@ -290,7 +300,6 @@ export function MediaPreviewModal({
                       {hasNext && (
                         <button
                           onClick={() => {
-                            const nextAsset = assets[currentIndex + 1];
                             onClose();
                             setTimeout(() => {
                               // This would need to be handled by parent component

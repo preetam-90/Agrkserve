@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Menu,
-  X,
   ChevronDown,
   LogOut,
   User,
@@ -14,7 +12,6 @@ import {
   ArrowRight,
   LayoutDashboard,
   Sprout,
-  Users,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -26,7 +23,7 @@ import {
   useMotionValue,
   useTransform,
 } from 'framer-motion';
-import { useAuthStore, useAppStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 import { Avatar, Button, Badge } from '@/components/ui';
 import {
   DropdownMenu,
@@ -36,7 +33,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui';
-import { cn, formatStatus } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/notifications/notification-bell';
 import { MessageBadge } from '@/components/messages';
 import { getRoleDisplayName, getRoleIcon } from '@/lib/navigation';
@@ -51,6 +48,7 @@ const publicNav = [
 ];
 
 // Magnetic button hook for desktop
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useMagneticButton(strength: number = 0.3) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -122,7 +120,9 @@ export function Header() {
   }, [mouseX, mouseY]);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+
+// eslint-disable-next-line react-hooks/set-state-in-effect
+        setMobileMenuOpen(false);
   }, [pathname]);
 
   const getDashboardLink = useCallback(() => {

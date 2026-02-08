@@ -18,14 +18,12 @@ import {
   Power,
   Save,
   CheckCircle2,
-  Sparkles,
   ChevronRight,
   Info,
 } from 'lucide-react';
 import {
   motion,
   useMotionTemplate,
-  useMotionValue,
   useSpring,
   AnimatePresence,
 } from 'framer-motion';
@@ -41,15 +39,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Spinner,
   VideoTrimmer,
   ImageCropper,
   CircularProgress,
 } from '@/components/ui';
 import { equipmentService } from '@/lib/services';
-import { useAuthStore, useAppStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 import { EquipmentCategory } from '@/lib/types';
-import { EQUIPMENT_CATEGORIES, cn } from '@/lib/utils';
+import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 import { IMAGE_UPLOAD } from '@/lib/utils/constants';
 import { trimVideo, getVideoDuration } from '@/lib/utils/ffmpeg-trimmer';
 import toast from 'react-hot-toast';
@@ -78,7 +75,6 @@ export default function EquipmentFormPage() {
   const router = useRouter();
   const params = useParams();
   const { profile } = useAuthStore();
-  const { sidebarOpen } = useAppStore();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isEdit = params.id !== 'new';
@@ -291,7 +287,7 @@ export default function EquipmentFormPage() {
               try {
                 const data = JSON.parse(xhr.responseText);
                 resolve(data.secure_url as string);
-              } catch (parseError) {
+              } catch {
                 reject(new Error('Invalid server response'));
               }
             } else {

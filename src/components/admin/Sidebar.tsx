@@ -157,7 +157,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
               }
 
               const isActive = pathname === item.href;
-              const Icon = item.icon as any;
+              const Icon = item.icon as React.ComponentType<{ className?: string }>;
 
               return (
                 <Link key={idx} href={item.href || '#'} title={isCollapsed ? item.label : undefined}>

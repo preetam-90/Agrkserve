@@ -8,6 +8,8 @@ import { EnhancedRenterDashboard } from '@/components/dashboard/EnhancedRenterDa
 import { LabourDashboardView } from '@/components/dashboard/LabourDashboardView';
 import { BackButton } from '@/components/ui/back-button';
 import type { ServerDashboardData } from '@/app/dashboard/actions';
+import type { User } from '@supabase/supabase-js';
+import type { UserProfile, UserRole } from '@/lib/types';
 
 interface DashboardClientProps {
   serverData: ServerDashboardData | null;
@@ -22,10 +24,10 @@ function useSeedAuthStore(serverData: ServerDashboardData | null) {
       const store = useAuthStore.getState();
       if (!store.isInitialized || !store.user) {
         useAuthStore.setState({
-          user: { id: serverData.user.id, email: serverData.user.email } as any,
-          profile: serverData.profile as any,
-          roles: serverData.roles as any[],
-          activeRole: serverData.activeRole as any,
+          user: { id: serverData.user.id, email: serverData.user.email } as User,
+          profile: serverData.profile as UserProfile | null,
+          roles: serverData.roles as UserRole[],
+          activeRole: serverData.activeRole as UserRole | null,
           isLoading: false,
           isInitialized: true,
         });
@@ -77,11 +79,11 @@ export default function DashboardClient({ serverData }: DashboardClientProps) {
         <BackButton variant="minimal" />
       </div>
       {role === 'provider' ? (
-        <ProviderDashboardView initialData={serverData} />
+        <ProviderDashboardView initialData={serverData ? { equipment: serverData.equipment, bookings: serverData.bookings, labourBookings: serverData.labourBookings } : undefined} />
       ) : role === 'labour' ? (
-        <LabourDashboardView initialData={serverData} />
+        <LabourDashboardView initialData={serverData ? { equipment: serverData.equipment, bookings: serverData.bookings, labourBookings: serverData.labourBookings } : undefined} />
       ) : (
-        <EnhancedRenterDashboard initialData={serverData} />
+        <EnhancedRenterDashboard initialData={serverData ? { equipment: serverData.equipment, bookings: serverData.bookings, labourBookings: serverData.labourBookings } : undefined} />
       )}
     </>
   );

@@ -1,11 +1,11 @@
 import { createClient } from '@/lib/supabase/client';
-import type { 
-  LabourProfile, 
+import type {
+  LabourProfile,
   LabourBooking,
-  LabourFilters, 
+  LabourFilters,
   LabourAvailability,
   PaginatedResponse,
-  UserProfile 
+  UserProfile,
 } from '@/lib/types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 import { notificationService } from './notification-service';
@@ -16,20 +16,17 @@ const supabase = createClient();
 // Helper function to fetch user profiles by IDs
 async function fetchUserProfiles(userIds: string[]): Promise<Map<string, UserProfile>> {
   if (userIds.length === 0) return new Map();
-  
+
   const uniqueIds = [...new Set(userIds)];
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .in('id', uniqueIds);
-  
+  const { data, error } = await supabase.from('user_profiles').select('*').in('id', uniqueIds);
+
   if (error) throw error;
-  
+
   const profileMap = new Map<string, UserProfile>();
-  (data || []).forEach(profile => {
+  (data || []).forEach((profile) => {
     profileMap.set(profile.id, profile);
   });
-  
+
   return profileMap;
 }
 
@@ -37,11 +34,11 @@ async function fetchUserProfiles(userIds: string[]): Promise<Map<string, UserPro
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function attachUserToLabourProfiles(profiles: any[]): Promise<LabourProfile[]> {
   if (profiles.length === 0) return [];
-  
-  const userIds = profiles.map(p => p.user_id).filter(Boolean) as string[];
+
+  const userIds = profiles.map((p) => p.user_id).filter(Boolean) as string[];
   const profileMap = await fetchUserProfiles(userIds);
-  
-  return profiles.map(profile => ({
+
+  return profiles.map((profile) => ({
     ...profile,
     user: profileMap.get(profile.user_id as string) || undefined,
   })) as LabourProfile[];
@@ -58,7 +55,7 @@ export const labourService = {
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
-    
+
     // Fetch user profile separately
     const [result] = await attachUserToLabourProfiles([data]);
     return result;
@@ -74,7 +71,7 @@ export const labourService = {
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
-    
+
     // Fetch user profile separately
     const [result] = await attachUserToLabourProfiles([data]);
     return result;
@@ -194,7 +191,7 @@ export const labourService = {
     longitude: number;
   }): Promise<LabourProfile> {
     console.log('Creating labour profile with data:', profile);
-    
+
     const { data, error } = await supabase.rpc('create_labour_profile', {
       p_user_id: profile.user_id,
       p_skills: profile.skills,
@@ -214,11 +211,11 @@ export const labourService = {
       console.error('Supabase RPC error:', error);
       throw new Error(error.message || 'Failed to create labour profile');
     }
-    
+
     if (!data) {
       throw new Error('No data returned from create_labour_profile');
     }
-    
+
     console.log('Labour profile created successfully:', data);
     return data;
   },
@@ -277,7 +274,7 @@ export const labourService = {
       .single();
 
     if (error) throw error;
-    
+
     // Attach user profile
     const [result] = await attachUserToLabourProfiles([data]);
     return result;
@@ -307,7 +304,8 @@ export const labourService = {
   }): Promise<LabourBooking> {
     const startDate = new Date(booking.start_date);
     const endDate = new Date(booking.end_date);
-    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const totalDays =
+      Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     const totalAmount = booking.daily_rate * totalDays;
 
     const { data, error } = await supabase
@@ -326,14 +324,21 @@ export const labourService = {
       .single();
 
     if (error) throw error;
-    
+
     // Fetch related data separately
-    const [labourProfile] = await attachUserToLabourProfiles([
-      await supabase.from('labour_profiles').select('*').eq('id', data.labour_id).single().then(r => r.data)
-    ].filter(Boolean));
-    
+    const [labourProfile] = await attachUserToLabourProfiles(
+      [
+        await supabase
+          .from('labour_profiles')
+          .select('*')
+          .eq('id', data.labour_id)
+          .single()
+          .then((r) => r.data),
+      ].filter(Boolean)
+    );
+
     const employerProfiles = await fetchUserProfiles([data.employer_id]);
-    
+
     return {
       ...data,
       labour: labourProfile,
@@ -350,9 +355,7 @@ export const labourService = {
   ): Promise<PaginatedResponse<LabourBooking>> {
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('labour_bookings')
-      .select('*', { count: 'exact' });
+    let query = supabase.from('labour_bookings').select('*', { count: 'exact' });
 
     if (role === 'labour') {
       // Get the labour profile ID first
@@ -377,20 +380,25 @@ export const labourService = {
 
     // Fetch labour profiles and user profiles separately
     const bookings = data || [];
-    const labourIds = bookings.map(b => b.labour_id).filter(Boolean);
-    const employerIds = bookings.map(b => b.employer_id).filter(Boolean);
-    
+    const labourIds = bookings.map((b) => b.labour_id).filter(Boolean);
+    const employerIds = bookings.map((b) => b.employer_id).filter(Boolean);
+
     // Fetch labour profiles
-    const labourProfiles = labourIds.length > 0 
-      ? await supabase.from('labour_profiles').select('*').in('id', [...new Set(labourIds)]).then(r => r.data || [])
-      : [];
+    const labourProfiles =
+      labourIds.length > 0
+        ? await supabase
+            .from('labour_profiles')
+            .select('*')
+            .in('id', [...new Set(labourIds)])
+            .then((r) => r.data || [])
+        : [];
     const labourProfilesWithUsers = await attachUserToLabourProfiles(labourProfiles);
-    const labourMap = new Map(labourProfilesWithUsers.map(p => [p.id, p]));
-    
+    const labourMap = new Map(labourProfilesWithUsers.map((p) => [p.id, p]));
+
     // Fetch employer profiles
     const employerMap = await fetchUserProfiles(employerIds);
-    
-    const enrichedBookings: LabourBooking[] = bookings.map(booking => ({
+
+    const enrichedBookings: LabourBooking[] = bookings.map((booking) => ({
       ...booking,
       labour: labourMap.get(booking.labour_id),
       employer: employerMap.get(booking.employer_id),
@@ -416,13 +424,17 @@ export const labourService = {
       .limit(limit);
 
     if (error) throw error;
-    
+
     // Attach user profiles
     return attachUserToLabourProfiles(data || []);
   },
 
   // Update labour booking status
-  async updateBookingStatus(id: string, status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled', userId?: string): Promise<LabourBooking> {
+  async updateBookingStatus(
+    id: string,
+    status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled',
+    userId?: string
+  ): Promise<LabourBooking> {
     const { data, error } = await supabase
       .from('labour_bookings')
       .update({ status, updated_at: new Date().toISOString() })
@@ -431,14 +443,15 @@ export const labourService = {
       .single();
 
     if (error) throw error;
-    
+
     // Create notification for employer
     if (data.employer_id) {
       const title = status === 'confirmed' ? 'Labour Booking Confirmed' : 'Labour Booking Updated';
-      const body = status === 'confirmed' 
-        ? 'Your labour booking has been confirmed by the labour provider.'
-        : `Your labour booking status has been updated to ${status}.`;
-      
+      const body =
+        status === 'confirmed'
+          ? 'Your labour booking has been confirmed by the labour provider.'
+          : `Your labour booking status has been updated to ${status}.`;
+
       await notificationService.create({
         user_id: data.employer_id,
         title,
@@ -447,7 +460,7 @@ export const labourService = {
         data: { booking_id: id, status },
       });
     }
-    
+
     // Create audit log
     if (userId) {
       await auditLogService.create({
@@ -463,14 +476,21 @@ export const labourService = {
         },
       });
     }
-    
+
     // Fetch related data
-    const [labourProfile] = await attachUserToLabourProfiles([
-      await supabase.from('labour_profiles').select('*').eq('id', data.labour_id).single().then(r => r.data)
-    ].filter(Boolean));
-    
+    const [labourProfile] = await attachUserToLabourProfiles(
+      [
+        await supabase
+          .from('labour_profiles')
+          .select('*')
+          .eq('id', data.labour_id)
+          .single()
+          .then((r) => r.data),
+      ].filter(Boolean)
+    );
+
     const employerProfiles = await fetchUserProfiles([data.employer_id]);
-    
+
     return {
       ...data,
       labour: labourProfile,
@@ -492,7 +512,7 @@ export const labourService = {
       .single();
 
     if (error) throw error;
-    
+
     // Create notification for employer
     if (data?.employer_id) {
       await notificationService.create({
@@ -503,7 +523,7 @@ export const labourService = {
         data: { booking_id: id, status: 'cancelled', reason },
       });
     }
-    
+
     // Create audit log
     if (userId) {
       await auditLogService.create({
@@ -523,25 +543,35 @@ export const labourService = {
   },
 
   // Get labour bookings for current user (labour perspective)
-  async getMyBookings(status?: ('pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')[]): Promise<LabourBooking[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+  async getMyBookings(
+    status?: ('pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')[]
+  ): Promise<LabourBooking[]> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
-    
+
     const result = await this.getBookings(user.id, 'labour');
     if (status) {
-      return result.data.filter(b => status.includes(b.status as any));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return result.data.filter((b) => status.includes(b.status as any));
     }
     return result.data;
   },
 
   // Get employer bookings for current user (employer perspective)
-  async getMyEmployerBookings(status?: ('pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')[]): Promise<LabourBooking[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+  async getMyEmployerBookings(
+    status?: ('pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled')[]
+  ): Promise<LabourBooking[]> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
-    
+
     const result = await this.getBookings(user.id, 'employer');
     if (status) {
-      return result.data.filter(b => status.includes(b.status as any));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return result.data.filter((b) => status.includes(b.status as any));
     }
     return result.data;
   },

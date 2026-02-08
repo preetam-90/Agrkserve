@@ -111,7 +111,7 @@ export interface Notification {
   related_user_id: string | null;
 
   // Metadata
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 
   // Timestamps
   created_at: string;
@@ -175,7 +175,7 @@ export interface CreateNotificationParams {
   related_booking_id?: string;
   related_equipment_id?: string;
   related_user_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface NotificationGroup {

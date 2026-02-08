@@ -33,14 +33,14 @@ import {
 import { labourService } from '@/lib/services';
 import { LabourAvailability, LabourBooking } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useAppStore, useAuthStore } from '@/lib/store';
+import { useAuthStore } from '@/lib/store';
 import { useLabourProfile, useLabourBookings } from '@/lib/hooks/use-labour-queries';
 import { useQueryClient } from '@tanstack/react-query';
 import { labourKeys } from '@/lib/hooks/query-keys';
 import toast from 'react-hot-toast';
 
 export default function ProviderLabourPage() {
-  const { sidebarOpen } = useAppStore();
+   
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);

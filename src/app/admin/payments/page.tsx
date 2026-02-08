@@ -5,10 +5,10 @@ import { createClient } from '@/lib/supabase/client';
 import SearchFilterBar from '@/components/admin/SearchFilterBar';
 import Pagination from '@/components/admin/Pagination';
 import { ITEMS_PER_PAGE, PAYMENT_STATUS_OPTIONS, STATUS_COLORS } from '@/lib/utils/admin-constants';
-import { CreditCard, TrendingUp, DollarSign, Plus, Database } from 'lucide-react';
+import type { Payment } from '@/lib/types/database';
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -22,7 +22,7 @@ export default function PaymentsPage() {
     setLoading(true);
     try {
       console.log('🔍 Fetching payments...');
-      
+
       let query = supabase.from('payments').select(
         `
           *,
@@ -56,7 +56,7 @@ export default function PaymentsPage() {
 
       console.log('✅ Payments fetched:', data?.length || 0, 'records');
       console.log('📊 Total count:', count);
-      
+
       if (data && data.length > 0) {
         console.log('📝 Sample payment:', data[0]);
       }
@@ -78,7 +78,7 @@ export default function PaymentsPage() {
 
       const revenue = completedPayments?.reduce((sum, p) => sum + (Number(p.amount) || 0), 0) || 0;
       setTotalRevenue(revenue);
-      
+
       console.log('💵 Total revenue:', revenue);
     } catch (error) {
       console.error('❌ Error in fetchPayments:', error);
@@ -89,6 +89,7 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     fetchPayments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, statusFilter, currentPage]);
 
   const formatCurrency = (amount: number) => {

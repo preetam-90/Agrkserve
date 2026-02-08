@@ -8,14 +8,12 @@ import {
   Plus,
   Tractor,
   Calendar,
-  IndianRupee,
   Star,
   ChevronRight,
   Clock,
   Eye,
   Package,
   Users,
-  ArrowUpRight,
   TrendingUp,
   TrendingDown,
   Zap,
@@ -27,42 +25,32 @@ import {
   Bell,
   DollarSign,
   Target,
-  Percent,
   AlertCircle,
   CheckCircle2,
-  XCircle,
-  MapPin,
-  ThumbsUp,
 } from 'lucide-react';
-import { Button, Card, CardContent, Badge, Spinner, EmptyState } from '@/components/ui';
+import { Button, Card, CardContent, Badge } from '@/components/ui';
 import { equipmentService, bookingService, labourService } from '@/lib/services';
-import { useAppStore } from '@/lib/store';
-import { Equipment, Booking } from '@/lib/types';
+import { Equipment, Booking, InitialData, LabourBooking } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
-
-interface InitialData {
-  equipment?: any[];
-  bookings?: any[];
-  labourBookings?: any[];
-}
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export function EnhancedProviderDashboard({ initialData }: { initialData?: InitialData | null }) {
-  const { sidebarOpen } = useAppStore();
-
   const hasSSRData = !!(initialData?.equipment || initialData?.bookings);
 
   const [myEquipment, setMyEquipment] = useState<Equipment[]>(
-    hasSSRData ? (initialData!.equipment || []).slice(0, 4) : []
+    hasSSRData ? ((initialData!.equipment as Equipment[]) || []).slice(0, 4) : []
   );
   const [pendingBookings, setPendingBookings] = useState<Booking[]>(
     hasSSRData
-      ? (initialData!.bookings || []).filter((b: any) => b.status === 'pending').slice(0, 5)
+      ? (initialData!.bookings || []).filter((b: Booking) => b.status === 'pending').slice(0, 5)
       : []
   );
-  const [pendingLabourBookings, setPendingLabourBookings] = useState<any[]>(
+  const [pendingLabourBookings, setPendingLabourBookings] = useState<LabourBooking[]>(
     hasSSRData
-      ? (initialData!.labourBookings || []).filter((b: any) => b.status === 'pending').slice(0, 5)
+      ? (initialData!.labourBookings || [])
+          .filter((b: LabourBooking) => b.status === 'pending')
+          .slice(0, 5)
       : []
   );
   const [recentBookings, setRecentBookings] = useState<Booking[]>(
@@ -73,27 +61,29 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
       const allEquipment = initialData!.equipment || [];
       const allBookings = initialData!.bookings || [];
       const allLabour = initialData!.labourBookings || [];
-      const pending = allBookings.filter((b: any) => b.status === 'pending');
-      const pendingLabour = allLabour.filter((b: any) => b.status === 'pending');
+      const pending = allBookings.filter((b: Booking) => b.status === 'pending');
+      const pendingLabour = allLabour.filter((b: LabourBooking) => b.status === 'pending');
       const totalEarnings = allBookings
-        .filter((b: any) => b.status === 'completed')
-        .reduce((sum: number, b: any) => sum + b.total_amount, 0);
+        .filter((b: Booking) => b.status === 'completed')
+        .reduce((sum: number, b: Booking) => sum + b.total_amount, 0);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const monthlyEarnings = allBookings
-        .filter((b: any) => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
-        .reduce((sum: number, b: any) => sum + b.total_amount, 0);
-      const ratings = allEquipment.filter((e: any) => e.rating).map((e: any) => e.rating as number);
+        .filter((b: Booking) => b.status === 'completed' && new Date(b.created_at) >= thirtyDaysAgo)
+        .reduce((sum: number, b: Booking) => sum + b.total_amount, 0);
+      const ratings = allEquipment
+        .filter((e: Equipment) => e.rating)
+        .map((e: Equipment) => e.rating as number);
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length
           : 0;
-      const completedCount = allBookings.filter((b: any) => b.status === 'completed').length;
+      const completedCount = allBookings.filter((b: Booking) => b.status === 'completed').length;
       const completionRate =
         allBookings.length > 0 ? (completedCount / allBookings.length) * 100 : 0;
       return {
         totalEquipment: allEquipment.length,
-        activeBookings: allBookings.filter((b: any) =>
+        activeBookings: allBookings.filter((b: Booking) =>
           ['confirmed', 'in_progress'].includes(b.status)
         ).length,
         totalEarnings,
@@ -123,7 +113,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
     }
 
     const supabase = createClient();
-    let channel: any = null;
+    let channel: RealtimeChannel | null = null;
 
     const setupRealtimeSubscription = async () => {
       try {
@@ -138,7 +128,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
           .select('id')
           .eq('owner_id', currentUser.id);
 
-        const equipmentIds = equipmentData?.map((e) => e.id) || [];
+        const equipmentIds = (equipmentData || []).map((e: { id: string }) => e.id);
         if (equipmentIds.length === 0) return;
 
         channel = supabase
@@ -147,7 +137,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
             'postgres_changes',
             { event: '*', schema: 'public', table: 'bookings' },
             async (payload) => {
-              const bookingData = payload.new as any;
+              const bookingData = payload.new as Booking;
               if (bookingData && equipmentIds.includes(bookingData.equipment_id)) {
                 loadDashboardData();
               }
@@ -164,6 +154,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboardData = async () => {
@@ -602,7 +593,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
 
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-lg font-semibold text-white">
-                            {booking.employer?.full_name || 'Employer'}
+                            {booking.employer?.name || 'Employer'}
                           </p>
                           <p className="mt-1 text-sm text-gray-400">
                             {new Date(booking.start_date).toLocaleDateString()} -{' '}

@@ -53,7 +53,7 @@ export function MediaAnalyticsDashboard({ analytics, isLoading }: MediaAnalytics
     },
     {
       label: 'Transformations',
-      value: (analytics as any).transformations?.toLocaleString() || 'N/A',
+      value: analytics.transformationsCount?.toLocaleString() || 'N/A',
       icon: Zap,
       color: 'purple',
       subtext: 'API calls',

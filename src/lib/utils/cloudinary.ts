@@ -13,7 +13,7 @@ export interface CloudinaryUploadOptions {
   fileName?: string;
   resourceType: 'image' | 'video' | 'raw';
   format?: string;
-  transformation?: any[];
+  transformation?: unknown[];
 }
 
 export interface CloudinaryUploadResult {
@@ -114,7 +114,7 @@ export async function deleteFromCloudinary(publicId: string): Promise<void> {
 /**
  * Get video metadata from Cloudinary
  */
-export async function getVideoMetadataFromCloudinary(publicId: string): Promise<any> {
+export async function getVideoMetadataFromCloudinary(publicId: string): Promise<unknown> {
   return new Promise((resolve, reject) => {
     cloudinary.api.resource(publicId, { resource_type: 'video' }, (error, result) => {
       if (error) {
@@ -133,7 +133,7 @@ export function generateSignedUploadUrl(
   folder: string,
   fileName: string,
   resourceType: 'image' | 'video' = 'image'
-): { url: string; params: any } {
+): { url: string; params: unknown } {
   const timestamp = Math.round(new Date().getTime() / 1000);
   const publicId = fileName.replace(/\.[^/.]+$/, '');
 
