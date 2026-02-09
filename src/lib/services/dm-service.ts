@@ -119,57 +119,29 @@ export const dmService = {
    * Get all conversations for the current user
    */
   async getConversations(): Promise<DMConversation[]> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
+    const { data: user } = await supabase.auth.getUser();
+    if (!user.user) throw new Error('User not authenticated');
 
     const { data, error } = await supabase.rpc('get_user_conversations', {
-      user_uuid: user.id,
+      user_uuid: user.user.id,
     });
 
-    if (error) throw error;
-    return (data || []) as DMConversation[];
-  },
-
-  /**
-   * Get a single conversation by ID
-   */
-  async getConversation(conversationId: string): Promise<DMConversation | null> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error('Not authenticated');
-
-    const { data, error } = await supabase
-      .from('dm_conversations')
-      .select('*')
-      .eq('id', conversationId)
-      .single();
-
     if (error) {
-      if (error.code === 'PGRST116') return null;
-      console.error('Error fetching conversation:', error);
-      throw error;
+      // Extract more detailed error information
+      const errorDetails = {
+        message: error.message || 'Unknown error',
+        code: error.code,
+        hint: error.hint,
+        details: error.details,
+        fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      };
+      console.error('Supabase RPC error details:', errorDetails);
+      throw new Error(
+        `Failed to fetch conversations: ${errorDetails.message} (Code: ${errorDetails.code || 'N/A'})`
+      );
     }
 
-    // Fetch participant profiles separately
-    const otherUserId =
-      data.participant_1_id === user.id ? data.participant_2_id : data.participant_1_id;
-
-    const { data: otherUser } = await supabase
-      .from('user_profiles')
-      .select('id, name, profile_image')
-      .eq('id', otherUserId)
-      .single();
-
-    return {
-      ...data,
-      other_user_id: otherUserId,
-      other_user_name: otherUser?.name || 'Unknown User',
-      other_user_avatar: otherUser?.profile_image,
-      other_participant: otherUser,
-    } as DMConversation;
+    return data || [];
   },
 
   /**
@@ -196,6 +168,47 @@ export const dmService = {
       console.error('Error fetching conversation by user:', error);
       throw error;
     }
+
+    // Fetch other user profile
+    const { data: otherUser } = await supabase
+      .from('user_profiles')
+      .select('id, name, profile_image')
+      .eq('id', otherUserId)
+      .single();
+
+    return {
+      ...data,
+      other_user_id: otherUserId,
+      other_user_name: otherUser?.name || 'Unknown User',
+      other_user_avatar: otherUser?.profile_image,
+      other_participant: otherUser,
+    } as DMConversation;
+  },
+
+  /**
+   * Get conversation by ID
+   */
+  async getConversation(conversationId: string): Promise<DMConversation | null> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('dm_conversations')
+      .select('*')
+      .eq('id', conversationId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      console.error('Error fetching conversation:', error);
+      throw error;
+    }
+
+    // Determine which participant is the other user
+    const otherUserId =
+      data.participant_1_id === user.id ? data.participant_2_id : data.participant_1_id;
 
     // Fetch other user profile
     const { data: otherUser } = await supabase
