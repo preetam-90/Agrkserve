@@ -368,7 +368,7 @@ function EquipmentCard({
   return (
     <>
       <div className="perspective-1000 group">
-        <Link href={`/equipment/${equipment.id}`} className="block h-full">
+        <Link href={`/equipment/item/${equipment.id}`} className="block h-full">
           <div className="relative h-full overflow-hidden rounded-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100">
             {/* Animated gradient border glow */}
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-100 motion-reduce:transition-none" />
@@ -835,7 +835,7 @@ function PublicEquipmentPageContent() {
       router.push('/login?redirect=/equipment');
       return;
     }
-    router.push(`/equipment/${eq.id}/book`);
+    router.push(`/equipment/item/${eq.id}/book`);
   };
 
   const clearFilters = () => {

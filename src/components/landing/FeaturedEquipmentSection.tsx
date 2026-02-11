@@ -299,7 +299,7 @@ export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSection
                   key={`${item.id}-${index}`}
                   className="w-[320px] shrink-0 sm:w-[360px] lg:w-[420px]"
                 >
-                  <Link href={`/equipment/${item.id}`} className="group block">
+                  <Link href={`/equipment/item/${item.id}`} className="group block">
                     <div className="relative h-[700px] overflow-hidden rounded-[2rem] bg-zinc-950 transition-transform duration-500 group-hover:scale-[1.01]">
                       {/* Animated Gradient Border */}
                       <div

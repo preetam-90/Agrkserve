@@ -4,12 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import {
-  motion,
-  AnimatePresence,
-  useMotionTemplate,
-  useMotionValue,
-} from 'framer-motion';
+import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
 import {
   Plus,
   Search,
@@ -63,7 +58,6 @@ import {
 } from '@/lib/utils';
 
 import toast from 'react-hot-toast';
-
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -124,7 +118,6 @@ export default function ProviderEquipmentPage() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const showCheckbox = selectedIds.length > 0;
-
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -701,7 +694,7 @@ export default function ProviderEquipmentPage() {
                                       asChild
                                       className="focus:bg-white/10 focus:text-white"
                                     >
-                                      <Link href={`/equipment/${item.id}`}>
+                                      <Link href={`/equipment/item/${item.id}`}>
                                         <Eye className="mr-2 h-4 w-4" />
                                         View Listing
                                       </Link>

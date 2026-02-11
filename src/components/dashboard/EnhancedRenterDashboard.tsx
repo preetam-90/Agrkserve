@@ -559,7 +559,7 @@ export function EnhancedRenterDashboard({ initialData }: RenterDashboardProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.05 + idx * 0.02 }}
               >
-                <Link href={`/equipment/${equipment.id}`}>
+                <Link href={`/equipment/item/${equipment.id}`}>
                   <Card className="group h-full cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
                     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-700/50 to-gray-800/50">
                       {equipment.images?.[0] ? (

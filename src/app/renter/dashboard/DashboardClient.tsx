@@ -383,7 +383,7 @@ export default function RenterDashboard() {
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {nearbyEquipment.map((equipment) => (
-                  <Link key={equipment.id} href={`/equipment/${equipment.id}`}>
+                  <Link key={equipment.id} href={`/equipment/item/${equipment.id}`}>
                     <Card className="h-full overflow-hidden transition-shadow hover:shadow-lg">
                       <div className="relative aspect-[4/3] bg-gray-100">
                         {equipment.images?.[0] ? (

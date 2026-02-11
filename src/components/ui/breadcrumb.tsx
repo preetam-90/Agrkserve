@@ -93,7 +93,7 @@ export function createBookingBreadcrumb(
 ): BreadcrumbItem[] {
   return [
     { label: 'Equipment', href: '/equipment' },
-    { label: equipmentName, href: `/equipment/${equipmentId}` },
+    { label: equipmentName, href: `/equipment/item/${equipmentId}` },
     { label: 'Book' },
   ];
 }

@@ -518,7 +518,7 @@ export function RenterDashboardView() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.6 + idx * 0.1 }}
               >
-                <Link href={`/equipment/${equipment.id}`}>
+                <Link href={`/equipment/item/${equipment.id}`}>
                   <Card className="group h-full overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
                     <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-700/50 to-gray-800/50">
                       {equipment.images?.[0] ? (
