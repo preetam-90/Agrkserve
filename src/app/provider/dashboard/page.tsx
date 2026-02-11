@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: 'Manage your farm equipment rentals, bookings, and earnings.',
 };
 
+// Force dynamic rendering since this page uses cookies for authentication
+export const dynamic = 'force-dynamic';
+
 async function getProviderDashboardData() {
   try {
     const supabase = await createClient();
