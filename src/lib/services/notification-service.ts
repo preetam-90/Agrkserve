@@ -91,13 +91,20 @@ export const notificationService = {
   async create(notification: {
     user_id: string;
     title: string;
-    body: string;
+    message: string;
     type: 'booking' | 'payment' | 'message' | 'review' | 'system' | 'admin';
     data?: Record<string, unknown>;
   }): Promise<Notification> {
     const { data, error } = await supabase
       .from('notifications')
-      .insert(notification)
+      .insert({
+        user_id: notification.user_id,
+        title: notification.title,
+        message: notification.message,
+        category: notification.type as any, // Type assertion to map 'type' to 'category'
+        event_type: notification.type, // Using type as event_type as well
+        ...(notification.data && { metadata: notification.data }) // Adding any extra data to metadata
+      })
       .select()
       .single();
 

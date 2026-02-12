@@ -52,18 +52,18 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
   });
   const [upcomingJobs, setUpcomingJobs] = useState<LabourBooking[]>(() => {
     if (hasSSRData) {
-          return (initialData.labourBookings || [])
-            .filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status))
-            .slice(0, 4);
+      return (initialData.labourBookings || [])
+        .filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status))
+        .slice(0, 4);
     }
     return [];
   });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_completedJobs, setCompletedJobs] = useState<unknown[]>(() => {
     if (hasSSRData) {
-          return (initialData.labourBookings || [])
-            .filter((b: LabourBooking) => b.status === 'completed')
-            .slice(0, 3);
+      return (initialData.labourBookings || [])
+        .filter((b: LabourBooking) => b.status === 'completed')
+        .slice(0, 3);
     }
     return [];
   });
@@ -75,11 +75,13 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     if (hasSSRData) {
       const jobs = initialData.labourBookings || [];
       const completed = jobs.filter((b: LabourBooking) => b.status === 'completed');
-      const upcoming = jobs.filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status));
-          const totalEarnings = completed.reduce(
-            (sum: number, b: LabourBooking) => sum + (b.total_amount || 0),
-            0
-          );
+      const upcoming = jobs.filter((b: LabourBooking) =>
+        ['confirmed', 'in_progress'].includes(b.status)
+      );
+      const totalEarnings = completed.reduce(
+        (sum: number, b: LabourBooking) => sum + (b.total_amount || 0),
+        0
+      );
       const avgRating = initialData.labourProfile?.rating || 0;
       return {
         totalJobs: jobs.length,
@@ -134,7 +136,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboardData = async () => {
@@ -627,7 +629,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
             gradient: 'from-blue-500 to-indigo-500',
           },
           {
-            href: '/provider/earnings',
+            href: '/earnings',
             icon: BarChart3,
             label: 'Earnings',
             gradient: 'from-purple-500 to-pink-500',

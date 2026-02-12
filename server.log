@@ -1,0 +1,16 @@
+$ bun scripts/dev.js
+🔍 Checking for available port...
+⚠️  Port 3001 is already in use.
+/bin/sh: line 1: lsof: command not found
+🔍 Finding an available port...
+✅ Found available port: 3005
+🚀 Starting development server...
+
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3005
+- Network:       http://192.168.177.149:3005
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 967ms
+[?25h

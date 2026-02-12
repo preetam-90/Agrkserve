@@ -422,7 +422,7 @@ export function RenterDashboardView() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xl font-bold text-white">Labour Bookings</h2>
             <Link
-              href="/renter/labour/bookings"
+              href="/labour/bookings"
               className="group flex items-center text-sm font-semibold text-emerald-400 hover:text-emerald-300"
             >
               View All{' '}
@@ -437,7 +437,7 @@ export function RenterDashboardView() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
               >
-                <Link href={`/renter/labour/bookings`}>
+                <Link href={`/labour/bookings`}>
                   <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-emerald-500/20">
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                     <CardContent className="flex items-center gap-4 p-4">

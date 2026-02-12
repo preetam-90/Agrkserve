@@ -163,7 +163,7 @@ const renterNavItems: NavItem[] = [
     excludedRoles: ['admin'],
   },
   {
-    href: '/renter/labour/bookings',
+    href: '/labour/bookings',
     label: 'Labour Bookings',
     icon: CalendarDays,
     requiredRoles: ['renter'],

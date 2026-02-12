@@ -25,11 +25,13 @@ export default function NotificationDebugPage() {
 
   const checkSystem = async () => {
     setChecking(true);
-    
+
     // Check auth directly
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     setCurrentUser(user);
-    
+
     const info: DebugInfo = {
       isLoggedIn: !!user,
       userId: user?.id || null,
@@ -83,7 +85,8 @@ export default function NotificationDebugPage() {
         {
           user_id: currentUser.id,
           title: 'Welcome to AgriServe! 🎉',
-          message: 'Thank you for joining our platform. Start by listing your equipment or browsing available rentals.',
+          message:
+            'Thank you for joining our platform. Start by listing your equipment or browsing available rentals.',
           category: 'system',
           event_type: 'system.welcome',
           priority: 'normal',
@@ -112,9 +115,7 @@ export default function NotificationDebugPage() {
         },
       ];
 
-      const { error } = await supabase
-        .from('notifications')
-        .insert(sampleNotifications);
+      const { error } = await supabase.from('notifications').insert(sampleNotifications);
 
       if (error) {
         alert('Error creating notifications: ' + error.message);
@@ -134,21 +135,21 @@ export default function NotificationDebugPage() {
   if (checking && !debugInfo) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="flex flex-col items-center justify-center gap-4 py-20">
           <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-gray-600">Checking notification system...</p>
+          <p className="text-gray-400">Checking notification system...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Notification System Debug</h1>
+    <div className="container mx-auto max-w-4xl px-4 py-8">
+      <div className="rounded-lg border border-gray-800 bg-[#111111] p-6 shadow">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Notification System Debug</h1>
           <button
-            className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2"
+            className="flex items-center gap-2 rounded-lg border border-gray-700 px-4 py-2 text-gray-300 hover:bg-[#1a1a1a] disabled:opacity-50"
             onClick={checkSystem}
             disabled={checking}
           >
@@ -156,12 +157,12 @@ export default function NotificationDebugPage() {
             <span>Refresh</span>
           </button>
         </div>
-        
+
         <div className="space-y-6">
           {/* Authentication Status */}
           <div>
-            <h3 className="font-semibold mb-2">Authentication</h3>
-            <div className="flex items-center gap-2">
+            <h3 className="mb-2 font-semibold text-white">Authentication</h3>
+            <div className="flex items-center gap-2 text-gray-300">
               {debugInfo?.isLoggedIn ? (
                 <>
                   <CheckCircle className="h-5 w-5 text-green-600" />
@@ -178,9 +179,9 @@ export default function NotificationDebugPage() {
 
           {/* Tables Status */}
           <div>
-            <h3 className="font-semibold mb-2">Database Tables</h3>
+            <h3 className="mb-2 font-semibold text-white">Database Tables</h3>
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-gray-300">
                 {debugInfo?.tablesExist.notifications ? (
                   <>
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -193,7 +194,7 @@ export default function NotificationDebugPage() {
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-gray-300">
                 {debugInfo?.tablesExist.notification_preferences ? (
                   <>
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -211,8 +212,8 @@ export default function NotificationDebugPage() {
 
           {/* Notification Count */}
           <div>
-            <h3 className="font-semibold mb-2">Notifications</h3>
-            <div className="flex items-center gap-2">
+            <h3 className="mb-2 font-semibold text-white">Notifications</h3>
+            <div className="flex items-center gap-2 text-gray-300">
               <AlertCircle className="h-5 w-5 text-blue-600" />
               <span>Total notifications: {debugInfo?.notificationCount || 0}</span>
             </div>
@@ -220,25 +221,26 @@ export default function NotificationDebugPage() {
 
           {/* Error Display */}
           {debugInfo?.error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-              <h3 className="font-semibold text-red-900 mb-2">Error</h3>
-              <p className="text-red-700">{debugInfo.error}</p>
+            <div className="rounded-lg border border-red-900 bg-red-950 p-4">
+              <h3 className="mb-2 font-semibold text-red-400">Error</h3>
+              <p className="text-red-300">{debugInfo.error}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="space-y-4 pt-4 border-t">
-            <h3 className="font-semibold">Actions</h3>
-            
+          <div className="space-y-4 border-t border-gray-800 pt-4">
+            <h3 className="font-semibold text-white">Actions</h3>
+
             {!debugInfo?.tablesExist.notifications && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-900 mb-2">
+              <div className="rounded-lg border border-yellow-900 bg-yellow-950 p-4">
+                <p className="mb-2 text-yellow-400">
                   <strong>Database tables are missing!</strong>
                 </p>
-                <p className="text-yellow-700 text-sm mb-3">
-                  You need to run the migration script. Go to your Supabase Dashboard → SQL Editor and paste the content from:
+                <p className="mb-3 text-sm text-yellow-300">
+                  You need to run the migration script. Go to your Supabase Dashboard → SQL Editor
+                  and paste the content from:
                 </p>
-                <code className="block bg-yellow-100 p-2 rounded text-sm">
+                <code className="block rounded bg-yellow-900 p-2 text-sm text-yellow-200">
                   supabase/migrations/011_notification_system.sql
                 </code>
               </div>
@@ -246,7 +248,7 @@ export default function NotificationDebugPage() {
 
             {debugInfo?.tablesExist.notifications && debugInfo.isLoggedIn && (
               <button
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
                 onClick={createSampleNotifications}
               >
                 Create Sample Notifications
@@ -254,9 +256,13 @@ export default function NotificationDebugPage() {
             )}
 
             {!debugInfo?.isLoggedIn && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-900">
-                  Please <a href="/login" className="underline font-medium">log in</a> to test notifications.
+              <div className="rounded-lg border border-blue-900 bg-blue-950 p-4">
+                <p className="text-blue-400">
+                  Please{' '}
+                  <a href="/login" className="font-medium underline">
+                    log in
+                  </a>{' '}
+                  to test notifications.
                 </p>
               </div>
             )}

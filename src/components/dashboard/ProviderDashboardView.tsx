@@ -737,7 +737,7 @@ export const ProviderDashboardView = React.memo(function ProviderDashboardView({
             iconColor: 'text-blue-600',
           },
           {
-            href: '/provider/earnings',
+            href: '/earnings',
             icon: BarChart3,
             label: 'Earnings',
             gradient: 'from-purple-500 to-pink-500',

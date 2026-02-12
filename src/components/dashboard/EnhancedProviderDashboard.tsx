@@ -852,7 +852,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
               gradient: 'from-blue-500 to-indigo-500',
             },
             {
-              href: '/provider/earnings',
+              href: '/earnings',
               icon: BarChart3,
               label: 'Earnings',
               gradient: 'from-purple-500 to-pink-500',

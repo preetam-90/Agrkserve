@@ -569,7 +569,7 @@ export const bookingService = {
         await notificationService.create({
           user_id: data.renter_id,
           title,
-          body,
+          message: body,
           type: 'booking',
           data: { booking_id: id, status },
         });
@@ -627,7 +627,7 @@ export const bookingService = {
         await notificationService.create({
           user_id: data.renter_id,
           title: 'Booking Cancelled',
-          body: `Your equipment booking has been cancelled. ${reason ? `Reason: ${reason}` : ''}`,
+          message: `Your equipment booking has been cancelled. ${reason ? `Reason: ${reason}` : ''}`,
           type: 'booking',
           data: { booking_id: id, status: 'cancelled', reason },
         });

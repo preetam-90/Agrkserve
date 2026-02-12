@@ -111,7 +111,7 @@ export default function PublicUserProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#0a0a0a]">
         <Header />
         <div className="flex items-center justify-center py-20">
           <Spinner size="lg" />
@@ -123,7 +123,7 @@ export default function PublicUserProfilePage() {
 
   if (!userProfile) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#0a0a0a]">
         <Header />
         <div className="container mx-auto px-4 py-12">
           <EmptyState
@@ -147,7 +147,7 @@ export default function PublicUserProfilePage() {
   const hasLabourProfile = labourProfile !== null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <Header />
 
       <main className="container mx-auto px-4 pb-8 pt-28">
@@ -173,7 +173,7 @@ export default function PublicUserProfilePage() {
               {/* User Info */}
               <div className="flex-1">
                 <div className="mb-3 flex items-start gap-3">
-                  <h1 className="text-3xl font-bold text-gray-900">
+                  <h1 className="text-3xl font-bold text-white">
                     {userProfile.name || 'Anonymous User'}
                   </h1>
                   {userProfile.is_verified && (
@@ -185,18 +185,18 @@ export default function PublicUserProfilePage() {
                 </div>
 
                 {/* Bio */}
-                {userProfile.bio && <p className="mb-4 text-gray-700">{userProfile.bio}</p>}
+                {userProfile.bio && <p className="mb-4 text-gray-300">{userProfile.bio}</p>}
 
                 {/* Location */}
                 {userProfile.address && (
-                  <div className="mb-2 flex items-center text-gray-600">
+                  <div className="mb-2 flex items-center text-gray-400">
                     <MapPin className="mr-2 h-4 w-4" />
                     <span>{userProfile.address}</span>
                   </div>
                 )}
 
                 {/* Member Since */}
-                <div className="mb-4 flex items-center text-gray-600">
+                <div className="mb-4 flex items-center text-gray-400">
                   <Calendar className="mr-2 h-4 w-4" />
                   <span>
                     Member since{' '}
@@ -277,7 +277,7 @@ export default function PublicUserProfilePage() {
                       <Link key={item.id} href={`/equipment/item/${item.id}`}>
                         <Card className="h-full transition-shadow hover:shadow-lg">
                           {/* Equipment Image */}
-                          <div className="relative aspect-[4/3] bg-gray-100">
+                          <div className="relative aspect-[4/3] bg-[#111111]">
                             {item.images?.[0] ? (
                               <Image
                                 src={item.images[0]}
@@ -299,20 +299,18 @@ export default function PublicUserProfilePage() {
 
                           <CardContent className="p-4">
                             {/* Equipment Name */}
-                            <h3 className="mb-1 truncate font-semibold text-gray-900">
-                              {item.name}
-                            </h3>
+                            <h3 className="mb-1 truncate font-semibold text-white">{item.name}</h3>
 
                             {/* Category */}
                             {category && (
-                              <p className="mb-2 text-sm text-gray-500">
+                              <p className="mb-2 text-sm text-gray-400">
                                 {category.icon} {category.label}
                               </p>
                             )}
 
                             {/* Location */}
                             {item.location_name && (
-                              <p className="mb-3 flex items-center gap-1 text-sm text-gray-500">
+                              <p className="mb-3 flex items-center gap-1 text-sm text-gray-400">
                                 <MapPin className="h-3 w-3" />
                                 {item.location_name}
                               </p>
@@ -323,7 +321,7 @@ export default function PublicUserProfilePage() {
                               <div className="flex items-center text-green-600">
                                 <IndianRupee className="h-4 w-4" />
                                 <span className="text-lg font-bold">{item.price_per_day}</span>
-                                <span className="ml-1 text-sm text-gray-500">/day</span>
+                                <span className="ml-1 text-sm text-gray-400">/day</span>
                               </div>
 
                               <div className="flex items-center gap-1">
@@ -352,7 +350,7 @@ export default function PublicUserProfilePage() {
                         {/* Profile Header */}
                         <div className="flex-1">
                           <div className="mb-4 flex items-center gap-3">
-                            <h2 className="text-2xl font-bold text-gray-900">
+                            <h2 className="text-2xl font-bold text-white">
                               {userProfile.name || 'Labour Profile'}
                             </h2>
                             <Badge
@@ -370,12 +368,12 @@ export default function PublicUserProfilePage() {
 
                           {/* Bio */}
                           {labourProfile.bio && (
-                            <p className="mb-4 text-gray-700">{labourProfile.bio}</p>
+                            <p className="mb-4 text-gray-300">{labourProfile.bio}</p>
                           )}
 
                           {/* Experience and Stats */}
                           <div className="mb-4 flex flex-wrap gap-4">
-                            <div className="flex items-center gap-2 text-gray-600">
+                            <div className="flex items-center gap-2 text-gray-400">
                               <Briefcase className="h-4 w-4" />
                               <span>{labourProfile.experience_years} years experience</span>
                             </div>
@@ -386,14 +384,14 @@ export default function PublicUserProfilePage() {
                                   {labourProfile.rating.toFixed(1)}
                                 </span>
                                 {labourProfile.review_count && (
-                                  <span className="text-gray-500">
+                                  <span className="text-gray-400">
                                     ({labourProfile.review_count} reviews)
                                   </span>
                                 )}
                               </div>
                             )}
                             {labourProfile.total_jobs && labourProfile.total_jobs > 0 && (
-                              <span className="text-gray-600">
+                              <span className="text-gray-400">
                                 {labourProfile.total_jobs} jobs completed
                               </span>
                             )}
@@ -402,7 +400,7 @@ export default function PublicUserProfilePage() {
                           {/* Skills */}
                           {labourProfile.skills && labourProfile.skills.length > 0 && (
                             <div className="mb-4">
-                              <h3 className="mb-2 font-semibold text-gray-900">Skills</h3>
+                              <h3 className="mb-2 font-semibold text-white">Skills</h3>
                               <div className="flex flex-wrap gap-2">
                                 {labourProfile.skills.map((skill, idx) => (
                                   <Badge key={idx} variant="secondary">
@@ -417,7 +415,7 @@ export default function PublicUserProfilePage() {
                           {labourProfile.certifications &&
                             labourProfile.certifications.length > 0 && (
                               <div className="mb-4">
-                                <h3 className="mb-2 font-semibold text-gray-900">Certifications</h3>
+                                <h3 className="mb-2 font-semibold text-white">Certifications</h3>
                                 <div className="flex flex-wrap gap-2">
                                   {labourProfile.certifications.map((cert, idx) => (
                                     <Badge key={idx} variant="outline">
@@ -430,11 +428,11 @@ export default function PublicUserProfilePage() {
 
                           {/* Location */}
                           {labourProfile.location_name && (
-                            <div className="mb-4 flex items-center text-gray-600">
+                            <div className="mb-4 flex items-center text-gray-400">
                               <MapPin className="mr-2 h-4 w-4" />
                               <span>{labourProfile.location_name}</span>
                               {labourProfile.service_radius_km && (
-                                <span className="ml-2 text-sm text-gray-500">
+                                <span className="ml-2 text-sm text-gray-400">
                                   (Service radius: {labourProfile.service_radius_km} km)
                                 </span>
                               )}
@@ -442,10 +440,10 @@ export default function PublicUserProfilePage() {
                           )}
 
                           {/* Pricing */}
-                          <div className="border-t pt-4">
+                          <div className="border-t border-gray-800 pt-4">
                             <div className="flex items-center gap-6">
                               <div>
-                                <p className="mb-1 text-sm text-gray-500">Daily Rate</p>
+                                <p className="mb-1 text-sm text-gray-400">Daily Rate</p>
                                 <div className="flex items-center text-2xl font-bold text-green-600">
                                   <IndianRupee className="h-5 w-5" />
                                   {labourProfile.daily_rate}
@@ -453,8 +451,8 @@ export default function PublicUserProfilePage() {
                               </div>
                               {labourProfile.hourly_rate && (
                                 <div>
-                                  <p className="mb-1 text-sm text-gray-500">Hourly Rate</p>
-                                  <div className="flex items-center text-xl font-semibold text-gray-700">
+                                  <p className="mb-1 text-sm text-gray-400">Hourly Rate</p>
+                                  <div className="flex items-center text-xl font-semibold text-gray-300">
                                     <IndianRupee className="h-4 w-4" />
                                     {labourProfile.hourly_rate}
                                   </div>

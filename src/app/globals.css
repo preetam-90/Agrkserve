@@ -50,6 +50,7 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -106,6 +107,7 @@ footer {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -116,6 +118,7 @@ footer {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -127,6 +130,7 @@ footer {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -134,36 +138,44 @@ footer {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0) translateX(0);
   }
+
   25% {
     transform: translateY(-20px) translateX(10px);
   }
+
   50% {
     transform: translateY(-10px) translateX(-10px);
   }
+
   75% {
     transform: translateY(-30px) translateX(5px);
   }
 }
 
 @keyframes gradient {
+
   0%,
   100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -173,16 +185,19 @@ footer {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
 }
 
 @keyframes glow {
+
   0%,
   100% {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
   }
@@ -194,6 +209,7 @@ footer {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -201,21 +217,25 @@ footer {
 }
 
 @keyframes readReceipt {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.1);
   }
 }
 
 @keyframes typing {
+
   0%,
   60%,
   100% {
     transform: translateY(0);
   }
+
   30% {
     transform: translateY(-4px);
   }
@@ -272,6 +292,7 @@ footer {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -334,4 +355,27 @@ html {
   -webkit-text-fill-color: transparent;
   background-size: 200% 200%;
   animation: gradient 3s ease infinite;
+}
+
+/* Hover sidebar styles */
+#main-content-area.hover-expanded {
+  margin-left: 240px !important;
+  transition: margin-left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (max-width: 1024px) {
+  #main-content-area.hover-expanded {
+    margin-left: 0 !important;
+  }
+}
+
+/* Improved sidebar animations */
+.contextual-sidebar-expanded {
+  width: 240px !important;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.contextual-sidebar-collapsed {
+  width: 64px !important;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }

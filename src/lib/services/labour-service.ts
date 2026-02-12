@@ -447,7 +447,7 @@ export const labourService = {
     // Create notification for employer
     if (data.employer_id) {
       const title = status === 'confirmed' ? 'Labour Booking Confirmed' : 'Labour Booking Updated';
-      const body =
+      const message =
         status === 'confirmed'
           ? 'Your labour booking has been confirmed by the labour provider.'
           : `Your labour booking status has been updated to ${status}.`;
@@ -455,7 +455,7 @@ export const labourService = {
       await notificationService.create({
         user_id: data.employer_id,
         title,
-        body,
+        message,
         type: 'booking',
         data: { booking_id: id, status },
       });
@@ -518,7 +518,7 @@ export const labourService = {
       await notificationService.create({
         user_id: data.employer_id,
         title: 'Labour Booking Cancelled',
-        body: `Your labour booking has been cancelled. ${reason ? `Reason: ${reason}` : ''}`,
+        message: `Your labour booking has been cancelled. ${reason ? `Reason: ${reason}` : ''}`,
         type: 'booking',
         data: { booking_id: id, status: 'cancelled', reason },
       });

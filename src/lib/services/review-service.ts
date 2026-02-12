@@ -272,6 +272,55 @@ export const reviewService = {
     return distribution;
   },
 
+  // Get reviews for a provider's equipment
+  async getProviderReviews(
+    providerId: string,
+    page: number = 1,
+    limit: number = DEFAULT_PAGE_SIZE
+  ): Promise<PaginatedResponse<Review>> {
+    const offset = (page - 1) * limit;
+
+    // First, get the provider's equipment
+    const { data: equipmentData, error: equipmentError } = await supabase
+      .from('equipment')
+      .select('id')
+      .eq('owner_id', providerId);
+
+    if (equipmentError) throw equipmentError;
+
+    if (!equipmentData || equipmentData.length === 0) {
+      return {
+        data: [],
+        count: 0,
+        page,
+        limit,
+        total_pages: 0,
+      };
+    }
+
+    const equipmentIds = equipmentData.map(eq => eq.id);
+
+    // Then get reviews for those equipment items
+    const { data, error, count } = await supabase
+      .from('reviews')
+      .select('*', { count: 'exact' })
+      .in('equipment_id', equipmentIds)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    const reviewsWithReviewers = await attachReviewerProfiles(data || []);
+
+    return {
+      data: reviewsWithReviewers,
+      count: count || 0,
+      page,
+      limit,
+      total_pages: Math.ceil((count || 0) / limit),
+    };
+  },
+
   // Convenience method to create a review for current user
   async createReview(review: {
     booking_id: string;

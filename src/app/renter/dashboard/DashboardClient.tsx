@@ -317,7 +317,7 @@ export default function RenterDashboard() {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">Labour Bookings</h2>
                 <Link
-                  href="/renter/labour/bookings"
+                  href="/labour/bookings"
                   className="flex items-center text-sm text-green-600 hover:underline"
                 >
                   View All <ChevronRight className="h-4 w-4" />
@@ -325,7 +325,7 @@ export default function RenterDashboard() {
               </div>
               <div className="space-y-3">
                 {recentLabourBookings.map((booking: LabourBooking) => (
-                  <Link key={booking.id} href={`/renter/labour/bookings`}>
+                  <Link key={booking.id} href={`/labour/bookings`}>
                     <Card className="transition-shadow hover:shadow-md">
                       <CardContent className="flex items-center gap-4 p-4">
                         <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-100">

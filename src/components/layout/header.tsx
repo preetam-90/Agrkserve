@@ -24,7 +24,7 @@ import {
   useMotionValue,
   useTransform,
 } from 'framer-motion';
-import { useAuthStore } from '@/lib/store';
+import { useAppStore, useAuthStore } from '@/lib/store';
 import { Avatar, Button, Badge } from '@/components/ui';
 import {
   DropdownMenu,
@@ -40,6 +40,11 @@ import { MessageBadge } from '@/components/messages';
 import { getRoleDisplayName, getRoleIcon } from '@/lib/navigation';
 import { RoleSwitcher } from '@/components/layout/role-switcher';
 import { addNetworkListeners } from '@/lib/system-pages/network-detector';
+import {
+  resolveContextualSidebarRole,
+  shouldShowContextualSidebar,
+} from '@/lib/utils/contextual-sidebar';
+import { shouldShowGlobalAppNavbar } from '@/lib/utils/app-navbar';
 
 const publicNav = [
   { href: '/', label: 'Home', icon: Sprout },
@@ -87,6 +92,10 @@ export function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const { user, profile, roles, activeRole, switchRole, signOut, isLoading } = useAuthStore();
+  const { sidebarCollapsed } = useAppStore();
+  const sidebarRole = resolveContextualSidebarRole(pathname, activeRole, roles);
+  const shouldOffsetHeader =
+    shouldShowContextualSidebar(pathname, Boolean(user)) && sidebarRole !== null;
 
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -151,13 +160,21 @@ export function Header() {
   // Spring config for smooth animations
   const springConfig = { type: 'spring', stiffness: 400, damping: 30 };
 
+  // Dedicated AppNavbar handles all non-home, non-admin routes globally.
+  if (shouldShowGlobalAppNavbar(pathname)) {
+    return null;
+  }
+
   return (
     <motion.header
       ref={headerRef}
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed left-0 right-0 top-0 z-50 w-full"
+      className={cn(
+        'fixed right-0 top-0 z-50 transition-[left] duration-300',
+        shouldOffsetHeader ? (sidebarCollapsed ? 'lg:left-[64px]' : 'lg:left-[240px]') : 'left-0'
+      )}
     >
       {/* Ambient Glow Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
