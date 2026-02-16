@@ -34,7 +34,6 @@ import {
   DialogHeader,
   DialogTitle,
   Textarea,
-  DualRangeSlider,
 } from '@/components/ui';
 import { labourService, dmService } from '@/lib/services';
 import { useAppStore, useAuthStore, useMessagesStore } from '@/lib/store';
@@ -401,15 +400,27 @@ function FilterSidebar({
             {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])} / day
           </span>
         </div>
-        <DualRangeSlider
-          min={200}
-          max={2000}
-          step={50}
-          value={priceRange}
-          onValueChange={onPriceRangeChange}
-          colorScheme="emerald"
-          className="py-2"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            min={200}
+            max={2000}
+            step={50}
+            value={priceRange[0]}
+            onChange={(e) => onPriceRangeChange([parseInt(e.target.value) || 200, priceRange[1]])}
+            className="h-9 w-20 border-slate-700 bg-slate-800/50 text-center text-sm text-slate-200"
+          />
+          <span className="text-slate-500">-</span>
+          <Input
+            type="number"
+            min={200}
+            max={2000}
+            step={50}
+            value={priceRange[1]}
+            onChange={(e) => onPriceRangeChange([priceRange[0], parseInt(e.target.value) || 2000])}
+            className="h-9 w-20 border-slate-700 bg-slate-800/50 text-center text-sm text-slate-200"
+          />
+        </div>
       </div>
 
       {/* Experience Section */}

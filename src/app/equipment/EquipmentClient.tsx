@@ -8,19 +8,14 @@ import Fuse from 'fuse.js';
 import {
   Search,
   Tractor,
-  MapPin,
-  Star,
-  X,
-  SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
   Calendar,
   MessageCircle,
-  IndianRupee,
   ChevronDown,
-  ChevronUp,
-  Settings2,
-  Zap,
+  ArrowLeft,
+  Plus,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
@@ -41,11 +36,276 @@ import {
 import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
 import { Equipment, EquipmentCategory } from '@/lib/types';
-import { EQUIPMENT_CATEGORIES } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
-import { BackButton } from '@/components/ui/back-button';
 import { EquipmentSkeleton, EquipmentCardSkeleton } from '@/components/skeletons/EquipmentSkeleton';
+
+// Indian States and Cities mapping
+const INDIAN_STATES = [
+  'Maharashtra',
+  'Gujarat',
+  'Karnataka',
+  'Tamil Nadu',
+  'Uttar Pradesh',
+  'Punjab',
+  'Rajasthan',
+  'Madhya Pradesh',
+  'Haryana',
+  'Telangana',
+  'Andhra Pradesh',
+  'Bihar',
+  'West Bengal',
+  'Kerala',
+  'Odisha',
+  'Jharkhand',
+  'Chhattisgarh',
+  'Assam',
+  'Uttarakhand',
+  'Himachal Pradesh',
+] as const;
+
+const STATE_CITIES: Record<string, string[]> = {
+  Maharashtra: [
+    'Mumbai',
+    'Pune',
+    'Nagpur',
+    'Nashik',
+    'Aurangabad',
+    'Thane',
+    'Solapur',
+    'Kolhapur',
+    'Sangli',
+    'Satara',
+  ],
+  Gujarat: [
+    'Ahmedabad',
+    'Surat',
+    'Vadodara',
+    'Rajkot',
+    'Bhavnagar',
+    'Jamnagar',
+    'Gandhinagar',
+    'Junagadh',
+    'Anand',
+    'Nadiad',
+  ],
+  Karnataka: [
+    'Bengaluru',
+    'Mysuru',
+    'Mangaluru',
+    'Hubli',
+    'Belgaum',
+    'Gulbarga',
+    'Davanagere',
+    'Shimoga',
+    'Tumkur',
+    'Bellary',
+  ],
+  'Tamil Nadu': [
+    'Chennai',
+    'Coimbatore',
+    'Madurai',
+    'Tiruchirappalli',
+    'Salem',
+    'Tirunelveli',
+    'Erode',
+    'Vellore',
+    'Thoothukudi',
+    'Dindigul',
+  ],
+  'Uttar Pradesh': [
+    'Lucknow',
+    'Kanpur',
+    'Agra',
+    'Varanasi',
+    'Allahabad',
+    'Noida',
+    'Ghaziabad',
+    'Meerut',
+    'Bareilly',
+    'Aligarh',
+  ],
+  Punjab: [
+    'Ludhiana',
+    'Amritsar',
+    'Jalandhar',
+    'Patiala',
+    'Bathinda',
+    'Mohali',
+    'Hoshiarpur',
+    'Batala',
+    'Pathankot',
+    'Moga',
+  ],
+  Rajasthan: [
+    'Jaipur',
+    'Jodhpur',
+    'Udaipur',
+    'Kota',
+    'Bikaner',
+    'Ajmer',
+    'Alwar',
+    'Bharatpur',
+    'Sikar',
+    'Pali',
+  ],
+  'Madhya Pradesh': [
+    'Bhopal',
+    'Indore',
+    'Jabalpur',
+    'Gwalior',
+    'Ujjain',
+    'Sagar',
+    'Rewa',
+    'Satna',
+    'Ratlam',
+    'Chhindwara',
+  ],
+  Haryana: [
+    'Gurugram',
+    'Faridabad',
+    'Panipat',
+    'Ambala',
+    'Karnal',
+    'Rohtak',
+    'Hisar',
+    'Sonipat',
+    'Panchkula',
+    'Kurukshetra',
+  ],
+  Telangana: [
+    'Hyderabad',
+    'Warangal',
+    'Nizamabad',
+    'Karimnagar',
+    'Khammam',
+    'Secunderabad',
+    'Nalgonda',
+    'Mahbubnagar',
+    'Adilabad',
+    'Siddipet',
+  ],
+  'Andhra Pradesh': [
+    'Visakhapatnam',
+    'Vijayawada',
+    'Guntur',
+    'Nellore',
+    'Kurnool',
+    'Tirupati',
+    'Kakinada',
+    'Rajahmundry',
+    'Anantapur',
+    'Eluru',
+  ],
+  Bihar: [
+    'Patna',
+    'Gaya',
+    'Bhagalpur',
+    'Muzaffarpur',
+    'Purnia',
+    'Darbhanga',
+    'Bihar Sharif',
+    'Arrah',
+    'Begusarai',
+    'Katihar',
+  ],
+  'West Bengal': [
+    'Kolkata',
+    'Howrah',
+    'Durgapur',
+    'Siliguri',
+    'Asansol',
+    'Burdwan',
+    'Malda',
+    'Baharampur',
+    'Habra',
+    'Kharagpur',
+  ],
+  Kerala: [
+    'Thiruvananthapuram',
+    'Kochi',
+    'Kozhikode',
+    'Thrissur',
+    'Kollam',
+    'Kannur',
+    'Alappuzha',
+    'Palakkad',
+    'Kottayam',
+    'Kasaragod',
+  ],
+  Odisha: [
+    'Bhubaneswar',
+    'Cuttack',
+    'Rourkela',
+    'Berhampur',
+    'Sambalpur',
+    'Puri',
+    'Balasore',
+    'Bhadrak',
+    'Baripada',
+    'Jharsuguda',
+  ],
+  Jharkhand: [
+    'Ranchi',
+    'Jamshedpur',
+    'Dhanbad',
+    'Bokaro',
+    'Hazaribagh',
+    'Deoghar',
+    'Giridih',
+    'Ramgarh',
+    'Dumka',
+    'Chaibasa',
+  ],
+  Chhattisgarh: [
+    'Raipur',
+    'Bhilai',
+    'Bilaspur',
+    'Korba',
+    'Durg',
+    'Rajnandgaon',
+    'Jagdalpur',
+    'Raigarh',
+    'Ambikapur',
+    'Mahasamund',
+  ],
+  Assam: [
+    'Guwahati',
+    'Silchar',
+    'Dibrugarh',
+    'Jorhat',
+    'Nagaon',
+    'Tinsukia',
+    'Tezpur',
+    'Barpeta',
+    'Sivasagar',
+    'Goalpara',
+  ],
+  Uttarakhand: [
+    'Dehradun',
+    'Haridwar',
+    'Rishikesh',
+    'Roorkee',
+    'Haldwani',
+    'Rudrapur',
+    'Kashipur',
+    'Roorkee',
+    'Mussoorie',
+    'Nainital',
+  ],
+  'Himachal Pradesh': [
+    'Shimla',
+    'Manali',
+    'Dharamshala',
+    'Solan',
+    'Mandi',
+    'Kullu',
+    'Kangra',
+    'Palampur',
+    'Una',
+    'Bilaspur',
+  ],
+};
 
 // SEO Structured Data for Agri Rental Equipment Listing
 const equipmentJsonLd = {
@@ -236,9 +496,9 @@ function AvailabilityCalendar({
               </div>
             )}
 
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
               <div key={day} className="pb-2 text-[10px] font-black text-gray-600">
-                {day}
+                {day.charAt(0)}
               </div>
             ))}
 
@@ -287,7 +547,32 @@ function AvailabilityCalendar({
   );
 }
 
-// Equipment Card Component with dark theme and neon yellow accents
+function LazyCard({ children }: { children: React.ReactNode }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px', threshold: 0.1 }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return <div ref={ref}>{isVisible ? children : <EquipmentCardSkeleton />}</div>;
+}
+
+// Equipment Card Component - Redesigned per reference image
 function EquipmentCard({
   equipment,
   onMessage,
@@ -301,6 +586,7 @@ function EquipmentCard({
   const [showCalendar, setShowCalendar] = useState(false);
   const [isLoadingBooked, setIsLoadingBooked] = useState(false);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const images = equipment.images || [];
 
   // Fetch booked dates for calendar
@@ -318,18 +604,8 @@ function EquipmentCard({
       console.log(`[Calendar] ${equipment.name}: Found ${bookedData.length} occupied dates`);
       setBookedDates(bookedData);
     } catch (error: unknown) {
-      // Better error logging for Supabase objects
-      const detail =
-        error instanceof Error
-          ? error.message
-          : error && typeof error === 'object' && 'details' in error
-            ? (error as { details?: string }).details
-            : error && typeof error === 'object' && 'code' in error
-              ? (error as { code?: string }).code
-              : typeof error === 'object'
-                ? JSON.stringify(error, Object.getOwnPropertyNames(error))
-                : String(error);
-      console.error('[Calendar API Error]:', detail);
+      console.warn('[Calendar] Could not fetch availability:', error);
+      setBookedDates([]);
     } finally {
       setIsLoadingBooked(false);
     }
@@ -367,204 +643,159 @@ function EquipmentCard({
 
   return (
     <>
-      <div className="perspective-1000 group">
+      <div className="group">
         <Link href={`/equipment/item/${equipment.id}`} className="block h-full">
-          <div className="relative h-full overflow-hidden rounded-2xl transition-all duration-500 group-hover:-translate-y-2 group-hover:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-hover:scale-100">
-            {/* Animated gradient border glow */}
-            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-100 motion-reduce:transition-none" />
+          <div className="relative h-full overflow-hidden rounded-xl bg-[#1a1a1a] transition-all duration-300 hover:-translate-y-1">
+            {/* Image Section */}
+            <div className="relative aspect-[4/3] overflow-hidden bg-[#111]">
+              {images.length > 0 ? (
+                <>
+                  <Image
+                    src={images[currentImageIndex]}
+                    alt={equipment.name}
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                    className={`object-cover transition-all duration-500 group-hover:scale-105 ${
+                      imageLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
+                    }`}
+                    onLoad={() => setImageLoaded(true)}
+                  />
 
-            {/* Glassmorphism card */}
-            <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/90 to-[#0a0a0a]/90 shadow-xl backdrop-blur-xl transition-shadow duration-500 group-hover:shadow-[0_0_40px_rgba(34,211,238,0.4)] motion-reduce:transition-none">
-              {/* Image Gallery with parallax effect */}
-              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
-                {images.length > 0 ? (
-                  <>
-                    <div className="relative h-full w-full overflow-hidden">
-                      <Image
-                        src={images[currentImageIndex]}
-                        alt={equipment.name}
-                        fill
-                        className="object-cover transition-all duration-700 group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                      />
-                      {/* Holographic overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-emerald-400/20 opacity-0 mix-blend-overlay transition-opacity duration-700 group-hover:opacity-100 motion-reduce:transition-none" />
-                    </div>
-
-                    {/* Enhanced image navigation */}
-                    {images.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white opacity-0 backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-cyan-500/80 group-hover:opacity-100 motion-reduce:transition-none"
-                          aria-label="Previous image"
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-2 text-white opacity-0 backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-cyan-500/80 group-hover:opacity-100 motion-reduce:transition-none"
-                          aria-label="Next image"
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </button>
-                        {/* Enhanced image indicators */}
-                        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-                          {images.map((_, index) => (
-                            <div
-                              key={index}
-                              className={`h-1.5 rounded-full transition-all duration-300 motion-reduce:transition-none ${
-                                index === currentImageIndex
-                                  ? 'w-8 bg-gradient-to-r from-cyan-400 to-emerald-400 shadow-[0_0_10px_rgba(34,211,238,0.8)]'
-                                  : 'w-1.5 bg-white/40 hover:bg-white/60'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    )}
-
-                    {/* Availability badge with glow */}
-                    <div className="absolute right-4 top-4 z-10">
-                      <div
-                        className={`rounded-full border px-3 py-1.5 backdrop-blur-xl ${
-                          equipment.is_available
-                            ? 'border-emerald-400/50 bg-emerald-500/20 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.5)]'
-                            : 'border-red-400/50 bg-red-500/20 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
-                        }`}
+                  {/* Image Navigation */}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                        aria-label="Previous image"
                       >
-                        <div className="flex items-center gap-2">
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/60 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/80 group-hover:opacity-100"
+                        aria-label="Next image"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                      {/* Image Indicators */}
+                      <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+                        {images.map((_, index) => (
                           <div
-                            className={`h-2 w-2 rounded-full ${equipment.is_available ? 'animate-pulse bg-emerald-400' : 'bg-red-400'}`}
+                            key={index}
+                            className={`h-1 rounded-full transition-all ${
+                              index === currentImageIndex ? 'w-4 bg-cyan-400' : 'w-1 bg-white/50'
+                            }`}
                           />
-                          <span className="text-xs font-bold uppercase tracking-wide">
-                            {equipment.is_available ? 'Available' : 'Booked'}
-                          </span>
-                        </div>
+                        ))}
                       </div>
-                    </div>
+                    </>
+                  )}
 
-                    {/* Category badge */}
-                    <div className="absolute left-4 top-4 z-10">
-                      <div className="rounded-full border border-white/20 bg-black/40 px-3 py-1.5 text-white/90 backdrop-blur-xl">
-                        <span className="text-xs font-bold uppercase tracking-wide">
-                          {equipment.category || 'Equipment'}
-                        </span>
-                      </div>
+                  {/* Status Badge - Top Left */}
+                  <div className="absolute left-3 top-3 z-10">
+                    <div
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        equipment.is_available
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-orange-500 text-white'
+                      }`}
+                    >
+                      {equipment.is_available ? 'AVAILABLE' : 'ON DUTY'}
                     </div>
-                  </>
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-900 to-gray-950">
-                    <Tractor className="h-16 w-16 text-gray-700/50" />
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[#111]">
+                  <Tractor className="h-12 w-12 text-gray-700" />
+                </div>
+              )}
+            </div>
+
+            {/* Content Section */}
+            <div className="p-4">
+              {/* Brand & Model */}
+              <div className="mb-3">
+                {equipment.brand && (
+                  <p className="text-xs font-semibold uppercase tracking-wide text-cyan-400">
+                    {equipment.brand}
+                  </p>
+                )}
+                <h3 className="line-clamp-1 text-lg font-bold text-white">{equipment.name}</h3>
+              </div>
+
+              {/* Spec Badges Row */}
+              <div className="mb-4 flex flex-wrap gap-2">
+                {equipment.horsepower && (
+                  <div className="flex flex-col rounded-lg bg-[#252525] px-3 py-2">
+                    <span className="text-[10px] uppercase text-gray-500">HP</span>
+                    <span className="text-sm font-semibold text-white">{equipment.horsepower}</span>
+                  </div>
+                )}
+                {equipment.year && (
+                  <div className="flex flex-col rounded-lg bg-[#252525] px-3 py-2">
+                    <span className="text-[10px] uppercase text-gray-500">Year</span>
+                    <span className="text-sm font-semibold text-white">{equipment.year}</span>
+                  </div>
+                )}
+                {equipment.fuel_type && (
+                  <div className="flex flex-col rounded-lg bg-[#252525] px-3 py-2">
+                    <span className="text-[10px] uppercase text-gray-500">Fuel</span>
+                    <span className="text-sm font-semibold capitalize text-white">
+                      {equipment.fuel_type}
+                    </span>
+                  </div>
+                )}
+                {equipment.category && (
+                  <div className="flex flex-col rounded-lg bg-[#252525] px-3 py-2">
+                    <span className="text-[10px] uppercase text-gray-500">Type</span>
+                    <span className="text-sm font-semibold text-white">{equipment.category}</span>
                   </div>
                 )}
               </div>
 
-              {/* Enhanced content section */}
-              <div className="flex flex-grow flex-col space-y-4 p-5">
-                {/* Equipment Name & Brand info - moved to top with larger font */}
-                <div>
-                  <div className="mb-2 flex items-center gap-2">
-                    {equipment.brand && (
-                      <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-lg font-bold uppercase tracking-widest text-cyan-400">
-                        {equipment.brand}
-                      </span>
-                    )}
-                    {equipment.model && (
-                      <span className="text-lg font-bold uppercase tracking-widest text-gray-300">
-                        {equipment.model}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="line-clamp-2 text-2xl font-bold text-white transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-cyan-400 group-hover:to-emerald-400 group-hover:bg-clip-text group-hover:text-transparent motion-reduce:transition-none">
-                    {equipment.name}
-                  </h3>
-                </div>
-
-                {/* Specs Grid - 2x2 grid with Year, HP, Fuel */}
-                <div className="grid grid-cols-2 gap-3">
-                  {equipment.year && (
-                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-gray-300 transition-colors group-hover:border-white/10">
-                      <Calendar className="h-4 w-4 text-emerald-400" />
-                      <span className="text-sm font-medium">{equipment.year}</span>
-                    </div>
-                  )}
-                  {equipment.horsepower && (
-                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-gray-300 transition-colors group-hover:border-white/10">
-                      <Settings2 className="h-4 w-4 text-cyan-400" />
-                      <span className="text-sm font-medium">{equipment.horsepower} HP</span>
-                    </div>
-                  )}
-                  {equipment.fuel_type && (
-                    <div className="flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-gray-300 transition-colors group-hover:border-white/10">
-                      <Zap className="h-4 w-4 text-yellow-400" />
-                      <span className="text-sm font-medium capitalize">{equipment.fuel_type}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Price with gradient background - showing both hourly and daily */}
-                <div className="mt-auto space-y-2 pt-2">
-                  {equipment.price_per_hour && (
-                    <div className="inline-flex items-baseline gap-1 rounded-lg border border-purple-500/20 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 px-3 py-1.5">
-                      <IndianRupee className="h-4 w-4 text-purple-400" />
-                      <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-xl font-black text-transparent">
-                        {equipment.price_per_hour}
-                      </span>
-                      <span className="text-xs font-medium text-gray-400">/hour</span>
-                    </div>
-                  )}
-                  <div className="inline-flex w-full items-baseline gap-1 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-teal-500/10 px-4 py-2">
-                    <IndianRupee className="h-5 w-5 text-cyan-400" />
-                    <span className="bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-3xl font-black text-transparent">
-                      {equipment.price_per_day}
+              {/* Price Section */}
+              <div className="mb-4">
+                <div className="flex items-end justify-between">
+                  <span className="text-xs text-gray-500">Rental Price</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-cyan-400">
+                      ₹{equipment.price_per_day}
                     </span>
-                    <span className="text-sm font-medium text-gray-400">/day</span>
+                    <span className="text-sm text-gray-500">/hr</span>
                   </div>
                 </div>
+                {equipment.price_per_hour && (
+                  <p className="text-right text-xs text-gray-600">
+                    Daily Rate: ₹{equipment.price_per_hour}
+                  </p>
+                )}
+              </div>
 
-                {/* Location & Rating */}
-                <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <MapPin className="h-4 w-4 text-cyan-400" />
-                    <span className="max-w-[120px] truncate text-sm font-medium">
-                      {equipment.location_name || 'Location'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    <span className="text-sm font-bold text-amber-400">
-                      {equipment.rating?.toFixed(1) || '5.0'}
-                    </span>
-                    {equipment.review_count && equipment.review_count > 0 && (
-                      <span className="text-xs text-gray-400">({equipment.review_count})</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Floating action buttons - Book Now moved to bottom, full-width with 8px border-radius */}
-                <div className="mt-auto flex gap-2">
-                  <button
-                    onClick={handleBookClick}
-                    className="flex-1 transform rounded-lg bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 px-4 py-3 text-sm font-bold uppercase tracking-wide text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(34,211,238,0.6)] active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
-                  >
-                    Book Now
-                  </button>
-                  <button
-                    onClick={handleCalendarClick}
-                    className="transform rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-cyan-400/50 hover:bg-white/10 active:scale-95 motion-reduce:transition-none"
-                    aria-label="View calendar"
-                  >
-                    <Calendar className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={handleMessageClick}
-                    className="transform rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-emerald-400/50 hover:bg-white/10 active:scale-95 motion-reduce:transition-none"
-                    aria-label="Send message"
-                  >
-                    <MessageCircle className="h-5 w-5" />
-                  </button>
-                </div>
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleBookClick}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-cyan-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-cyan-400"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Book Now
+                </button>
+                <button
+                  onClick={handleCalendarClick}
+                  className="flex items-center justify-center rounded-full border border-gray-700 bg-transparent px-3 py-2.5 text-gray-400 transition-colors hover:border-cyan-500 hover:text-cyan-400"
+                  aria-label="View calendar"
+                >
+                  <Calendar className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={handleMessageClick}
+                  className="flex items-center justify-center rounded-full border border-gray-700 bg-transparent px-3 py-2.5 text-gray-400 transition-colors hover:border-cyan-500 hover:text-cyan-400"
+                  aria-label="Send message"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </button>
               </div>
             </div>
           </div>
@@ -600,18 +831,21 @@ function PublicEquipmentPageContent() {
     (searchParams.get('category') as EquipmentCategory) || 'all'
   );
   const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc' | 'rating'>('newest');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 50000 });
+  const [priceInput, setPriceInput] = useState({ min: '', max: '' });
   const [minRating, setMinRating] = useState<number>(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
   // Sidebar state
-  const [showPriceFilter, setShowPriceFilter] = useState(true);
-  const [showBrandFilter, setShowBrandFilter] = useState(true);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [brandSearch, setBrandSearch] = useState('');
+
+  // Location filter state
+  const [selectedState, setSelectedState] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('');
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -639,38 +873,56 @@ function PublicEquipmentPageContent() {
 
   // Fuzzy search using Fuse.js
   const filteredEquipment = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return equipment;
+    let result = equipment;
+
+    // Apply location filter first
+    if (selectedState || selectedCity) {
+      result = result.filter((item) => {
+        const location = item.location_name || '';
+        const locationParts = location.split(',').map((p) => p.trim().toLowerCase());
+
+        if (selectedCity) {
+          return locationParts.some((part) => part.includes(selectedCity.toLowerCase()));
+        } else if (selectedState) {
+          return locationParts.some((part) => part.includes(selectedState.toLowerCase()));
+        }
+        return true;
+      });
     }
 
-    const fuse = new Fuse(equipment, {
+    // Apply search query using Fuse.js
+    if (!searchQuery.trim()) {
+      return result;
+    }
+
+    const fuse = new Fuse(result, {
       keys: [
-        { name: 'name', weight: 2.5 }, // Equipment name (highest priority)
-        { name: 'brand', weight: 2.0 }, // Brand name
-        { name: 'model', weight: 2.0 }, // Model name
-        { name: 'category', weight: 1.5 }, // Equipment category
-        { name: 'fuel_type', weight: 1.5 }, // Fuel type (diesel, gas, electric)
-        { name: 'location_name', weight: 1.5 }, // Location
-        { name: 'description', weight: 1.0 }, // Description
-        { name: 'features', weight: 1.0 }, // Features array
-        { name: 'year', weight: 0.8 }, // Manufacturing year
-        { name: 'horsepower', weight: 0.8 }, // Horsepower
-        { name: 'owner.name', weight: 0.8 }, // Owner name (nested)
-        { name: 'price_per_hour', weight: 0.5 }, // Hourly price
-        { name: 'price_per_day', weight: 0.5 }, // Daily price
-        { name: 'rating', weight: 0.5 }, // Rating
-        { name: 'review_count', weight: 0.5 }, // Review count
+        { name: 'name', weight: 2.5 },
+        { name: 'brand', weight: 2.0 },
+        { name: 'model', weight: 2.0 },
+        { name: 'category', weight: 1.5 },
+        { name: 'fuel_type', weight: 1.5 },
+        { name: 'location_name', weight: 1.5 },
+        { name: 'description', weight: 1.0 },
+        { name: 'features', weight: 1.0 },
+        { name: 'year', weight: 0.8 },
+        { name: 'horsepower', weight: 0.8 },
+        { name: 'owner.name', weight: 0.8 },
+        { name: 'price_per_hour', weight: 0.5 },
+        { name: 'price_per_day', weight: 0.5 },
+        { name: 'rating', weight: 0.5 },
+        { name: 'review_count', weight: 0.5 },
       ],
-      threshold: 0.4, // More lenient matching for typos
+      threshold: 0.4,
       distance: 100,
       minMatchCharLength: 2,
       ignoreLocation: true,
       includeScore: true,
     });
 
-    const results = fuse.search(searchQuery);
-    return results.map((result) => result.item);
-  }, [equipment, searchQuery]);
+    const searchResults = fuse.search(searchQuery);
+    return searchResults.map((searchResult) => searchResult.item);
+  }, [equipment, searchQuery, selectedState, selectedCity]);
 
   const getCacheKey = useCallback(() => {
     return JSON.stringify({
@@ -821,7 +1073,6 @@ function PublicEquipmentPageContent() {
       return;
     }
 
-    // Prevent starting a conversation with yourself
     if (eq.owner_id === user?.id) {
       toast.error('You cannot start a chat with yourself.');
       return;
@@ -841,245 +1092,322 @@ function PublicEquipmentPageContent() {
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedCategory('all');
-    setPriceRange({ min: '', max: '' });
+    setPriceRange({ min: 0, max: 50000 });
+    setPriceInput({ min: '', max: '' });
     setMinRating(0);
     setSortBy('newest');
     setSelectedBrands([]);
     setPage(1);
     setBrandSearch('');
+    setSelectedState('');
+    setSelectedCity('');
   };
 
   const FilterContent = ({ isMobile = false }: { isMobile?: boolean }) => (
-    <div className="space-y-4">
-      {/* Reset Filters with gradient */}
-      <button
-        onClick={() => {
-          clearFilters();
-          if (isMobile) setShowFilters(false);
-        }}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-transparent px-4 py-3 text-sm font-medium text-gray-400 transition-all duration-300 hover:border-white/20 hover:bg-white/5 hover:text-gray-300"
-      >
-        <X className="h-4 w-4" />
-        <span>Reset filters</span>
-      </button>
-
-      {/* Price Filter with glassmorphism */}
-      <div className="mb-8 rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
+    <div className="space-y-6">
+      {/* Header with Reset */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">Filters</h3>
         <button
-          onClick={() => setShowPriceFilter(!showPriceFilter)}
-          className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400"
+          onClick={() => {
+            clearFilters();
+            if (isMobile) setShowFilters(false);
+          }}
+          className="text-sm text-cyan-400 hover:text-cyan-300"
         >
-          <span className="text-lg">Price Range</span>
-          {showPriceFilter ? (
-            <ChevronUp className="h-5 w-5" />
-          ) : (
-            <ChevronDown className="h-5 w-5" />
-          )}
+          Reset Filters
         </button>
-
-        {showPriceFilter && (
-          <div className="space-y-3">
-            <Input
-              type="number"
-              placeholder="Min price"
-              value={priceRange.min}
-              onChange={(e) => setPriceRange((p) => ({ ...p, min: e.target.value }))}
-              className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
-            />
-            <Input
-              type="number"
-              placeholder="Max price"
-              value={priceRange.max}
-              onChange={(e) => setPriceRange((p) => ({ ...p, max: e.target.value }))}
-              className="rounded-xl border-white/10 bg-black/40 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
-            />
-            <Button
-              onClick={() => {
-                loadEquipment(1, false);
-                if (isMobile) setShowFilters(false);
-              }}
-              className="w-full rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-teal-500 font-bold uppercase tracking-wide text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.6)]"
-            >
-              Apply Filter
-            </Button>
-          </div>
-        )}
       </div>
 
-      {/* Brand Filter with glassmorphism */}
-      <div className="mb-8 rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5 shadow-xl backdrop-blur-xl">
-        <button
-          onClick={() => setShowBrandFilter(!showBrandFilter)}
-          className="mb-4 flex w-full items-center justify-between font-bold text-white transition-colors hover:text-cyan-400"
-        >
-          <span className="text-lg">Brand</span>
-          {showBrandFilter ? (
-            <ChevronUp className="h-5 w-5" />
-          ) : (
-            <ChevronDown className="h-5 w-5" />
-          )}
-        </button>
+      {/* Price Range */}
+      <div>
+        <h4 className="mb-4 text-sm font-medium text-gray-400">Price Range (₹)</h4>
 
-        {showBrandFilter && (
-          <div className="space-y-2">
-            <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-400" />
-              <Input
-                placeholder="Search brands"
-                value={brandSearch}
-                onChange={(e) => setBrandSearch(e.target.value)}
-                className="rounded-xl border-white/20 bg-black/40 pl-10 text-white placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/50"
+        {/* Input Fields Row */}
+        <div className="mb-6 flex items-center gap-3">
+          {/* Min Input */}
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-cyan-400">Min</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                ₹
+              </span>
+              <input
+                type="number"
+                placeholder="0"
+                value={priceInput.min}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  setPriceInput((p) => ({ ...p, min: inputValue }));
+                }}
+                onBlur={() => {
+                  const numVal = parseInt(priceInput.min) || 0;
+                  const clampedMin = Math.min(numVal, priceRange.max);
+                  setPriceRange((p) => ({ ...p, min: clampedMin }));
+                  setPriceInput((p) => ({ ...p, min: clampedMin.toString() }));
+                }}
+                className="flex h-10 w-full rounded-lg border border-gray-700 bg-[#252525] pl-7 pr-3 text-sm text-white placeholder:text-gray-600 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
               />
             </div>
-            <div className="space-y-1">
-              {visibleBrands.length > 0 ? (
-                visibleBrands.map((brand) => (
-                  <label
-                    key={brand}
-                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2.5 transition-colors hover:bg-white/5"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedBrands.includes(brand)}
-                      onChange={() => toggleBrand(brand)}
-                      className="h-4 w-4 rounded border-cyan-500/30 bg-black/40 text-cyan-500 focus:ring-cyan-400 focus:ring-offset-0"
-                    />
-                    <span className="text-sm font-medium text-gray-300">{brand}</span>
-                  </label>
-                ))
-              ) : (
-                <p className="px-2 text-sm text-gray-500">No brands found</p>
-              )}
-            </div>
-            {!brandSearch && brands.length > 5 && (
-              <button
-                onClick={() => setShowAllBrands(!showAllBrands)}
-                className="mt-2 w-full rounded-lg py-2 text-xs font-bold uppercase tracking-widest text-cyan-400 transition-colors hover:bg-cyan-500/10 hover:text-cyan-300"
-              >
-                {showAllBrands ? 'Show Less' : `Show More (${brands.length - 5})`}
-              </button>
-            )}
           </div>
+
+          {/* Separator */}
+          <div className="mt-5 text-gray-500">—</div>
+
+          {/* Max Input */}
+          <div className="flex-1">
+            <label className="mb-1.5 block text-xs font-medium text-cyan-400">Max</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                ₹
+              </span>
+              <input
+                type="number"
+                placeholder="50000"
+                value={priceInput.max}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  setPriceInput((p) => ({ ...p, max: inputValue }));
+                }}
+                onBlur={() => {
+                  const numVal = parseInt(priceInput.max) || 50000;
+                  const clampedMax = Math.max(numVal, priceRange.min);
+                  setPriceRange((p) => ({ ...p, max: clampedMax }));
+                  setPriceInput((p) => ({ ...p, max: clampedMax.toString() }));
+                }}
+                className="flex h-10 w-full rounded-lg border border-gray-700 bg-[#252525] pl-7 pr-3 text-sm text-white placeholder:text-gray-600 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Price Range Inputs */}
+        <div className="px-1">
+          <div className="mt-2 flex justify-between text-xs text-gray-500">
+            <span>₹0</span>
+            <span>₹50k+</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Brand Filter */}
+      <div>
+        <h4 className="mb-3 text-sm font-medium text-gray-400">Brand</h4>
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          <Input
+            placeholder="Search brands"
+            value={brandSearch}
+            onChange={(e) => setBrandSearch(e.target.value)}
+            className="w-full rounded-lg border-gray-700 bg-[#252525] pl-10 text-white placeholder:text-gray-600 focus:border-cyan-500 focus:ring-cyan-500"
+          />
+        </div>
+        <div className="max-h-48 space-y-2 overflow-y-auto">
+          {visibleBrands.length > 0 ? (
+            visibleBrands.map((brand) => (
+              <label
+                key={brand}
+                className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-[#252525]"
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedBrands.includes(brand)}
+                  onChange={() => toggleBrand(brand)}
+                  className="h-4 w-4 rounded border-gray-600 bg-[#252525] text-cyan-500 focus:ring-cyan-500"
+                />
+                <span className="text-sm text-gray-300">{brand}</span>
+              </label>
+            ))
+          ) : (
+            <p className="text-sm text-gray-500">No brands found</p>
+          )}
+        </div>
+        {!brandSearch && brands.length > 5 && (
+          <button
+            onClick={() => setShowAllBrands(!showAllBrands)}
+            className="mt-2 text-xs text-cyan-400 hover:text-cyan-300"
+          >
+            {showAllBrands ? 'Show Less' : `Show More (${brands.length - 5})`}
+          </button>
         )}
       </div>
+
+      {/* Location Filter */}
+      <div>
+        <h4 className="mb-3 text-sm font-medium text-gray-400">Location</h4>
+        <div className="space-y-3">
+          <div className="relative">
+            <select
+              value={selectedState}
+              onChange={(e) => {
+                setSelectedState(e.target.value);
+                setSelectedCity('');
+              }}
+              className="w-full appearance-none rounded-lg border border-gray-700 bg-[#252525] px-4 py-2.5 text-white focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+            >
+              <option value="">Select State</option>
+              {INDIAN_STATES.map((state) => (
+                <option key={state} value={state} className="bg-[#1a1a1a]">
+                  {state}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          </div>
+
+          <div className="relative">
+            <select
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              disabled={!selectedState}
+              className="w-full appearance-none rounded-lg border border-gray-700 bg-[#252525] px-4 py-2.5 text-white transition-opacity focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">Select City</option>
+              {selectedState &&
+                STATE_CITIES[selectedState]?.map((city) => (
+                  <option key={city} value={city} className="bg-[#1a1a1a]">
+                    {city}
+                  </option>
+                ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          </div>
+        </div>
+      </div>
+
+      <Button
+        onClick={() => {
+          loadEquipment(1, false);
+          if (isMobile) setShowFilters(false);
+        }}
+        className="w-full rounded-full bg-cyan-500 py-3 font-semibold text-white hover:bg-cyan-400"
+      >
+        Apply Filters
+      </Button>
     </div>
   );
 
   const hasActiveFilters =
     searchQuery ||
     (selectedCategory && selectedCategory !== 'all') ||
-    priceRange.min ||
-    priceRange.max ||
+    priceRange.min > 0 ||
+    priceRange.max < 50000 ||
     minRating > 0 ||
-    selectedBrands.length > 0;
+    selectedBrands.length > 0 ||
+    selectedState ||
+    selectedCity;
+
+  // Category tabs configuration
+  const categoryTabs = [
+    { value: 'all', label: 'All Equipment' },
+    { value: 'tractor', label: 'Tractors' },
+    { value: 'harvester', label: 'Harvesters' },
+    { value: 'drone', label: 'Drones & Tech' },
+    { value: 'cultivator', label: 'Soil Prep' },
+    { value: 'irrigation', label: 'Irrigation' },
+    { value: 'seeder', label: 'Seeders' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
+    <div className="min-h-screen bg-[#0a0a0a]">
       <Header />
 
-      <main className="mx-auto max-w-[1600px] px-0 pb-8 pt-28 md:px-4">
-        {/* Back Button */}
-        <div className="mb-4">
-          <BackButton variant="minimal" />
-        </div>
-
-        {/* Enhanced Page Header with gradient text */}
+      <main className="mx-auto max-w-[1600px] px-4 pb-8 pt-24">
+        {/* Header Section */}
         <div className="mb-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="mb-3 bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 bg-clip-text text-4xl font-black text-transparent md:text-5xl">
-                Premium Equipment
-              </h1>
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Link href="/" className="transition-colors hover:text-cyan-400">
-                  Home
-                </Link>
-                <span>›</span>
-                <span className="font-medium text-white">Equipment</span>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            {/* Left: Back + Title + Breadcrumb */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.back()}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a1a1a] text-gray-400 transition-colors hover:text-white"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-cyan-400 md:text-3xl">Premium Equipment</h1>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Marketplace › Agricultural Listings
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={() => setShowFilters(true)}
-                className="flex items-center gap-2 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 px-4 py-2 transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] lg:hidden"
-              >
-                <SlidersHorizontal className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm font-medium text-white">Filters</span>
-              </Button>
-              <div suppressHydrationWarning>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      suppressHydrationWarning
-                      className="hidden items-center gap-2 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 px-4 py-2 transition-all hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] lg:flex"
-                    >
-                      <SlidersHorizontal className="h-4 w-4 text-cyan-400" />
-                      <span className="text-sm font-medium text-white">
-                        {sortBy === 'newest' && 'Newest'}
-                        {sortBy === 'price-asc' && 'Price: Low to High'}
-                        {sortBy === 'price-desc' && 'Price: High to Low'}
-                        {sortBy === 'rating' && 'Top Rated'}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-cyan-400" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="border-slate-800 bg-slate-950 text-slate-100">
-                    <DropdownMenuItem
-                      onClick={() => setSortBy('newest')}
-                      className="cursor-pointer focus:bg-slate-800"
-                    >
-                      Newest
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSortBy('price-asc')}
-                      className="cursor-pointer focus:bg-slate-800"
-                    >
-                      Price: Low to High
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSortBy('price-desc')}
-                      className="cursor-pointer focus:bg-slate-800"
-                    >
-                      Price: High to Low
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSortBy('rating')}
-                      className="cursor-pointer focus:bg-slate-800"
-                    >
-                      Top Rated
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+            {/* Right: Sort Dropdown */}
+            <div suppressHydrationWarning>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full border border-gray-700 bg-[#1a1a1a] px-4 py-2.5 text-sm text-gray-300 transition-colors hover:border-cyan-500 hover:text-white">
+                    <span>
+                      Sort:{' '}
+                      {sortBy === 'newest'
+                        ? 'Newest First'
+                        : sortBy === 'price-asc'
+                          ? 'Price: Low to High'
+                          : sortBy === 'price-desc'
+                            ? 'Price: High to Low'
+                            : 'Top Rated'}
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="border-gray-800 bg-[#1a1a1a]">
+                  <DropdownMenuItem
+                    onClick={() => setSortBy('newest')}
+                    className="cursor-pointer text-gray-300 focus:bg-[#252525] focus:text-white"
+                  >
+                    Newest First
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSortBy('price-asc')}
+                    className="cursor-pointer text-gray-300 focus:bg-[#252525] focus:text-white"
+                  >
+                    Price: Low to High
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSortBy('price-desc')}
+                    className="cursor-pointer text-gray-300 focus:bg-[#252525] focus:text-white"
+                  >
+                    Price: High to Low
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setSortBy('rating')}
+                    className="cursor-pointer text-gray-300 focus:bg-[#252525] focus:text-white"
+                  >
+                    Top Rated
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="mb-6 border-b border-gray-800">
-          <div className="scrollbar-hide flex gap-8 overflow-x-auto pb-2">
-            <button
-              onClick={() => handleCategoryChange('all')}
-              className={`border-b-3 whitespace-nowrap pb-3 text-sm transition-colors ${
-                selectedCategory === 'all'
-                  ? 'border-teal-400 text-teal-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              All Items
-            </button>
-            {EQUIPMENT_CATEGORIES.map((cat) => (
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative mx-auto max-w-2xl">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search premium equipment (e.g. John Deere 50HP)..."
+              className="h-14 w-full rounded-xl border-gray-800 bg-[#1a1a1a] pl-12 pr-4 text-base text-white placeholder:text-gray-600 focus:border-cyan-500 focus:ring-cyan-500"
+            />
+          </div>
+        </div>
+
+        {/* Category Tabs - Pill Style */}
+        <div className="mb-8">
+          <div className="scrollbar-hide flex flex-wrap gap-2">
+            {categoryTabs.map((tab) => (
               <button
-                key={cat.value}
-                onClick={() => handleCategoryChange(cat.value)}
-                className={`border-b-3 whitespace-nowrap pb-3 text-sm transition-colors ${
-                  selectedCategory === cat.value
-                    ? 'border-teal-400 text-teal-400'
-                    : 'border-transparent text-gray-400 hover:text-gray-300'
+                key={tab.value}
+                onClick={() => handleCategoryChange(tab.value)}
+                className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
+                  selectedCategory === tab.value
+                    ? 'bg-cyan-500 text-white'
+                    : 'border border-gray-700 bg-transparent text-gray-400 hover:border-gray-600 hover:text-gray-300'
                 }`}
               >
-                {cat.label}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -1087,51 +1415,44 @@ function PublicEquipmentPageContent() {
 
         {/* Main Content - Sidebar + Grid */}
         <div className="flex gap-6">
-          {/* Enhanced Glassmorphism Sidebar Filters */}
+          {/* Left Sidebar Filters */}
           <aside className="hidden w-72 flex-shrink-0 lg:block">
-            <div className="sticky top-6 space-y-4">
-              <FilterContent />
+            <div className="sticky top-24 rounded-xl border border-gray-800 bg-[#1a1a1a] p-5">
+              {FilterContent({})}
             </div>
           </aside>
 
           {/* Equipment Grid */}
           <div className="flex-1">
-            {/* Enhanced Search Bar with glassmorphism */}
-            <div className="mb-8">
-              <div className="group relative">
-                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm transition-opacity duration-300 group-focus-within:opacity-100 motion-reduce:transition-none" />
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-xl">
-                  <Search className="absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-cyan-400" />
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search premium equipment..."
-                    className="h-14 border-0 bg-transparent pl-14 pr-4 text-base text-white placeholder:text-gray-500 focus:outline-none focus:ring-0"
-                  />
-                </div>
-              </div>
+            {/* Mobile Filter Button */}
+            <div className="mb-4 lg:hidden">
+              <Button
+                onClick={() => setShowFilters(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-700 bg-[#1a1a1a] py-3 text-gray-300"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Filters</span>
+              </Button>
             </div>
 
-            {/* Results Count */}
+            {/* Results Info */}
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-gray-400">
-                {isLoading
-                  ? 'Loading...'
-                  : `${filteredEquipment.length} equipment found${searchQuery ? ' (filtered)' : ''}`}
+              <p className="text-sm text-gray-500">
+                {isLoading ? 'Loading...' : `Showing ${filteredEquipment.length} results`}
               </p>
               {!isAuthenticated && (
                 <p className="text-sm text-gray-500">
-                  <Link href="/login" className="text-[#DFFF00] hover:underline">
+                  <Link href="/login" className="text-cyan-400 hover:underline">
                     Login
                   </Link>{' '}
-                  to book equipment
+                  to book
                 </p>
               )}
             </div>
 
-            {/* Equipment Grid with enhanced loading */}
+            {/* Equipment Grid */}
             {isLoading && page === 1 ? (
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <EquipmentCardSkeleton key={i} />
                 ))}
@@ -1147,7 +1468,11 @@ function PublicEquipmentPageContent() {
                 }
                 action={
                   (hasActiveFilters || searchQuery) && (
-                    <Button variant="outline" onClick={clearFilters}>
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      className="border-cyan-500 text-cyan-400 hover:bg-cyan-500/10"
+                    >
                       Clear Filters
                     </Button>
                   )
@@ -1155,27 +1480,47 @@ function PublicEquipmentPageContent() {
               />
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredEquipment.map((item) => (
-                    <EquipmentCard
-                      key={item.id}
-                      equipment={item}
-                      onMessage={handleMessage}
-                      onBook={handleBook}
-                    />
+                    <LazyCard key={item.id}>
+                      <EquipmentCard
+                        equipment={item}
+                        onMessage={handleMessage}
+                        onBook={handleBook}
+                      />
+                    </LazyCard>
                   ))}
                 </div>
 
-                {/* Lazy load trigger */}
-                <div ref={loadMoreRef} className="flex justify-center py-8">
-                  {isLoadingMore && (
+                {/* Load More Section */}
+                <div
+                  ref={loadMoreRef}
+                  className="mt-12 flex flex-col items-center justify-center py-8"
+                >
+                  {isLoadingMore ? (
                     <div className="flex items-center gap-2">
                       <Spinner size="sm" />
                       <span className="text-gray-500">Loading more...</span>
                     </div>
-                  )}
-                  {!hasMore && filteredEquipment.length > 0 && (
-                    <p className="text-gray-500">You&apos;ve reached the end of the list</p>
+                  ) : hasMore ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <button
+                        onClick={() => {
+                          const nextPage = page + 1;
+                          setPage(nextPage);
+                          loadEquipment(nextPage, true);
+                        }}
+                        className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-700 bg-[#1a1a1a] text-gray-400 transition-colors hover:border-cyan-500 hover:text-cyan-400"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </button>
+                      <span className="text-sm font-medium text-gray-400">Load More Equipment</span>
+                      <span className="text-xs text-gray-600">
+                        Showing {filteredEquipment.length} results
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">No more equipment to load</p>
                   )}
                 </div>
               </>
@@ -1184,18 +1529,15 @@ function PublicEquipmentPageContent() {
         </div>
       </main>
 
+      {/* Mobile Filter Dialog */}
       <Dialog open={showFilters} onOpenChange={setShowFilters}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border-slate-800 bg-slate-950 p-0 text-slate-100 sm:max-w-md">
-          <DialogHeader className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/95 px-6 py-4 backdrop-blur-md">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border-gray-800 bg-[#0a0a0a] p-0 text-white sm:max-w-md">
+          <DialogHeader className="sticky top-0 z-10 border-b border-gray-800 bg-[#0a0a0a] px-6 py-4">
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-xl font-bold tracking-tight text-white">
-                Filters
-              </DialogTitle>
+              <DialogTitle className="text-lg font-semibold">Filters</DialogTitle>
             </div>
           </DialogHeader>
-          <div className="px-6 py-4">
-            <FilterContent isMobile />
-          </div>
+          <div className="p-6">{FilterContent({ isMobile: true })}</div>
         </DialogContent>
       </Dialog>
 
