@@ -2,6 +2,23 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+
+  // Performance optimizations
+  poweredByHeader: false,
+
+  // Aggressive bundle splitting for mobile
+  experimental: {
+    optimizePackageImports: [
+      'framer-motion',
+      'gsap',
+      'lucide-react',
+      '@react-three/fiber',
+      '@react-three/drei',
+      'three',
+    ],
+  },
+
+  // Image optimization
   images: {
     remotePatterns: [
       {
@@ -39,10 +56,22 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'api.klipy.com',
       },
     ],
+    // Enable modern formats
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [320, 420, 768, 1024, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+
+  // Enable compression
+  compress: true,
+
   // Enhanced headers for SEO, security, and performance
   async headers() {
     return [

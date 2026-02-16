@@ -21,12 +21,7 @@ import {
   ChevronRight,
   Info,
 } from 'lucide-react';
-import {
-  motion,
-  useMotionTemplate,
-  useSpring,
-  AnimatePresence,
-} from 'framer-motion';
+import { motion, useMotionTemplate, useSpring, AnimatePresence } from 'framer-motion';
 import { Header, Footer } from '@/components/layout';
 import {
   Button,
@@ -71,6 +66,15 @@ interface EquipmentFormData {
   is_available: boolean;
 }
 
+const sanitizeForFileName = (value: string): string => {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+};
+
 export default function EquipmentFormPage() {
   const router = useRouter();
   const params = useParams();
@@ -110,6 +114,9 @@ export default function EquipmentFormPage() {
     video_url: null,
     is_available: true,
   });
+
+  // Inline validation errors for required fields (inline UX improvements)
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
   const springConfig = { stiffness: 100, damping: 30, restDelta: 0.001 };
   const mouseX = useSpring(0, springConfig);
@@ -179,6 +186,21 @@ export default function EquipmentFormPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const buildEquipmentMediaBaseName = () => {
+    const parts = [
+      formData.category,
+      formData.brand,
+      formData.model,
+      formData.name,
+      formData.year,
+    ]
+      .filter((part) => typeof part === 'string' && part.trim().length > 0)
+      .map((part) => sanitizeForFileName(part as string))
+      .filter(Boolean);
+
+    return parts.length > 0 ? parts.join('-') : 'equipment';
   };
 
   const handleCategoryChange = (value: string) => {
@@ -269,10 +291,17 @@ export default function EquipmentFormPage() {
       ): Promise<string> => {
         return new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('upload_preset', uploadPreset);
-          formData.append('folder', 'agri-serve/equipment');
+          const uploadData = new FormData();
+          const baseName = buildEquipmentMediaBaseName();
+          const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          const publicId = `${baseName}-image-${fileIndex + 1}-${uniqueSuffix}`;
+
+          uploadData.append('file', file);
+          uploadData.append('upload_preset', uploadPreset);
+          uploadData.append('folder', 'agri-serve/equipment');
+          uploadData.append('public_id', publicId);
+          uploadData.append('use_filename', 'false');
+          uploadData.append('unique_filename', 'false');
 
           xhr.upload.addEventListener('progress', (event) => {
             if (event.lengthComputable) {
@@ -297,7 +326,7 @@ export default function EquipmentFormPage() {
 
           xhr.addEventListener('error', () => reject(new Error('Upload failed')));
           xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
-          xhr.send(formData);
+          xhr.send(uploadData);
         });
       };
 
@@ -360,11 +389,18 @@ export default function EquipmentFormPage() {
       const uploadWithProgress = (): Promise<string> => {
         return new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('upload_preset', uploadPreset);
-          formData.append('folder', 'agri-serve/equipment');
-          formData.append('resource_type', 'video');
+          const uploadData = new FormData();
+          const baseName = buildEquipmentMediaBaseName();
+          const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+          const publicId = `${baseName}-video-${uniqueSuffix}`;
+
+          uploadData.append('file', file);
+          uploadData.append('upload_preset', uploadPreset);
+          uploadData.append('folder', 'agri-serve/equipment');
+          uploadData.append('resource_type', 'video');
+          uploadData.append('public_id', publicId);
+          uploadData.append('use_filename', 'false');
+          uploadData.append('unique_filename', 'false');
 
           xhr.upload.addEventListener('progress', (event) => {
             if (event.lengthComputable) {
@@ -384,7 +420,7 @@ export default function EquipmentFormPage() {
 
           xhr.addEventListener('error', () => reject(new Error('Video upload failed')));
           xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`);
-          xhr.send(formData);
+          xhr.send(uploadData);
         });
       };
 
@@ -483,24 +519,22 @@ export default function EquipmentFormPage() {
     );
   };
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
     if (!formData.name.trim()) {
-      toast.error('Equipment name is required');
-      return false;
+      errors.name = 'Equipment name is required';
     }
     if (!formData.category) {
-      toast.error('Category is required');
-      return false;
+      errors.category = 'Category is required';
     }
     if (!formData.price_per_day || parseFloat(formData.price_per_day) <= 0) {
-      toast.error('Valid price per day is required');
-      return false;
+      errors.price_per_day = 'Valid price per day is required';
     }
     if (!formData.location_name.trim()) {
-      toast.error('Location is required');
-      return false;
+      errors.location_name = 'Location is required';
     }
-    return true;
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -658,6 +692,9 @@ export default function EquipmentFormPage() {
                             placeholder="e.g. John Deere 5310 Tractor"
                             className="h-12 border-white/10 bg-black/40 text-lg focus:border-emerald-500/50 focus:ring-emerald-500/20"
                           />
+                          {validationErrors.name && (
+                            <p className="mt-1 text-sm text-red-400">{validationErrors.name}</p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -683,6 +720,9 @@ export default function EquipmentFormPage() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {validationErrors.category && (
+                            <p className="mt-1 text-sm text-red-400">{validationErrors.category}</p>
+                          )}
                         </div>
 
                         <div className="space-y-2">
@@ -853,6 +893,11 @@ export default function EquipmentFormPage() {
                               placeholder="2000"
                               className="h-14 border-white/10 bg-black/40 pl-10 text-2xl font-bold text-white placeholder:text-gray-700 focus:border-emerald-500/50"
                             />
+                            {validationErrors.price_per_day && (
+                              <p className="mt-1 text-sm text-red-400">
+                                {validationErrors.price_per_day}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div>
@@ -999,6 +1044,11 @@ export default function EquipmentFormPage() {
                         placeholder="City, District"
                         className="border-white/10 bg-black/40 focus:border-emerald-500/40"
                       />
+                      {validationErrors.location_name && (
+                        <p className="mt-1 text-sm text-red-400">
+                          {validationErrors.location_name}
+                        </p>
+                      )}
                       {formData.latitude !== 0 && (
                         <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-500/80">
                           <CheckCircle2 className="h-3 w-3" />

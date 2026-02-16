@@ -1,24 +1,45 @@
 import { ImageResponse } from 'next/og';
 
-// Route segment config
 export const runtime = 'edge';
 
-// Image metadata
-export const alt = 'AgriServe - Farm Equipment Rental Platform India';
-export const size = {
-  width: 1200,
-  height: 630,
-};
-
+export const alt = 'AgriServe - Rent Farm Equipment | Hire Agricultural Labour';
+export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-// Image generation
+const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || '';
+
+async function tryFetch(path: string) {
+  try {
+    const res = await fetch(path);
+    if (res.ok) return res.arrayBuffer();
+  } catch (e) {
+    return null;
+  }
+  return null;
+}
+
 export default async function Image() {
+  const regular =
+    (await tryFetch(`${siteOrigin}/fonts/Inter-Regular.ttf`)) ||
+    (await tryFetch(
+      'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-UE.woff2'
+    ));
+  const bold = (await tryFetch(`${siteOrigin}/fonts/Inter-Bold.ttf`)) || regular;
+
+  // check logo presence
+  let hasLogo = false;
+  try {
+    const r = await fetch(`${siteOrigin}/logo.png`);
+    hasLogo = r.ok;
+  } catch (e) {
+    hasLogo = false;
+  }
+
   return new ImageResponse(
     <div
       style={{
         fontSize: 48,
-        background: 'linear-gradient(135deg, #0A0F0C 0%, #1a2f1a 100%)',
+        background: 'linear-gradient(135deg, #0A0F0C 0%, #064E3B 50%, #0A0F0C 100%)',
         width: '100%',
         height: '100%',
         display: 'flex',
@@ -27,9 +48,15 @@ export default async function Image() {
         justifyContent: 'center',
         padding: '80px',
         position: 'relative',
+        fontFamily: regular ? 'Inter, system-ui' : 'system-ui',
       }}
     >
-      {/* Decorative Pattern */}
+      {hasLogo && (
+        <div style={{ position: 'absolute', top: 40, left: 60 }}>
+          <img src="/logo.png" alt="AgriServe" width={96} height={96} />
+        </div>
+      )}
+
       <div
         style={{
           position: 'absolute',
@@ -37,172 +64,84 @@ export default async function Image() {
           left: 0,
           right: 0,
           bottom: 0,
-          opacity: 0.05,
-          background: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 20px,
-              #D4A853 20px,
-              #D4A853 21px
-            )`,
+          opacity: 0.03,
+          background:
+            'repeating-linear-gradient(45deg, transparent, transparent 30px, #10B981 30px, #10B981 31px)',
         }}
       />
 
-      {/* Logo/Icon */}
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 40,
-          background: '#D4A853',
-          width: 120,
-          height: 120,
-          borderRadius: 24,
-        }}
-      >
-        <svg
-          width="80"
-          height="80"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M12 2L4 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-8-4z"
-            fill="#0A0F0C"
-          />
-        </svg>
-      </div>
-
-      {/* Main Title */}
-      <div
-        style={{
-          fontSize: 72,
+          fontSize: 80,
           fontWeight: 700,
           color: '#FFFFFF',
           textAlign: 'center',
-          marginBottom: 20,
-          lineHeight: 1.1,
-          letterSpacing: '-0.02em',
+          marginBottom: 16,
         }}
       >
         AgriServe
       </div>
 
-      {/* Subtitle */}
       <div
         style={{
-          fontSize: 36,
-          color: '#D4A853',
+          fontSize: 32,
+          fontWeight: 700,
+          background: 'linear-gradient(90deg, #10B981, #06B6D4)',
+          backgroundClip: 'text',
+          color: 'transparent',
           textAlign: 'center',
-          marginBottom: 30,
+          marginBottom: 12,
+        }}
+      >
+        Rent Farm Equipment | Hire Agricultural Labour
+      </div>
+
+      <div
+        style={{
+          fontSize: 26,
+          color: '#F59E0B',
+          textAlign: 'center',
+          marginBottom: 40,
           fontWeight: 500,
         }}
       >
-        Farm Equipment Rental Platform
+        किराये पर कृषि उपकरण
       </div>
 
-      {/* Description */}
       <div
         style={{
-          fontSize: 24,
-          color: '#E8F5E9',
+          fontSize: 20,
+          color: 'rgba(255,255,255,0.75)',
           textAlign: 'center',
           maxWidth: 900,
-          lineHeight: 1.4,
         }}
       >
-        Rent tractors, harvesters & agricultural equipment from verified providers across India
+        Tractors, Harvesters & Equipment on Rent — Verified providers across India. Best prices और
+        भरोसेमंद सेवा।
       </div>
 
-      {/* Stats */}
       <div
         style={{
+          position: 'absolute',
+          bottom: 30,
+          left: 0,
+          right: 0,
           display: 'flex',
-          gap: 60,
-          marginTop: 50,
+          justifyContent: 'center',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 42,
-              fontWeight: 700,
-              color: '#D4A853',
-            }}
-          >
-            50,000+
-          </div>
-          <div
-            style={{
-              fontSize: 18,
-              color: '#B0BEB6',
-            }}
-          >
-            Farmers
-          </div>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 42,
-              fontWeight: 700,
-              color: '#D4A853',
-            }}
-          >
-            10+ States
-          </div>
-          <div
-            style={{
-              fontSize: 18,
-              color: '#B0BEB6',
-            }}
-          >
-            Coverage
-          </div>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 42,
-              fontWeight: 700,
-              color: '#D4A853',
-            }}
-          >
-            100%
-          </div>
-          <div
-            style={{
-              fontSize: 18,
-              color: '#B0BEB6',
-            }}
-          >
-            Verified
-          </div>
-        </div>
+        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }}>agriserve.in</div>
       </div>
     </div>,
     {
       ...size,
+      fonts:
+        bold && regular
+          ? [
+              { name: 'Inter', data: bold as ArrayBuffer, weight: 700 },
+              { name: 'Inter', data: regular as ArrayBuffer, weight: 400 },
+            ]
+          : undefined,
     }
   );
 }

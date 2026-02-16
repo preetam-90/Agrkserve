@@ -19,6 +19,7 @@ interface EquipmentSearchFilters {
   latitude?: number;
   longitude?: number;
   max_distance_km?: number;
+  brands?: string[];
 }
 
 const supabase = createClient();
@@ -92,6 +93,11 @@ export const equipmentService = {
 
     if (filters.search_query) {
       query = query.or(`name.ilike.%${filters.search_query}%,description.ilike.%${filters.search_query}%`);
+    }
+
+    // Apply brand filter if provided
+    if (filters.brands && filters.brands.length > 0) {
+      query = query.in('brand', filters.brands);
     }
 
     const { data, error, count } = await query
@@ -390,6 +396,7 @@ export const equipmentService = {
     latitude?: number;
     longitude?: number;
     maxDistanceKm?: number;
+    brands?: string[];
   }): Promise<PaginatedResponse<Equipment>> {
     return this.search(
       {
@@ -401,6 +408,7 @@ export const equipmentService = {
         latitude: options?.latitude,
         longitude: options?.longitude,
         max_distance_km: options?.maxDistanceKm,
+        brands: options?.brands,
       },
       options?.page || 1,
       options?.limit || DEFAULT_PAGE_SIZE

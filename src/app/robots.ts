@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next';
 
-export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agrirental.vercel.app';
 
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
@@ -31,8 +31,26 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/equipment/', '/labour/', '/about', '/contact', '/help', '/gallery', '/user/'],
         disallow: ['/admin/', '/provider/', '/renter/', '/api/', '/auth/'],
       },
+      {
+        // Allow Google Images to crawl image URLs
+        userAgent: 'Googlebot-Image',
+        allow: ['/'],
+        disallow: [
+          '/admin/',
+          '/api/',
+          '/auth/',
+          '/dashboard/',
+          '/settings/',
+        ],
+      },
+      {
+        // Allow Googlebot for indexing
+        userAgent: 'Googlebot',
+        allow: ['/'],
+        crawlDelay: 1,
+      },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: [`${baseUrl}/sitemap.xml`, `${baseUrl}/image-sitemap.xml`],
     host: baseUrl,
   };
 }

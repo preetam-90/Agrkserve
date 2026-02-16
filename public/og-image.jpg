@@ -1,0 +1,19 @@
+<!--
+  Placeholder OG image. This file contains SVG markup so it's editable as text.
+  Replace with a production 1200x630 JPG/PNG image for best results.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#091012" />
+  <rect x="40" y="40" width="1120" height="550" rx="24" fill="url(#g)" opacity="0.08" />
+  <text x="80" y="220" font-family="Inter, Arial, sans-serif" font-size="72" fill="#ffffff" font-weight="700">AgriServe</text>
+  <text x="80" y="310" font-family="Inter, Arial, sans-serif" font-size="28" fill="#f59e0b">Rent Farm Equipment • Hire Agricultural Labour</text>
+  <text x="80" y="380" font-family="Inter, Arial, sans-serif" font-size="20" fill="#ffffff" opacity="0.8">Trusted providers across India — tractors, harvesters, pumps and more</text>
+  <rect x="80" y="420" width="220" height="60" rx="10" fill="#10b981" />
+  <text x="190" y="458" font-family="Inter, Arial, sans-serif" font-size="18" fill="#051014" text-anchor="middle">agriserve.in</text>
+</svg>

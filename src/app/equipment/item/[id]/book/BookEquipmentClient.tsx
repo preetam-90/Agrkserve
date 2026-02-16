@@ -14,6 +14,7 @@ import {
   Info,
   Clock,
   Loader2,
+  User,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import { Button, Card, CardContent, Input, Textarea } from '@/components/ui';
@@ -208,8 +209,19 @@ export default function BookEquipmentPage() {
   };
 
   const handleDateSelect = (range: DateRange | undefined) => {
+    // Validate end date is after start date
+    if (range?.from && range?.to) {
+      if (range.to <= range.from) {
+        toast.error('End date must be after start date');
+        setDateRange(undefined);
+        return;
+      }
+    }
+
     if (isRangeBlocked(range)) {
-      toast.error('Selected range includes dates that are already booked.');
+      toast.error(
+        'Selected range includes dates that are already booked. Please select different dates.'
+      );
       setDateRange(undefined);
       return;
     }
@@ -221,8 +233,13 @@ export default function BookEquipmentPage() {
       toast.error('Please select start and end dates');
       return false;
     }
+    // Validate end date is after start date
+    if (dateRange.to <= dateRange.from) {
+      toast.error('End date must be after start date');
+      return false;
+    }
     if (isRangeBlocked(dateRange)) {
-      toast.error('Selected dates are not available');
+      toast.error('Selected dates are not available. Please select different dates.');
       return false;
     }
     if (!formData.deliveryAddress) {
@@ -333,7 +350,12 @@ export default function BookEquipmentPage() {
                         mode="range"
                         selected={dateRange}
                         onSelect={handleDateSelect}
-                        disabled={[{ before: today }, ...bookedDates]}
+                        disabled={(date) => {
+                          // Disable dates before today
+                          if (date < today) return true;
+                          // Disable booked dates
+                          return bookedDates.some((bookedDate) => isSameDay(bookedDate, date));
+                        }}
                         numberOfMonths={1}
                         fromMonth={today}
                         captionLayout="dropdown"
@@ -508,6 +530,30 @@ export default function BookEquipmentPage() {
                     </p>
                   </div>
                 </div>
+
+                {/* Provider Info */}
+                {equipment.owner && (
+                  <div className="border-b border-slate-800 py-4">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Provider
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white">
+                          {equipment.owner.name ||
+                            equipment.owner.email?.split('@')[0] ||
+                            'Provider'}
+                        </p>
+                        {equipment.owner.phone && (
+                          <p className="text-xs text-slate-400">{equipment.owner.phone}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Pricing Breakdown */}
                 <div className="space-y-3 py-6">

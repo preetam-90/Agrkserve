@@ -1,0 +1,2724 @@
+[
+  {
+    "id": "TC000",
+    "title": "Landing page renders and primary navigation works from root route",
+    "description": "Verifies the root landing page loads and primary CTA/navigation links are visible and functional.",
+    "category": "Landing Page",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"AgriServe\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Get Started\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Equipment\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Equipment\" in primary navigation"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/equipment\""
+      }
+    ]
+  },
+  {
+    "id": "TC001",
+    "title": "Browse equipment listings and open an equipment details page",
+    "description": "Verifies a user can browse the equipment marketplace and open an item details page from a listing card.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /equipment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Equipment\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"equipment listing card\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Specifications\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Book Now\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Search for a tractor and narrow results using category and availability filters",
+    "description": "Verifies search and filters update the visible equipment results for a common query.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /equipment"
+      },
+      {
+        "type": "action",
+        "description": "Type \"tractor\" into the search input"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"tractor\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Tractor\" from the equipment category filter dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select an availability duration option from the availability filter dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"equipment listing card\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "No-results state for unsupported search query",
+    "description": "Verifies the marketplace shows a clear no-results state and suggestions when a search yields zero matches.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /equipment"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzz-not-a-real-equipment\" into the search input"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Suggestions\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Clear search\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Login and complete booking from equipment detail page (happy path)",
+    "description": "Verifies a user can authenticate and complete an equipment booking, then see booking confirmation details.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Browse Equipment\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Browse Equipment\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment card"
+      },
+      {
+        "type": "action",
+        "description": "Select a start date in the rental start date field"
+      },
+      {
+        "type": "action",
+        "description": "Select an end date in the rental end date field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Book Now\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Checkout\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Confirm booking\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Booking confirmed\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Total\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Book equipment by selecting location via in-page state and city filters (static route coverage)",
+    "description": "Verifies location filtering works via state and city selectors on the equipment page and user can reach details and initiate booking.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Browse Equipment\""
+      },
+      {
+        "type": "action",
+        "description": "Select a state from the location (state) dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select a city from the location (city) dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"equipment listing card\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment card"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Book Now\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Checkout\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Booking blocked when selected rental dates conflict with availability",
+    "description": "Verifies the UI prevents booking for unavailable dates and displays an appropriate unavailability message and guidance.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Browse Equipment\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment card"
+      },
+      {
+        "type": "action",
+        "description": "Select rental dates shown as unavailable/blocked in the date picker"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Book Now\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Unavailable\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Suggested\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Equipment details page shows gallery and provider information",
+    "description": "Verifies a user can view key equipment details including photos and provider info from an item detail page.",
+    "category": "Equipment Rental Marketplace",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /equipment"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Photos\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"equipment photo\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Provider\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Rental terms\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Pricing\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Browse labour listings and view a labourer profile from /labour",
+    "description": "Verifies a user can open the labour marketplace, browse listings, and open a labourer profile details view.",
+    "category": "Labour Hiring Platform",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /labour"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Labour\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Labour listings\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to \"Labour listings\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible labourer profile card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Labourer profile\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hourly rate\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Reviews\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Search by skill from /labour and open a matching labourer profile",
+    "description": "Verifies skill search narrows results and a user can open a profile from the filtered list.",
+    "category": "Labour Hiring Platform",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /labour"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"harvester operator\" into the \"Search\" input"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"harvester\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on a labourer profile card that appears in the results"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Labourer profile\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Certifications\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Apply filters by location and hourly rate on /labour",
+    "description": "Verifies filters for location and hourly rate can be applied and filtered results are displayed.",
+    "category": "Labour Hiring Platform",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /labour"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Filters\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Filters\""
+      },
+      {
+        "type": "action",
+        "description": "Select a visible option from the \"Location\" dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select a visible option from the \"Hourly rate\" dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Apply\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Labour listings\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hourly\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Enter hours exceeding availability shows validation error",
+    "description": "Verifies the booking form prevents requesting hours beyond the labourer’s availability and shows a visible validation message.",
+    "category": "Labour Hiring Platform",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the \"Email\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the \"Password\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Labour\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible labourer profile card"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Hire Now\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Booking\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type a value larger than the visible available hours into the \"Required hours\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Hire Now\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"insufficient availability\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "No matching results for a skill filter shows no-results messaging and suggestions",
+    "description": "Verifies the UI communicates when no labourers match filters and shows alternative suggestions.",
+    "category": "Labour Hiring Platform",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /labour"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Search\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzz-nonexistent-skill\" into the \"Search\" input"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"No results\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Suggestions\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Clear filters\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Logged-in user completes a labour booking and sees confirmation",
+    "description": "Verifies an authenticated user can fill booking details, confirm hiring, and see a visible confirmation with contact details.",
+    "category": "Labour Hiring Platform",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the \"Email\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the \"Password\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Sign in\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL does not contain \"/login\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Labour\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible labourer profile card"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Hire Now\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Booking\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select a visible option from the \"Date\" control"
+      },
+      {
+        "type": "action",
+        "description": "Type \"4\" into the \"Required hours\" field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Need help with harvesting work; please bring necessary gear.\" into the \"Work requirements\" field"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Confirm\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Booking confirmed\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Contact details\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Open a state-specific labour listing and view a profile (static-route coverage)",
+    "description": "Verifies users can access a state listing entry point and open a labourer profile from that listing page.",
+    "category": "Labour Hiring Platform",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /labour"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Location\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select a visible option from the \"Location\" dropdown that includes a state name"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"View in state\" if visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Labour\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first visible labourer profile card"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Labourer profile\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Experience\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Renter login redirects to renter dashboard and renter widgets are visible",
+    "description": "Verifies a renter can log in and is redirected to the renter dashboard where key renter-specific sections are shown.",
+    "category": "Role-Based Dashboards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" or \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Active bookings\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Upcoming bookings\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Favorites\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Renter dashboard quick action navigates to Equipment browse page",
+    "description": "Verifies a renter can use a dashboard quick action card to reach the equipment browsing page.",
+    "category": "Role-Based Dashboards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" or \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click the quick action card or button labeled \"Browse equipment\" or \"Search equipment\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/equipment\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Equipment\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Renter dashboard quick action navigates to Renter Bookings page",
+    "description": "Verifies a renter can use a dashboard quick action card to navigate to the renter bookings list.",
+    "category": "Role-Based Dashboards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" or \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click the quick action card or button labeled \"My bookings\" or \"View bookings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/bookings\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Bookings\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Provider login redirects to provider dashboard and provider widgets are visible",
+    "description": "Verifies a provider can log in and is redirected to the provider dashboard with provider-specific summaries.",
+    "category": "Role-Based Dashboards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" or \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider/dashboard\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Incoming\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Booking\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Earnings\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Provider dashboard quick action navigates to Provider Equipment management",
+    "description": "Verifies a provider can use a dashboard quick action to reach equipment management.",
+    "category": "Role-Based Dashboards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" or \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider/dashboard\""
+      },
+      {
+        "type": "action",
+        "description": "Click the quick action card or button labeled \"Manage equipment\" or \"My equipment\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider/equipment\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Equipment\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Admin login redirects to Admin home and can open Admin Analytics",
+    "description": "Verifies an admin is redirected to the admin area after login and can access platform analytics.",
+    "category": "Role-Based Dashboards",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" or \"Log in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin\""
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item or link labeled \"Analytics\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/admin/analytics\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Analytics\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Open messages inbox and verify conversation list details are visible",
+    "description": "Verifies an authenticated user can reach the messaging inbox and see a conversation list with last message and timestamp.",
+    "category": "In-App Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/messages\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "Open a conversation thread from inbox and verify history is shown",
+    "description": "Verifies a user can open an existing conversation from the inbox and see the thread history.",
+    "category": "In-App Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/messages\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the first conversation in the conversation list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/messages/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation history\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Send a message in an existing thread and verify it appears",
+    "description": "Verifies a user can type and send a message and see it appear in the conversation thread.",
+    "category": "In-App Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first conversation in the conversation list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message input\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Hello from UI test\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hello from UI test\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Verify delivered/read receipt indicator is shown for a sent message",
+    "description": "Verifies the UI shows a delivered/read receipt (ticks/status) for a message after it is sent.",
+    "category": "In-App Messaging",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first conversation in the conversation list"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Receipt check message\" into the message input field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Send\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message delivery/read status (ticks)\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "Use a notification to open a conversation and verify the new message is visible",
+    "description": "Verifies clicking an in-app message notification takes the user to the correct conversation and the new message is visible/highlighted.",
+    "category": "In-App Messaging",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Notifications\" in the main navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/notifications\""
+      },
+      {
+        "type": "action",
+        "description": "Click on the most recent notification that indicates a new message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/messages/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"New message\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC026",
+    "title": "Messages inbox loads and allows scrolling to view older conversations",
+    "description": "Verifies the conversation list supports scrolling and remains usable when viewing older conversations.",
+    "category": "In-App Messaging",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation list\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Scroll to the bottom of the conversation list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation list\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC027",
+    "title": "Conversation thread shows timestamp context for messages",
+    "description": "Verifies message timestamps (or time separators) are visible in the conversation thread UI.",
+    "category": "In-App Messaging",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Messages\" in the main navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first conversation in the conversation list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Message timestamp\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Conversation history\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC028",
+    "title": "View equipment listing reviews and rating summary",
+    "description": "Verifies a user can open an equipment listing and see the average rating and individual reviews.",
+    "category": "Reviews and Ratings",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /equipment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Equipment\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment listing card in the results"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Average rating\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Reviews\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Star rating\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Review text\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC029",
+    "title": "Login and submit a review from Renter Reviews after booking completion prompt",
+    "description": "Verifies an authenticated renter can submit a star rating and written review and then see it posted.",
+    "category": "Reviews and Ratings",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter\""
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Reviews\" in the renter navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/reviews"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first \"Leave a review\" or \"Write review\" button in the list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the 5-star rating option"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Good condition and smooth experience.\" into the review text field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Submit\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Your review has been submitted\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC030",
+    "title": "Filter reviews by 4–5 stars on a labour listings page",
+    "description": "Verifies a user can filter visible reviews by high ratings and read review details (text, date, reviewer).",
+    "category": "Reviews and Ratings",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /labour"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Labour\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first labour listing card in the results"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Reviews\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Select \"4 stars & up\" from the rating filter dropdown"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"4\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Review date\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Reviewer\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Review text\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC031",
+    "title": "Prevent submitting a review before booking completion",
+    "description": "Verifies the app blocks unverified review submission and shows a visible error message.",
+    "category": "Reviews and Ratings",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Reviews\" in the renter navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/reviews"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Write review\" for an item marked as not completed or not eligible (if present)"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Submit\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"You can only review after booking completion\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC032",
+    "title": "Validation: submitting a review with empty text shows an error",
+    "description": "Verifies required review text validation triggers and prevents submission when the text is empty.",
+    "category": "Reviews and Ratings",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Reviews\" in the renter navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/reviews"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first \"Leave a review\" or \"Write review\" button in the list"
+      },
+      {
+        "type": "action",
+        "description": "Click on the 4-star rating option"
+      },
+      {
+        "type": "action",
+        "description": "Click on the review text field"
+      },
+      {
+        "type": "action",
+        "description": "Press \"Tab\" key"
+      },
+      {
+        "type": "action",
+        "description": "Click on the \"Submit\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Review text is required\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC033",
+    "title": "Renter views bookings list and opens a booking details page",
+    "description": "Verifies a renter can log in, open the bookings list, and view a booking details page with key information visible.",
+    "category": "Booking Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /renter/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first booking in the bookings list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Booking Details\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Total\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC034",
+    "title": "Renter filters bookings by status (Upcoming, Active, Completed, Cancelled)",
+    "description": "Verifies a renter can switch booking status tabs/filters and see the UI update for each status view.",
+    "category": "Booking Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /renter/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Upcoming\" status filter/tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Upcoming\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Cancelled\" status filter/tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cancelled\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC035",
+    "title": "Provider accepts an incoming equipment booking request",
+    "description": "Verifies a provider can accept a pending booking request and sees a confirmation/status change in the UI.",
+    "category": "Booking Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /provider/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on an incoming booking request"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Accept\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Accepted\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC036",
+    "title": "Provider rejects an incoming equipment booking request",
+    "description": "Verifies a provider can reject a pending booking request and sees the updated status in the UI.",
+    "category": "Booking Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /provider/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on an incoming booking request"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Reject\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Rejected\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC037",
+    "title": "Renter cancels an existing booking with a cancellation reason",
+    "description": "Verifies a renter can cancel a booking by selecting a reason and confirming, and the booking shows as cancelled.",
+    "category": "Booking Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /renter/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first booking in the bookings list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Cancel booking\" button"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Change of plans\" from the cancellation reason dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Confirm cancellation\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cancelled\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC038",
+    "title": "Renter requests booking modification (date or quantity change)",
+    "description": "Verifies a renter can submit a booking modification request and sees confirmation in the booking timeline or status area.",
+    "category": "Booking Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /renter/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first booking in the bookings list"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Request modification\" button"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Please change the booking dates\" into the modification notes field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Submit request\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Modification requested\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC039",
+    "title": "Provider marks a booking as complete after rental period",
+    "description": "Verifies a provider can mark a booking complete and sees the completed status reflected in the UI.",
+    "category": "Booking Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /provider/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on an active booking"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Mark as complete\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Completed\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC040",
+    "title": "Checkout/payment failure during booking shows an error and retry guidance",
+    "description": "Verifies that when a booking checkout fails, the UI shows a clear payment failure message and a retry/contact support prompt.",
+    "category": "Booking Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click on \"Equipment\" in the main navigation"
+      },
+      {
+        "type": "action",
+        "description": "Click on the first equipment listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Book\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Book\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Payment failed\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC041",
+    "title": "Provider sees conflict error when trying to accept a booking already accepted elsewhere",
+    "description": "Verifies the provider is informed of an acceptance conflict and the booking does not show as accepted for this provider.",
+    "category": "Booking Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /provider/bookings"
+      },
+      {
+        "type": "action",
+        "description": "Click on a booking that appears pending"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Accept\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"already accepted\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Accepted\" is not visible"
+      }
+    ]
+  },
+  {
+    "id": "TC042",
+    "title": "Equipment Provider onboarding completes and redirects to Provider Dashboard",
+    "description": "Verifies a logged-in user can complete onboarding by selecting Equipment Provider, entering required business details, and finishing onboarding with a redirect to the provider dashboard.",
+    "category": "User Onboarding",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Onboarding\" link or button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Equipment Provider\" role option"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Continue\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/onboarding/provider\""
+      }
+    ]
+  },
+  {
+    "id": "TC043",
+    "title": "Equipment Provider onboarding: submit business details and finish onboarding",
+    "description": "Verifies the provider onboarding page accepts valid business details and completes onboarding to the provider dashboard.",
+    "category": "User Onboarding",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Onboarding\" link or button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Equipment Provider\" role option"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Continue\" button"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"Business Name\" with \"Green Fields Rentals\""
+      }
+    ]
+  },
+  {
+    "id": "TC044",
+    "title": "Labour Provider onboarding: required field validation when hourly rate is missing",
+    "description": "Verifies the labour onboarding form blocks completion and shows a visible validation error when required fields are missing.",
+    "category": "User Onboarding",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Onboarding\" link or button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Labour Provider\" role option"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Continue\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Hourly rate\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC045",
+    "title": "Onboarding page displays initial profile fields and allows progressing after completing them",
+    "description": "Verifies the onboarding start page contains initial profile fields and the user can proceed after filling them in.",
+    "category": "User Onboarding",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Onboarding\" link or button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Profile\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Continue\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Fill \"Full Name\" with \"Test User\""
+      }
+    ]
+  },
+  {
+    "id": "TC046",
+    "title": "Notification badge opens Notification Center and booking notification routes to booking details",
+    "description": "Verifies the unread notification badge is visible after login, opens the Notification Center, shows categorized notifications, and a booking notification click routes to booking details.",
+    "category": "Real-Time Notifications",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Notifications\" (header bell/badge) is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the header \"Notifications\" bell/badge"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/notifications\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Bookings\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC047",
+    "title": "Notification Center displays categorized sections (Bookings, Messages, System)",
+    "description": "Verifies the Notification Center loads and shows the main notification categories for a logged-in user.",
+    "category": "Real-Time Notifications",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the header \"Notifications\" bell/badge"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/notifications\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Messages\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"System\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC048",
+    "title": "Mark all notifications as read clears or reduces unread indicator",
+    "description": "Verifies that using \"Mark all as read\" updates the visible unread state in the Notification Center.",
+    "category": "Real-Time Notifications",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the header \"Notifications\" bell/badge"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Mark all as read\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"All caught up\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC049",
+    "title": "Mark a single notification as read updates its read state",
+    "description": "Verifies that marking one notification as read changes its visible read/unread indicator.",
+    "category": "Real-Time Notifications",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the header \"Notifications\" bell/badge"
+      },
+      {
+        "type": "action",
+        "description": "Click the first notification in the list to open its actions"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Mark as read\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Read\" is visible on the same notification item"
+      }
+    ]
+  },
+  {
+    "id": "TC050",
+    "title": "Update notification preferences: toggle Email and SMS and save",
+    "description": "Verifies a user can change Email and SMS notification preferences and sees confirmation with persisted state.",
+    "category": "Real-Time Notifications",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Notification Preferences\" link/button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/notifications/preferences\""
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Email notifications\" toggle"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"SMS notifications\" toggle"
+      }
+    ]
+  },
+  {
+    "id": "TC051",
+    "title": "Saving notification preferences shows confirmation and reflects updated state",
+    "description": "Verifies saving preferences displays a success message and the toggles remain in the updated state after save.",
+    "category": "Real-Time Notifications",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Notification Preferences\" link/button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Email notifications\" toggle"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Save\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Email notifications\" toggle is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC052",
+    "title": "Set Quiet Hours and save",
+    "description": "Verifies a user can set quiet hours in notification preferences and save successfully.",
+    "category": "Real-Time Notifications",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Notification Preferences\" link/button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/notifications/preferences\""
+      },
+      {
+        "type": "action",
+        "description": "Select a start time from the \"Quiet hours start\" dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Select an end time from the \"Quiet hours end\" dropdown"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Save\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Preferences saved\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC053",
+    "title": "Cancellation notification routes to booking details and shows cancelled status (if present)",
+    "description": "Verifies that clicking a booking cancellation notification navigates to booking details and the booking status is shown as cancelled when such a notification exists.",
+    "category": "Real-Time Notifications",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "action",
+        "description": "Click the header \"Notifications\" bell/badge"
+      },
+      {
+        "type": "action",
+        "description": "Click a notification labeled with text \"Cancelled\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter/bookings/\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Cancelled\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC054",
+    "title": "Create and publish a new equipment listing from Provider Equipment",
+    "description": "Verifies a provider can add and publish a new equipment listing and then see it in their provider equipment list.",
+    "category": "Provider Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Equipment\" in the provider navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Add New Equipment\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Publish\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC055",
+    "title": "Save a new equipment listing with missing required fields shows validation errors",
+    "description": "Verifies the new equipment flow blocks publishing when required fields are missing and shows visible validation feedback.",
+    "category": "Provider Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Equipment\" in the provider navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Add New Equipment\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Publish\""
+      }
+    ]
+  },
+  {
+    "id": "TC056",
+    "title": "Edit an existing equipment listing and save changes",
+    "description": "Verifies a provider can open an equipment item, edit details, save, and see the updated values reflected on return to the equipment list or details view.",
+    "category": "Provider Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Equipment\" in the provider navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click the first equipment item in the list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Save\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC057",
+    "title": "Edit equipment details: cancel/leave without saving does not persist changes",
+    "description": "Verifies unsaved edits are not applied when the provider exits the edit view without saving.",
+    "category": "Provider Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Equipment\" in the provider navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click the first equipment item in the list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify element \"Equipment details form\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Back\" or \"Cancel\""
+      }
+    ]
+  },
+  {
+    "id": "TC058",
+    "title": "Create a labour offering from Provider Labour Create page",
+    "description": "Verifies a provider can create a labour offering and see it listed under Provider Labour.",
+    "category": "Provider Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Labour\" in the provider navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Create\" or \"Add Labour Offering\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider/labour/create\""
+      }
+    ]
+  },
+  {
+    "id": "TC059",
+    "title": "Labour offering creation with invalid rate/availability shows validation",
+    "description": "Verifies labour offering creation prevents submission when required fields are invalid and displays visible validation feedback.",
+    "category": "Provider Management",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Labour\" in the provider navigation/menu"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Create\" or \"Add Labour Offering\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Create\""
+      }
+    ]
+  },
+  {
+    "id": "TC060",
+    "title": "View Provider Earnings breakdown and open a transaction details view",
+    "description": "Verifies a provider can view earnings breakdown and open a specific transaction for details.",
+    "category": "Provider Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/provider\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Earnings\" in the provider navigation/menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Earnings\" is visible"
+      },
+      {
+        "type": "action",
+        "description": "Click the first transaction entry in the earnings list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Transaction\" is visible"
+      }
+    ]
+  },
+  {
+    "id": "TC061",
+    "title": "Renter role cannot access Provider Equipment (403 Forbidden)",
+    "description": "Verifies a user authenticated as renter is blocked from provider equipment pages and sees the forbidden error page.",
+    "category": "Provider Management",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_USER}}\" into the email/username field"
+      },
+      {
+        "type": "action",
+        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Click the \"Sign in\" button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/renter\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /provider/equipment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify URL contains \"/error/403\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify text \"Forbidden\" is visible"
+      }
+    ]
+  }
+]

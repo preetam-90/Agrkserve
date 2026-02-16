@@ -1,12 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
-import { Providers } from '@/components/providers';
-import { NetworkStatus } from '@/components/system-pages/NetworkStatus';
-import { AuthenticatedLayout } from '@/components/layout';
-import { SmoothScroll } from '@/components/SmoothScroll';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import { RootAppShell } from '@/components/root/RootAppShell';
 import { rootJsonLd } from '@/lib/seo/schemas';
 
 const inter = Inter({
@@ -175,6 +171,9 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const analyticsEnabled =
+    process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
+
   return (
     <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <head>
@@ -198,26 +197,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(rootJsonLd) }}
         />
-        <script
-          defer
-          src="https://cloud.umami.is/script.js"
-          data-website-id="c6c9d3b1-c5c8-4c49-a9f6-1ca368cc92d0"
-        />
-        <script
-          defer
-          src="https://umami-analytics-pk.up.railway.app/script.js"
-          data-website-id="a2a1c58a-8322-46dd-a7f3-2944863a2740"
-        />
+        {analyticsEnabled && (
+          <Script
+            id="umami-cloud"
+            src="https://cloud.umami.is/script.js"
+            data-website-id="c6c9d3b1-c5c8-4c49-a9f6-1ca368cc92d0"
+            strategy="lazyOnload"
+          />
+        )}
+        {analyticsEnabled && (
+          <Script
+            id="umami-railway"
+            src="https://umami-analytics-pk.up.railway.app/script.js"
+            data-website-id="a2a1c58a-8322-46dd-a7f3-2944863a2740"
+            strategy="lazyOnload"
+          />
+        )}
       </head>
       <body className={`${inter.variable} ${playfair.variable} overflow-x-hidden antialiased`}>
-        <NetworkStatus />
-        <SmoothScroll>
-          <Providers>
-            <AuthenticatedLayout>{children}</AuthenticatedLayout>
-          </Providers>
-          <Analytics />
-          <SpeedInsights />
-        </SmoothScroll>
+        <RootAppShell>{children}</RootAppShell>
       </body>
     </html>
   );

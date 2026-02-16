@@ -29,6 +29,7 @@ import { labourService } from '@/lib/services';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/store';
 import toast from 'react-hot-toast';
+import { LabourAvailability } from '@/lib/types';
 
 const COMMON_SKILLS = [
   'Plowing',
@@ -65,6 +66,7 @@ export default function CreateLabourProfilePage() {
     latitude: profile?.latitude || 0,
     longitude: profile?.longitude || 0,
     service_radius_km: 25,
+    availability: 'available' as LabourAvailability,
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -151,6 +153,9 @@ export default function CreateLabourProfilePage() {
     );
   };
 
+  // Availability selector for labour profile
+  const availabilityOptions: LabourAvailability[] = ['available', 'busy', 'unavailable'];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -169,6 +174,12 @@ export default function CreateLabourProfilePage() {
       return;
     }
 
+    // Labour-specific required field: hourly rate
+    if (!formData.hourly_rate) {
+      toast.error('Please enter hourly rate');
+      return;
+    }
+
     if (!formData.city) {
       toast.error('Please enter your city/town');
       return;
@@ -182,6 +193,7 @@ export default function CreateLabourProfilePage() {
         experience_years: formData.experience_years,
         daily_rate: Number(formData.daily_rate),
         hourly_rate: formData.hourly_rate ? Number(formData.hourly_rate) : undefined,
+        availability: formData.availability,
         bio: formData.bio || undefined,
         certifications: formData.certifications.length > 0 ? formData.certifications : undefined,
         city: formData.city,
@@ -232,6 +244,36 @@ export default function CreateLabourProfilePage() {
               <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-500/20 to-cyan-500/20 px-4 py-1.5 text-sm text-teal-300">
                 <Sparkles className="h-4 w-4" />
                 Create Your Profile
+              </div>
+              {/* Availability Field */}
+              <div className="overflow-hidden rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-900/80 to-slate-800/50 backdrop-blur-sm">
+                <div className="border-b border-slate-700/50 bg-slate-800/30 px-6 py-4">
+                  <h2 className="flex items-center gap-2 text-xl font-semibold text-white">
+                    Availability
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Set your current availability for bookings
+                  </p>
+                </div>
+                <div className="p-6">
+                  <Select
+                    value={formData.availability}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({ ...prev, availability: v as LabourAvailability }))
+                    }
+                  >
+                    <SelectTrigger className="border-slate-600/50 bg-slate-800/50 text-white focus:border-teal-500/50 focus:ring-teal-500/20">
+                      <SelectValue placeholder="Select Availability" />
+                    </SelectTrigger>
+                    <SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
+                      {availabilityOptions.map((opt) => (
+                        <SelectItem key={opt} value={opt}>
+                          {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <h1 className="mb-2 text-4xl font-bold text-white">Labour Profile Setup</h1>
               <p className="text-lg text-slate-400">

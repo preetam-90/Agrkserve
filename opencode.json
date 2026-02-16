@@ -1,0 +1,16 @@
+{
+  "$schema": "https://kilo.ai/config.json",
+  "mcp": {
+    "TestSprite": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@testsprite/testsprite-mcp@latest"
+      ],
+      "environment": {
+        "API_KEY": "sk-user-H7Ow4OGSE8THfvww5aICqtOxxJE6Nx5PAVH5XOePIF1oZVb5WfJB13bjGneBXjWjY4o4YxlgAMf_UDaorTyofLzlIQzc6EDhDTUMj5nXZNvwCCClDNtM8l148Ui6DrZgKOI"
+      }
+    }
+  }
+}

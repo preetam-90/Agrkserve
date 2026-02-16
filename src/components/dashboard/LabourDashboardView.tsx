@@ -5,18 +5,17 @@ import Link from 'next/link';
 import {
   Users,
   Calendar,
-  IndianRupee,
   Star,
   ChevronRight,
   Clock,
-  Sparkles,
   TrendingUp,
-  ArrowUpRight,
-  BarChart3,
   MapPin,
-  AlertCircle,
+  CheckSquare,
+  ClipboardList,
+  FileText,
+  Map as MapIcon,
 } from 'lucide-react';
-import { Button, Card, CardContent, Badge, Spinner } from '@/components/ui';
+import { Button, Card, CardContent, Badge, Spinner, Switch } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { useAppStore, useAuthStore } from '@/lib/store';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -36,7 +35,6 @@ interface LabourDashboardProps {
 export function LabourDashboardView({ initialData }: LabourDashboardProps) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { sidebarOpen } = useAppStore();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { profile } = useAuthStore();
 
   // Seed state from SSR data if available
@@ -50,20 +48,21 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     }
     return [];
   });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [upcomingJobs, setUpcomingJobs] = useState<LabourBooking[]>(() => {
     if (hasSSRData) {
-          return (initialData.labourBookings || [])
-            .filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status))
-            .slice(0, 4);
+      return (initialData.labourBookings || [])
+        .filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status))
+        .slice(0, 4);
     }
     return [];
   });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_completedJobs, setCompletedJobs] = useState<unknown[]>(() => {
     if (hasSSRData) {
-          return (initialData.labourBookings || [])
-            .filter((b: LabourBooking) => b.status === 'completed')
-            .slice(0, 3);
+      return (initialData.labourBookings || [])
+        .filter((b: LabourBooking) => b.status === 'completed')
+        .slice(0, 3);
     }
     return [];
   });
@@ -75,11 +74,13 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     if (hasSSRData) {
       const jobs = initialData.labourBookings || [];
       const completed = jobs.filter((b: LabourBooking) => b.status === 'completed');
-      const upcoming = jobs.filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status));
-          const totalEarnings = completed.reduce(
-            (sum: number, b: LabourBooking) => sum + (b.total_amount || 0),
-            0
-          );
+      const upcoming = jobs.filter((b: LabourBooking) =>
+        ['confirmed', 'in_progress'].includes(b.status)
+      );
+      const totalEarnings = completed.reduce(
+        (sum: number, b: LabourBooking) => sum + (b.total_amount || 0),
+        0
+      );
       const avgRating = initialData.labourProfile?.rating || 0;
       return {
         totalJobs: jobs.length,
@@ -134,7 +135,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboardData = async () => {
@@ -193,72 +194,21 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     }
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-      case 'completed':
-        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'pending':
-        return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-      case 'in_progress':
-        return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'rejected':
-      case 'cancelled':
-        return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-    }
-  };
+  const reviewCount =
+    (initialData?.labourProfile as LabourProfile | undefined)?.review_count ?? 124;
 
-  const statsCards = [
-    {
-      icon: Users,
-      value: stats.totalJobs,
-      label: 'Total Jobs',
-      gradient: 'from-blue-500 to-cyan-500',
-      bgGradient: 'from-blue-500/10 to-cyan-500/10',
-      iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-500',
-      trend: '+15%',
-      trendUp: true,
-    },
-    {
-      icon: Calendar,
-      value: stats.activeJobs,
-      label: 'Active Jobs',
-      gradient: 'from-emerald-500 to-green-500',
-      bgGradient: 'from-emerald-500/10 to-green-500/10',
-      iconBg: 'bg-gradient-to-br from-emerald-500 to-green-500',
-      trend: '+5%',
-      trendUp: true,
-    },
-    {
-      icon: IndianRupee,
-      value: formatCurrency(stats.totalEarnings),
-      label: 'Total Earnings',
-      gradient: 'from-purple-500 to-pink-500',
-      bgGradient: 'from-purple-500/10 to-pink-500/10',
-      iconBg: 'bg-gradient-to-br from-purple-500 to-pink-500',
-      trend: '+28%',
-      trendUp: true,
-    },
-    {
-      icon: Star,
-      value: stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A',
-      label: 'Average Rating',
-      gradient: 'from-amber-500 to-orange-500',
-      bgGradient: 'from-amber-500/10 to-orange-500/10',
-      iconBg: 'bg-gradient-to-br from-amber-500 to-orange-500',
-      trend: '4.9/5',
-      trendUp: true,
-    },
-  ];
+  // Format date to short month format like "Oct 12"
+  const formatShortDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="relative inline-flex">
-            <div className="h-16 w-16 animate-pulse rounded-full border-4 border-emerald-500/30 border-t-emerald-500"></div>
+            <div className="h-16 w-16 animate-pulse rounded-full border-4 border-[#22c55e]/30 border-t-[#22c55e]"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <Spinner size="md" />
             </div>
@@ -270,407 +220,293 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
   }
 
   return (
-    <>
-      {/* Welcome Banner */}
+    <div className="min-h-screen space-y-8 bg-[#0a0f0c] p-6 text-gray-100">
+      {/* ── 1. HEADER ── */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-8 shadow-2xl backdrop-blur-xl"
+        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
       >
-        {/* Animated background effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -right-32 -top-32 h-64 w-64 animate-pulse rounded-full bg-white/10 blur-3xl"></div>
-          <div
-            className="absolute -bottom-32 -left-32 h-64 w-64 animate-pulse rounded-full bg-white/10 blur-3xl"
-            style={{ animationDelay: '1s' }}
-          ></div>
-          <div
-            className="absolute right-1/4 top-1/4 h-32 w-32 animate-pulse rounded-full bg-white/5 blur-2xl"
-            style={{ animationDelay: '2s' }}
-          ></div>
+        <div>
+          <h1 className="text-2xl font-bold text-white md:text-3xl">Labour Provider Dashboard</h1>
+          <p className="mt-1 text-[10px] font-medium uppercase tracking-widest text-gray-500">
+            WELCOME BACK, {profile?.name?.toUpperCase() || 'RAJESH'}
+          </p>
         </div>
 
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex-1">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.05 }}
-              className="mb-4 flex items-center gap-3"
-            >
-              <div className="relative">
-                <div className="absolute -inset-1 rounded-2xl bg-amber-400/50 blur-xl"></div>
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-                  <Sparkles className="h-6 w-6 text-amber-300" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight text-white">
-                  Welcome Back, Labour!
-                </h1>
-                <p className="text-lg text-blue-100">
-                  Manage your work schedule and grow your services
+        <div className="flex items-center gap-4">
+          {/* Available for Hire toggle */}
+          <div className="flex items-center gap-3 rounded-full border border-[#1a2520] px-4 py-2">
+            <span className="text-sm font-medium text-white">Available for Hire</span>
+            <Switch
+              checked={isAvailable}
+              onCheckedChange={toggleAvailability}
+              className="border-[#1a2520] data-[state=checked]:bg-[#22c55e]"
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── 2. STATS CARDS ── */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Card 1: Total Earnings */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <Card className="relative overflow-hidden rounded-xl border border-[#1a2520] bg-[#0f1a14] shadow-lg">
+            <CardContent className="flex items-start justify-between p-6">
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-gray-400">Total Earnings</p>
+                <p className="text-4xl font-bold tracking-tight text-white">
+                  {formatCurrency(stats.totalEarnings)}
+                </p>
+                <p className="flex items-center gap-1.5 text-xs font-medium text-[#22c55e]">
+                  <TrendingUp className="h-4 w-4" />
+                  +12% from last month
                 </p>
               </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.05 }}
-              className="flex gap-3"
-            >
-              <Button
-                onClick={toggleAvailability}
-                size="lg"
-                className={cn(
-                  'group relative overflow-hidden shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl',
-                  isAvailable
-                    ? 'bg-emerald-500/90 text-white hover:bg-emerald-500'
-                    : 'bg-red-500/90 text-white hover:bg-red-500'
-                )}
-              >
-                <Users className="mr-2 h-5 w-5" />
-                {isAvailable ? 'Available' : 'Unavailable'}
-              </Button>
-              <Link href="/provider/labour">
-                <button className="group inline-flex h-12 items-center justify-center gap-2 rounded-2xl border-2 border-white/30 px-8 text-base font-medium text-white backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-white/50 hover:bg-white/10">
-                  <Calendar className="h-5 w-5" />
-                  View Schedule
-                </button>
-              </Link>
-            </motion.div>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-            className="hidden lg:block"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 opacity-50 blur-3xl"></div>
-              <div className="relative flex h-32 w-32 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-sm">
-                <Users className="h-16 w-16 text-white/90" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1a2520]">
+                <FileText className="h-6 w-6 text-[#22c55e]" />
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Stats Grid */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.05 }}
-        className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
-      >
-        {statsCards.map((stat, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 + idx * 0.03 }}
-            className="group relative"
-          >
-            <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-blue-500/20">
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
-              ></div>
-
-              <CardContent className="relative p-6">
-                <div className="mb-4 flex items-start justify-between">
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
-                    className={`relative rounded-2xl p-4 ${stat.iconBg} shadow-xl transition-transform duration-500`}
-                  >
-                    <div className="absolute inset-0 rounded-2xl bg-white/20 blur-lg"></div>
-                    <stat.icon className="relative h-7 w-7 text-white" />
-                  </motion.div>
-
-                  <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-400">
-                    <TrendingUp className="h-3 w-3" />
-                    {stat.trend}
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <motion.p className="text-3xl font-bold tracking-tight text-white transition-transform duration-300 group-hover:scale-105">
-                    {stat.value}
-                  </motion.p>
-                  <p className="text-sm font-medium text-gray-400">{stat.label}</p>
-                </div>
-
-                <div className="mt-4 border-t border-gray-700/50 pt-4">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Last 30 days</span>
-                    <motion.div
-                      className="text-gray-400 transition-colors group-hover:text-blue-400"
-                      whileHover={{ x: 3 }}
-                    >
-                      <ArrowUpRight className="h-4 w-4" />
-                    </motion.div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Pending Job Requests */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="mb-8"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative flex rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 p-2.5 shadow-lg">
-              <div className="absolute inset-0 rounded-xl bg-white/20 blur-xl"></div>
-              <AlertCircle className="relative h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">Pending Job Requests</h2>
-              {pendingJobs.length > 0 && (
-                <p className="text-sm text-gray-400">{pendingJobs.length} requests to review</p>
-              )}
-            </div>
-          </div>
-          <Link
-            href="/provider/labour"
-            className="group flex items-center gap-1.5 text-sm font-semibold text-emerald-400 hover:text-emerald-300"
-          >
-            View All
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-
-        {pendingJobs.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-700/50 bg-gray-800/30 backdrop-blur-xl">
-            <CardContent className="p-12 text-center">
-              <div className="mb-4 inline-flex rounded-full bg-gray-700/50 p-4">
-                <Clock className="h-12 w-12 text-gray-500" />
-              </div>
-              <p className="font-medium text-gray-400">No pending job requests</p>
-              <p className="mt-1 text-sm text-gray-500">New requests will appear here</p>
             </CardContent>
+
+            {/* Large Watermark FileText */}
+            <div className="pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 opacity-5">
+              <FileText className="h-24 w-24 text-[#22c55e]" />
+            </div>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {pendingJobs.map((job, idx) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
-              >
-                <Card className="group relative overflow-hidden border-0 border-l-4 border-l-amber-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-amber-500/20">
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+        </motion.div>
 
-                  <CardContent className="relative p-5">
-                    <div className="flex items-start justify-between">
-                      <div className="flex flex-1 items-start gap-4">
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          transition={{ duration: 0.3 }}
-                          className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 transition-transform duration-300 group-hover:scale-110"
-                        >
-                          <div className="absolute inset-0 rounded-2xl bg-amber-500/10 blur-xl"></div>
-                          <Users className="relative h-8 w-8 text-amber-400" />
-                        </motion.div>
-
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-lg font-semibold text-white">
-                            {job.employer?.name || 'Employer'}
-                          </p>
-                          <p className="mt-1 flex items-center gap-2 text-sm text-gray-400">
-                            <MapPin className="h-4 w-4" />
-                            {job.labour?.location_name || job.labour?.city || 'Location'}
-                          </p>
-                          <p className="mt-1 text-xs text-gray-500">
-                            {new Date(job.start_date).toLocaleDateString()} -{' '}
-                            {new Date(job.end_date).toLocaleDateString()}
-                          </p>
-                          <p className="mt-1 text-xs text-gray-500">
-                            Duration: {job.total_days} days
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="ml-4 text-right">
-                        <p className="mb-2 text-2xl font-bold text-emerald-400">
-                          {formatCurrency(job.total_amount)}
-                        </p>
-                        <Link href={`/provider/labour`}>
-                          <Button
-                            size="sm"
-                            className="group relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg hover:from-amber-600 hover:to-orange-600"
-                          >
-                            <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-[100%]"></div>
-                            Review
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Upcoming Jobs */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="mb-8"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative flex rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 p-2.5 shadow-lg">
-              <div className="absolute inset-0 rounded-xl bg-white/20 blur-xl"></div>
-              <Calendar className="relative h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">Upcoming Jobs</h2>
-              {upcomingJobs.length > 0 && (
-                <p className="text-sm text-gray-400">{upcomingJobs.length} jobs scheduled</p>
-              )}
-            </div>
-          </div>
-          <Link
-            href="/provider/labour/schedule"
-            className="group flex items-center gap-1.5 text-sm font-semibold text-emerald-400 hover:text-emerald-300"
-          >
-            View Schedule
-            <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-
-        {upcomingJobs.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-700/50 bg-gray-800/30 backdrop-blur-xl">
-            <CardContent className="p-12 text-center">
-              <div className="mb-4 inline-flex rounded-full bg-gray-700/50 p-4">
-                <Calendar className="h-12 w-12 text-gray-500" />
+        {/* Card 2: Active Bookings */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Card className="relative overflow-hidden rounded-xl border border-[#1a2520] bg-[#0f1a14] shadow-lg">
+            <CardContent className="flex items-start justify-between p-6">
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-gray-400">Active Bookings</p>
+                <p className="text-4xl font-bold tracking-tight text-white">{stats.activeJobs}</p>
+                <p className="flex items-center gap-1.5 text-xs font-medium text-[#22c55e]">
+                  <span className="inline-block h-2 w-2 rounded-full bg-[#22c55e]"></span>
+                  Live and Upcoming
+                </p>
               </div>
-              <p className="font-medium text-gray-400">No upcoming jobs</p>
-              <p className="mt-1 text-sm text-gray-500">Your scheduled jobs will appear here</p>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#1a2520]">
+                <CheckSquare className="h-6 w-6 text-[#22c55e]" />
+              </div>
             </CardContent>
+
+            {/* Large Watermark CheckSquare */}
+            <div className="pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 opacity-5">
+              <CheckSquare className="h-24 w-24 text-[#22c55e]" />
+            </div>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {upcomingJobs.map((job, idx) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
-              >
-                <Card className="group relative overflow-hidden border-0 border-l-4 border-l-emerald-500 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-x-1 hover:shadow-2xl hover:shadow-emerald-500/20">
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+        </motion.div>
 
-                  <CardContent className="relative p-5">
-                    <div className="flex items-center gap-4">
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        transition={{ duration: 0.3 }}
-                        className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 transition-transform duration-300 group-hover:scale-110"
-                      >
-                        <div className="absolute inset-0 rounded-2xl bg-emerald-500/10 blur-xl"></div>
-                        <Users className="relative h-8 w-8 text-emerald-400" />
-                      </motion.div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-lg font-semibold text-white">
-                          {job.employer?.name || 'Employer'}
-                        </p>
-                        <p className="mt-1 flex items-center gap-2 text-sm text-gray-400">
-                          <MapPin className="h-4 w-4" />
-                          {job.labour?.location_name || job.labour?.city || 'Location'}
-                        </p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          {new Date(job.start_date).toLocaleDateString()} -{' '}
-                          {new Date(job.end_date).toLocaleDateString()}
-                        </p>
-                      </div>
-
-                      <Badge className={cn('border', getStatusBadgeClass(job.status))}>
-                        {job.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Quick Actions */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.05 }}
-        className="grid grid-cols-2 gap-4 lg:grid-cols-4"
-      >
-        {[
-          {
-            href: '/provider/labour/schedule',
-            icon: Calendar,
-            label: 'Work Schedule',
-            gradient: 'from-blue-500 to-indigo-500',
-          },
-          {
-            href: '/provider/earnings',
-            icon: BarChart3,
-            label: 'Earnings',
-            gradient: 'from-purple-500 to-pink-500',
-          },
-          {
-            href: '/provider/labour/reviews',
-            icon: Star,
-            label: 'Ratings',
-            gradient: 'from-amber-500 to-orange-500',
-          },
-          {
-            href: '/provider/labour/availability',
-            icon: Users,
-            label: 'Availability',
-            gradient: 'from-emerald-500 to-green-500',
-          },
-        ].map((action, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 + idx * 0.1 }}
-          >
-            <Link href={action.href}>
-              <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/20">
-                <CardContent className="p-6">
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
-                    className={`relative inline-flex rounded-2xl bg-gradient-to-br p-4 ${action.gradient} mb-4 shadow-lg transition-transform duration-300 group-hover:scale-110`}
-                  >
-                    <div className="absolute inset-0 rounded-2xl bg-white/20 blur-xl"></div>
-                    <action.icon className="relative h-6 w-6 text-white" />
-                  </motion.div>
-                  <p className="font-semibold text-white transition-colors group-hover:text-emerald-400">
-                    {action.label}
+        {/* Card 3: Avg. Rating */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <Card className="relative overflow-hidden rounded-xl border border-[#1a2520] bg-[#0f1a14] shadow-lg">
+            <CardContent className="relative z-10 flex h-full flex-col justify-between p-6">
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-gray-400">Avg. Rating</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-4xl font-bold tracking-tight text-white">
+                    {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '4.8'}
                   </p>
-                </CardContent>
-              </Card>
-            </Link>
-          </motion.div>
-        ))}
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={cn(
+                          'h-4 w-4',
+                          s <= Math.round(stats.averageRating || 4.8)
+                            ? 'fill-[#22c55e] text-[#22c55e]'
+                            : 'fill-gray-700 text-gray-700'
+                        )}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">Based on {reviewCount} reviews</p>
+              </div>
+            </CardContent>
+
+            {/* Large Watermark Star */}
+            <div className="pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 opacity-5">
+              <Star className="h-24 w-24 fill-[#22c55e] text-[#22c55e]" />
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* ── 3. PENDING BOOKING REQUESTS ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
+        <Card className="overflow-hidden rounded-xl border border-[#1a2520] bg-[#0f1a14]">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-[#1a2520] px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1a2520]">
+                <ClipboardList className="h-5 w-5 text-[#22c55e]" />
+              </div>
+              <h2 className="text-lg font-bold text-white">Pending Booking Requests</h2>
+            </div>
+            {pendingJobs.length > 0 && (
+              <Badge
+                variant="outline"
+                className="rounded-full bg-[#22c55e] px-3 py-0.5 text-xs font-bold text-black"
+              >
+                {pendingJobs.length} NEW
+              </Badge>
+            )}
+          </div>
+
+          {/* Rows */}
+          <div className="divide-y divide-[#1a2520]">
+            {pendingJobs.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#1a2520]">
+                  <Clock className="h-8 w-8 text-[#4a6d52]" />
+                </div>
+                <p className="font-medium text-gray-400">No pending job requests</p>
+              </div>
+            ) : (
+              pendingJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="group flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-[#1a2520] sm:flex-row sm:items-center"
+                >
+                  {/* Avatar + Name + Location */}
+                  <div className="flex min-w-[200px] flex-1 items-center gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#1a2520] bg-[#1a2520]">
+                      <Users className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-white">
+                        {job.employer?.name || 'Gopal Deshmukh'}
+                      </p>
+                      <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500">
+                        <MapPin className="h-3.5 w-3.5 text-[#22c55e]" />
+                        {job.labour?.location_name || job.labour?.city || 'Nashik, Maharashtra'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Booking Dates */}
+                  <div className="min-w-[150px] flex-1">
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                      BOOKING DATES
+                    </p>
+                    <div className="flex items-center gap-2 font-medium text-white">
+                      <Calendar className="h-4 w-4 text-[#22c55e]" />
+                      {formatShortDate(job.start_date)} - {formatShortDate(job.end_date)}
+                    </div>
+                  </div>
+
+                  {/* Work Force (mapped from duration as requested) */}
+                  <div className="min-w-[120px] flex-1">
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                      WORK FORCE
+                    </p>
+                    <div className="font-bold text-white">{job.total_days || 12} Members</div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="ml-auto flex items-center gap-3">
+                    <Link href="/provider/labour">
+                      <Button className="h-10 rounded-lg bg-[#22c55e] px-6 font-medium text-black hover:bg-[#16a34a]">
+                        Accept
+                      </Button>
+                    </Link>
+                    <Link href="/provider/labour">
+                      <Button
+                        variant="outline"
+                        className="h-10 rounded-lg border border-[#3a4d42] bg-transparent px-6 text-gray-400 hover:bg-[#2a3d32]"
+                      >
+                        Reject
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Footer */}
+          {pendingJobs.length > 0 && (
+            <div className="border-t border-[#1a2520] bg-[#14241c] py-3 text-center">
+              <Link
+                href="/provider/labour"
+                className="inline-flex items-center gap-1 text-sm font-medium text-[#22c55e]"
+              >
+                View All Requests <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+          )}
+        </Card>
       </motion.div>
-    </>
+
+      {/* ── 4. BOTTOM SECTION (2 Cards) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+        className="grid gap-6 md:grid-cols-2"
+      >
+        {/* Earnings Hotspots */}
+        <Card className="relative overflow-hidden rounded-xl border border-[#1a2520] bg-[#0f1a14]">
+          <CardContent className="p-6">
+            <h3 className="mb-2 text-lg font-bold text-white">Earnings Hotspots</h3>
+            <p className="max-w-[80%] text-sm leading-relaxed text-gray-400">
+              Demand is currently high in Punjab and Maharashtra regions.
+            </p>
+
+            {/* Large stylized icon on right */}
+            <div className="pointer-events-none absolute bottom-4 right-4 opacity-10">
+              <MapIcon className="h-20 w-20 text-[#22c55e]" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Platform Performance */}
+        <Card className="overflow-hidden rounded-xl border border-[#1a2520] bg-[#0f1a14]">
+          <CardContent className="p-6">
+            <h3 className="mb-2 text-lg font-bold text-white">Platform Performance</h3>
+            <p className="mb-6 text-sm text-gray-400">
+              You are in the top 5% of providers in your region.
+            </p>
+
+            {/* Bar Chart Visualization */}
+            <div className="mt-auto flex h-24 items-end justify-between gap-2">
+              {[30, 45, 35, 60, 50, 75, 65, 90].map((height, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${height}%` }}
+                  transition={{ duration: 0.5, delay: 0.6 + i * 0.05 }}
+                  className={cn(
+                    'w-full rounded-t-sm opacity-80',
+                    // Green gradient effect from left (darker) to right (brighter)
+                    i < 4 ? 'bg-[#1a4d32]' : 'bg-[#22c55e]'
+                  )}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
   );
 }

@@ -184,7 +184,7 @@ export default function ProfilePage() {
     if (!formData) return { percentage: 0, completed: 0, total: 6 };
 
     const fields = [
-      { name: 'name', value: formData.name, label: 'Full Name', icon: User },
+      { name: 'name', value: formData.name, label: 'Business Name', icon: User },
       { name: 'email', value: formData.email, label: 'Email Address', icon: Mail },
       { name: 'phone', value: formData.phone, label: 'Phone Number', icon: Phone },
       {

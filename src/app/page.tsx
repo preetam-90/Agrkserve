@@ -1,150 +1,93 @@
-import { Metadata } from 'next';
-import { createClient } from '@/lib/supabase/server';
+import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import { preload } from 'react-dom';
+import { Space_Grotesk, Inter } from 'next/font/google';
+import { LandingPageRedesigned } from '@/components/landing/LandingPageRedesigned';
+import { CriticalCSS } from '@/components/landing/CriticalCSS';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'AgriServe - Rent Farm Equipment & Hire Agricultural Labour | All India',
+  metadataBase: new URL(siteUrl),
+  title: 'AgriServe | Rent Farm Equipment & Hire Labour in India',
   description:
-    "India's trusted platform for renting farm equipment (tractors, harvesters, cultivators, rotavators) and hiring agricultural labour. Available across Punjab, Haryana, Uttar Pradesh, Rajasthan, Madhya Pradesh, Bihar, Maharashtra, Gujarat, Karnataka, and all Indian states. किसानों के लिए कृषि उपकरण किराये और श्रमिक सेवा।",
+    "India's #1 farm equipment marketplace. Rent tractors, harvesters & agricultural machinery. Hire skilled farm workers. Verified providers, transparent pricing, instant booking.",
   keywords: [
-    'farm equipment rental india',
-    'tractor on rent',
-    'agricultural labour hire',
-    'harvester booking',
-    'cultivator rental',
-    'krishi upkaran kiraya',
-    'कृषि उपकरण किराया',
-    'ट्रैक्टर किराये पर',
-    'कृषि मजदूर',
-    'farm machinery rental',
-    'agriserve',
-    'rent farm equipment near me',
-    'agricultural equipment booking',
-    'tractor rental punjab',
-    'farm labour haryana',
-    'kisan seva',
+    'farm equipment rental India',
+    'tractor rental',
+    'agricultural machinery',
+    'harvester rental',
+    'farm labour hiring',
+    'agriculture marketplace India',
   ],
   openGraph: {
-    title: 'AgriServe - Rent Farm Equipment & Hire Agricultural Labour | All India',
+    title: 'AgriServe | Rent Farm Equipment & Hire Labour in India',
     description:
-      "India's leading platform for renting farm equipment and hiring agricultural labour. Tractors, harvesters, cultivators available across all states.",
+      "India's #1 farm equipment marketplace. Rent tractors, harvesters & agricultural machinery. Hire skilled farm workers. Verified providers, transparent pricing, instant booking.",
     url: siteUrl,
     type: 'website',
     locale: 'en_IN',
     siteName: 'AgriServe',
     images: [
       {
-        url: `${siteUrl}/og-image.jpg`,
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'AgriServe - Farm Equipment Rental & Agricultural Labour Platform India',
+        alt: 'AgriServe - Farm Equipment Rental Platform India',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AgriServe - Rent Farm Equipment & Hire Labour | All India',
+    title: 'AgriServe | Rent Farm Equipment & Hire Labour in India',
     description:
-      'Rent tractors, harvesters, cultivators and hire agricultural labour across India.',
-    images: [`${siteUrl}/og-image.jpg`],
-  },
-  alternates: {
-    canonical: siteUrl,
-    languages: {
-      'en-IN': siteUrl,
-      'hi-IN': `${siteUrl}?lang=hi`,
-    },
+      "India's #1 farm equipment marketplace. Rent tractors, harvesters & agricultural machinery.",
   },
 };
-import { HeroSection } from '@/components/landing/HeroSection';
-import { StatsSection } from '@/components/landing/StatsSection';
-import { CategoriesSection } from '@/components/landing/CategoriesSection';
-import { FeaturedEquipmentSection } from '@/components/landing/FeaturedEquipmentSection';
-import { TimelineSection } from '@/components/landing/TimelineSection';
-import { FinalCTASection } from '@/components/landing/FinalCTASection';
-import { FuturisticHeader } from '@/components/landing/FuturisticHeader';
-import { PremiumFooter } from '@/components/landing/PremiumFooter';
 
-async function getHomeData() {
-  try {
-    const supabase = await createClient();
-
-    const [
-      { data: equipment },
-      { count: equipmentCount },
-      { count: usersCount },
-      { count: labourCount },
-      { count: bookingsCount },
-    ] = await Promise.all([
-      supabase
-        .from('equipment')
-        .select('id, name, images, price_per_day, location_name, is_available, rating, category')
-        .eq('is_available', true)
-        .order('rating', { ascending: false, nullsFirst: false })
-        .limit(12),
-      supabase.from('equipment').select('*', { count: 'exact', head: true }),
-      supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('labour_profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('bookings').select('*', { count: 'exact', head: true }),
-    ]);
-
-    return {
-      equipment: equipment ?? [],
-      stats: {
-        totalEquipment: equipmentCount ?? 0,
-        totalUsers: usersCount ?? 0,
-        totalLabour: labourCount ?? 0,
-        totalBookings: bookingsCount ?? 0,
-      },
-    };
-  } catch {
-    return {
-      equipment: [],
-      stats: { totalEquipment: 0, totalUsers: 0, totalLabour: 0, totalBookings: 0 },
-    };
-  }
+function isMobileUserAgent(userAgent: string) {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent);
 }
 
 export default async function HomePage() {
-  const { equipment, stats } = await getHomeData();
+  const requestHeaders = await headers();
+  const userAgent = requestHeaders.get('user-agent') ?? '';
+  const initialIsMobile = isMobileUserAgent(userAgent);
+
+  // Preload critical hero assets for sub-1s FCP
+  // Poster image serves as immediate visual while video loads
+  preload('/Landingpagevideo-poster.jpg', { as: 'image', fetchPriority: 'high' });
 
   return (
-    <div
-      className="relative min-h-screen w-full overflow-x-hidden"
-      style={{ backgroundColor: '#0A0F0C' }}
-    >
-      {/* Ambient Background Effects - Fresh Green Tones */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div
-          className="absolute left-1/4 top-0 h-[500px] w-[500px] animate-pulse rounded-full blur-[120px]"
-          style={{ backgroundColor: 'rgba(34, 197, 94, 0.12)' }}
-        />
-        <div
-          className="absolute bottom-0 right-1/4 h-[400px] w-[400px] animate-pulse rounded-full blur-[100px]"
-          style={{
-            backgroundColor: 'rgba(20, 184, 166, 0.08)',
-            animationDelay: '1s',
-          }}
-        />
-        <div
-          className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]"
-          style={{ backgroundColor: 'rgba(16, 185, 129, 0.05)' }}
-        />
-      </div>
+    <>
+      {/* Critical CSS for above-the-fold content - enables sub-1s FCP */}
+      <CriticalCSS />
 
-      <FuturisticHeader />
-
-      <main>
-        <HeroSection />
-        <StatsSection stats={stats} />
-        <CategoriesSection />
-        <FeaturedEquipmentSection equipment={equipment} />
-        <TimelineSection />
-        <FinalCTASection />
-      </main>
-
-      <PremiumFooter />
-    </div>
+      {/* High-priority preload for hero video background - desktop only */}
+      {/* Video should be <3MB for optimal performance */}
+      {!initialIsMobile && (
+        <link rel="preload" href="/Landingpagevideo.webm" as="video" fetchPriority="high" />
+      )}
+      {/* Mobile-optimized video preload */}
+      {initialIsMobile && (
+        <link rel="preload" href="/Landingpagevideo-mobile.webm" as="video" fetchPriority="high" />
+      )}
+      <LandingPageRedesigned
+        initialIsMobile={initialIsMobile}
+        fontClassName={`${spaceGrotesk.variable} ${inter.variable}`}
+      />
+    </>
   );
 }

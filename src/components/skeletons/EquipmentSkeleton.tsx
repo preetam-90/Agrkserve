@@ -2,100 +2,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function EquipmentCardSkeleton() {
   return (
-    <div className="perspective-1000 group">
-      <div className="relative h-full overflow-hidden rounded-2xl transition-all duration-500">
-        {/* Gradient border glow */}
-        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm transition-opacity duration-500" />
-
-        {/* Glassmorphism card */}
-        <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/90 to-[#0a0a0a]/90 shadow-xl backdrop-blur-xl">
-          {/* Image Gallery section */}
-          <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
-            {/* Main image skeleton with animated shimmer */}
-            <Skeleton className="h-full w-full animate-pulse" />
-
-            {/* Navigation buttons skeleton - only visible on hover in actual card */}
-            <div className="absolute left-3 top-1/2 z-10 -translate-y-1/2">
-              <Skeleton className="h-9 w-9 rounded-full bg-white/10" />
-            </div>
-            <div className="absolute right-3 top-1/2 z-10 -translate-y-1/2">
-              <Skeleton className="h-9 w-9 rounded-full bg-white/10" />
-            </div>
-
-            {/* Image indicators skeleton */}
-            <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-              <Skeleton className="h-1.5 w-8 rounded-full bg-white/40" />
-              <Skeleton className="h-1.5 w-1.5 rounded-full bg-white/40" />
-              <Skeleton className="h-1.5 w-1.5 rounded-full bg-white/40" />
-            </div>
-
-            {/* Availability badge skeleton - right side */}
-            <div className="absolute right-4 top-4 z-10">
-              <Skeleton className="h-8 w-24 rounded-full bg-emerald-500/20" />
-            </div>
-
-            {/* Category badge skeleton - left side */}
-            <div className="absolute left-4 top-4 z-10">
-              <Skeleton className="h-8 w-28 rounded-full bg-black/40" />
-            </div>
-          </div>
-
-          {/* Enhanced content section - matches actual card structure */}
-          <div className="flex flex-grow flex-col space-y-4 p-5">
-            {/* Brand and model badges row */}
-            <div>
-              <div className="mb-1 flex items-center gap-2">
-                <Skeleton className="h-5 w-20 rounded-full bg-cyan-500/10" />
-                <Skeleton className="h-3.5 w-14 rounded bg-white/5" />
-              </div>
-              {/* Equipment name - 2 lines for long names */}
-              <Skeleton className="mb-2 h-6 w-full rounded" />
-              <Skeleton className="h-6 w-3/4 rounded" />
-            </div>
-
-            {/* Specs grid - 2 cols then full width for fuel */}
-            <div className="grid grid-cols-2 gap-2">
-              <Skeleton className="h-9 w-full rounded-lg border border-white/5 bg-white/5" />
-              <Skeleton className="h-9 w-full rounded-lg border border-white/5 bg-white/5" />
-              <Skeleton className="col-span-2 h-9 w-full rounded-lg border border-white/5 bg-white/5" />
-            </div>
-
-            {/* Price section - hourly + daily */}
-            <div className="mt-auto space-y-2 pt-2">
-              {/* Hourly price */}
-              <div className="inline-flex items-baseline gap-1 rounded-lg border border-purple-500/20 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 px-3 py-1.5">
-                <Skeleton className="h-4 w-3 rounded bg-purple-400/20" />
-                <Skeleton className="h-5 w-12 rounded bg-purple-400/20" />
-                <Skeleton className="h-3 w-10 rounded bg-white/10" />
-              </div>
-              {/* Daily price - prominent */}
-              <div className="inline-flex w-full items-baseline gap-1 rounded-xl border border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-emerald-500/10 to-teal-500/10 px-4 py-2">
-                <Skeleton className="h-5 w-4 rounded bg-cyan-400/20" />
-                <Skeleton className="h-7 w-24 rounded bg-cyan-400/20" />
-                <Skeleton className="h-4 w-10 rounded bg-white/10" />
-              </div>
-            </div>
-
-            {/* Location & Rating row */}
-            <div className="flex items-center justify-between border-t border-white/5 pt-3">
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-4 rounded bg-cyan-400/20" />
-                <Skeleton className="h-4 w-28 rounded bg-white/10" />
-              </div>
-              <div className="flex items-center gap-1.5 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1">
-                <Skeleton className="h-4 w-4 rounded bg-amber-400/20" />
-                <Skeleton className="h-4 w-8 rounded bg-amber-400/20" />
-                <Skeleton className="h-3 w-8 rounded bg-white/10" />
-              </div>
-            </div>
-
-            {/* Floating action buttons */}
-            <div className="flex gap-2">
-              <Skeleton className="h-10 flex-1 rounded-xl bg-gradient-to-r from-cyan-500/20 via-emerald-500/20 to-teal-500/20" />
-              <Skeleton className="h-10 w-10 rounded-xl border border-white/10 bg-white/5" />
-              <Skeleton className="h-10 w-10 rounded-xl border border-white/10 bg-white/5" />
-            </div>
-          </div>
+    <div className="group overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/90 to-[#0a0a0a]/90 shadow-xl">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-900 to-gray-950">
+        <Skeleton className="h-full w-full animate-pulse bg-gray-800/50" />
+      </div>
+      <div className="flex flex-col space-y-3 p-4">
+        <Skeleton className="h-5 w-full rounded bg-gray-700/50" />
+        <Skeleton className="h-5 w-2/3 rounded bg-gray-700/50" />
+        <Skeleton className="h-7 w-24 rounded-lg bg-cyan-500/20" />
+        <div className="flex gap-2 pt-2">
+          <Skeleton className="h-10 flex-1 rounded-xl bg-gray-700/50" />
+          <Skeleton className="h-10 flex-1 rounded-xl bg-gray-700/50" />
         </div>
       </div>
     </div>
@@ -104,125 +21,91 @@ export function EquipmentCardSkeleton() {
 
 export function EquipmentSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a]">
-      {/* Header skeleton */}
-      <div className="h-20 border-b border-white/10" />
-
-      <main className="mx-auto max-w-[1600px] px-4 pb-8 pt-28">
-        {/* Back Button */}
-        <div className="mb-4">
-          <Skeleton className="h-8 w-24" />
-        </div>
-
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-64" />
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-4" />
-                <Skeleton className="h-4 w-20" />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-28 rounded-xl" />
-              <Skeleton className="h-10 w-48 rounded-xl" />
-            </div>
+    <div className="min-h-screen bg-[#0a0a0a]">
+      <header className="sticky top-0 z-50 border-b border-gray-800/50 bg-[#0a0a0a]/95 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between px-4">
+          <Skeleton className="h-9 w-32 rounded-lg bg-gray-800/50" />
+          <div className="flex flex-1 justify-center px-8">
+            <Skeleton className="h-11 w-full max-w-xl rounded-full bg-gray-800/50" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-10 w-10 rounded-full bg-gray-800/50" />
+            <Skeleton className="h-10 w-10 rounded-full bg-gray-800/50" />
           </div>
         </div>
+      </header>
 
-        {/* Category Tabs */}
-        <div className="mb-6 border-b border-gray-800">
-          <div className="flex gap-6 overflow-x-auto pb-2">
-            <Skeleton className="h-10 w-20" />
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-28" />
-            <Skeleton className="h-10 w-20" />
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-28" />
-            <Skeleton className="h-10 w-20" />
+      <nav className="border-b border-gray-800/30 bg-[#0a0a0a]">
+        <div className="mx-auto max-w-[1600px] px-4 py-4">
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            <Skeleton className="h-10 w-28 shrink-0 rounded-full bg-gradient-to-r from-cyan-500/30 to-emerald-500/30" />
+            <Skeleton className="h-10 w-24 shrink-0 rounded-full bg-gray-800/50" />
+            <Skeleton className="h-10 w-32 shrink-0 rounded-full bg-gray-800/50" />
+            <Skeleton className="h-10 w-20 shrink-0 rounded-full bg-gray-800/50" />
+            <Skeleton className="h-10 w-28 shrink-0 rounded-full bg-gray-800/50" />
+            <Skeleton className="h-10 w-24 shrink-0 rounded-full bg-gray-800/50" />
+            <Skeleton className="h-10 w-32 shrink-0 rounded-full bg-gray-800/50" />
           </div>
         </div>
+      </nav>
 
-        {/* Main Content - Sidebar + Grid */}
+      <main className="mx-auto max-w-[1600px] px-4 py-6">
         <div className="flex gap-6">
-          {/* Sidebar Filters */}
           <aside className="hidden w-72 flex-shrink-0 lg:block">
-            <div className="sticky top-6 space-y-4">
-              {/* Reset button */}
-              <Skeleton className="h-12 w-full rounded-xl" />
+            <div className="sticky top-24 space-y-6 rounded-2xl border border-gray-800/50 bg-[#0f0f0f] p-5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-5 rounded bg-gray-700/50" />
+                <Skeleton className="h-7 w-20 rounded bg-gray-700/50" />
+              </div>
 
-              {/* Price Filter */}
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <Skeleton className="h-6 w-28" />
-                  <Skeleton className="h-5 w-5" />
-                </div>
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-16 rounded bg-gray-700/50" />
                 <div className="space-y-3">
-                  <Skeleton className="h-10 w-full rounded-xl" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-5 w-5 rounded-sm bg-gray-700/50" />
+                      <Skeleton className="h-5 w-28 rounded bg-gray-700/50" />
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Brand Filter */}
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <Skeleton className="h-6 w-16" />
-                  <Skeleton className="h-5 w-5" />
+              <div className="space-y-4 border-t border-gray-800/50 pt-5">
+                <Skeleton className="h-5 w-24 rounded bg-gray-700/50" />
+                <div className="space-y-3">
+                  <div className="relative">
+                    <div className="flex h-2 items-center justify-center">
+                      <div className="h-1 w-full rounded-full bg-gray-700/50" />
+                    </div>
+                    <div className="absolute left-1/4 top-1/2 -translate-y-1/2">
+                      <Skeleton className="h-4 w-4 rounded-full bg-cyan-500/30" />
+                    </div>
+                    <div className="absolute right-1/4 top-1/2 -translate-y-1/2">
+                      <Skeleton className="h-4 w-4 rounded-full bg-cyan-500/30" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-9 w-20 rounded-lg bg-gray-800/50" />
+                    <Skeleton className="h-4 w-4 rounded bg-gray-700/50" />
+                    <Skeleton className="h-9 w-20 rounded-lg bg-gray-800/50" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <div className="relative mb-3">
-                    <Skeleton className="h-10 w-full rounded-xl pl-10" />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3 rounded-lg p-2.5">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-5 w-20" />
-                    </div>
-                    <div className="flex items-center gap-3 rounded-lg p-2.5">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-5 w-24" />
-                    </div>
-                    <div className="flex items-center gap-3 rounded-lg p-2.5">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-5 w-16" />
-                    </div>
-                    <div className="flex items-center gap-3 rounded-lg p-2.5">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="h-5 w-20" />
-                    </div>
-                    <div className="flex items-center gap-3 rounded-lg p-2.5">
-                      <Skeleton className="h-4 w-4" />
-                      <Skeleton className="w-18 h-5" />
-                    </div>
-                  </div>
-                  <Skeleton className="mt-2 h-8 w-full rounded-lg" />
+              </div>
+
+              <div className="space-y-4 border-t border-gray-800/50 pt-5">
+                <Skeleton className="h-5 w-20 rounded bg-gray-700/50" />
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-9 w-20 rounded-lg bg-gray-800/50" />
+                  <Skeleton className="h-9 w-24 rounded-lg bg-gray-800/50" />
+                  <Skeleton className="h-9 w-16 rounded-lg bg-gray-800/50" />
+                  <Skeleton className="w-22 h-9 rounded-lg bg-gray-800/50" />
+                  <Skeleton className="w-18 h-9 rounded-lg bg-gray-800/50" />
                 </div>
               </div>
             </div>
           </aside>
 
-          {/* Equipment Grid */}
           <div className="flex-1">
-            {/* Search Bar */}
-            <div className="mb-8">
-              <div className="relative">
-                <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-cyan-400 via-emerald-400 to-teal-400 opacity-0 blur-sm" />
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80">
-                  <Skeleton className="h-14 w-full pl-14" />
-                </div>
-              </div>
-            </div>
-
-            {/* Results Count */}
-            <div className="mb-4 flex items-center justify-between">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-5 w-48" />
-            </div>
-
-            {/* Equipment Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <EquipmentCardSkeleton key={i} />
@@ -232,8 +115,79 @@ export function EquipmentSkeleton() {
         </div>
       </main>
 
-      {/* Footer skeleton */}
-      <div className="h-32 border-t border-white/10" />
+      <section className="mx-auto max-w-[1600px] px-4 py-12">
+        <div className="overflow-hidden rounded-3xl border border-gray-800/50 bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f]">
+          <div className="flex flex-col lg:flex-row">
+            <div className="flex flex-1 flex-col justify-center p-8 lg:p-12">
+              <Skeleton className="mb-4 h-12 w-3/4 rounded-lg bg-gray-700/50" />
+              <Skeleton className="mb-3 h-6 w-full max-w-lg rounded bg-gray-700/50" />
+              <Skeleton className="mb-6 h-6 w-2/3 max-w-md rounded bg-gray-700/50" />
+              <div className="flex flex-wrap gap-4">
+                <Skeleton className="h-12 w-40 rounded-xl bg-gradient-to-r from-cyan-500/30 to-emerald-500/30" />
+                <Skeleton className="h-12 w-32 rounded-xl bg-gray-700/50" />
+              </div>
+            </div>
+            <div className="flex-1 lg:p-6">
+              <div className="relative h-64 w-full lg:h-full lg:min-h-[300px]">
+                <Skeleton className="h-full w-full rounded-none bg-gradient-to-br from-gray-800/50 to-gray-900/50 lg:rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-gray-800/50 bg-[#0a0a0a]">
+        <div className="mx-auto max-w-[1600px] px-4 py-16">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <Skeleton className="mb-4 h-10 w-36 rounded-lg bg-gray-700/50" />
+              <div className="mb-6 space-y-3">
+                <Skeleton className="h-4 w-full max-w-sm rounded bg-gray-700/50" />
+                <Skeleton className="h-4 w-3/4 max-w-xs rounded bg-gray-700/50" />
+                <Skeleton className="h-4 w-2/3 max-w-xs rounded bg-gray-700/50" />
+              </div>
+              <div className="flex gap-3">
+                <Skeleton className="h-10 w-10 rounded-full bg-gray-800/50" />
+                <Skeleton className="h-10 w-10 rounded-full bg-gray-800/50" />
+                <Skeleton className="h-10 w-10 rounded-full bg-gray-800/50" />
+                <Skeleton className="h-10 w-10 rounded-full bg-gray-800/50" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-24 rounded bg-gray-700/50" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-4 w-28 rounded bg-gray-700/50" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-28 rounded bg-gray-700/50" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-4 w-24 rounded bg-gray-700/50" />
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-24 rounded bg-gray-700/50" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-4 w-28 rounded bg-gray-700/50" />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-800/50 pt-8 sm:flex-row">
+            <Skeleton className="h-4 w-56 rounded bg-gray-700/50" />
+            <div className="flex gap-6">
+              <Skeleton className="h-4 w-20 rounded bg-gray-700/50" />
+              <Skeleton className="h-4 w-24 rounded bg-gray-700/50" />
+              <Skeleton className="h-4 w-16 rounded bg-gray-700/50" />
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

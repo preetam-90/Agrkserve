@@ -430,6 +430,7 @@ export default function NotificationsPage() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(['Today', 'Yesterday', 'Earlier'])
   );
+  const [groupBy, setGroupBy] = useState<'date' | 'category'>('date');
   const isBackgroundLoaded = true;
 
   const {
@@ -472,8 +473,64 @@ export default function NotificationsPage() {
     return filtered;
   }, [notifications, activeTab, searchQuery]);
 
-  // Group notifications by date
+  // Group notifications by date OR by category
   const groupedNotifications = useMemo(() => {
+    if (groupBy === 'category') {
+      // Group by category
+      const categoryGroups: Record<string, typeof filteredNotifications> = {};
+
+      filteredNotifications.forEach((notification) => {
+        const category = notification.category || 'system';
+        if (!categoryGroups[category]) {
+          categoryGroups[category] = [];
+        }
+        categoryGroups[category].push(notification);
+      });
+
+      // Convert to NotificationGroup array with proper labels
+      const categoryLabels: Record<string, string> = {
+        booking: 'Bookings',
+        message: 'Messages',
+        payment: 'Payments',
+        system: 'System',
+        trust: 'Trust & Reviews',
+        security: 'Security',
+        insight: 'Insights',
+        promotion: 'Promotions',
+        reward: 'Rewards',
+        achievement: 'Achievements',
+        alert: 'Alerts',
+        update: 'Updates',
+        profile: 'Profile',
+        equipment: 'Equipment',
+        invoice: 'Invoices',
+        event: 'Events',
+        social: 'Social',
+        trending: 'Trending',
+        launch: 'New Launches',
+        goal: 'Goals',
+        tip: 'Tips',
+        global: 'Global',
+        privacy: 'Privacy',
+        access: 'Access',
+        labor: 'Labor',
+        harvest: 'Harvest',
+        maintenance: 'Maintenance',
+        delivery: 'Deliveries',
+        field: 'Field Updates',
+        storage: 'Storage',
+        weather: 'Weather',
+      };
+
+      return Object.entries(categoryGroups)
+        .map(([category, notifications]) => ({
+          label: categoryLabels[category] || category.charAt(0).toUpperCase() + category.slice(1),
+          notifications,
+        }))
+        .sort((a, b) => b.notifications.length - a.notifications.length);
+    }
+
+    // Group by date (original behavior)
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
@@ -498,7 +555,7 @@ export default function NotificationsPage() {
     });
 
     return groups.filter((group) => group.notifications.length > 0);
-  }, [filteredNotifications]);
+  }, [filteredNotifications, groupBy]);
 
   // Handlers
   const handleMarkAllRead = useCallback(async () => {
@@ -1200,6 +1257,50 @@ export default function NotificationsPage() {
               ))}
             </div>
 
+            {/* Group By Toggle */}
+            {notifications.length > 0 && (
+              <div className="mb-6 flex items-center justify-between border-b border-slate-700/50 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400">Group by:</span>
+                  <div className="flex rounded-lg border border-slate-700/50 bg-slate-800/30 p-1">
+                    <button
+                      onClick={() => {
+                        setGroupBy('date');
+                        setExpandedGroups(new Set(['Today', 'Yesterday', 'Earlier']));
+                      }}
+                      className={cn(
+                        'rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200',
+                        groupBy === 'date'
+                          ? 'bg-slate-700 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      )}
+                    >
+                      Date
+                    </button>
+                    <button
+                      onClick={() => {
+                        setGroupBy('category');
+                        // Set expanded groups to all categories
+                        const categories = new Set<string>();
+                        filteredNotifications.forEach((n) => {
+                          categories.add(n.category || 'system');
+                        });
+                        setExpandedGroups(categories);
+                      }}
+                      className={cn(
+                        'rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200',
+                        groupBy === 'category'
+                          ? 'bg-slate-700 text-white shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      )}
+                    >
+                      Category
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Loading, Error, and Empty States */}
             {loading && notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16">
@@ -1299,12 +1400,57 @@ export default function NotificationsPage() {
                 {/* Notification Groups */}
                 {groupedNotifications.map((group) => {
                   const isExpanded = expandedGroups.has(group.label);
-                  const GroupIcon =
-                    group.label === 'Today'
-                      ? Sunrise
-                      : group.label === 'Yesterday'
-                        ? Sunset
-                        : TreePine;
+
+                  // Get icon based on group type
+                  let GroupIcon;
+                  if (groupBy === 'category') {
+                    // For category grouping, use category icons
+                    const categoryKey =
+                      (Object.entries({
+                        booking: 'booking',
+                        message: 'message',
+                        payment: 'payment',
+                        system: 'system',
+                        trust: 'trust',
+                        security: 'security',
+                        insight: 'insight',
+                        promotion: 'promotion',
+                        reward: 'reward',
+                        achievement: 'achievement',
+                        alert: 'alert',
+                        update: 'update',
+                        profile: 'profile',
+                        equipment: 'equipment',
+                        invoice: 'invoice',
+                        event: 'event',
+                        social: 'social',
+                        trending: 'trending',
+                        launch: 'launch',
+                        goal: 'goal',
+                        tip: 'tip',
+                        global: 'global',
+                        privacy: 'privacy',
+                        access: 'access',
+                        labor: 'labor',
+                        harvest: 'harvest',
+                        maintenance: 'maintenance',
+                        delivery: 'delivery',
+                        field: 'field',
+                        storage: 'storage',
+                        weather: 'weather',
+                      }).find(
+                        ([key]) => key.toLowerCase() === group.label.toLowerCase()
+                      )?.[0] as NotificationCategory) || 'system';
+                    GroupIcon = NOTIFICATION_ICONS[categoryKey] || Info;
+                  } else {
+                    // For date grouping, use date icons
+                    GroupIcon =
+                      group.label === 'Today'
+                        ? Sunrise
+                        : group.label === 'Yesterday'
+                          ? Sunset
+                          : TreePine;
+                  }
 
                   return (
                     <div key={group.label} className="mb-6 last:mb-0">

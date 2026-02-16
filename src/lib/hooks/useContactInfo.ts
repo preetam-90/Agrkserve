@@ -1,6 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { getContactInfo } from '@/lib/services/settings';
+import { clearSettingsCache, getContactInfo } from '@/lib/services/settings';
+
+const supabase = createClient();
+const MAX_RETRIES = 3;
+const BASE_RETRY_DELAY_MS = 2000;
+
+function extractRealtimeErrorDetails(err: unknown): string {
+  if (!err) return 'No error details provided';
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+
+  try {
+    const serialized = JSON.stringify(err);
+    return serialized && serialized !== '{}' ? serialized : 'No error details provided';
+  } catch {
+    return String(err);
+  }
+}
 
 /**
  * Hook to get contact information with real-time updates
@@ -42,46 +59,46 @@ export function useContactInfo() {
   const [error, setError] = useState<string | null>(null);
   const retryCountRef = useRef(0);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 2000;
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(false);
 
-  const supabase = createClient();
+  const clearRetryTimer = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+  }, []);
 
   // Initial fetch
   const fetchContact = useCallback(async () => {
     try {
-      console.log('🔄 Fetching contact info...');
       const info = await getContactInfo();
-      console.log('✅ Contact info received:', {
-        email: info.email,
-        phone: info.phone,
-        address: info.address,
-        totalFields: Object.keys(info).length,
-      });
+      if (!isMountedRef.current) return;
       setContactInfo(info);
       setError(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (!isMountedRef.current) return;
       console.error('❌ Error fetching contact info:', errorMessage);
       setError(errorMessage);
     } finally {
+      if (!isMountedRef.current) return;
       setLoading(false);
     }
   }, []);
 
   // Subscribe to real-time changes with retry logic
   const subscribeToChanges = useCallback(() => {
+    clearRetryTimer();
+
     // Clean up existing channel if any
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
-    console.log('📡 Setting up Realtime subscription for system_settings...');
-
     const channel = supabase
-      .channel(`system_settings_changes_${Date.now()}`)
+      .channel(`system_settings_changes_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         {
@@ -90,68 +107,99 @@ export function useContactInfo() {
           table: 'system_settings',
           filter: 'category=eq.contact',
         },
-        (payload) => {
-          console.log('🔔 Contact settings changed:', payload);
-          console.log('🔄 Refetching contact info...');
-          fetchContact();
+        () => {
+          clearSettingsCache();
+          void fetchContact();
         }
       )
       .subscribe((status, err) => {
-        console.log('📡 Realtime subscription status:', status);
+        if (!isMountedRef.current) return;
 
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to contact settings changes');
           retryCountRef.current = 0;
           setError(null);
-        } else if (status === 'CHANNEL_ERROR') {
-          const errorDetails = err instanceof Error ? err.message : 'Unknown channel error';
-          console.error('❌ Realtime subscription error:', {
-            status,
-            error: errorDetails,
-            retryCount: retryCountRef.current,
-          });
-          setError(`Realtime subscription failed: ${errorDetails}`);
+          return;
+        }
 
-          // Retry logic with exponential backoff
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          const errorDetails = extractRealtimeErrorDetails(err);
+          const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+          const message = isOffline ? 'Browser is offline' : errorDetails;
+
           if (retryCountRef.current < MAX_RETRIES) {
             retryCountRef.current += 1;
-            const delay = RETRY_DELAY * Math.pow(2, retryCountRef.current - 1);
-            console.log(
-              `🔄 Retrying subscription in ${delay}ms (attempt ${retryCountRef.current}/${MAX_RETRIES})...`
-            );
+            const delay = BASE_RETRY_DELAY_MS * Math.pow(2, retryCountRef.current - 1);
 
+            console.warn('⚠️ Realtime subscription interrupted. Retrying...', {
+              status,
+              error: message,
+              retryCount: retryCountRef.current,
+              maxRetries: MAX_RETRIES,
+              nextRetryInMs: delay,
+            });
+
+            clearRetryTimer();
             retryTimeoutRef.current = setTimeout(() => {
-              subscribeToChanges();
+              if (isMountedRef.current) {
+                subscribeToChanges();
+              }
             }, delay);
           } else {
-            console.error('❌ Max retry attempts reached. Realtime updates unavailable.');
-            setError('Realtime updates unavailable after max retry attempts');
+            console.error('❌ Realtime subscription unavailable after retries:', {
+              status,
+              error: message,
+            });
+            setError('Realtime updates are temporarily unavailable.');
           }
-        } else if (status === 'CLOSED') {
-          console.log('🔌 Realtime subscription closed');
+
+          return;
+        }
+
+        if (status === 'CLOSED') {
+          if (retryCountRef.current < MAX_RETRIES) {
+            retryCountRef.current += 1;
+            const delay = BASE_RETRY_DELAY_MS * Math.pow(2, retryCountRef.current - 1);
+
+            clearRetryTimer();
+            retryTimeoutRef.current = setTimeout(() => {
+              if (isMountedRef.current) {
+                subscribeToChanges();
+              }
+            }, delay);
+          } else {
+            console.error('❌ Realtime channel closed repeatedly:', {
+              status,
+              retryCount: retryCountRef.current,
+            });
+            setError('Realtime updates are temporarily unavailable.');
+          }
+        } else {
+          console.warn('⚠️ Unhandled realtime subscription status:', {
+            status,
+            error: extractRealtimeErrorDetails(err),
+            retryCount: retryCountRef.current,
+          });
         }
       });
 
     channelRef.current = channel;
-  }, [fetchContact, supabase]);
+  }, [clearRetryTimer, fetchContact]);
 
   useEffect(() => {
-    fetchContact();
+    isMountedRef.current = true;
+    void fetchContact();
     subscribeToChanges();
 
     // Cleanup subscription on unmount
     return () => {
-      console.log('🔌 Cleaning up Realtime subscription');
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = null;
-      }
+      isMountedRef.current = false;
+      clearRetryTimer();
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
-  }, [fetchContact, subscribeToChanges, supabase]);
+  }, [clearRetryTimer, fetchContact, subscribeToChanges]);
 
   return { contactInfo, loading, error };
 }

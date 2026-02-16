@@ -1,9 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type {
-  Booking,
-  BookingStatus,
-  PaginatedResponse
-} from '@/lib/types';
+import type { Booking, BookingStatus, PaginatedResponse } from '@/lib/types';
 import { calculateDaysBetween } from '@/lib/utils';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 import { notificationService } from './notification-service';
@@ -17,10 +13,12 @@ export const bookingService = {
   async getById(id: string): Promise<Booking | null> {
     const { data, error } = await supabase
       .from('bookings')
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(*)
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -50,10 +48,13 @@ export const bookingService = {
 
     let query = supabase
       .from('bookings')
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(id, name, images, category, price_per_day)
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' }
+      )
       .eq('renter_id', renterId);
 
     if (status) {
@@ -90,10 +91,13 @@ export const bookingService = {
 
     let query = supabase
       .from('bookings')
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment!inner(id, name, images, category, price_per_day, owner_id)
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' }
+      )
       .eq('equipment.owner_id', ownerId);
 
     if (status) {
@@ -113,14 +117,14 @@ export const bookingService = {
     // Fetch renter profiles separately
     const bookings = data || [];
     if (bookings.length > 0) {
-      const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+      const renterIds = [...new Set(bookings.map((b) => b.renter_id).filter(Boolean))];
       const { data: renters } = await supabase
         .from('user_profiles')
         .select('id, name, profile_image, phone')
         .in('id', renterIds);
 
-      const renterMap = new Map((renters || []).map(r => [r.id, r]));
-      bookings.forEach(booking => {
+      const renterMap = new Map((renters || []).map((r) => [r.id, r]));
+      bookings.forEach((booking) => {
         booking.renter = renterMap.get(booking.renter_id);
       });
     }
@@ -139,10 +143,7 @@ export const bookingService = {
     equipmentId: string,
     status?: BookingStatus | BookingStatus[]
   ): Promise<Booking[]> {
-    let query = supabase
-      .from('bookings')
-      .select('*')
-      .eq('equipment_id', equipmentId);
+    let query = supabase.from('bookings').select('*').eq('equipment_id', equipmentId);
 
     if (status) {
       if (Array.isArray(status)) {
@@ -160,15 +161,15 @@ export const bookingService = {
     const bookings = data || [];
     if (bookings.length > 0) {
       try {
-        const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+        const renterIds = [...new Set(bookings.map((b) => b.renter_id).filter(Boolean))];
         const { data: renters } = await supabase
           .from('user_profiles')
           .select('id, name, profile_image')
           .in('id', renterIds);
 
         if (renters) {
-          const renterMap = new Map((renters || []).map(r => [r.id, r]));
-          bookings.forEach(booking => {
+          const renterMap = new Map((renters || []).map((r) => [r.id, r]));
+          bookings.forEach((booking) => {
             booking.renter = renterMap.get(booking.renter_id);
           });
         }
@@ -184,43 +185,55 @@ export const bookingService = {
   // Lightweight fetch for public availability preview
   async getEquipmentAvailability(equipmentId: string): Promise<Date[]> {
     console.log(`[bookingService] Fetching availability for: ${equipmentId}`);
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('id, start_date, end_date, status')
-      .eq('equipment_id', equipmentId)
-      .in('status', ['confirmed', 'approved', 'in_progress', 'pending']);
 
-    if (error) {
-      console.error('[bookingService] Supabase error:', error);
-      throw error;
-    }
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('id, start_date, end_date, status')
+        .eq('equipment_id', equipmentId)
+        .in('status', ['confirmed', 'approved', 'in_progress', 'pending']);
 
-    console.log(`[bookingService] Raw bookings found: ${data?.length || 0}`);
-
-    const booked: Date[] = [];
-    data?.forEach(booking => {
-      if (!booking.start_date || !booking.end_date) return;
-
-      try {
-        const start = parseISO(booking.start_date);
-        const end = parseISO(booking.end_date);
-
-        const curr = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-        const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-
-        let safety = 0;
-        while (curr <= last && safety < 100) { // Safety cap
-          booked.push(new Date(curr));
-          curr.setDate(curr.getDate() + 1);
-          safety++;
-        }
-      } catch (e) {
-        console.error('[bookingService] Error parsing range:', e);
+      if (error) {
+        // RLS may block access for unauthenticated users - return empty array
+        console.warn(
+          '[bookingService] Availability query blocked or failed:',
+          error.message || error
+        );
+        return [];
       }
-    });
 
-    console.log(`[bookingService] Total expanded busy days: ${booked.length}`);
-    return booked;
+      console.log(`[bookingService] Raw bookings found: ${data?.length || 0}`);
+
+      const booked: Date[] = [];
+      data?.forEach((booking) => {
+        if (!booking.start_date || !booking.end_date) return;
+
+        try {
+          const start = parseISO(booking.start_date);
+          const end = parseISO(booking.end_date);
+
+          const curr = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+          const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+          let safety = 0;
+          while (curr <= last && safety < 100) {
+            // Safety cap
+            booked.push(new Date(curr));
+            curr.setDate(curr.getDate() + 1);
+            safety++;
+          }
+        } catch (e) {
+          console.error('[bookingService] Error parsing range:', e);
+        }
+      });
+
+      console.log(`[bookingService] Total expanded busy days: ${booked.length}`);
+      return booked;
+    } catch (err) {
+      // Gracefully handle any unexpected errors
+      console.warn('[bookingService] Unexpected error fetching availability:', err);
+      return [];
+    }
   },
 
   // Create a new booking
@@ -248,10 +261,12 @@ export const bookingService = {
         status: 'pending',
         notes: booking.notes || null,
       })
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(*)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -277,9 +292,8 @@ export const bookingService = {
     cancelledBy?: string,
     cancellationReason?: string
   ): Promise<Booking> {
-    const normalizedStatus = status === 'approved' ? 'confirmed'
-      : status === 'rejected' ? 'cancelled'
-        : status;
+    const normalizedStatus =
+      status === 'approved' ? 'confirmed' : status === 'rejected' ? 'cancelled' : status;
 
     const updates: Record<string, unknown> = {
       status: normalizedStatus,
@@ -295,10 +309,12 @@ export const bookingService = {
       .from('bookings')
       .update(updates)
       .eq('id', id)
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(*)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -352,10 +368,12 @@ export const bookingService = {
 
     const { data, error } = await supabase
       .from('bookings')
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment!inner(id, name, images, category, owner_id)
-      `)
+      `
+      )
       .eq(column, userId)
       .in('status', ['confirmed', 'in_progress'])
       .gte('end_date', today)
@@ -367,18 +385,22 @@ export const bookingService = {
     // Fetch user profiles separately
     const bookings = data || [];
     if (bookings.length > 0) {
-      const userIds = [...new Set([
-        ...bookings.map(b => b.renter_id),
-        ...bookings.map(b => b.equipment?.owner_id)
-      ].filter(Boolean))];
+      const userIds = [
+        ...new Set(
+          [
+            ...bookings.map((b) => b.renter_id),
+            ...bookings.map((b) => b.equipment?.owner_id),
+          ].filter(Boolean)
+        ),
+      ];
 
       const { data: users } = await supabase
         .from('user_profiles')
         .select('id, name, profile_image')
         .in('id', userIds);
 
-      const userMap = new Map((users || []).map(u => [u.id, u]));
-      bookings.forEach(booking => {
+      const userMap = new Map((users || []).map((u) => [u.id, u]));
+      bookings.forEach((booking) => {
         booking.renter = userMap.get(booking.renter_id);
         if (booking.equipment) {
           booking.equipment.owner = userMap.get(booking.equipment.owner_id);
@@ -393,10 +415,12 @@ export const bookingService = {
   async getPendingRequests(ownerId: string): Promise<Booking[]> {
     const { data, error } = await supabase
       .from('bookings')
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment!inner(id, name, images, category, price_per_day, owner_id)
-      `)
+      `
+      )
       .eq('equipment.owner_id', ownerId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
@@ -406,14 +430,14 @@ export const bookingService = {
     // Fetch renter profiles separately
     const bookings = data || [];
     if (bookings.length > 0) {
-      const renterIds = [...new Set(bookings.map(b => b.renter_id).filter(Boolean))];
+      const renterIds = [...new Set(bookings.map((b) => b.renter_id).filter(Boolean))];
       const { data: renters } = await supabase
         .from('user_profiles')
         .select('id, name, profile_image, phone')
         .in('id', renterIds);
 
-      const renterMap = new Map((renters || []).map(r => [r.id, r]));
-      bookings.forEach(booking => {
+      const renterMap = new Map((renters || []).map((r) => [r.id, r]));
+      bookings.forEach((booking) => {
         booking.renter = renterMap.get(booking.renter_id);
       });
     }
@@ -422,7 +446,10 @@ export const bookingService = {
   },
 
   // Get booking statistics
-  async getStats(userId: string, role: 'renter' | 'owner'): Promise<{
+  async getStats(
+    userId: string,
+    role: 'renter' | 'owner'
+  ): Promise<{
     total: number;
     pending: number;
     active: number;
@@ -471,10 +498,12 @@ export const bookingService = {
   async getBookingById(id: string): Promise<Booking | null> {
     const { data, error } = await supabase
       .from('bookings')
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(*)
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -505,7 +534,9 @@ export const bookingService = {
     total_amount: number;
     platform_fee?: number;
   }): Promise<Booking> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     // Get equipment to find owner
@@ -550,10 +581,12 @@ export const bookingService = {
       .from('bookings')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(*)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -562,9 +595,10 @@ export const bookingService = {
     if (data.renter_id) {
       try {
         const title = status === 'confirmed' ? 'Booking Confirmed' : 'Booking Updated';
-        const body = status === 'confirmed'
-          ? 'Your equipment booking has been confirmed by the provider.'
-          : `Your booking status has been updated to ${status}.`;
+        const body =
+          status === 'confirmed'
+            ? 'Your equipment booking has been confirmed by the provider.'
+            : `Your booking status has been updated to ${status}.`;
 
         await notificationService.create({
           user_id: data.renter_id,
@@ -613,10 +647,12 @@ export const bookingService = {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .select(`
+      .select(
+        `
         *,
         equipment:equipment(*)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -660,7 +696,9 @@ export const bookingService = {
 
   // Convenience method for current user's bookings as renter
   async getMyBookings(status?: BookingStatus | BookingStatus[]): Promise<Booking[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
     const result = await this.getRenterBookings(user.id, status);
     return result.data;
@@ -668,7 +706,9 @@ export const bookingService = {
 
   // Convenience method for current user's bookings as provider
   async getProviderBookings(status?: BookingStatus | BookingStatus[]): Promise<Booking[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
     const result = await this.getOwnerBookings(user.id, status);
     return result.data;

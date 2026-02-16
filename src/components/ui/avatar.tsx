@@ -60,10 +60,38 @@ const sizeClasses = {
 };
 
 export function Avatar({ src, name, size = 'md', className }: AvatarProps) {
+  const [imgError, setImgError] = React.useState(false);
+  const [imgLoaded, setImgLoaded] = React.useState(false);
+  
+  // Reset error state when src changes
+  React.useEffect(() => {
+    setImgError(false);
+    setImgLoaded(false);
+  }, [src]);
+
+  const handleError = () => {
+    setImgError(true);
+  };
+
+  const handleLoad = () => {
+    setImgLoaded(true);
+  };
+
   return (
     <AvatarRoot className={cn(sizeClasses[size], className)}>
-      <AvatarImage src={src || undefined} alt={name || 'Avatar'} />
-      <AvatarFallback>{getInitials(name)}</AvatarFallback>
+      {src && !imgError ? (
+        <AvatarImage 
+          src={src} 
+          alt={name || 'Avatar'} 
+          onError={handleError}
+          onLoad={handleLoad}
+          className={cn(
+            'transition-opacity duration-200',
+            imgLoaded ? 'opacity-100' : 'opacity-0'
+          )}
+        />
+      ) : null}
+      <AvatarFallback delayMs={600}>{getInitials(name)}</AvatarFallback>
     </AvatarRoot>
   );
 }

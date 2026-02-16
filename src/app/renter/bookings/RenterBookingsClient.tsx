@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Calendar, Clock, ChevronRight, Tractor, Search, User } from 'lucide-react';
@@ -27,9 +28,22 @@ import toast from 'react-hot-toast';
 
 export default function RenterBookingsPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const success = searchParams.get('success');
   const { data: bookings = [], isLoading } = useMyBookings();
   const [activeTab, setActiveTab] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const hasShownSuccessRef = useRef(false);
+
+  // Show success toast when redirected from booking
+  useEffect(() => {
+    if (success === 'true' && !hasShownSuccessRef.current) {
+      toast.success('🎉 Booking confirmed! Your equipment has been reserved.');
+      hasShownSuccessRef.current = true;
+      // Clean the URL by removing the query param
+      window.history.replaceState(null, '', '/renter/bookings');
+    }
+  }, [success]);
 
   // Real-time subscription — updates TanStack Query cache directly
   useEffect(() => {

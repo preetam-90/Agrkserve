@@ -1,0 +1,348 @@
+version: "2"
+type: frontend_test_plan
+project_name: agri-serve-web
+tests:
+  - id: test_landing_page
+    name: Landing Page Navigation and Display
+    priority: high
+    description: Verify landing page renders correctly with all sections and navigation elements
+    steps:
+      - Open http://localhost:3000
+      - Verify page title is "AgriServe | The Future of Farm Rental"
+      - Verify hero section is visible with headline text
+      - Verify navigation menu is present with items like "Login", "Register"
+      - Click "Equipment" link in navigation
+      - Verify redirect to /equipment page
+    expected_results:
+      - Landing page loads without errors
+      - All UI elements render correctly
+      - Navigation links work as expected
+  
+  - id: test_user_login
+    name: User Login Flow
+    priority: high
+    description: Test user login with email/password authentication
+    steps:
+      - Navigate to http://localhost:3000/login
+      - Verify login form is displayed with email and password fields
+      - Verify "Login with Google" button is visible
+      - Verify "Forgot Password?" link is present
+      - Enter valid email in email field
+      - Enter valid password in password field
+      - Click "Sign In" button
+      - Wait for authentication and redirect
+    expected_results:
+      - User is authenticated successfully
+      - Redirected to appropriate dashboard based on user role
+      - No error messages displayed for valid credentials
+  
+  - id: test_equipment_browsing
+    name: Equipment Browsing and Filtering
+    priority: high
+    description: Browse equipment listings and apply filters
+    steps:
+      - Navigate to http://localhost:3000/equipment
+      - Verify equipment cards are displayed
+      - Verify each equipment card shows image, name, price, rating
+      - Use search input to search for "tractor"
+      - Verify results filter to show tractors only
+      - Try filtering by equipment category
+      - Try location filter (select a state)
+      - Click on an equipment card to view details
+    expected_results:
+      - Equipment listings load correctly
+      - Search functionality works
+      - Filters apply results correctly
+      - Navigation to equipment detail page works
+  
+  - id: test_equipment_details
+    name: Equipment Detail View
+    priority: medium
+    description: View detailed equipment information
+    steps:
+      - Navigate to http://localhost:3000/equipment/[id] (replace [id] with valid equipment ID)
+      - Verify equipment details page loads
+      - Verify equipment images, specifications, and features are displayed
+      - Verify provider information is shown
+      - Verify rental pricing is displayed
+      - Verify "Book Now" button is visible
+      - Verify reviews section is present
+    expected_results:
+      - All equipment details render correctly
+      - Provider profile information is displayed
+      - Booking button is present and enabled
+      - Reviews load if available
+  
+  - id: test_labour_browsing
+    name: Labour Listings Browsing
+    priority: medium
+    description: Browse labour providers and listings
+    steps:
+      - Navigate to http://localhost:3000/labour
+      - Verify labourer profiles/cards are displayed
+      - Verify each profile shows name, skills, hourly rate, rating
+      - Use search/filter options to find specific labourer
+      - Filter by skill type or location
+      - Click on labourer profile to view details
+    expected_results:
+      - Labour listings load correctly
+      - Search and filters work
+      - Profile navigation works
+      - Labourer details page displays correctly
+  
+  - id: test_nav_to_renter_dashboard
+    name: Renter Dashboard Access
+    priority: high
+    description: Access and view renter dashboard
+    steps:
+      - Log in as a renter user
+      - Navigate directly to http://localhost:3000/renter/dashboard
+      - Or wait for auto-redirect after login
+      - Verify dashboard loads and displays:
+        - Welcome message
+        - Active bookings section
+        - Upcoming bookings
+        - Favorites
+        - Quick actions
+    expected_results:
+      - Dashboard loads without errors
+      - User-specific data is displayed
+      - Navigation links work
+      - Quick action buttons are functional
+  
+  - id: test_nav_to_provider_dashboard
+    name: Provider Dashboard Access
+    priority: high
+    description: Access and view provider dashboard
+    steps:
+      - Log in as a provider user
+      - Navigate to http://localhost:3000/provider/dashboard
+      - Verify dashboard loads and displays:
+        - Overview stats (earnings, bookings, ratings)
+        - Incoming booking requests
+        - Active rentals
+        - Performance metrics
+    expected_results:
+      - Dashboard loads for provider user
+      - Provider-specific metrics are displayed
+      - Sections are properly organized
+  
+  - id: test_messaging_system
+    name: In-App Messaging
+    priority: medium
+    description: Test messaging functionality between users
+    steps:
+      - Log in to account
+      - Navigate to http://localhost:3000/messages
+      - Verify inbox is displayed with conversation list
+      - Click on a conversation to open chat
+      - Type a message in input field
+      - Click send button
+      - Verify message appears in chat thread
+    expected_results:
+      - Message inbox loads
+      - Conversations are listed
+      - Messages send and display
+      - Chat interface is functional
+  
+  - id: test_notifications_center
+    name: Notifications Center
+    priority: low
+    description: View and manage notifications
+    steps:
+      - Log in to account
+      - Navigate to http://localhost:3000/notifications
+      - Verify notifications list is displayed
+      - Click on a notification to view details
+      - Verify navigation to related content
+      - Mark notification as read
+    expected_results:
+      - Notifications load correctly
+      - Clicking notification navigates to context
+      - Read status updates properly
+  
+  - id: test_user_profile
+    name: User Profile Management
+    priority: medium
+    description: View and manage user profile
+    steps:
+      - Log in to account
+      - Navigate to http://localhost:3000/profile
+      - Verify profile page loads with user information
+      - View current profile details
+      - Try editing profile if form is available
+      - Verify profile can be updated
+    expected_results:
+      - Profile displays current information
+      - Edit form is accessible
+      - Changes can be saved
+  
+  - id: test_booking_workflow
+    name: Equipment Booking Workflow
+    priority: high
+    description: Complete equipment booking flow
+    steps:
+      - Log in as renter
+      - Navigate to equipment listing page
+      - Select an equipment item
+      - On detail page, click "Book" button
+      - Verify redirect to booking page
+      - Fill in required booking details:
+        - Select rental dates (start and end)
+        - Select quantity if applicable
+      - Click "Confirm Booking" or proceed
+      - Verify booking confirmation is shown
+    expected_results:
+      - Booking page loads with equipment info
+      - Date selection works
+      - Form validation occurs for required fields
+      - Booking confirmation is displayed with details
+  
+  - id: test_admin_panel_access
+    name: Admin Panel Access
+    priority: medium
+    description: Access admin panel for platform management
+    steps:
+      - Log in as admin user
+      - Navigate to http://localhost:3000/admin
+      - Verify admin dashboard loads
+      - View analytics section
+      - Navigate to users management: http://localhost:3000/admin/users
+      - Navigate to bookings management: http://localhost:3000/admin/bookings
+    expected_results:
+      - Admin panel loads without unauthorized access errors
+      - Admin can view platform analytics
+      - Admin can navigate to management sections
+      - Data loads correctly in admin views
+  
+  - id: test_search_functionality
+    name: Search Functionality
+    priority: medium
+    description: Test search across different page types
+    steps:
+      - On equipment page, use search bar
+      - Enter term "tractor" and search
+      - Verify results are filtered correctly
+      - Clear search and verify all items show
+      - On labour page, test search for labourer names or skills
+    expected_results:
+      - Search returns relevant results
+      - Clear search resets view
+      - Search is responsive
+  
+  - id: test_mobile_responsive
+    name: Mobile Responsiveness
+    priority: low
+    description: Verify UI works on different viewport sizes
+    steps:
+      - View landing page at mobile width (~375px)
+      - Verify layout adapts to mobile
+      - Check navigation becomes hamburger menu if applicable
+      - Verify content remains accessible
+      - Try equipment page on mobile
+      - Try booking flow on mobile
+    expected_results:
+      - Layout adapts responsive
+      - All functionality works on mobile view
+      - Touch targets are appropriately sized
+  
+  - id: test_forgot_password
+    name: Forgot Password Flow
+    priority: medium
+    description: Test password reset request
+    steps:
+      - Navigate to http://localhost:3000/login
+      - Click "Forgot Password?" link
+      - Verify redirect to /forgot-password
+      - Enter email address
+      - Submit form
+      - Verify confirmation message is displayed
+    expected_results:
+      - Forgot password page loads
+      - Form accepts email input
+      - Submit shows confirmation message
+  
+  - id: test_favorites_feature
+    name: Favorites Feature
+    priority: low
+    description: Add and view favorite items
+    steps:
+      - Log in as renter
+      - Navigate to equipment page
+      - Find item and click favorite/heart icon (if available)
+      - Navigate to http://localhost:3000/renter/favorites
+      - Verify favorited item appears in list
+    expected_results:
+      - Items can be added to favorites
+      - Favorites list displays favorited items
+  
+  - id: test_booking_listing
+    name: User Bookings Listing
+    priority: medium
+    description: View user's bookings list
+    steps:
+      - Log in as renter
+      - Navigate to http://localhost:3000/renter/bookings
+      - Verify bookings list is displayed
+      - Check for different booking statuses (pending, active, completed)
+      - Click on a booking to view details
+    expected_results:
+      - Bookings list loads
+      - Different booking statuses are indicated
+      - Navigation to booking details works
+  
+  - id: test_provider_equipment_management
+    name: Provider Equipment Management
+    priority: medium
+    description: Allow provider to manage their equipment listings
+    steps:
+      - Log in as provider
+      - Navigate to http://localhost:3000/provider/equipment
+      - Verify provider's equipment list loads
+      - Click on equipment item to edit (if available)
+      - Verify edit page or modal loads
+    expected_results:
+      - Equipment list loads
+      - Edit functionality is accessible
+  
+  - id: test_reviews_viewing
+    name: View Item Reviews
+    priority: low
+    description: Test viewing reviews on equipment/labour pages
+    steps:
+      - Navigate to equipment detail page
+      - Scroll to reviews section
+      - Verify reviews are displayed with ratings
+      - Filter reviews by star rating if filter available
+    expected_results:
+      - Reviews section loads
+      - Reviews show rating and text
+      - Filters work if implemented
+  
+  - id: test_404_error_page
+    name: 404 Error Page
+    priority: low
+    description: Test 404 page for invalid routes
+    steps:
+      - Navigate to http://localhost:3000/non-existent-page
+      - Verify 404 page or error page is displayed
+      - Verify error page provides helpful information
+      - Try navigating back to home
+    expected_results:
+      - 404 page displays
+      - User can return to home or valid pages
+  
+  - id: test_access_control
+    name: Access Control for Protected Routes
+    priority: high
+    description: Verify protected routes require authentication
+    steps:
+      - Log out if logged in
+      - Try to directly navigate to protected route: http://localhost:3000/renter/dashboard
+      - Verify redirect to login page or access denied
+      - Try another protected route: http://localhost:3000/messages
+      - Verify authentication is required
+    expected_results:
+      - Protected routes redirect unauthenticated users
+      - Access denied page or login redirect occurs
+      - Authenticated users can access protected routes

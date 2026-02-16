@@ -1,0 +1,21 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3001/~/Projects/Agrkserve",
+  "loginUser": "admin@agrirental.com",
+  "loginPassword": "123456",
+  "executionArgs": {
+    "projectName": "Agrkserve",
+    "projectPath": "/home/pk/Projects/Agrkserve",
+    "testIds": [
+      "TC000"
+    ],
+    "additionalInstruction": "Run only landing page test case at root route (/).",
+    "envs": {
+      "API_KEY": "sk-user-2DOgJifuMzKAfbXriM54IKM_VLO0AB4Flthl-kRDHob-3aR8R1ppaZPhmFCo2kYzGkPsJCC523-JPrO0GDAc-O01k8xR7ilmrvzzhXtHP_p_gr9GhoswSkG73Xsdvy0A_i8"
+    }
+  },
+  "serverPort": 34687,
+  "proxy": "http://5e44f04b-22e9-475a-92dc-682479ef047e:RStfegaLdNNQMpN2Jmxcr1vjdhK4g2Uo@tun.testsprite.com:8080"
+}

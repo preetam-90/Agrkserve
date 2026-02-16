@@ -81,18 +81,20 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   const priceValidUntil = validUntil.toISOString().split('T')[0];
 
   // Product + Offer JSON-LD for rich search results
+  const productImages = data?.images || [];
   const productJsonLd = data
     ? {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: data.name,
         description: data.description || `Rent ${data.name} on AgriServe`,
-        image: data.images?.[0] || `${BASE_URL}/og-image.jpg`,
+        image: productImages.length > 0 ? productImages : [`${BASE_URL}/og-image.jpg`],
         brand: {
           '@type': 'Brand',
           name: 'AgriServe',
         },
         category: data.category || 'Agricultural Equipment',
+        sku: data.id,
         offers: {
           '@type': 'Offer',
           priceCurrency: 'INR',
@@ -121,9 +123,28 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
               '@type': 'PostalAddress',
               addressLocality: data.location_name,
               addressCountry: 'IN',
+              addressRegion: data.location_name,
             },
           },
         }),
+      }
+    : null;
+
+  // Image gallery structured data for Google Images
+  const imageGalleryJsonLd = productImages.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'ImageGallery',
+        name: `${data?.name} - Photo Gallery`,
+        description: `View ${data?.name} images. Rent this equipment on AgriServe.`,
+        image: productImages.map((img: string, index: number) => ({
+          '@type': 'ImageObject',
+          url: img,
+          name: `${data?.name} - Image ${index + 1}`,
+          description: `Photo ${index + 1} of ${data?.name} available for rent in ${data?.location_name || 'India'}`,
+          contentUrl: img,
+          thumbnailUrl: img,
+        })),
       }
     : null;
 
@@ -156,6 +177,12 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        />
+      )}
+      {imageGalleryJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(imageGalleryJsonLd) }}
         />
       )}
       <EquipmentDetailClient />

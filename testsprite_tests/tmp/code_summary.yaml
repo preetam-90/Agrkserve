@@ -1,0 +1,533 @@
+version: "2"
+type: frontend
+tech_stack:
+  - language: TypeScript 5.x
+  - framework: Next.js 16.1.3 (App Router)
+  - ui_library: Radix UI, Tailwind CSS 4, Framer Motion, Lucide React
+  - other: React 19.2, Supabase (Auth & Database), Zustand State Management, React Hook Form, Zod Form Validation
+routes:
+  - path: /
+    file: src/app/page.tsx
+    auth_required: false
+    description: Landing page with hero section and featured equipment
+  - path: /login
+    file: src/app/login/page.tsx
+    auth_required: false
+    description: User login page with multiple auth options (email/password, Google OAuth)
+  - path: /forgot-password
+    file: src/app/forgot-password/page.tsx
+    auth_required: false
+    description: Request password reset link
+  - path: /auth/reset-password
+    file: src/app/auth/reset-password/page.tsx
+    auth_required: false
+    description: Reset password with token
+  - path: /phone-setup
+    file: src/app/phone-setup/page.tsx
+    auth_required: true
+    description: Phone verification setup for OTP-based authentication
+  - path: /onboarding
+    file: src/app/onboarding/page.tsx
+    auth_required: true
+    description: User role onboarding (renter, provider, labourer)
+  - path: /onboarding/provider
+    file: src/app/onboarding/provider/page.tsx
+    auth_required: true
+    description: Equipment provider onboarding flow
+  - path: /onboarding/labour
+    file: src/app/onboarding/labour/page.tsx
+    auth_required: true
+    description: Labour provider onboarding flow
+  - path: /equipment
+    file: src/app/equipment/page.tsx
+    auth_required: false
+    description: Browse all equipment listings with filters
+  - path: /equipment/[state]
+    file: src/app/equipment/[state]/page.tsx
+    auth_required: false
+    description: Browse equipment by state
+  - path: /equipment/[state]/[city]
+    file: src/app/equipment/[state]/[city]/page.tsx
+    auth_required: false
+    description: Browse equipment by city
+  - path: /equipment/item/[id]
+    file: src/app/equipment/item/[id]/page.tsx
+    auth_required: false
+    description: Detailed equipment view with specifications
+  - path: /equipment/item/[id]/book
+    file: src/app/equipment/item/[id]/book/page.tsx
+    auth_required: true
+    description: Book equipment for rental
+  - path: /labour
+    file: src/app/labour/page.tsx
+    auth_required: false
+    description: Browse labour listings with filters
+  - path: /labour/[state]
+    file: src/app/labour/[state]/page.tsx
+    auth_required: false
+    description: Browse labour by state
+  - path: /labour/[state]/[city]
+    file: src/app/labour/[state]/[city]/page.tsx
+    auth_required: false
+    description: Browse labour by city
+  - path: /renter/dashboard
+    file: src/app/renter/dashboard/page.tsx
+    auth_required: true
+    description: Main renter dashboard overview
+  - path: /renter/bookings
+    file: src/app/renter/bookings/page.tsx
+    auth_required: true
+    description: View all renter bookings
+  - path: /renter/bookings/[id]
+    file: src/app/renter/bookings/[id]/page.tsx
+    auth_required: true
+    description: View booking details
+  - path: /renter/labour
+    file: src/app/renter/labour/page.tsx
+    auth_required: true
+    description: Renters labour bookings
+  - path: /renter/labour/bookings
+    file: src/app/renter/labour/bookings/page.tsx
+    auth_required: true
+    description: All labour bookings as renter
+  - path: /renter/labour/[id]/book
+    file: src/app/renter/labour/[id]/book/page.tsx
+    auth_required: true
+    description: Book labour provider
+  - path: /renter/favorites
+    file: src/app/renter/favorites/page.tsx
+    auth_required: true
+    description: View favorited equipment and labour
+  - path: /renter/messages
+    file: src/app/renter/messages/page.tsx
+    auth_required: true
+    description: Renter messaging inbox
+  - path: /renter/reviews
+    file: src/app/renter/reviews/page.tsx
+    auth_required: true
+    description: Manage reviews posted as renter
+  - path: /provider/dashboard
+    file: src/app/provider/dashboard/page.tsx
+    auth_required: true
+    description: Main provider dashboard with analytics
+  - path: /provider/bookings
+    file: src/app/provider/bookings/page.tsx
+    auth_required: true
+    description: View incoming equipment bookings
+  - path: /provider/equipment
+    file: src/app/provider/equipment/page.tsx
+    auth_required: true
+    description: Manage owned equipment listings
+  - path: /provider/equipment/[id]
+    file: src/app/provider/equipment/[id]/page.tsx
+    auth_required: true
+    description: Edit equipment details
+  - path: /provider/labour
+    file: src/app/provider/labour/page.tsx
+    auth_required: true
+    description: Labour offerings overview
+  - path: /provider/labour/create
+    file: src/app/provider/labour/create/page.tsx
+    auth_required: true
+    description: Create new labour offering
+  - path: /provider/labour/edit
+    file: src/app/provider/labour/edit/page.tsx
+    auth_required: true
+    description: Edit labour offerings
+  - path: /provider/earnings
+    file: src/app/provider/earnings/page.tsx
+    auth_required: true
+    description: View earnings and payments
+  - path: /provider/messages
+    file: src/app/provider/messages/page.tsx
+    auth_required: true
+    description: Provider messaging inbox
+  - path: /provider/reviews
+    file: src/app/provider/reviews/page.tsx
+    auth_required: true
+    description: View received reviews
+  - path: /admin
+    file: src/app/admin/page.tsx
+    auth_required: true
+    description: Admin panel home with overview
+  - path: /admin/analytics
+    file: src/app/admin/analytics/page.tsx
+    auth_required: true
+    description: Platform-wide analytics dashboard
+  - path: /admin/users
+    file: src/app/admin/users/page.tsx
+    auth_required: true
+    description: Manage platform users
+  - path: /admin/users/[id]
+    file: src/app/admin/users/[id]/page.tsx
+    auth_required: true
+    description: View and manage specific user
+  - path: /admin/bookings
+    file: src/app/admin/bookings/page.tsx
+    auth_required: true
+    description: View all platform bookings
+  - path: /admin/equipment
+    file: src/app/admin/equipment/page.tsx
+    auth_required: true
+    description: Manage platform equipment listings
+  - path: /admin/labour
+    file: src/app/admin/labour/page.tsx
+    auth_required: true
+    description: Manage labour listings
+  - path: /admin/payments
+    file: src/app/admin/payments/page.tsx
+    auth_required: true
+    description: Payment management and disputes
+  - path: /admin/settings
+    file: src/app/admin/settings/page.tsx
+    auth_required: true
+    description: Platform settings configuration
+  - path: /messages
+    file: src/app/messages/page.tsx
+    auth_required: true
+    description: Global messaging inbox
+  - path: /messages/[id]
+    file: src/app/messages/[id]/page.tsx
+    auth_required: true
+    description: Conversation view
+  - path: /notifications
+    file: src/app/notifications/page.tsx
+    auth_required: true
+    description: View user notifications
+  - path: /notifications/preferences
+    file: src/app/notifications/preferences/page.tsx
+    auth_required: true
+    description: Manage notification settings
+  - path: /profile
+    file: src/app/profile/page.tsx
+    auth_required: true
+    description: Edit user profile
+  - path: /settings
+    file: src/app/settings/page.tsx
+    auth_required: true
+    description: Account settings
+  - path: /settings/notifications
+    file: src/app/settings/notifications/page.tsx
+    auth_required: true
+    description: Notification preferences
+  - path: /settings/roles
+    file: src/app/settings/roles/page.tsx
+    auth_required: true
+    description: Manage account roles
+  - path: /about
+    file: src/app/about/page.tsx
+    auth_required: false
+    description: About AgriServe page
+  - path: /contact
+    file: src/app/contact/page.tsx
+    auth_required: false
+    description: Contact support page
+  - path: /help
+    file: src/app/help/page.tsx
+    auth_required: false
+    description: Help and documentation
+  - path: /gallery
+    file: src/app/gallery/page.tsx
+    auth_required: false
+    description: Equipment photo gallery
+  - path: /terms
+    file: src/app/terms/page.tsx
+    auth_required: false
+    description: Terms of service page
+  - path: /privacy
+    file: src/app/privacy/page.tsx
+    auth_required: false
+    description: Privacy policy page
+  - path: /offline
+    file: src/app/offline/page.tsx
+    auth_required: false
+    description: Offline page (PWA fall back)
+  - path: /error/401
+    file: src/app/error/401/page.tsx
+    auth_required: false
+    description: Unauthorized error page
+  - path: /error/403
+    file: src/app/error/403/page.tsx
+    auth_required: false
+    description: Forbidden error page
+  - path: /error/500
+    file: src/app/error/500/page.tsx
+    auth_required: false
+    description: Server error page
+  - path: /user/[id]
+    file: src/app/user/[id]/page.tsx
+    auth_required: false
+    description: Public user profile page
+features:
+  - name: User Authentication
+    description: Multi-method authentication including email/password, Google OAuth, and phone OTP verification for Indian numbers
+    files:
+      - src/app/login/page.tsx
+      - src/lib/services/auth-service.ts
+      - src/lib/store/auth-store.ts
+      - src/lib/supabase/client.ts
+    entry_route: /login
+    user_interactions:
+      - Enter email and password credentials
+      - Click Sign in with Google button
+      - Click Phone Sign Up / Sign In link
+      - Enter Indian phone number with country code
+      - Verify OTP code sent via SMS
+      - See welcome message and redirect to appropriate dashboard on successful auth
+      - See error messages for invalid credentials or verification codes
+    api_calls:
+      - method: POST
+        endpoint: /auth/v1/token?grant_type=password
+      - method: POST
+        endpoint: /auth/v1/otp (phone verification)
+    auth_required: false
+  - name: Equipment Rental Marketplace
+    description: Browse, search, and rent agricultural equipment (tractors, harvesters, tillers, trucks, trailers) with real-time availability, location filters, and instant booking
+    files:
+      - src/app/equipment/page.tsx
+      - src/app/equipment/[state]/page.tsx
+      - src/app/equipment/[state]/[city]/page.tsx
+      - src/app/equipment/item/[id]/page.tsx
+      - src/app/equipment/item/[id]/book/page.tsx
+      - src/lib/services/equipment-service.ts
+      - src/lib/hooks/use-equipment-queries.ts
+    entry_route: /equipment
+    user_interactions:
+      - Browse equipment cards with images, prices, ratings, and availability
+      - Use search input to find specific equipment types
+      - Apply filters by equipment category, price range, rating, availability duration
+      - Filter by location (state and city) using geospatial search
+      - Click on equipment card to view detailed specifications
+      - View equipment photos gallery, provider info, rental terms, and pricing tiers
+      - Select rental dates (start date, end date) on equipment detail page
+      - Click Book Now or Request Booking button
+      - Confirm booking details and proceed to checkout
+      - See booking confirmation with dates, total price, and provider contact
+    api_calls:
+      - method: GET
+        endpoint: /api/equipment (listings with filters)
+      - method: GET
+        endpoint: /api/equipment/[id] (equipment details)
+      - method: POST
+        endpoint: /api/bookings/create (create booking)
+    auth_required: false (viewing), true (booking)
+  - name: Labour Hiring Platform
+    description: Find and hire skilled agricultural workers including machine operators, field workers, and service providers with verified profiles and ratings
+    files:
+      - src/app/labour/page.tsx
+      - src/app/labour/[state]/page.tsx
+      - src/app/labour/[state]/[city]/page.tsx
+      - src/app/renter/labour/[id]/book/page.tsx
+      - src/lib/services/labour-service.ts
+      - src/lib/hooks/use-labour-queries.ts
+    entry_route: /labour
+    user_interactions:
+      - Browse labour profiles with skills, experience, hourly rates, and availability
+      - Search by skill type (tractor driver, harvester operator, field assistant, etc.)
+      - Filter by location, skill category, hourly rate range
+      - Click labourer profile to view detailed bio, skills, certifications, and past reviews
+      - Click Hire Now or Request Booking for labourer
+      - Select required dates and hours
+      - Describe work requirements in booking form
+      - Confirm booking and receive confirmation
+    api_calls:
+      - method: GET
+        endpoint: /api/labour (listings with filters)
+      - method: GET
+        endpoint: /api/labour/profile (labourer details)
+      - method: POST
+        endpoint: /api/labour/book (create labour booking)
+    auth_required: false (viewing), true (booking)
+  - name: Role-Based Dashboards
+    description: Customized dashboards for renters, providers, and administrators with relevant metrics, quick actions, and activity feeds
+    files:
+      - src/app/renter/dashboard/page.tsx
+      - src/app/provider/dashboard/page.tsx
+      - src/app/admin/page.tsx
+      - src/lib/store/app-store.ts
+    entry_route: /dashboard
+    user_interactions:
+      - View dashboard overview after login (redirects based on user role - renter/provider)
+      - Renter dashboard: View active bookings, upcoming bookings, favorites, and quick access to search
+      - Provider dashboard: View incoming booking requests, active rentals, equipment usage stats, earnings summary
+      - Admin dashboard: View platform-wide analytics (total users, bookings, revenue), alerts, and system status
+      - Click on quick action cards to navigate to relevant sections
+      - View recent activity feed
+    api_calls:
+      - method: GET
+        endpoint: /api/dashboard/[role] (dashboard data)
+      - method: GET
+        endpoint: /api/analytics/[role] (analytics data)
+    auth_required: true
+  - name: In-App Messaging
+    description: Direct messaging between renters and providers for inquiries, booking coordination, and support
+    files:
+      - src/app/messages/page.tsx
+      - src/app/messages/[id]/page.tsx
+      - src/lib/services/message-service.ts
+      - src/lib/store/messages-store.ts
+    entry_route: /messages
+    user_interactions:
+      - View message inbox with conversation list showing last message and timestamp
+      - Click on conversation to open chat thread
+      - Type and send messages in real-time
+      - See message read receipts (ticks showing delivered/read status)
+      - Receive real-time message notifications
+      - View conversation history
+      - Send attachments (limited file types supported)
+    api_calls:
+      - method: GET
+        endpoint: /api/messages/conversations (list conversations)
+      - method: GET
+        endpoint: /api/messages/[id] (conversation messages)
+      - method: POST
+        endpoint: /api/messages/send (send message)
+    auth_required: true
+  - name: Reviews and Ratings
+    description: Leave and view reviews and ratings for equipment, labourers, and users to build trust in the marketplace
+    files:
+      - src/app/renter/reviews/page.tsx
+      - src/app/provider/reviews/page.tsx
+      - src/lib/services/review-service.ts
+    entry_route: /reviews
+    user_interactions:
+      - View average rating and individual reviews on equipment/labourer profiles
+      - Filter reviews by rating (1-5 stars)
+      - Read review text with dates and reviewer profiles
+      - After booking completion, receive prompt to leave review
+      - Select star rating (1-5) for multiple criteria (equipment condition, provider punctuality, etc.)
+      - Write detailed review text
+      - Submit review and see it posted to profile
+      - Edit or delete own reviews
+    api_calls:
+      - method: GET
+        endpoint: /api/reviews/[target_type]/[target_id]
+      - method: POST
+        endpoint: /api/reviews/create
+      - method: PUT
+        endpoint: /api/reviews/[review_id]
+      - method: DELETE
+        endpoint: /api/reviews/[review_id]
+    auth_required: true (submit reviews), false (view reviews)
+  - name: Booking Management
+    description: Comprehensive booking system for equipment and labour rentals with status tracking, payments, and cancellation policies
+    files:
+      - src/app/renter/bookings/page.tsx
+      - src/app/renter/bookings/[id]/page.tsx
+      - src/app/provider/bookings/page.tsx
+      - src/lib/services/booking-service.ts
+      - src/lib/hooks/use-booking-queries.ts
+    entry_route: /bookings
+    user_interactions:
+      - View all bookings by status (upcoming, active, completed, cancelled)
+      - Click on booking to view full details with dates, pricing, and contact info
+      - Accept or reject incoming booking requests (provider side)
+      - Cancel bookings with reason selection
+      - Request booking modifications (date changes, quantity changes)
+      - View booking timeline with status updates and notifications
+      - Download booking receipt/invoice
+      - Mark booking as complete after rental period
+    api_calls:
+      - method: GET
+        endpoint: /api/bookings (list user bookings)
+      - method: GET
+        endpoint: /api/bookings/[id] (booking details)
+      - method: PUT
+        endpoint: /api/bookings/[id]/status (update booking status)
+      - method: POST
+        endpoint: /api/bookings/cancel
+    auth_required: true
+  - name: User Onboarding
+    description: Guided onboarding flow for new users to set up their profile, select their role (renter/provider), and configure preferences
+    files:
+      - src/app/onboarding/page.tsx
+      - src/app/onboarding/provider/page.tsx
+      - src/app/onboarding/labour/page.tsx
+      - src/app/phone-setup/page.tsx
+      - src/app/profile/page.tsx
+    entry_route: /onboarding
+    user_interactions:
+      - Complete onboarding after first login if profile incomplete
+      - Select user role (Renter, Equipment Provider, or Labour Provider)
+      - Skip role selection if already determined during signup
+      - Equipment provider: Add business details, verification documents, service areas
+      - Labour provider: Add skills, certifications, availability, hourly rates
+      - Upload profile photo
+      - Complete phone verification by entering OTP
+      - Grant app permissions for notifications (optional)
+      - Complete onboarding and be redirected to appropriate dashboard
+    api_calls:
+      - method: POST
+        endpoint: /api/user/profile (update profile)
+      - method: POST
+        endpoint: /api/user/role (set role)
+      - method: POST
+        endpoint: /api/auth/verify-otp
+      - method: POST
+        endpoint: /api/upload/profile (upload profile photo)
+    auth_required: true
+  - name: Real-Time Notifications
+    description: Instant notifications for booking updates, messages, price changes, and platform alerts using Supabase Realtime
+    files:
+      - src/app/notifications/page.tsx
+      - src/app/notifications/preferences/page.tsx
+      - src/lib/services/notification-service.ts
+      - src/lib/services/notifications/notification-service.ts
+    entry_route: /notifications
+    user_interactions:
+      - View notification center with categorized notifications (bookings, messages, system)
+      - See real-time notification badge on header showing unread count
+      - Click notification to navigate to related content (booking details, message thread, etc.)
+      - Mark notifications as read or mark all as read
+      - Configure notification preferences in settings (push notifications, email notifications, SMS)
+      - Set quiet hours to receive fewer notifications
+    api_calls:
+      - method: GET
+        endpoint: /api/notifications (list notifications)
+      - method: PUT
+        endpoint: /api/notifications/[id]/read (mark as read)
+      - method: PUT
+        endpoint: /api/notifications/preferences (update preferences)
+    auth_required: true
+  - name: Provider Management
+    description: Equipment and labour providers can manage their listings, view earnings, track performance, and handle bookings
+    files:
+      - src/app/provider/equipment/page.tsx
+      - src/app/provider/equipment/[id]/page.tsx
+      - src/app/provider/labour/create/page.tsx
+      - src/app/provider/earnings/page.tsx
+    entry_route: /provider
+    user_interactions:
+      - View provider dashboard with earnings, active bookings, and utilization metrics
+      - Add new equipment to marketplace with photos, specifications, pricing, and availability
+      - Edit existing equipment listings
+      - Add or edit labour offerings with skills, hourly rates, availability
+      - View and respond to incoming booking requests
+      - Track earnings with breakdown by equipment/labour, status (paid/pending)
+      - View performance analytics (rentals per month, average rating, utilization rate)
+      - Manage business profile with contact info, service areas, description
+    api_calls:
+      - method: GET
+        endpoint: /api/provider/equipment (list equipment)
+      - method: POST
+        endpoint: /api/provider/equipment (add equipment)
+      - method: PUT
+        endpoint: /api/provider/equipment/[id] (update equipment)
+      - method: DELETE
+        endpoint: /api/provider/equipment/[id] (delete equipment)
+      - method: GET
+        endpoint: /api/provider/earnings (earnings data)
+    auth_required: true
+known_limitations:
+  - issue: Phone OTP verification limited to Indian numbers (+91 country code)
+    location: src/app/phone-setup/page.tsx, src/lib/services/auth-service.ts
+    impact: International users cannot complete phone-based authentication flow
+  - issue: Video upload and processing features use FFmpeg and may fail in older browser environments
+    location: src/lib/utils/video-processor.ts, src/app/api/upload/video/route.ts
+    impact: Media upload functionality may not work on all browsers/devices
+  - issue: Cloudinary integration for media management requires valid API credentials configured in environment
+    location: src/lib/services/cloudinary-admin-service.ts, src/lib/utils/cloudinary.ts
+    impact: Without valid credentials, media uploads and admin media management will fail
+  - issue: WebRTC for video calls mentioned in roadmap but not yet implemented
+    location: README.md
+    impact: Video calling feature is not available for equipment demonstrations

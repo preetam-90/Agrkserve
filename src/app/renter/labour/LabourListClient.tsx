@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import {
   Search,
@@ -10,8 +11,8 @@ import {
   X,
   SlidersHorizontal,
   Users,
-  Briefcase,
-  IndianRupee,
+  User,
+  CheckCircle2,
   Loader2,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
@@ -48,6 +49,35 @@ const COMMON_SKILLS = [
   'General Farm Work',
   'Animal Husbandry',
 ];
+
+const getAvailabilityStyle = (availability: LabourAvailability) => {
+  switch (availability) {
+    case 'available':
+      return {
+        label: 'AVAILABLE',
+        badge: 'bg-emerald-500/95 text-white',
+        dot: 'bg-emerald-200',
+      };
+    case 'busy':
+      return {
+        label: 'BUSY',
+        badge: 'bg-amber-500/95 text-white',
+        dot: 'bg-amber-200',
+      };
+    case 'unavailable':
+      return {
+        label: 'UNAVAILABLE',
+        badge: 'bg-rose-500/95 text-white',
+        dot: 'bg-rose-200',
+      };
+    default:
+      return {
+        label: 'UNKNOWN',
+        badge: 'bg-slate-600/95 text-white',
+        dot: 'bg-slate-300',
+      };
+  }
+};
 
 function LabourListPageContent() {
   const searchParams = useSearchParams();
@@ -292,122 +322,133 @@ function LabourListPageContent() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {labourProfiles.map((labour) => (
-                <Card
-                  key={labour.id}
-                  className="group overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10"
-                >
-                  <CardContent className="p-0">
-                    <Link href={`/renter/labour/${labour.id}`}>
+            <div className="grid grid-cols-1 gap-7 md:grid-cols-2 xl:grid-cols-3">
+              {labourProfiles.map((labour) => {
+                const availabilityStyle = getAvailabilityStyle(labour.availability);
+                const displayRating =
+                  labour.rating && labour.rating > 0 ? labour.rating.toFixed(1) : 'New';
+
+                return (
+                  <Card
+                    key={labour.id}
+                    className="group overflow-hidden rounded-3xl border border-slate-800/90 bg-gradient-to-b from-slate-900 to-slate-950 shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/35 hover:shadow-[0_30px_70px_rgba(16,185,129,0.2)]"
+                  >
+                    <CardContent className="p-0">
+                      <Link href={`/renter/labour/${labour.id}`} className="block">
+                        <div className="relative aspect-[4/3] overflow-hidden bg-slate-900">
+                          {labour.user?.profile_image ? (
+                            <Image
+                              src={labour.user.profile_image}
+                              alt={labour.user?.name || 'Farm Worker'}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                              <User className="h-20 w-20 text-slate-600" />
+                            </div>
+                          )}
+                          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/80 to-transparent" />
+                          <div
+                            className={`absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-semibold tracking-wider ${availabilityStyle.badge}`}
+                          >
+                            <span className={`h-2.5 w-2.5 rounded-full ${availabilityStyle.dot}`} />
+                            {availabilityStyle.label}
+                          </div>
+                          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/85 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                            {displayRating}
+                          </div>
+                        </div>
+                      </Link>
+
                       <div className="p-5">
-                        {/* Header */}
-                        <div className="mb-4">
-                          <div className="mb-2 flex items-start justify-between">
-                            <div className="flex-1">
-                              <h3 className="mb-1 text-lg font-bold text-white transition-colors group-hover:text-emerald-400">
-                                {labour.user?.name || 'Farm Worker'}
-                              </h3>
-                              {labour.location_name && (
-                                <div className="flex items-center text-sm text-slate-400">
-                                  <MapPin className="mr-1 h-3 w-3 text-emerald-500" />
-                                  <span className="truncate pr-2">{labour.location_name}</span>
-                                </div>
-                              )}
-                            </div>
-                            {labour.user?.is_verified && (
-                              <Badge
-                                variant="default"
-                                className="border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                              >
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-
-                          {/* Rating */}
-                          {labour.rating && labour.rating > 0 && (
-                            <div className="mb-2 flex inline-flex items-center gap-1 rounded-full border border-yellow-500/10 bg-yellow-500/5 px-2 py-0.5">
-                              <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                              <span className="text-sm font-semibold text-yellow-500">
-                                {labour.rating.toFixed(1)}
-                              </span>
-                              <span className="text-xs text-slate-500">
-                                ({labour.review_count})
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Experience */}
-                        <div className="mb-4 flex items-center gap-2 text-sm text-slate-400">
-                          <div className="rounded bg-slate-800 p-1">
-                            <Briefcase className="h-3.5 w-3.5 text-slate-300" />
-                          </div>
-                          <span>{labour.experience_years} years experience</span>
-                        </div>
-
-                        {/* Skills */}
-                        <div className="mb-4 h-16 overflow-hidden">
-                          <div className="flex flex-wrap gap-1.5">
-                            {labour.skills.slice(0, 3).map((skill, idx) => (
-                              <Badge
-                                key={idx}
-                                variant="outline"
-                                className="border-slate-700 bg-slate-800/50 text-xs text-slate-300"
-                              >
-                                {skill}
-                              </Badge>
-                            ))}
-                            {labour.skills.length > 3 && (
-                              <Badge
-                                variant="outline"
-                                className="border-slate-700 bg-slate-800/50 text-xs text-slate-400"
-                              >
-                                +{labour.skills.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Pricing */}
-                        <div className="border-t border-slate-800/50 pt-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center text-xl font-bold text-emerald-400">
-                                <IndianRupee className="h-4 w-4" />
-                                {labour.daily_rate}
-                              </div>
-                              <div className="text-xs text-slate-500">per day</div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-emerald-500/30 text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/10 hover:text-emerald-300"
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <Link
+                              href={`/renter/labour/${labour.id}`}
+                              className="block truncate text-2xl font-bold text-white transition-colors group-hover:text-emerald-300"
                             >
-                              View Details
-                            </Button>
-                          </div>
-                          {labour.hourly_rate && (
-                            <div className="mt-1 pl-0.5 text-xs text-slate-500">
-                              or ₹{labour.hourly_rate}/hour
+                              {labour.user?.name || 'Agricultural Worker'}
+                            </Link>
+                            <div className="mt-1 flex items-center text-sm text-slate-400">
+                              <MapPin className="mr-1.5 h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
+                              <span className="truncate pr-1">
+                                {labour.location_name || labour.city || 'Location unavailable'}
+                              </span>
                             </div>
+                          </div>
+                          {labour.user?.is_verified && (
+                            <CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0 text-emerald-400" />
                           )}
+                        </div>
+
+                        <div className="mb-4 h-px bg-slate-800/90" />
+
+                        <div className="mb-4 grid grid-cols-3 gap-3">
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                              Experience
+                            </p>
+                            <p className="text-sm font-bold text-white">
+                              {labour.experience_years} Years
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                              Jobs Done
+                            </p>
+                            <p className="text-sm font-bold text-white">{labour.total_jobs || 0}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                              Rate
+                            </p>
+                            <p className="text-sm font-bold text-emerald-400">
+                              ₹{labour.daily_rate.toLocaleString('en-IN')}/d
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mb-5 flex min-h-7 flex-wrap gap-1.5">
+                          {labour.skills.slice(0, 3).map((skill, idx) => (
+                            <span
+                              key={idx}
+                              className="rounded-full border border-slate-700/80 bg-slate-800/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-300"
+                            >
+                              {skill.replace(/_/g, ' ')}
+                            </span>
+                          ))}
+                          {labour.skills.length > 3 && (
+                            <span className="rounded-full border border-slate-700/80 bg-slate-800/70 px-2.5 py-1 text-[10px] font-semibold text-slate-400">
+                              +{labour.skills.length - 3}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2.5">
+                          <Button
+                            asChild
+                            size="sm"
+                            className="h-11 flex-1 rounded-full bg-emerald-500 text-base font-semibold text-white shadow-lg shadow-emerald-900/25 hover:bg-emerald-400"
+                          >
+                            <Link href={`/renter/labour/${labour.id}/book`}>Hire Now</Link>
+                          </Button>
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="h-11 flex-1 rounded-full border-slate-700 bg-transparent text-base font-semibold text-slate-300 hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+                          >
+                            <Link href={`/renter/labour/${labour.id}`}>Message</Link>
+                          </Button>
                         </div>
                       </div>
-
-                      {/* Availability Badge */}
-                      {labour.availability === 'available' && (
-                        <div className="border-t border-emerald-500/10 bg-emerald-500/10 py-1.5 text-center">
-                          <span className="text-xs font-medium text-emerald-400">
-                            Available Now
-                          </span>
-                        </div>
-                      )}
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {/* Pagination */}

@@ -189,6 +189,7 @@ export const labourService = {
     certifications?: string[];
     latitude: number;
     longitude: number;
+    availability?: LabourAvailability;
   }): Promise<LabourProfile> {
     console.log('Creating labour profile with data:', profile);
 
@@ -205,6 +206,7 @@ export const labourService = {
       p_certifications: profile.certifications || [],
       p_latitude: profile.latitude,
       p_longitude: profile.longitude,
+      p_availability: profile.availability || 'available',
     });
 
     if (error) {

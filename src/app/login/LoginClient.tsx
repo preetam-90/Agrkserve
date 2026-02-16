@@ -13,10 +13,13 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/dashboard';
+  const requestedMode = searchParams.get('mode');
 
   const { user, isLoading: authLoading } = useAuthStore();
 
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [mode, setMode] = useState<'signin' | 'signup'>(
+    requestedMode === 'signup' ? 'signup' : 'signin'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -30,6 +33,15 @@ function LoginPageContent() {
       router.push(redirect);
     }
   }, [user, authLoading, router, redirect]);
+
+  // Allow deep-linking into signup mode
+  useEffect(() => {
+    if (requestedMode === 'signup') {
+      setMode('signup');
+    } else if (requestedMode === 'signin') {
+      setMode('signin');
+    }
+  }, [requestedMode]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,8 +95,15 @@ function LoginPageContent() {
           router.push('/phone-setup');
         } else if (!profile?.is_profile_complete) {
           router.push('/onboarding');
+        } else if (profile?.roles?.includes('admin')) {
+          router.push('/admin');
+        } else if (profile?.roles?.includes('provider')) {
+          router.push('/provider/dashboard');
+        } else if (profile?.roles?.includes('renter')) {
+          router.push('/renter/dashboard');
         } else {
-          router.push(redirect);
+          // No role set - redirect to onboarding
+          router.push('/onboarding');
         }
       } else {
         const signupResult = await authService.signUpWithEmail(email, password, name);

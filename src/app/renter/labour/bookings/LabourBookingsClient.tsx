@@ -254,9 +254,9 @@ export default function RenterLabourBookingsPage() {
                                     </>
                                   )}
 
-                                  <Link href={`/renter/labour/${booking.labour_id}`}>
+                                  <Link href={`/renter/labour/bookings/${booking.id}`}>
                                     <Button size="sm" variant="outline">
-                                      Details
+                                      View Booking
                                       <ChevronRight className="ml-1 h-4 w-4" />
                                     </Button>
                                   </Link>
