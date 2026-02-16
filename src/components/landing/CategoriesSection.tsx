@@ -4,6 +4,8 @@ import { motion, useInView } from 'framer-motion';
 import { useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { Tractor, Truck, Users, ArrowRight } from 'lucide-react';
+import { useGSAPAnimation } from '@/lib/animations/gsap-context';
+import { useDeviceCapability } from '@/lib/animations/device-capability';
 
 const categories = [
   {
@@ -35,6 +37,83 @@ const categories = [
 export function CategoriesSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const deviceInfo = useDeviceCapability();
+
+  // GSAP: Stagger category cards
+  useGSAPAnimation((gsap) => {
+    gsap.from('.category-card', {
+      opacity: 0,
+      y: 70,
+      rotateX: -15,
+      stagger: 0.2,
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: '.categories-grid',
+        start: 'top center+=100',
+        toggleActions: 'play none none none',
+      },
+    });
+  }, []);
+
+  // GSAP: Magnetic hover effect (high-end devices only)
+  useGSAPAnimation(
+    (gsap) => {
+      if (deviceInfo.capability !== 'high') return;
+
+      const cards = document.querySelectorAll('.category-card');
+
+      cards.forEach((card) => {
+        const handleMouseMove = (e: Event) => {
+          const mouseEvent = e as unknown as MouseEvent;
+          const rect = card.getBoundingClientRect();
+          const x = (mouseEvent.clientX - rect.left - rect.width / 2) * 0.15;
+          const y = (mouseEvent.clientY - rect.top - rect.height / 2) * 0.15;
+
+          gsap.to(card, {
+            x,
+            y,
+            duration: 0.4,
+            ease: 'power2.out',
+          });
+
+          // Also animate icon
+          const icon = card.querySelector('.category-icon');
+          if (icon) {
+            gsap.to(icon, {
+              scale: 1.2,
+              rotate: 8,
+              duration: 0.3,
+              ease: 'power2.out',
+            });
+          }
+        };
+
+        const handleMouseLeave = () => {
+          gsap.to(card, {
+            x: 0,
+            y: 0,
+            duration: 0.6,
+            ease: 'elastic.out(1, 0.5)',
+          });
+
+          const icon = card.querySelector('.category-icon');
+          if (icon) {
+            gsap.to(icon, {
+              scale: 1,
+              rotate: 0,
+              duration: 0.4,
+              ease: 'power2.out',
+            });
+          }
+        };
+
+        card.addEventListener('mousemove', handleMouseMove);
+        card.addEventListener('mouseleave', handleMouseLeave);
+      });
+    },
+    [deviceInfo.capability]
+  );
 
   // Generate floating shapes for depth - deterministic for SSR
   const floatingShapes = useMemo(() => {
@@ -42,7 +121,7 @@ export function CategoriesSection() {
       id: i,
       left: `${(i * 12.5) % 100}%`,
       top: `${(i * 11.11 + 10) % 100}%`,
-      size: 50 + (i * 15),
+      size: 50 + i * 15,
       delay: (i * 0.5) % 4,
       duration: 12 + (i % 8),
       rotation: i * 45,
@@ -68,16 +147,16 @@ export function CategoriesSection() {
   }, []);
 
   return (
-    <section ref={ref} className="relative py-32 w-full max-w-full overflow-hidden">
+    <section ref={ref} className="relative w-full max-w-full overflow-hidden py-32">
       {/* Seamless continuation from StatsSection (#0A0F0C) */}
       <div className="absolute inset-0 bg-[#0A0F0C]" />
-      
+
       {/* Animated Texture Waves */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {textureWaves.map((wave) => (
           <motion.div
             key={wave.id}
-            className="absolute w-[200%] h-[200%] left-[-50%] top-[-50%]"
+            className="absolute left-[-50%] top-[-50%] h-[200%] w-[200%]"
             style={{
               background: `radial-gradient(ellipse at 50% 50%, rgba(34, 197, 94, ${0.03 + wave.id * 0.01}) 0%, transparent 50%)`,
             }}
@@ -96,15 +175,16 @@ export function CategoriesSection() {
       </div>
 
       {/* Neon Tilted Grid Lines */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {neonLines.map((line) => (
           <motion.div
             key={line.id}
-            className="absolute w-[180%] h-[1px] left-[-40%]"
+            className="absolute left-[-40%] h-[1px] w-[180%]"
             style={{
               top: `${20 + line.id * 15}%`,
               transform: `rotate(${line.angle}deg)`,
-              background: 'linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.3) 50%, transparent 100%)',
+              background:
+                'linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.3) 50%, transparent 100%)',
               boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)',
             }}
             animate={{
@@ -124,8 +204,8 @@ export function CategoriesSection() {
       {/* Animated gradient orbs */}
       <div className="absolute inset-0">
         <motion.div
-          className="absolute top-1/3 left-1/5 w-[500px] h-[500px] rounded-full"
-          style={{ 
+          className="left-1/5 absolute top-1/3 h-[500px] w-[500px] rounded-full"
+          style={{
             background: 'radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%)',
           }}
           animate={{
@@ -139,8 +219,8 @@ export function CategoriesSection() {
           }}
         />
         <motion.div
-          className="absolute bottom-1/3 right-1/5 w-[400px] h-[400px] rounded-full"
-          style={{ 
+          className="right-1/5 absolute bottom-1/3 h-[400px] w-[400px] rounded-full"
+          style={{
             background: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)',
           }}
           animate={{
@@ -160,7 +240,7 @@ export function CategoriesSection() {
       {floatingShapes.map((shape) => (
         <motion.div
           key={shape.id}
-          className="absolute border border-emerald-500/10 rounded-full"
+          className="absolute rounded-full border border-emerald-500/10"
           style={{
             left: shape.left,
             top: shape.top,
@@ -182,8 +262,8 @@ export function CategoriesSection() {
       ))}
 
       {/* Refined noise texture */}
-      <div 
-        className="absolute inset-0 opacity-[0.012] pointer-events-none"
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.012]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
         }}
@@ -192,66 +272,67 @@ export function CategoriesSection() {
       {/* Subtle depth gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-950/5 to-transparent" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-20"
+          className="mb-20 text-center"
         >
-          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            What Do You Need?
-          </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <h2 className="mb-6 text-5xl font-bold text-white md:text-6xl">What Do You Need?</h2>
+          <p className="mx-auto max-w-2xl text-xl text-gray-400">
             Choose from our comprehensive range of agricultural solutions
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="categories-grid grid grid-cols-1 gap-8 lg:grid-cols-3">
           {categories.map((category, index) => (
             <motion.div
               key={category.title}
               initial={{ opacity: 0, y: 50 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.15 }}
+              className="category-card"
             >
               <Link href={category.href} className="group block h-full">
-                <div className="relative h-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden hover:bg-white/10 transition-all duration-500 hover:scale-105 hover:border-emerald-500/30">
+                <div className="relative h-full overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl transition-all duration-500 hover:scale-105 hover:border-emerald-500/30 hover:bg-white/10">
                   {/* Background Pattern */}
                   <div className={`absolute inset-0 ${category.image} opacity-50`} />
-                  
+
                   {/* Hover Glow */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-10`}
+                  />
 
                   {/* 3D Tilt Effect Container */}
-                  <div className="relative z-10 flex flex-col h-full">
+                  <div className="relative z-10 flex h-full flex-col">
                     {/* Icon */}
                     <motion.div
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       transition={{ type: 'spring', stiffness: 300 }}
-                      className={`w-20 h-20 bg-gradient-to-br ${category.gradient} rounded-2xl flex items-center justify-center mb-6 shadow-2xl group-hover:shadow-3xl transition-shadow`}
+                      className={`mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br ${category.gradient} group-hover:shadow-3xl category-icon shadow-2xl transition-shadow`}
                     >
-                      <category.icon className="w-10 h-10 text-white" />
+                      <category.icon className="h-10 w-10 text-white" />
                     </motion.div>
 
                     {/* Content */}
-                    <h3 className="text-3xl font-bold text-white mb-4 group-hover:text-emerald-400 transition-colors">
+                    <h3 className="mb-4 text-3xl font-bold text-white transition-colors group-hover:text-emerald-400">
                       {category.title}
                     </h3>
-                    <p className="text-gray-400 text-lg mb-8 flex-grow">
-                      {category.description}
-                    </p>
+                    <p className="mb-8 flex-grow text-lg text-gray-400">{category.description}</p>
 
                     {/* CTA */}
-                    <div className="flex items-center gap-2 text-emerald-400 font-semibold group-hover:gap-4 transition-all">
+                    <div className="flex items-center gap-2 font-semibold text-emerald-400 transition-all group-hover:gap-4">
                       <span>Explore</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-2" />
                     </div>
                   </div>
 
                   {/* Border Glow Animation */}
-                  <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${category.gradient} blur-xl opacity-20`} />
+                  <div className="absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <div
+                      className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${category.gradient} opacity-20 blur-xl`}
+                    />
                   </div>
                 </div>
               </Link>

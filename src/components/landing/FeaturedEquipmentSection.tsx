@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Lenis from 'lenis';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { Star, MapPin, Gauge, Zap, ArrowRight, Calendar, Sparkles, Tractor } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useGSAPAnimation } from '@/lib/animations/gsap-context';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 
 export interface Equipment {
   id: string;
@@ -30,104 +31,71 @@ interface FeaturedEquipmentSectionProps {
 }
 
 export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSectionProps) {
-  const [isPaused, setIsPaused] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const scrollContentRef = useRef<HTMLDivElement | null>(null);
-  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isPausedRef = useRef(false);
-  const maxScrollRef = useRef(0);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const stopAutoScroll = useCallback(() => {
-    if (resumeTimeoutRef.current) {
-      clearTimeout(resumeTimeoutRef.current);
-      resumeTimeoutRef.current = null;
-    }
-    setIsPaused(true);
-    isPausedRef.current = true;
-  }, []);
+  // GSAP horizontal scroll animation
+  useGSAPAnimation(
+    (gsap) => {
+      if (!sectionRef.current || !scrollContainerRef.current) return;
 
-  const resumeAutoScroll = useCallback((delay = 1500) => {
-    if (resumeTimeoutRef.current) {
-      clearTimeout(resumeTimeoutRef.current);
-    }
-    resumeTimeoutRef.current = setTimeout(() => {
-      setIsPaused(false);
-      isPausedRef.current = false;
-    }, delay);
-  }, []);
+      const container = scrollContainerRef.current;
+      const cards = container.querySelectorAll('.equipment-card');
 
-  useEffect(() => {
-    isPausedRef.current = isPaused;
-  }, [isPaused]);
+      // Desktop: Horizontal scroll with pin
+      const mm = gsap.matchMedia();
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    const content = scrollContentRef.current;
-    if (!container || !content) return;
+      mm.add('(min-width: 1024px)', () => {
+        const scrollWidth = container.scrollWidth - window.innerWidth;
 
-    const lenis = new Lenis({
-      wrapper: container,
-      content,
-      orientation: 'horizontal',
-      gestureOrientation: 'horizontal',
-      smoothWheel: true,
-      lerp: 0.2,
-      wheelMultiplier: 1,
-      touchMultiplier: 1.2,
-    });
+        gsap.to(container, {
+          x: -scrollWidth,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top top',
+            end: () => `+=${scrollWidth + window.innerHeight}`,
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
 
-    const updateMaxScroll = () => {
-      maxScrollRef.current = container.scrollWidth / 2;
-    };
+        // Stagger reveal cards as they enter viewport during scroll
+        gsap.from(cards, {
+          opacity: 0,
+          scale: 0.8,
+          rotateY: -15,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top center',
+            toggleActions: 'play none none none',
+          },
+        });
+      });
 
-    updateMaxScroll();
+      // Mobile: Vertical scroll with stagger
+      mm.add('(max-width: 1023px)', () => {
+        gsap.from(cards, {
+          opacity: 0,
+          y: 100,
+          stagger: 0.2,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: container,
+            start: 'top center+=100',
+            toggleActions: 'play none none none',
+          },
+        });
+      });
 
-    const resizeObserver = new ResizeObserver(updateMaxScroll);
-    resizeObserver.observe(content);
-
-    let rafId = 0;
-    let lastTime = performance.now();
-    const speedPxPerMs = 0.02; // ~20px/sec
-
-    const tick = (now: number) => {
-      const delta = now - lastTime;
-      lastTime = now;
-
-      lenis.raf(now);
-
-      if (!isPausedRef.current) {
-        const maxScroll = maxScrollRef.current;
-        if (maxScroll > 0) {
-          const next = container.scrollLeft + delta * speedPxPerMs;
-          if (next >= maxScroll) {
-            lenis.scrollTo(next - maxScroll, { immediate: true });
-          } else if (next < 0) {
-            lenis.scrollTo(next + maxScroll, { immediate: true });
-          } else {
-            lenis.scrollTo(next, { immediate: true });
-          }
-        }
-      }
-
-      rafId = requestAnimationFrame(tick);
-    };
-
-    rafId = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      resizeObserver.disconnect();
-      lenis.destroy();
-    };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (resumeTimeoutRef.current) {
-        clearTimeout(resumeTimeoutRef.current);
-      }
-    };
-  }, []);
+      return () => mm.revert();
+    },
+    [equipment]
+  );
 
   // Generate floating particles for depth - deterministic for SSR
   const particles = useMemo(() => {
@@ -151,7 +119,10 @@ export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSection
   }, []);
 
   return (
-    <section className="relative w-full max-w-full overflow-hidden py-32">
+    <section
+      ref={sectionRef}
+      className="relative w-full max-w-full overflow-hidden py-32 lg:h-screen"
+    >
       {/* Seamless continuation from CategoriesSection (#0A0F0C) */}
       <div className="absolute inset-0 bg-[#0A0F0C]" />
 
@@ -249,23 +220,7 @@ export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSection
 
       <div
         ref={scrollContainerRef}
-        className="scrollbar-hide relative w-full overflow-x-auto overflow-y-hidden"
-        onMouseEnter={stopAutoScroll}
-        onMouseLeave={() => resumeAutoScroll(1500)}
-        onFocusCapture={stopAutoScroll}
-        onBlurCapture={() => resumeAutoScroll(1500)}
-        onWheel={() => {
-          stopAutoScroll();
-          resumeAutoScroll(2000);
-        }}
-        onTouchStart={() => {
-          stopAutoScroll();
-          resumeAutoScroll(2000);
-        }}
-        onPointerDown={() => {
-          stopAutoScroll();
-          resumeAutoScroll(2000);
-        }}
+        className="scrollbar-hide relative w-full lg:absolute lg:left-0 lg:top-1/2 lg:h-auto lg:-translate-y-1/2 lg:overflow-visible"
       >
         {equipment.length === 0 ? (
           <div className="flex items-center justify-center py-32">
@@ -279,14 +234,12 @@ export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSection
           </div>
         ) : (
           <div
-            ref={scrollContentRef}
-            className="flex gap-8 px-4"
+            className="flex gap-8 px-4 lg:flex-nowrap lg:px-8"
             style={{
               width: 'max-content',
             }}
           >
-            {/* Double the list for infinite scroll */}
-            {[...equipment, ...equipment].map((item, index) => {
+            {equipment.map((item, index) => {
               const gradients = [
                 'from-cyan-500 via-emerald-500 to-cyan-500',
                 'from-purple-500 via-pink-500 to-purple-500',
@@ -295,9 +248,10 @@ export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSection
               const gradient = gradients[index % 3];
 
               return (
-                <div
+                <MagneticButton
                   key={`${item.id}-${index}`}
-                  className="w-[320px] shrink-0 sm:w-[360px] lg:w-[420px]"
+                  strength={0.15}
+                  className="equipment-card w-[320px] shrink-0 sm:w-[360px] lg:w-[420px]"
                 >
                   <Link href={`/equipment/item/${item.id}`} className="group block">
                     <div className="relative h-[700px] overflow-hidden rounded-[2rem] bg-zinc-950 transition-transform duration-500 group-hover:scale-[1.01]">
@@ -465,7 +419,7 @@ export function FeaturedEquipmentSection({ equipment }: FeaturedEquipmentSection
                       </div>
                     </div>
                   </Link>
-                </div>
+                </MagneticButton>
               );
             })}
           </div>
