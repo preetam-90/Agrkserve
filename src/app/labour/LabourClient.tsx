@@ -11,21 +11,16 @@ import {
   MapPin,
   Star,
   X,
-  SlidersHorizontal,
-  Calendar,
-  MessageCircle,
   User,
-  RefreshCw,
   Loader2,
-  Briefcase,
-  Award,
+  ChevronDown,
+  CheckCircle2,
+  BadgeCheck,
 } from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
   Button,
   Input,
-  Card,
-  CardContent,
   Badge,
   Spinner,
   EmptyState,
@@ -39,15 +34,14 @@ import {
   DialogHeader,
   DialogTitle,
   Textarea,
+  DualRangeSlider,
 } from '@/components/ui';
 import { labourService, dmService } from '@/lib/services';
 import { useAppStore, useAuthStore, useMessagesStore } from '@/lib/store';
 import toast from 'react-hot-toast';
 import { LabourProfile, LabourAvailability } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
-import { BackButton } from '@/components/ui/back-button';
 
-// Common skills for agricultural labour
 const LABOUR_SKILLS = [
   { value: 'all', label: 'All Skills', icon: '👷' },
   { value: 'tractor_operator', label: 'Tractor Operator', icon: '🚜' },
@@ -60,12 +54,50 @@ const LABOUR_SKILLS = [
   { value: 'general_labour', label: 'General Labour', icon: '👨‍🌾' },
   { value: 'livestock', label: 'Livestock Care', icon: '🐄' },
   { value: 'loading', label: 'Loading/Unloading', icon: '📦' },
+  { value: 'sowing', label: 'Sowing', icon: '🌾' },
+  { value: 'harvesting', label: 'Harvesting', icon: '🌻' },
+  { value: 'mechanic', label: 'Mechanic', icon: '🔧' },
+  { value: 'organic_pest_control', label: 'Organic Pest Control', icon: '🐛' },
 ];
+
+const SKILL_MATCH_PATTERNS: Record<string, string[]> = {
+  tractor_operator: ['tractor', 'tractor operation', 'tractor operator'],
+  harvester_operator: ['harvester', 'harvest', 'combine'],
+  planting: ['planting', 'plant'],
+  irrigation: ['irrigation', 'irrigate', 'water'],
+  pesticide_spraying: ['spraying', 'spray', 'pest', 'pesticide', 'insecticide'],
+  pruning: ['pruning', 'prune', 'trim'],
+  weeding: ['weeding', 'weed'],
+  general_labour: ['general', 'labour', 'labor', 'farm work', 'field work'],
+  livestock: ['livestock', 'cattle', 'cow', 'animal', 'dairy', 'poultry'],
+  loading: ['loading', 'unloading', 'load'],
+  sowing: ['sowing', 'sow', 'seed'],
+  harvesting: ['harvesting', 'harvest', 'reaping'],
+  mechanic: ['mechanic', 'repair', 'maintenance', 'machine'],
+  organic_pest_control: ['organic', 'pest control', 'biopesticide'],
+};
+
+const normalizeSkill = (skill: string): string => {
+  return skill.toLowerCase().replace(/_/g, ' ').trim();
+};
+
+const skillMatchesFilter = (profileSkill: string, filterValue: string): boolean => {
+  const normalizedProfileSkill = normalizeSkill(profileSkill);
+  const patterns = SKILL_MATCH_PATTERNS[filterValue];
+
+  if (patterns) {
+    return patterns.some((pattern) => normalizedProfileSkill.includes(pattern));
+  }
+
+  const normalizedFilter = normalizeSkill(filterValue);
+  return normalizedProfileSkill.includes(normalizedFilter);
+};
 
 const AVAILABILITY_OPTIONS = [
   { value: 'all', label: 'Any Availability' },
   { value: 'available', label: 'Available Now' },
   { value: 'busy', label: 'Busy' },
+  { value: 'unavailable', label: 'Unavailable' },
 ];
 
 const SORT_OPTIONS = [
@@ -76,11 +108,19 @@ const SORT_OPTIONS = [
   { value: 'jobs', label: 'Most Jobs Completed' },
 ];
 
+const EXPERIENCE_OPTIONS = [
+  { value: 'all', label: 'All Experience levels' },
+  { value: '1', label: '1+ Years' },
+  { value: '3', label: '3+ Years' },
+  { value: '5', label: '5+ Years' },
+  { value: '10', label: '10+ Years' },
+];
+
 // Cache configuration
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const cache = new Map<string, { data: LabourProfile[]; count: number; timestamp: number }>();
 
-// Labour Card Component
+// Labour Card Component - Redesigned to match reference
 function LabourCard({
   labour,
   onMessage,
@@ -92,211 +132,345 @@ function LabourCard({
   onBook: (labour: LabourProfile) => void;
   isAuthenticated: boolean;
 }) {
-  const getAvailabilityColor = (availability: LabourAvailability) => {
+  const getAvailabilityStyle = (availability: LabourAvailability) => {
     switch (availability) {
       case 'available':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        return {
+          bg: 'bg-emerald-500',
+          dot: 'bg-emerald-300',
+          text: 'AVAILABLE',
+        };
       case 'busy':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+        return {
+          bg: 'bg-amber-500',
+          dot: 'bg-amber-300',
+          text: 'BUSY',
+        };
       case 'unavailable':
-        return 'bg-red-500/10 text-red-400 border-red-500/20';
+        return {
+          bg: 'bg-red-500',
+          dot: 'bg-red-300',
+          text: 'UNAVAILABLE',
+        };
       default:
-        return 'bg-slate-800 text-slate-400 border-slate-700';
+        return {
+          bg: 'bg-slate-600',
+          dot: 'bg-slate-400',
+          text: String(availability || 'UNKNOWN').toUpperCase(),
+        };
     }
   };
 
-  const getAvailabilityText = (availability: LabourAvailability) => {
-    switch (availability) {
-      case 'available':
-        return 'Available';
-      case 'busy':
-        return 'Busy';
-      case 'unavailable':
-        return 'Unavailable';
-      default:
-        return availability;
-    }
+  const router = useRouter();
+  const availStyle = getAvailabilityStyle(labour.availability);
+
+  const handleCardClick = () => {
+    router.push(`/renter/labour/${labour.id}`);
   };
 
   return (
-    <Card className="group overflow-hidden border-slate-800 bg-slate-900/50 backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10">
-      <CardContent className="p-0">
-        {/* Profile Header */}
-        <div className="relative h-32 bg-gradient-to-br from-emerald-900/50 via-slate-900 to-slate-900">
-          <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
-          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-slate-900/90 to-transparent" />
+    <div
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 backdrop-blur-sm transition-all duration-300 hover:border-slate-700"
+      onClick={handleCardClick}
+    >
+      {/* Profile Image Section */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-800">
+        {labour.user?.profile_image ? (
+          <Image
+            src={labour.user.profile_image}
+            alt={labour.user?.name || 'Worker'}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+            <User className="h-20 w-20 text-slate-600" />
+          </div>
+        )}
+
+        {/* Availability Badge - Top Left */}
+        <div className="absolute left-3 top-3">
+          <div
+            className={`flex items-center gap-1.5 rounded-full ${availStyle.bg} px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-lg`}
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${availStyle.dot} ${labour.availability === 'available' ? 'animate-pulse' : ''}`}
+            />
+            {availStyle.text}
+          </div>
         </div>
 
-        <div className="relative -mt-16 px-6">
-          <div className="flex items-end justify-between">
-            {/* Avatar - Clickable */}
-            <Link
-              href={`/user/${labour.user_id}`}
-              className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border-4 border-slate-900 shadow-xl transition-transform duration-300 hover:scale-105"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {labour.user?.profile_image ? (
-                <Image
-                  src={labour.user.profile_image}
-                  alt={labour.user?.name || 'Worker'}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-slate-800">
-                  <User className="h-10 w-10 text-slate-500" />
-                </div>
-              )}
-              {/* Availability indicator */}
-              <div
-                className={`absolute bottom-2 right-2 h-4 w-4 rounded-full border-2 border-slate-900 ${
-                  labour.availability === 'available'
-                    ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
-                    : labour.availability === 'busy'
-                      ? 'bg-amber-500'
-                      : 'bg-red-500'
-                }`}
-              />
-            </Link>
-
-            <div className="mb-1">
-              <Badge className={`border ${getAvailabilityColor(labour.availability)}`}>
-                {getAvailabilityText(labour.availability)}
-              </Badge>
+        {/* Rating Badge - Top Right */}
+        {labour.rating && (
+          <div className="absolute right-3 top-3">
+            <div className="flex items-center gap-1 rounded-full bg-slate-900/90 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              {labour.rating.toFixed(1)}
             </div>
           </div>
+        )}
+      </div>
 
-          {/* Name and Rating */}
-          <div className="mt-4">
+      {/* Card Content */}
+      <div className="p-5">
+        {/* Name + Verified + Location */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2">
             <Link
-              href={`/user/${labour.user_id}`}
-              className="inline-block transition-colors transition-opacity hover:opacity-80 group-hover:text-emerald-400"
+              href={`/renter/labour/${labour.id}`}
+              className="text-lg font-bold text-white transition-colors group-hover:text-emerald-400"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-xl font-bold text-white">
-                {labour.user?.name || 'Agricultural Worker'}
-              </h3>
+              {labour.user?.name || 'Agricultural Worker'}
             </Link>
-            <div className="mt-1.5 flex items-center gap-3">
-              {labour.rating && (
-                <div className="flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5">
-                  <Star className="h-3.5 w-3.5 fill-yellow-500 text-yellow-500" />
-                  <span className="text-sm font-semibold text-yellow-500">
-                    {labour.rating.toFixed(1)}
-                  </span>
-                  {labour.review_count && (
-                    <span className="text-xs text-slate-500">({labour.review_count})</span>
+            {labour.total_jobs && labour.total_jobs > 50 && (
+              <BadgeCheck className="h-5 w-5 flex-shrink-0 fill-emerald-500/20 text-emerald-500" />
+            )}
+          </div>
+          {labour.location_name && (
+            <div className="mt-1 flex items-center gap-1 text-sm text-slate-400">
+              <MapPin className="h-3.5 w-3.5 text-slate-500" />
+              <span className="truncate">{labour.location_name}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Stats Row */}
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Experience
+            </p>
+            <p className="text-sm font-bold text-white">{labour.experience_years} Years</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Jobs Done
+            </p>
+            <p className="text-sm font-bold text-white">{labour.total_jobs || 0}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Rate
+            </p>
+            <p className="text-sm font-bold text-emerald-400">
+              {formatCurrency(labour.daily_rate)}/d
+            </p>
+          </div>
+        </div>
+
+        {/* Skill Tags */}
+        <div className="mb-5 flex flex-wrap gap-1.5">
+          {labour.skills.slice(0, 3).map((skill) => (
+            <span
+              key={skill}
+              className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-400"
+            >
+              {skill.replace(/_/g, ' ')}
+            </span>
+          ))}
+          {labour.skills.length > 3 && (
+            <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+              +{labour.skills.length - 3}
+            </span>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2.5">
+          <Button
+            size="sm"
+            className={`flex-1 rounded-full bg-emerald-500 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-900/20 transition-all hover:bg-emerald-400 ${
+              labour.availability === 'unavailable' ? 'opacity-50' : ''
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBook(labour);
+            }}
+            disabled={!isAuthenticated || labour.availability === 'unavailable'}
+          >
+            Hire Now
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 rounded-full border-slate-700 bg-transparent py-2.5 text-sm font-semibold text-slate-300 transition-all hover:bg-slate-800 hover:text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMessage(labour);
+            }}
+            disabled={!isAuthenticated}
+          >
+            Message
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Sidebar Filter Component
+function FilterSidebar({
+  selectedSkills,
+  onSkillToggle,
+  selectedAvailability,
+  onAvailabilityChange,
+  priceRange,
+  onPriceRangeChange,
+  selectedExperience,
+  onExperienceChange,
+  availableCount,
+}: {
+  selectedSkills: string[];
+  onSkillToggle: (skill: string) => void;
+  selectedAvailability: string;
+  onAvailabilityChange: (val: string) => void;
+  priceRange: [number, number];
+  onPriceRangeChange: (val: [number, number]) => void;
+  selectedExperience: string;
+  onExperienceChange: (val: string) => void;
+  availableCount: number;
+}) {
+  return (
+    <aside className="sticky top-24 h-fit space-y-7">
+      {/* Availability Section */}
+      <div>
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-500">
+          Availability
+        </h3>
+        <div className="space-y-2.5">
+          {AVAILABILITY_OPTIONS.map((option) => (
+            <label
+              key={option.value}
+              className="flex cursor-pointer items-center justify-between rounded-lg px-1 py-0.5 transition-colors hover:bg-slate-800/50"
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`flex h-5 w-5 items-center justify-center rounded-md border transition-colors ${
+                    selectedAvailability === option.value
+                      ? 'border-emerald-500 bg-emerald-500/20'
+                      : 'border-slate-600 bg-slate-800'
+                  }`}
+                  onClick={() => onAvailabilityChange(option.value)}
+                >
+                  {selectedAvailability === option.value && (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                   )}
                 </div>
-              )}
-              {labour.total_jobs && labour.total_jobs > 0 && (
-                <div className="flex items-center gap-1.5 text-sm text-slate-400">
-                  <Briefcase className="h-3.5 w-3.5" />
-                  <span>{labour.total_jobs} jobs</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Details */}
-        <div className="space-y-5 p-6">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Location */}
-            {labour.location_name && (
-              <div className="flex items-center gap-2 text-slate-400">
-                <div className="rounded-lg bg-slate-800 p-1.5">
-                  <MapPin className="h-4 w-4 text-emerald-500" />
-                </div>
-                <span className="truncate text-sm" title={labour.location_name}>
-                  {labour.location_name}
+                <span className="text-sm text-slate-300">{option.label}</span>
+              </div>
+              {option.value === 'available' && availableCount > 0 && (
+                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400">
+                  {availableCount}
                 </span>
-              </div>
-            )}
-
-            {/* Experience */}
-            <div className="flex items-center gap-2 text-slate-400">
-              <div className="rounded-lg bg-slate-800 p-1.5">
-                <Award className="h-4 w-4 text-amber-500" />
-              </div>
-              <span className="text-sm">{labour.experience_years}y exp</span>
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-500">
-              Skills
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {labour.skills.slice(0, 4).map((skill) => (
-                <Badge
-                  key={skill}
-                  variant="outline"
-                  className="cursor-default border-slate-700 bg-slate-800/50 text-xs text-slate-300 hover:bg-slate-800"
-                >
-                  {skill.replace(/_/g, ' ')}
-                </Badge>
-              ))}
-              {labour.skills.length > 4 && (
-                <Badge
-                  variant="outline"
-                  className="border-slate-700 bg-slate-800/50 text-xs text-slate-400"
-                >
-                  +{labour.skills.length - 4}
-                </Badge>
               )}
-            </div>
-          </div>
-
-          {/* Bio */}
-          {labour.bio && (
-            <p className="line-clamp-2 text-sm leading-relaxed text-slate-400">{labour.bio}</p>
-          )}
-
-          {/* Pricing */}
-          <div className="flex items-center justify-between border-t border-slate-800 pt-4">
-            <div>
-              <p className="text-2xl font-bold text-emerald-400">
-                {formatCurrency(labour.daily_rate)}
-              </p>
-              <p className="text-xs font-medium text-slate-500">per day</p>
-            </div>
-            {labour.hourly_rate && (
-              <div className="text-right">
-                <p className="text-lg font-semibold text-slate-300">
-                  {formatCurrency(labour.hourly_rate)}
-                </p>
-                <p className="text-xs font-medium text-slate-500">per hour</p>
-              </div>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800 hover:text-white"
-              onClick={() => onMessage(labour)}
-              disabled={!isAuthenticated}
-            >
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Message
-            </Button>
-            <Button
-              size="sm"
-              className="flex-1 bg-emerald-600 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-500"
-              onClick={() => onBook(labour)}
-              disabled={!isAuthenticated || labour.availability === 'unavailable'}
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              Hire Now
-            </Button>
-          </div>
+            </label>
+          ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Skills & Expertise Section */}
+      <div>
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-500">
+          Skills & Expertise
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {LABOUR_SKILLS.filter((s) => s.value !== 'all').map((skill) => (
+            <button
+              key={skill.value}
+              onClick={() => onSkillToggle(skill.value)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all ${
+                selectedSkills.includes(skill.value)
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30'
+                  : 'border border-slate-700 bg-slate-800/50 text-slate-400 hover:border-slate-600 hover:text-slate-300'
+              }`}
+            >
+              {skill.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Price Range Section */}
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-500">
+            Price Range
+          </h3>
+          <span className="text-xs text-slate-400">
+            {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])} / day
+          </span>
+        </div>
+        <DualRangeSlider
+          min={200}
+          max={2000}
+          step={50}
+          value={priceRange}
+          onValueChange={onPriceRangeChange}
+          colorScheme="emerald"
+          className="py-2"
+        />
+      </div>
+
+      {/* Experience Section */}
+      <div>
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-emerald-500">
+          Experience
+        </h3>
+        <Select value={selectedExperience} onValueChange={onExperienceChange}>
+          <SelectTrigger className="w-full border-slate-700 bg-slate-800/50 text-slate-200 focus:ring-emerald-500/50">
+            <SelectValue placeholder="All Experience levels" />
+          </SelectTrigger>
+          <SelectContent className="border-slate-800 bg-slate-900 text-white">
+            {EXPERIENCE_OPTIONS.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="focus:bg-slate-800 focus:text-white"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </aside>
+  );
+}
+
+// Mobile Filter Drawer
+function MobileFilterDrawer({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-slate-700 bg-slate-900 p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">Filters</h2>
+          <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-slate-800">
+            <X className="h-5 w-5 text-slate-400" />
+          </button>
+        </div>
+        {children}
+        <div className="mt-6">
+          <Button
+            className="w-full bg-emerald-600 text-white hover:bg-emerald-500"
+            onClick={onClose}
+          >
+            Apply Filters
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -317,15 +491,15 @@ function LabourPageContent() {
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [selectedSkill, setSelectedSkill] = useState<string>('all');
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedAvailability, setSelectedAvailability] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('rating');
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [showFilters, setShowFilters] = useState(false);
+  const [priceRange, setPriceRange] = useState<[number, number]>([200, 2000]);
+  const [selectedExperience, setSelectedExperience] = useState<string>('all');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Dialogs
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -341,13 +515,50 @@ function LabourPageContent() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const limit = 12;
 
+  // Skill toggle handler
+  const handleSkillToggle = useCallback((skill: string) => {
+    setSelectedSkills((prev) =>
+      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
+    );
+  }, []);
+
+  // Available count
+  const availableCount = useMemo(
+    () => labourProfiles.filter((l) => l.availability === 'available').length,
+    [labourProfiles]
+  );
+
   // Fuzzy search for labour profiles
   const filteredLabourProfiles = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return labourProfiles;
+    let profiles = labourProfiles;
+
+    // Apply client-side skill filter
+    if (selectedSkills.length > 0) {
+      profiles = profiles.filter((p) =>
+        selectedSkills.some((filterSkill) =>
+          p.skills.some((profileSkill) => skillMatchesFilter(profileSkill, filterSkill))
+        )
+      );
     }
 
-    const fuse = new Fuse(labourProfiles, {
+    // Apply client-side price filter (if not default range)
+    if (priceRange[0] > 200 || priceRange[1] < 2000) {
+      profiles = profiles.filter(
+        (p) => p.daily_rate >= priceRange[0] && p.daily_rate <= priceRange[1]
+      );
+    }
+
+    // Apply experience filter
+    if (selectedExperience !== 'all') {
+      const minExp = parseInt(selectedExperience);
+      profiles = profiles.filter((p) => p.experience_years >= minExp);
+    }
+
+    if (!searchQuery.trim()) {
+      return profiles;
+    }
+
+    const fuse = new Fuse(profiles, {
       keys: [
         { name: 'user.name', weight: 2.0 },
         { name: 'skills', weight: 1.5 },
@@ -364,26 +575,18 @@ function LabourPageContent() {
     });
 
     return fuse.search(searchQuery).map((result) => result.item);
-  }, [labourProfiles, searchQuery]);
-
-  // Initialize lastUpdated on client side only to avoid hydration mismatch
-  useEffect(() => {
-    setLastUpdated(new Date());
-  }, []);
+  }, [labourProfiles, searchQuery, selectedSkills, priceRange, selectedExperience]);
 
   // Generate cache key
   const getCacheKey = useCallback(() => {
     return JSON.stringify({
       search: searchQuery,
-      skill: selectedSkill,
       availability: selectedAvailability,
       sort: sortBy,
-      priceMin: priceRange.min,
-      priceMax: priceRange.max,
       lat: userLocation?.lat,
       lng: userLocation?.lng,
     });
-  }, [searchQuery, selectedSkill, selectedAvailability, sortBy, priceRange, userLocation]);
+  }, [searchQuery, selectedAvailability, sortBy, userLocation]);
 
   // Load labour profiles
   const loadLabour = useCallback(
@@ -413,13 +616,12 @@ function LabourPageContent() {
         const result = await labourService.search(
           {
             search: searchQuery || undefined,
-            skills: selectedSkill !== 'all' ? [selectedSkill] : undefined,
             availability:
               selectedAvailability !== 'all'
                 ? (selectedAvailability as LabourAvailability)
                 : undefined,
-            minRate: priceRange.min ? Number(priceRange.min) : undefined,
-            maxRate: priceRange.max ? Number(priceRange.max) : undefined,
+            minRate: priceRange[0] > 200 ? priceRange[0] : undefined,
+            maxRate: priceRange[1] < 2000 ? priceRange[1] : undefined,
             latitude: userLocation?.lat,
             longitude: userLocation?.lng,
             radiusKm: 100,
@@ -443,13 +645,11 @@ function LabourPageContent() {
         setTotalCount(result.count);
         setHasMore(newData.length < result.count);
         setPage(pageNum);
-        setLastUpdated(new Date());
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         const errorCode = (err as { code?: string })?.code;
         console.error('Failed to load labour profiles:', errorMessage, errorCode);
 
-        // Check if it's a table not found error
         if (errorCode === '42P01' || errorMessage.includes('does not exist')) {
           setError(
             'Labour profiles feature is not yet available. Please run the database migration.'
@@ -462,22 +662,14 @@ function LabourPageContent() {
         setIsLoadingMore(false);
       }
     },
-    [
-      getCacheKey,
-      searchQuery,
-      selectedSkill,
-      selectedAvailability,
-      priceRange,
-      userLocation,
-      labourProfiles,
-    ]
+    [getCacheKey, searchQuery, selectedAvailability, priceRange, userLocation, labourProfiles]
   );
 
   // Initial load
   useEffect(() => {
     loadLabour(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSkill, selectedAvailability, sortBy, userLocation]);
+  }, [selectedAvailability, sortBy, userLocation]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -505,11 +697,11 @@ function LabourPageContent() {
     };
   }, [hasMore, isLoadingMore, isLoading, page, loadLabour]);
 
-  // Handle refresh
-  const handleRefresh = () => {
-    cache.clear();
-    setPage(1);
-    loadLabour(1);
+  // Handle load more button click
+  const handleLoadMore = () => {
+    if (hasMore && !isLoadingMore) {
+      loadLabour(page + 1, true);
+    }
   };
 
   // Handle message
@@ -548,7 +740,6 @@ function LabourPageContent() {
     try {
       console.log('Creating conversation with labourer:', selectedLabour.user_id);
 
-      // Get or create conversation with the labourer
       const conversationId = await dmService.getOrCreateConversation(selectedLabour.user_id);
 
       if (!conversationId) {
@@ -557,27 +748,21 @@ function LabourPageContent() {
 
       console.log('Conversation created:', conversationId);
 
-      // Send the message
       await dmService.sendMessage(conversationId, messageText.trim());
       console.log('Message sent successfully');
 
-      // Refresh conversations list in the store
       await useMessagesStore.getState().fetchConversations();
 
-      // Close dialog and reset
       setMessageDialogOpen(false);
       setMessageText('');
 
-      // Show success toast
       toast.success('Message sent! The labourer will be notified.');
 
-      // Redirect to messages page
       router.push(`/messages?conversation=${conversationId}`);
     } catch (err) {
       console.error('Failed to send message:', err);
       console.error('Error details:', JSON.stringify(err, null, 2));
 
-      // Extract meaningful error message
       const errorMessage =
         err instanceof Error
           ? err.message
@@ -597,8 +782,7 @@ function LabourPageContent() {
 
     setIsSending(true);
     try {
-      // Create labour booking via the service
-      await labourService.createBooking({
+      const booking = await labourService.createBooking({
         labour_id: selectedLabour.id,
         employer_id: user.id,
         start_date: bookingDates.start,
@@ -609,8 +793,7 @@ function LabourPageContent() {
       setBookingDialogOpen(false);
       setBookingDates({ start: '', end: '' });
       setBookingNotes('');
-      // Redirect to bookings or show success
-      router.push('/renter/bookings');
+      router.push(`/renter/labour/bookings/${booking.id}`);
     } catch (err) {
       console.error('Failed to create booking:', err);
     } finally {
@@ -621,354 +804,379 @@ function LabourPageContent() {
   // Clear filters
   const clearFilters = () => {
     setSearchQuery('');
-    setSelectedSkill('all');
+    setSelectedSkills([]);
     setSelectedAvailability('all');
     setSortBy('rating');
-    setPriceRange({ min: '', max: '' });
+    setPriceRange([200, 2000]);
+    setSelectedExperience('all');
     setPage(1);
   };
 
   const hasActiveFilters =
     searchQuery ||
-    selectedSkill !== 'all' ||
+    selectedSkills.length > 0 ||
     selectedAvailability !== 'all' ||
-    priceRange.min ||
-    priceRange.max;
+    priceRange[0] > 200 ||
+    priceRange[1] < 2000 ||
+    selectedExperience !== 'all';
+
+  // Filter sidebar content (shared between desktop and mobile)
+  const filterContent = (
+    <FilterSidebar
+      selectedSkills={selectedSkills}
+      onSkillToggle={handleSkillToggle}
+      selectedAvailability={selectedAvailability}
+      onAvailabilityChange={setSelectedAvailability}
+      priceRange={priceRange}
+      onPriceRangeChange={setPriceRange}
+      selectedExperience={selectedExperience}
+      onExperienceChange={setSelectedExperience}
+      availableCount={availableCount}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
       <Header />
 
-      <main className="mx-auto max-w-7xl px-4 pb-8 pt-28">
-        {/* Back Button */}
-        <div className="mb-4">
-          <BackButton variant="minimal" />
-        </div>
+      <main className="mx-auto max-w-[1400px] px-4 pb-16 pt-24">
+        <div className="flex gap-8">
+          {/* Desktop Sidebar */}
+          <div className="hidden w-64 flex-shrink-0 lg:block">{filterContent}</div>
 
-        {/* Page Header */}
-        <div className="relative mb-8">
-          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                Skilled <span className="text-emerald-400">Agricultural Workers</span>
-              </h1>
-              <p className="mt-2 text-lg text-slate-400">
-                Find and hire experienced farm workers in your area
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <button
-                onClick={handleRefresh}
-                className="flex items-center gap-2 rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-900/50 hover:text-emerald-400"
-                title="Refresh listings"
-              >
-                <RefreshCw className="h-4 w-4" />
-                <span className="hidden sm:inline">
-                  Last updated: {lastUpdated ? lastUpdated.toLocaleTimeString() : '...'}
-                </span>
-              </button>
-            </div>
-          </div>
-          {/* Background Glow */}
-          <div className="pointer-events-none absolute left-0 top-1/2 -z-0 h-64 w-64 -translate-y-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
-        </div>
-
-        {/* Search and Filters */}
-        <div className="mb-8 rounded-2xl border border-slate-800 bg-slate-900/50 p-5 shadow-xl backdrop-blur-md">
-          <div className="flex flex-col gap-4">
-            {/* Search Bar */}
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name, skill, or location..."
-                  className="h-12 border-slate-800 bg-slate-950 pl-11 text-slate-200 placeholder:text-slate-600 focus-visible:border-emerald-500/50 focus-visible:ring-emerald-500/50"
-                />
-              </div>
-            </div>
-
-            {/* Filter Row */}
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Select value={selectedSkill} onValueChange={setSelectedSkill}>
-                <SelectTrigger className="w-full border-slate-800 bg-slate-950 text-slate-200 focus:ring-emerald-500/50 sm:w-48">
-                  <SelectValue placeholder="All Skills" />
-                </SelectTrigger>
-                <SelectContent className="border-slate-800 bg-slate-900 text-white">
-                  {LABOUR_SKILLS.map((skill) => (
-                    <SelectItem
-                      key={skill.value}
-                      value={skill.value}
-                      className="focus:bg-slate-800 focus:text-white"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>{skill.icon}</span>
-                        <span>{skill.label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
-                <SelectTrigger className="w-full border-slate-800 bg-slate-950 text-slate-200 focus:ring-emerald-500/50 sm:w-48">
-                  <SelectValue placeholder="Availability" />
-                </SelectTrigger>
-                <SelectContent className="border-slate-800 bg-slate-900 text-white">
-                  {AVAILABILITY_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="focus:bg-slate-800 focus:text-white"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full border-slate-800 bg-slate-950 text-slate-200 focus:ring-emerald-500/50 sm:w-48">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="border-slate-800 bg-slate-900 text-white">
-                  {SORT_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="focus:bg-slate-800 focus:text-white"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowFilters(true)}
-                className="border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-900 hover:text-white"
-              >
-                <SlidersHorizontal className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">More Filters</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Active Filters */}
-          {hasActiveFilters && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-800 pt-4">
-              <span className="text-sm text-slate-500">Active filters:</span>
-              {searchQuery && (
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
-                >
-                  Search: {searchQuery}
-                  <button onClick={() => setSearchQuery('')} className="hover:text-emerald-400">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedSkill !== 'all' && (
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
-                >
-                  {LABOUR_SKILLS.find((s) => s.value === selectedSkill)?.label}
-                  <button
-                    onClick={() => setSelectedSkill('all')}
-                    className="hover:text-emerald-400"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedAvailability !== 'all' && (
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
-                >
-                  {AVAILABILITY_OPTIONS.find((a) => a.value === selectedAvailability)?.label}
-                  <button
-                    onClick={() => setSelectedAvailability('all')}
-                    className="hover:text-emerald-400"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {(priceRange.min || priceRange.max) && (
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 border border-slate-700 bg-slate-800 text-slate-200"
-                >
-                  ₹{priceRange.min || '0'} - ₹{priceRange.max || '∞'}
-                  <button
-                    onClick={() => setPriceRange({ min: '', max: '' })}
-                    className="hover:text-emerald-400"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
-              >
-                Clear all
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Results Count */}
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-slate-400">
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
-                Searching...
-              </span>
-            ) : (
-              <span className="font-medium text-slate-300">
-                {searchQuery.trim()
-                  ? `Showing ${filteredLabourProfiles.length} of ${totalCount} workers`
-                  : `${totalCount} workers found`}
-              </span>
-            )}
-          </p>
-          {!isAuthenticated && (
-            <p className="text-sm text-slate-500">
-              <Link href="/login" className="text-emerald-400 hover:underline">
-                Login
-              </Link>{' '}
-              to message and hire workers
-            </p>
-          )}
-        </div>
-
-        {/* Results Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <LabourCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 py-16 text-center">
-            <p className="mb-4 text-red-400">{error}</p>
-            <Button
-              onClick={() => loadLabour(1)}
-              variant="outline"
-              className="border-slate-700 text-slate-300"
-            >
-              Try Again
-            </Button>
-          </div>
-        ) : filteredLabourProfiles.length === 0 ? (
-          <EmptyState
-            icon={<User className="h-16 w-16 text-slate-600" />}
-            title="No workers found"
-            description={
-              hasActiveFilters
-                ? 'Try adjusting your filters to find more workers.'
-                : 'No workers are currently available in your area.'
-            }
-            action={
-              hasActiveFilters ? (
-                <Button
-                  onClick={clearFilters}
-                  className="bg-slate-800 text-white hover:bg-slate-700"
-                >
-                  Clear Filters
-                </Button>
-              ) : undefined
-            }
-            className="border border-slate-800 bg-slate-900/50 text-slate-400"
-          />
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredLabourProfiles.map((labour) => (
-                <LabourCard
-                  key={labour.id}
-                  labour={labour}
-                  onMessage={handleMessage}
-                  onBook={handleBook}
-                  isAuthenticated={isAuthenticated}
-                />
-              ))}
-            </div>
-
-            {/* Load More Trigger */}
-            <div ref={loadMoreRef} className="flex justify-center py-12">
-              {isLoadingMore && <Spinner className="text-emerald-500" />}
-              {!hasMore && filteredLabourProfiles.length > 0 && (
-                <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 px-4 py-2 text-sm text-slate-600">
-                  <div className="h-2 w-2 rounded-full bg-emerald-500/50" />
-                  All workers loaded
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* More Filters Dialog */}
-        <Dialog open={showFilters} onOpenChange={setShowFilters}>
-          <DialogContent className="border-slate-800 bg-slate-900 sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-white">Filter Workers</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
+          {/* Main Content */}
+          <div className="min-w-0 flex-1">
+            {/* Top Bar: Title + Sort */}
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
-                  Daily Rate Range
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Min"
-                    value={priceRange.min}
-                    onChange={(e) => setPriceRange((p) => ({ ...p, min: e.target.value }))}
-                    className="border-slate-800 bg-slate-950 text-white placeholder:text-slate-600"
-                  />
-                  <span className="flex items-center text-slate-500">to</span>
-                  <Input
-                    type="number"
-                    placeholder="Max"
-                    value={priceRange.max}
-                    onChange={(e) => setPriceRange((p) => ({ ...p, max: e.target.value }))}
-                    className="border-slate-800 bg-slate-950 text-white placeholder:text-slate-600"
-                  />
-                </div>
+                <h1 className="text-2xl font-bold text-white md:text-3xl">
+                  Discover Skilled Labour{' '}
+                  {!isLoading && (
+                    <span className="text-lg font-normal text-slate-500">
+                      ({totalCount} results)
+                    </span>
+                  )}
+                </h1>
               </div>
-
-              <div className="flex gap-2 pt-4">
+              <div className="flex items-center gap-3">
+                {/* Mobile Filter Button */}
                 <Button
                   variant="outline"
-                  className="flex-1 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
-                  onClick={clearFilters}
+                  className="border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-800 lg:hidden"
+                  onClick={() => setShowMobileFilters(true)}
                 >
-                  Reset
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                    />
+                  </svg>
+                  Filters
                 </Button>
-                <Button
-                  className="flex-1 bg-emerald-600 text-white hover:bg-emerald-500"
-                  onClick={() => {
-                    setShowFilters(false);
-                    loadLabour(1);
-                  }}
-                >
-                  Apply Filters
-                </Button>
+
+                {/* Sort Dropdown - Redesigned */}
+                <div className="flex items-center gap-2">
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="group flex w-[180px] items-center justify-between gap-3 rounded-xl border border-slate-700/60 bg-slate-800/40 px-4 py-2.5 text-sm font-medium text-slate-200 transition-all hover:border-emerald-500/40 hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-emerald-500/20">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500/20 to-green-500/20">
+                          <svg
+                            className="h-3.5 w-3.5 text-emerald-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                            />
+                          </svg>
+                        </div>
+                        <span className="truncate">
+                          {SORT_OPTIONS.find((o) => o.value === sortBy)?.label || 'Sort'}
+                        </span>
+                      </div>
+                      <svg
+                        className="h-4 w-4 text-slate-500 transition-transform group-data-[state=open]:rotate-180"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </SelectTrigger>
+                    <SelectContent className="border-slate-700/60 bg-slate-900/95 p-1.5 shadow-2xl backdrop-blur-xl">
+                      {SORT_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 transition-all hover:bg-slate-800 hover:text-white focus:bg-slate-800 focus:text-white"
+                        >
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800">
+                            {option.value === 'rating' && (
+                              <Star className="h-4 w-4 text-yellow-500" />
+                            )}
+                            {option.value === 'price_asc' && (
+                              <svg
+                                className="h-4 w-4 text-emerald-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+                                />
+                              </svg>
+                            )}
+                            {option.value === 'price_desc' && (
+                              <svg
+                                className="h-4 w-4 text-red-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+                                />
+                              </svg>
+                            )}
+                            {option.value === 'experience' && (
+                              <svg
+                                className="h-4 w-4 text-blue-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            )}
+                            {option.value === 'jobs' && (
+                              <svg
+                                className="h-4 w-4 text-purple-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <span className="font-medium">{option.label}</span>
+                          {sortBy === option.value && (
+                            <svg
+                              className="ml-auto h-4 w-4 text-emerald-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+
+            {/* Search Bar */}
+            <div className="relative mb-6">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by Name, Skills (e.g. Tractor), or Location..."
+                className="h-12 rounded-xl border-slate-800 bg-slate-900/80 pl-12 text-slate-200 placeholder:text-slate-600 focus-visible:border-emerald-500/50 focus-visible:ring-emerald-500/20"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-300"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Active Filters Row */}
+            {hasActiveFilters && (
+              <div className="mb-5 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-500">Active:</span>
+                {selectedSkills.map((skill) => {
+                  const skillInfo = LABOUR_SKILLS.find((s) => s.value === skill);
+                  return (
+                    <Badge
+                      key={skill}
+                      className="flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                    >
+                      {skillInfo?.label || skill}
+                      <button onClick={() => handleSkillToggle(skill)}>
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  );
+                })}
+                {selectedAvailability !== 'all' && (
+                  <Badge className="flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                    {AVAILABILITY_OPTIONS.find((a) => a.value === selectedAvailability)?.label}
+                    <button onClick={() => setSelectedAvailability('all')}>
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {(priceRange[0] > 200 || priceRange[1] < 2000) && (
+                  <Badge className="flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                    {formatCurrency(priceRange[0])} - {formatCurrency(priceRange[1])}
+                    <button onClick={() => setPriceRange([200, 2000])}>
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedExperience !== 'all' && (
+                  <Badge className="flex items-center gap-1 border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                    {selectedExperience}+ Years Exp
+                    <button onClick={() => setSelectedExperience('all')}>
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                <button
+                  onClick={clearFilters}
+                  className="ml-1 text-xs text-red-400 transition-colors hover:text-red-300"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+
+            {/* Not authenticated notice */}
+            {!isAuthenticated && (
+              <div className="mb-5 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-sm text-slate-400">
+                <Link href="/login" className="font-medium text-emerald-400 hover:underline">
+                  Login
+                </Link>{' '}
+                to message and hire workers
+              </div>
+            )}
+
+            {/* Results Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <LabourCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : error ? (
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/50 py-16 text-center">
+                <p className="mb-4 text-red-400">{error}</p>
+                <Button
+                  onClick={() => loadLabour(1)}
+                  variant="outline"
+                  className="border-slate-700 text-slate-300"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : filteredLabourProfiles.length === 0 ? (
+              <EmptyState
+                icon={<User className="h-16 w-16 text-slate-600" />}
+                title="No workers found"
+                description={
+                  hasActiveFilters
+                    ? 'Try adjusting your filters to find more workers.'
+                    : 'No workers are currently available in your area.'
+                }
+                action={
+                  hasActiveFilters ? (
+                    <Button
+                      onClick={clearFilters}
+                      className="bg-slate-800 text-white hover:bg-slate-700"
+                    >
+                      Clear Filters
+                    </Button>
+                  ) : undefined
+                }
+                className="border border-slate-800 bg-slate-900/50 text-slate-400"
+              />
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                  {filteredLabourProfiles.map((labour) => (
+                    <LabourCard
+                      key={labour.id}
+                      labour={labour}
+                      onMessage={handleMessage}
+                      onBook={handleBook}
+                      isAuthenticated={isAuthenticated}
+                    />
+                  ))}
+                </div>
+
+                {/* Load More Button */}
+                <div ref={loadMoreRef} className="mt-10 flex justify-center">
+                  {isLoadingMore ? (
+                    <Spinner className="text-emerald-500" />
+                  ) : hasMore ? (
+                    <Button
+                      variant="outline"
+                      onClick={handleLoadMore}
+                      className="rounded-xl border-slate-700 bg-slate-800/50 px-8 py-3 text-sm font-semibold text-slate-300 transition-all hover:border-emerald-500/30 hover:bg-slate-800 hover:text-white"
+                    >
+                      Load More Workers
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : filteredLabourProfiles.length > 0 ? (
+                    <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 px-4 py-2 text-sm text-slate-600">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500/50" />
+                      All workers loaded
+                    </div>
+                  ) : null}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile Filter Drawer */}
+        <MobileFilterDrawer open={showMobileFilters} onClose={() => setShowMobileFilters(false)}>
+          {filterContent}
+        </MobileFilterDrawer>
 
         {/* Message Dialog */}
         <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
