@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Sprout,
   Wifi,
+  Bot,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -382,6 +383,20 @@ export function Header() {
                     <button className="group relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/30 hover:bg-white/10">
                       <MessageBadge iconOnly />
                     </button>
+                  </motion.div>
+
+                  {/* AI Chat Icon */}
+                  <motion.div
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.1 }}
+                    whileTap={shouldReduceMotion ? {} : { scale: 0.9 }}
+                    className="relative"
+                  >
+                    <Link
+                      href="/ai-chat"
+                      className="group relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/30 hover:bg-white/10"
+                    >
+                      <Bot className="h-5 w-5 text-gray-400 group-hover:text-purple-400" />
+                    </Link>
                   </motion.div>
 
                   {/* User Dropdown */}

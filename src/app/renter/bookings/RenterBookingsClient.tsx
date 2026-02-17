@@ -182,7 +182,15 @@ export default function RenterBookingsPage() {
       });
     }
 
-    return filtered;
+    // Deduplicate by booking ID to prevent duplicate key warnings
+    const seen = new Set<string>();
+    return filtered.filter((booking) => {
+      if (seen.has(booking.id)) {
+        return false;
+      }
+      seen.add(booking.id);
+      return true;
+    });
   }, [bookings, activeTab, searchQuery]);
 
   return (

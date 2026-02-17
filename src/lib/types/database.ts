@@ -288,6 +288,17 @@ export interface Conversation {
   other_participant?: UserProfile;
 }
 
+// AI Chat Message
+export interface AIChatMessage {
+  id: string;
+  conversation_id?: string | null;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  model?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
 // Notification
 export interface Notification {
   id: string;
