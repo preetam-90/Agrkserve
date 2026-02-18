@@ -1,109 +1,156 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { v2 as cloudinary } from 'cloudinary';
 import { getSiteUrl } from '@/lib/seo/site-url';
+
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const MAX_RESULTS = 500;
+const CLOUD_NAME =
+  process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
 
 export async function GET() {
   const baseUrl = getSiteUrl();
   const currentDate = new Date().toISOString();
 
-  const imageEntries: { pageUrl: string; images: string[] }[] = [];
+  const imageEntries: {
+    pageUrl: string;
+    images: { url: string; title?: string; caption?: string }[];
+    videos: { url: string; title?: string; description?: string; thumbnail?: string }[];
+  }[] = [];
 
-  imageEntries.push({
+  const staticImages = {
     pageUrl: `${baseUrl}/`,
     images: [
-      `${baseUrl}/favicon.ico`,
-      `${baseUrl}/logo.png`,
-      `${baseUrl}/logo.webp`,
-      `${baseUrl}/logo.avif`,
-      `${baseUrl}/logo-original.png`,
-      `${baseUrl}/og-image.jpg`,
-      `${baseUrl}/twitter-card.jpg`,
-      `${baseUrl}/android-chrome-192x192.png`,
-      `${baseUrl}/android-chrome-512x512.png`,
-      `${baseUrl}/apple-touch-icon.png`,
-      `${baseUrl}/images/avatar-anita.png`,
-      `${baseUrl}/images/avatar-anita.avif`,
-      `${baseUrl}/images/avatar-rajesh.png`,
-      `${baseUrl}/images/avatar-rajesh.avif`,
-      `${baseUrl}/images/avatar-vikram.png`,
-      `${baseUrl}/images/avatar-vikram.avif`,
-      `${baseUrl}/Landingpagevideo-poster.jpg`,
+      { url: `${baseUrl}/favicon.ico`, title: 'AgriServe Favicon' },
+      { url: `${baseUrl}/logo.png`, title: 'AgriServe Logo' },
+      { url: `${baseUrl}/logo.webp`, title: 'AgriServe Logo' },
+      { url: `${baseUrl}/logo.avif`, title: 'AgriServe Logo' },
+      { url: `${baseUrl}/logo-original.png`, title: 'AgriServe Logo' },
+      { url: `${baseUrl}/og-image.jpg`, title: 'AgriServe - Farm Equipment Rental Platform' },
+      { url: `${baseUrl}/twitter-card.jpg`, title: 'AgriServe - Agricultural Marketplace' },
+      { url: `${baseUrl}/android-chrome-192x192.png`, title: 'AgriServe App Icon' },
+      { url: `${baseUrl}/android-chrome-512x512.png`, title: 'AgriServe App Icon' },
+      { url: `${baseUrl}/apple-touch-icon.png`, title: 'AgriServe App Icon' },
+      { url: `${baseUrl}/Landingpagevideo-poster.jpg`, title: 'AgriServe Landing Page' },
     ],
-  });
+    videos: [],
+  };
+  imageEntries.push(staticImages);
 
   try {
-    const supabase = await createClient();
-    const { data: equipment } = await supabase
-      .from('equipment')
-      .select('id, images')
-      .eq('status', 'available')
-      .not('images', 'is', null)
-      .limit(1000);
+    const imageResult = await cloudinary.search
+      .expression('resource_type:image')
+      .sort_by('created_at', 'desc')
+      .max_results(MAX_RESULTS)
+      .execute();
 
-    if (equipment) {
-      for (const item of equipment) {
-        if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-          const imageUrls = item.images.filter((url): url is string => typeof url === 'string');
-          if (imageUrls.length > 0) {
-            imageEntries.push({
-              pageUrl: `${baseUrl}/equipment/${item.id}`,
-              images: imageUrls,
-            });
-          }
+    if (imageResult.resources && imageResult.resources.length > 0) {
+      const groupedImages = new Map<string, { url: string; title: string }[]>();
+
+      for (const img of imageResult.resources) {
+        const publicId = img.public_id as string;
+        const secureUrl = img.secure_url as string;
+        const folder = publicId.split('/')[0] || 'other';
+
+        let pagePath = '/';
+        let title = 'AgriServe Image';
+
+        if (publicId.includes('/equipment/') || folder === 'equipment') {
+          const parts = publicId.split('/');
+          const equipmentId = parts.length > 2 ? parts[1] : null;
+          pagePath = equipmentId ? `/equipment/${equipmentId}` : '/equipment';
+          title =
+            img.context?.custom?.alt ||
+            img.context?.custom?.caption ||
+            `Equipment - ${publicId.split('/').pop()}`;
+        } else if (publicId.includes('/labour/') || folder === 'labour') {
+          const parts = publicId.split('/');
+          const labourId = parts.length > 2 ? parts[1] : null;
+          pagePath = labourId ? `/labour/${labourId}` : '/labour';
+          title =
+            img.context?.custom?.alt ||
+            img.context?.custom?.caption ||
+            `Labour - ${publicId.split('/').pop()}`;
+        } else if (publicId.includes('/profile') || folder === 'users' || folder === 'profiles') {
+          const parts = publicId.split('/');
+          const userId = parts.length > 1 ? parts[1] : null;
+          pagePath = userId ? `/user/${userId}` : '/';
+          title = 'User Profile Image';
+        } else if (folder === 'blog' || publicId.includes('/blog/')) {
+          pagePath = '/blog';
+          title = img.context?.custom?.alt || 'Blog Image';
+        }
+
+        const fullPageUrl = `${baseUrl}${pagePath}`;
+        if (!groupedImages.has(fullPageUrl)) {
+          groupedImages.set(fullPageUrl, []);
+        }
+        groupedImages.get(fullPageUrl)!.push({ url: secureUrl, title });
+      }
+
+      for (const [pageUrl, images] of groupedImages) {
+        const existing = imageEntries.find((e) => e.pageUrl === pageUrl);
+        if (existing) {
+          existing.images.push(...images);
+        } else {
+          imageEntries.push({ pageUrl, images, videos: [] });
         }
       }
     }
   } catch (error) {
-    console.warn('[ImageSitemap] Could not fetch equipment from database:', error);
+    console.error('[ImageSitemap] Error fetching images from Cloudinary:', error);
   }
 
   try {
-    const supabase = await createClient();
-    const { data: labour } = await supabase
-      .from('labour')
-      .select('id, images')
-      .eq('status', 'available')
-      .not('images', 'is', null)
-      .limit(500);
+    const videoResult = await cloudinary.search
+      .expression('resource_type:video')
+      .sort_by('created_at', 'desc')
+      .max_results(MAX_RESULTS)
+      .execute();
 
-    if (labour) {
-      for (const item of labour) {
-        if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-          const imageUrls = item.images.filter((url): url is string => typeof url === 'string');
-          if (imageUrls.length > 0) {
-            imageEntries.push({
-              pageUrl: `${baseUrl}/labour/${item.id}`,
-              images: imageUrls,
-            });
-          }
+    if (videoResult.resources && videoResult.resources.length > 0) {
+      for (const video of videoResult.resources) {
+        const publicId = video.public_id as string;
+        const secureUrl = video.secure_url as string;
+        const thumbnail = `https://res.cloudinary.com/${CLOUD_NAME}/video/upload/${publicId}.jpg`;
+
+        let pagePath = '/';
+        let title = 'AgriServe Video';
+        let description = 'Agricultural equipment and farming video';
+
+        if (publicId.includes('/equipment/') || publicId.includes('equipment')) {
+          pagePath = '/equipment';
+          title = video.context?.custom?.title || 'Equipment Video';
+          description = video.context?.custom?.description || 'Farm equipment rental video';
+        } else if (publicId.includes('/labour/') || publicId.includes('labour')) {
+          pagePath = '/labour';
+          title = video.context?.custom?.title || 'Labour Video';
+          description = video.context?.custom?.description || 'Agricultural labour video';
+        } else if (publicId.includes('landing') || publicId.includes('hero')) {
+          pagePath = '/';
+          title = 'AgriServe - Farm Equipment Platform';
+          description = 'Overview of AgriServe agricultural marketplace';
         }
-      }
-    }
-  } catch (error) {
-    console.warn('[ImageSitemap] Could not fetch labour from database:', error);
-  }
 
-  try {
-    const supabase = await createClient();
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, profile_image')
-      .eq('is_public', true)
-      .not('profile_image', 'is', null)
-      .limit(500);
-
-    if (profiles) {
-      for (const profile of profiles) {
-        if (profile.profile_image) {
+        const pageUrl = `${baseUrl}${pagePath}`;
+        const existing = imageEntries.find((e) => e.pageUrl === pageUrl);
+        if (existing) {
+          existing.videos.push({ url: secureUrl, title, description, thumbnail });
+        } else {
           imageEntries.push({
-            pageUrl: `${baseUrl}/user/${profile.id}`,
-            images: [profile.profile_image],
+            pageUrl,
+            images: [],
+            videos: [{ url: secureUrl, title, description, thumbnail }],
           });
         }
       }
     }
   } catch (error) {
-    console.warn('[ImageSitemap] Could not fetch profiles from database:', error);
+    console.error('[ImageSitemap] Error fetching videos from Cloudinary:', error);
   }
 
   const urlElements = imageEntries
@@ -111,22 +158,40 @@ export async function GET() {
       const imageTags = entry.images
         .map(
           (img) => `    <image:image>
-      <image:loc>${escapeXml(img)}</image:loc>
+      <image:loc>${escapeXml(img.url)}</image:loc>
+      ${img.title ? `<image:title>${escapeXml(img.title)}</image:title>` : ''}
     </image:image>`
         )
         .join('\n');
 
+      const videoTags = entry.videos
+        .map(
+          (vid) => `    <video:video>
+      <video:thumbnail_loc>${escapeXml(vid.thumbnail || vid.url)}</video:thumbnail_loc>
+      <video:title>${escapeXml(vid.title || 'AgriServe Video')}</video:title>
+      <video:description>${escapeXml(vid.description || 'Agricultural video')}</video:description>
+      <video:content_loc>${escapeXml(vid.url)}</video:content_loc>
+    </video:video>`
+        )
+        .join('\n');
+
+      const content = [imageTags, videoTags].filter(Boolean).join('\n');
+
+      if (!content) return '';
+
       return `  <url>
     <loc>${escapeXml(entry.pageUrl)}</loc>
     <lastmod>${currentDate}</lastmod>
-${imageTags}
+${content}
   </url>`;
     })
+    .filter(Boolean)
     .join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 ${urlElements}
 </urlset>`;
 
