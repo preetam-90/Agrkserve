@@ -1,6 +1,16 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
 type BranchCtx = {
@@ -22,11 +32,17 @@ export function MessageBranch({
   const [page, setPageState] = useState(defaultBranch);
   const [total, setTotal] = useState(1);
 
-  const setPage = (next: number) => {
-    setPageState(Math.max(0, Math.min(next, total - 1)));
-  };
+  const setPage = useCallback(
+    (next: number) => {
+      setPageState(Math.max(0, Math.min(next, total - 1)));
+    },
+    [total]
+  );
 
-  const value = { page, setPage, total, setTotal };
+  const value = useMemo(
+    () => ({ page, setPage, total, setTotal }),
+    [page, setPage, total, setTotal]
+  );
   return <BranchContext.Provider value={value}>{children}</BranchContext.Provider>;
 }
 
@@ -35,7 +51,8 @@ export function MessageBranchContent({ children }: { children: ReactNode }) {
   const nodes = Array.isArray(children) ? children : [children];
 
   useEffect(() => {
-    if (ctx && ctx.total !== nodes.length) {
+    if (!ctx) return;
+    if (ctx.total !== nodes.length) {
       ctx.setTotal(nodes.length);
     }
   }, [ctx, nodes.length]);
@@ -115,6 +132,153 @@ export function MessageContent({ children }: { children: ReactNode }) {
   return <div className="space-y-2">{children}</div>;
 }
 
+const markdownComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="mb-4 mt-6 border-b border-emerald-400/20 pb-2 text-2xl font-bold text-emerald-300 first:mt-0">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="mb-3 mt-5 border-b border-emerald-400/10 pb-1.5 text-xl font-semibold text-emerald-300/90 first:mt-0">
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="mb-2 mt-4 text-lg font-semibold text-emerald-200/80 first:mt-0">{children}</h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="mb-2 mt-3 text-base font-semibold text-emerald-200/70 first:mt-0">{children}</h4>
+  ),
+  h5: ({ children }) => (
+    <h5 className="mb-1.5 mt-3 text-sm font-semibold text-emerald-200/60 first:mt-0">{children}</h5>
+  ),
+  h6: ({ children }) => (
+    <h6 className="mb-1.5 mt-2 text-sm font-medium text-emerald-200/50 first:mt-0">{children}</h6>
+  ),
+  p: ({ children }) => <p className="mb-3 leading-7 last:mb-0">{children}</p>,
+  strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+  em: ({ children }) => <em className="italic text-zinc-200">{children}</em>,
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-emerald-400 underline decoration-emerald-400/30 underline-offset-2 transition-colors hover:text-emerald-300 hover:decoration-emerald-300/50"
+    >
+      {children}
+    </a>
+  ),
+  ul: ({ children }) => (
+    <ul className="mb-3 ml-1 list-none space-y-1.5 last:mb-0 [&_ul]:mb-0 [&_ul]:mt-1.5">
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="mb-3 ml-1 list-none space-y-1.5 [counter-reset:item] last:mb-0 [&_ol]:mb-0 [&_ol]:mt-1.5">
+      {children}
+    </ol>
+  ),
+  li: ({ children, node }) => {
+    const isOrdered = node?.position
+      ? false
+      : (node as unknown as { parentNode?: { tagName?: string } })?.parentNode?.tagName === 'ol';
+    return (
+      <li
+        className={cn(
+          'relative pl-5 leading-7',
+          'before:absolute before:left-0 before:top-0 before:leading-7',
+          isOrdered
+            ? '[counter-increment:item] before:text-emerald-400/70 before:content-[counter(item)"."]'
+            : 'before:text-emerald-400/60 before:content-["▸"]'
+        )}
+      >
+        {children}
+      </li>
+    );
+  },
+  blockquote: ({ children }) => (
+    <blockquote className="my-3 border-l-2 border-emerald-400/40 pl-4 italic text-zinc-300/90">
+      {children}
+    </blockquote>
+  ),
+  pre: ({ children }) => (
+    <pre className="my-3 overflow-x-auto rounded-lg border border-white/10 bg-black/40 p-4 text-sm leading-6 last:mb-0">
+      {children}
+    </pre>
+  ),
+  code: ({ children, className }) => {
+    const isBlock = className?.startsWith('language-');
+    if (isBlock) {
+      return (
+        <code className={cn('font-mono text-[13px] text-emerald-100', className)}>{children}</code>
+      );
+    }
+    return (
+      <code className="rounded-md border border-emerald-500/15 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[13px] text-emerald-200">
+        {children}
+      </code>
+    );
+  },
+  table: ({ children }) => (
+    <div className="my-3 overflow-x-auto rounded-lg border border-white/10">
+      <table className="w-full border-collapse text-sm">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="border-b border-white/15 bg-white/5">{children}</thead>
+  ),
+  tbody: ({ children }) => <tbody className="divide-y divide-white/5">{children}</tbody>,
+  tr: ({ children }) => <tr className="transition-colors hover:bg-white/[0.03]">{children}</tr>,
+  th: ({ children }) => (
+    <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-emerald-300/80">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => <td className="px-3 py-2 text-zinc-200">{children}</td>,
+  hr: () => <hr className="my-5 border-0 border-t border-white/10" />,
+  img: ({ src, alt }) => (
+    // eslint-disable-next-line @next/next/no-img-element -- markdown renders standard img tags
+    <img
+      src={src}
+      alt={alt ?? ''}
+      className="my-3 max-w-full rounded-lg border border-white/10"
+      loading="lazy"
+    />
+  ),
+  input: ({ checked, disabled, ...props }) => (
+    <input
+      {...props}
+      checked={checked}
+      disabled={disabled}
+      type="checkbox"
+      className="mr-2 accent-emerald-400"
+      readOnly
+    />
+  ),
+};
+
+const remarkPlugins = [remarkGfm];
+
 export function MessageResponse({ children }: { children: ReactNode }) {
-  return <div className="whitespace-pre-wrap break-words">{children}</div>;
+  const content = useMemo(() => {
+    if (typeof children === 'string') return children;
+    if (children == null) return null;
+    return null;
+  }, [children]);
+
+  if (content === null) {
+    return <div className="whitespace-pre-wrap break-words">{children}</div>;
+  }
+
+  if (content.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="ai-markdown break-words">
+      <ReactMarkdown remarkPlugins={remarkPlugins} components={markdownComponents}>
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 }

@@ -27,46 +27,46 @@ export type ToolName =
   | 'think_deeply'
   | 'web_search'
   | 'write_file'
-  | 'write_todos'
+  | 'write_todos';
 
 /**
  * Map of tool names to their parameter types
  */
 export interface ToolParamsMap {
-  add_message: AddMessageParams
-  ask_user: AskUserParams
-  code_search: CodeSearchParams
-  end_turn: EndTurnParams
-  find_files: FindFilesParams
-  glob: GlobParams
-  list_directory: ListDirectoryParams
-  lookup_agent_info: LookupAgentInfoParams
-  propose_str_replace: ProposeStrReplaceParams
-  propose_write_file: ProposeWriteFileParams
-  read_docs: ReadDocsParams
-  read_files: ReadFilesParams
-  read_subtree: ReadSubtreeParams
-  run_file_change_hooks: RunFileChangeHooksParams
-  run_terminal_command: RunTerminalCommandParams
-  set_messages: SetMessagesParams
-  set_output: SetOutputParams
-  skill: SkillParams
-  spawn_agents: SpawnAgentsParams
-  str_replace: StrReplaceParams
-  suggest_followups: SuggestFollowupsParams
-  task_completed: TaskCompletedParams
-  think_deeply: ThinkDeeplyParams
-  web_search: WebSearchParams
-  write_file: WriteFileParams
-  write_todos: WriteTodosParams
+  add_message: AddMessageParams;
+  ask_user: AskUserParams;
+  code_search: CodeSearchParams;
+  end_turn: EndTurnParams;
+  find_files: FindFilesParams;
+  glob: GlobParams;
+  list_directory: ListDirectoryParams;
+  lookup_agent_info: LookupAgentInfoParams;
+  propose_str_replace: ProposeStrReplaceParams;
+  propose_write_file: ProposeWriteFileParams;
+  read_docs: ReadDocsParams;
+  read_files: ReadFilesParams;
+  read_subtree: ReadSubtreeParams;
+  run_file_change_hooks: RunFileChangeHooksParams;
+  run_terminal_command: RunTerminalCommandParams;
+  set_messages: SetMessagesParams;
+  set_output: SetOutputParams;
+  skill: SkillParams;
+  spawn_agents: SpawnAgentsParams;
+  str_replace: StrReplaceParams;
+  suggest_followups: SuggestFollowupsParams;
+  task_completed: TaskCompletedParams;
+  think_deeply: ThinkDeeplyParams;
+  web_search: WebSearchParams;
+  write_file: WriteFileParams;
+  write_todos: WriteTodosParams;
 }
 
 /**
  * Add a new message to the conversation history. To be used for complex requests that can't be solved in a single step, as you may forget what happened!
  */
 export interface AddMessageParams {
-  role: 'user' | 'assistant'
-  content: string
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 /**
@@ -76,30 +76,30 @@ export interface AskUserParams {
   /** List of multiple choice questions to ask the user */
   questions: {
     /** The question to ask the user */
-    question: string
+    question: string;
     /** Short label (max 12 chars) displayed as a chip/tag */
-    header?: string
+    header?: string;
     /** Array of answer options with label and optional description (minimum 2) */
     options: {
       /** The display text for this option */
-      label: string
+      label: string;
       /** Explanation shown when option is focused */
-      description?: string
-    }[]
+      description?: string;
+    }[];
     /** If true, allows selecting multiple options (checkbox). If false, single selection only (radio). */
-    multiSelect?: boolean
+    multiSelect?: boolean;
     /** Validation rules for "Other" text input */
     validation?: {
       /** Maximum length for "Other" text input */
-      maxLength?: number
+      maxLength?: number;
       /** Minimum length for "Other" text input */
-      minLength?: number
+      minLength?: number;
       /** Regex pattern for "Other" text input */
-      pattern?: string
+      pattern?: string;
       /** Custom error message when pattern fails */
-      patternError?: string
-    }
-  }[]
+      patternError?: string;
+    };
+  }[];
 }
 
 /**
@@ -107,26 +107,28 @@ export interface AskUserParams {
  */
 export interface CodeSearchParams {
   /** The pattern to search for. */
-  pattern: string
+  pattern: string;
   /** Optional ripgrep flags to customize the search (e.g., "-i" for case-insensitive, "-g *.ts -g *.js" for TypeScript and JavaScript files only, "-g !*.test.ts" to exclude Typescript test files,  "-A 3" for 3 lines after match, "-B 2" for 2 lines before match). */
-  flags?: string
+  flags?: string;
   /** Optional working directory to search within, relative to the project root. Defaults to searching the entire project. */
-  cwd?: string
+  cwd?: string;
   /** Maximum number of results to return per file. Defaults to 15. There is also a global limit of 250 results across all files. */
-  maxResults?: number
+  maxResults?: number;
 }
 
 /**
  * End your turn, regardless of any new tool results that might be coming. This will allow the user to type another prompt.
  */
-export interface EndTurnParams {}
+export interface EndTurnParams {
+  [key: string]: never;
+}
 
 /**
  * Find several files related to a brief natural language description of the files or the name of a function or class you are looking for.
  */
 export interface FindFilesParams {
   /** A brief natural language description of the files or the name of a function or class you are looking for. It's also helpful to mention a directory or two to look within. */
-  prompt: string
+  prompt: string;
 }
 
 /**
@@ -134,9 +136,9 @@ export interface FindFilesParams {
  */
 export interface GlobParams {
   /** Glob pattern to match files against (e.g., *.js, src/glob/*.ts, glob/test/glob/*.go). */
-  pattern: string
+  pattern: string;
   /** Optional working directory to search within, relative to project root. If not provided, searches from project root. */
-  cwd?: string
+  cwd?: string;
 }
 
 /**
@@ -144,7 +146,7 @@ export interface GlobParams {
  */
 export interface ListDirectoryParams {
   /** Directory path to list, relative to the project root. */
-  path: string
+  path: string;
 }
 
 /**
@@ -152,7 +154,7 @@ export interface ListDirectoryParams {
  */
 export interface LookupAgentInfoParams {
   /** Agent ID (short local or full published format) */
-  agentId: string
+  agentId: string;
 }
 
 /**
@@ -160,16 +162,16 @@ export interface LookupAgentInfoParams {
  */
 export interface ProposeStrReplaceParams {
   /** The path to the file to edit. */
-  path: string
+  path: string;
   /** Array of replacements to make. */
   replacements: {
     /** The string to replace. This must be an *exact match* of the string you want to replace, including whitespace and punctuation. */
-    old: string
+    old: string;
     /** The string to replace the corresponding old string with. Can be empty to delete. */
-    new: string
+    new: string;
     /** Whether to allow multiple replacements of old string. */
-    allowMultiple?: boolean
-  }[]
+    allowMultiple?: boolean;
+  }[];
 }
 
 /**
@@ -177,11 +179,11 @@ export interface ProposeStrReplaceParams {
  */
 export interface ProposeWriteFileParams {
   /** Path to the file relative to the **project root** */
-  path: string
+  path: string;
   /** What the change is intended to do in only one sentence. */
-  instructions: string
+  instructions: string;
   /** Edit snippet to apply to the file. */
-  content: string
+  content: string;
 }
 
 /**
@@ -189,11 +191,11 @@ export interface ProposeWriteFileParams {
  */
 export interface ReadDocsParams {
   /** The library or framework name (e.g., "Next.js", "MongoDB", "React"). Use the official name as it appears in documentation if possible. Only public libraries available in Context7's database are supported, so small or private libraries may not be available. */
-  libraryTitle: string
+  libraryTitle: string;
   /** Specific topic to focus on (e.g., "routing", "hooks", "authentication") */
-  topic: string
+  topic: string;
   /** Optional maximum number of tokens to return. Defaults to 20000. Values less than 10000 are automatically increased to 10000. */
-  max_tokens?: number
+  max_tokens?: number;
 }
 
 /**
@@ -201,7 +203,7 @@ export interface ReadDocsParams {
  */
 export interface ReadFilesParams {
   /** List of file paths to read. */
-  paths: string[]
+  paths: string[];
 }
 
 /**
@@ -209,9 +211,9 @@ export interface ReadFilesParams {
  */
 export interface ReadSubtreeParams {
   /** List of paths to directories or files. Relative to the project root. If omitted, the entire project tree is used. */
-  paths?: string[]
+  paths?: string[];
   /** Maximum token budget for the subtree blob; the tree will be truncated to fit within this budget by first dropping file variables and then removing the most-nested files and directories. */
-  maxTokens?: number
+  maxTokens?: number;
 }
 
 /**
@@ -219,7 +221,7 @@ export interface ReadSubtreeParams {
  */
 export interface RunFileChangeHooksParams {
   /** List of file paths that were changed and should trigger file change hooks */
-  files: string[]
+  files: string[];
 }
 
 /**
@@ -227,33 +229,35 @@ export interface RunFileChangeHooksParams {
  */
 export interface RunTerminalCommandParams {
   /** CLI command valid for user's OS. */
-  command: string
+  command: string;
   /** Either SYNC (waits, returns output) or BACKGROUND (runs in background). Default SYNC */
-  process_type?: 'SYNC' | 'BACKGROUND'
+  process_type?: 'SYNC' | 'BACKGROUND';
   /** The working directory to run the command in. Default is the project root. */
-  cwd?: string
+  cwd?: string;
   /** Set to -1 for no timeout. Does not apply for BACKGROUND commands. Default 30 */
-  timeout_seconds?: number
+  timeout_seconds?: number;
 }
 
 /**
  * Set the conversation history to the provided messages.
  */
 export interface SetMessagesParams {
-  messages: any
+  messages: unknown;
 }
 
 /**
  * JSON object to set as the agent output. This completely replaces any previous output. If the agent was spawned, this value will be passed back to its parent. If the agent has an outputSchema defined, the output will be validated against it.
  */
-export interface SetOutputParams {}
+export interface SetOutputParams {
+  [key: string]: never;
+}
 
 /**
  * Load a skill's full instructions when relevant to the current task. Skills are loaded on-demand - only load them when you need their specific guidance.
  */
 export interface SkillParams {
   /** The name of the skill to load */
-  name: string
+  name: string;
 }
 
 /**
@@ -262,12 +266,12 @@ export interface SkillParams {
 export interface SpawnAgentsParams {
   agents: {
     /** Agent to spawn */
-    agent_type: string
+    agent_type: string;
     /** Prompt to send to the agent */
-    prompt?: string
+    prompt?: string;
     /** Parameters object for the agent (if any) */
-    params?: Record<string, any>
-  }[]
+    params?: Record<string, unknown>;
+  }[];
 }
 
 /**
@@ -275,16 +279,16 @@ export interface SpawnAgentsParams {
  */
 export interface StrReplaceParams {
   /** The path to the file to edit. */
-  path: string
+  path: string;
   /** Array of replacements to make. */
   replacements: {
     /** The string to replace. This must be an *exact match* of the string you want to replace, including whitespace and punctuation. */
-    old: string
+    old: string;
     /** The string to replace the corresponding old string with. Can be empty to delete. */
-    new: string
+    new: string;
     /** Whether to allow multiple replacements of old string. */
-    allowMultiple?: boolean
-  }[]
+    allowMultiple?: boolean;
+  }[];
 }
 
 /**
@@ -294,10 +298,10 @@ export interface SuggestFollowupsParams {
   /** List of suggested followup prompts the user can click to send */
   followups: {
     /** The full prompt text to send as a user message when clicked */
-    prompt: string
+    prompt: string;
     /** Short display label for the card (defaults to truncated prompt if not provided) */
-    label?: string
-  }[]
+    label?: string;
+  }[];
 }
 
 /**
@@ -308,14 +312,16 @@ export interface SuggestFollowupsParams {
 
 This tool explicitly marks the end of your work on the current task.
  */
-export interface TaskCompletedParams {}
+export interface TaskCompletedParams {
+  [key: string]: never;
+}
 
 /**
  * Deeply consider complex tasks by brainstorming approaches and tradeoffs step-by-step.
  */
 export interface ThinkDeeplyParams {
   /** Detailed step-by-step analysis. Initially keep each step concise (max ~5-7 words per step). */
-  thought: string
+  thought: string;
 }
 
 /**
@@ -323,9 +329,9 @@ export interface ThinkDeeplyParams {
  */
 export interface WebSearchParams {
   /** The search query to find relevant web content */
-  query: string
+  query: string;
   /** Search depth - 'standard' for quick results, 'deep' for more comprehensive search. Default is 'standard'. */
-  depth?: 'standard' | 'deep'
+  depth?: 'standard' | 'deep';
 }
 
 /**
@@ -333,11 +339,11 @@ export interface WebSearchParams {
  */
 export interface WriteFileParams {
   /** Path to the file relative to the **project root** */
-  path: string
+  path: string;
   /** What the change is intended to do in only one sentence. */
-  instructions: string
+  instructions: string;
   /** Edit snippet to apply to the file. */
-  content: string
+  content: string;
 }
 
 /**
@@ -347,13 +353,13 @@ export interface WriteTodosParams {
   /** List of todos with their completion status. Add ALL of the applicable tasks to the list, so you don't forget to do anything. Try to order the todos the same way you will complete them. Do not mark todos as completed if you have not completed them yet! */
   todos: {
     /** Description of the task */
-    task: string
+    task: string;
     /** Whether the task is completed */
-    completed: boolean
-  }[]
+    completed: boolean;
+  }[];
 }
 
 /**
  * Get parameters type for a specific tool
  */
-export type GetToolParams<T extends ToolName> = ToolParamsMap[T]
+export type GetToolParams<T extends ToolName> = ToolParamsMap[T];

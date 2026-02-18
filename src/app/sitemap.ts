@@ -114,17 +114,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (equipment) {
       equipmentRoutes = equipment.map((item) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const route: any = {
+        const images = Array.isArray(item.images)
+          ? item.images.filter((img): img is string => typeof img === 'string')
+          : [];
+        return {
           url: `${baseUrl}/equipment/${item.id}`,
           lastModified: new Date(item.updated_at),
           changeFrequency: 'daily' as const,
           priority: 0.7,
-        };
-        if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-          route.images = item.images.map((img: string) => ({ url: img }));
-        }
-        return route;
+          ...(images.length > 0 && { images }),
+        } satisfies MetadataRoute.Sitemap[number];
       });
     }
   } catch {
@@ -145,17 +144,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (labour) {
       labourRoutes = labour.map((item) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const route: any = {
+        const images = Array.isArray(item.images)
+          ? item.images.filter((img): img is string => typeof img === 'string')
+          : [];
+        return {
           url: `${baseUrl}/labour/${item.id}`,
           lastModified: new Date(item.updated_at),
           changeFrequency: 'daily' as const,
           priority: 0.7,
-        };
-        if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-          route.images = item.images.map((img: string) => ({ url: img }));
-        }
-        return route;
+          ...(images.length > 0 && { images }),
+        } satisfies MetadataRoute.Sitemap[number];
       });
     }
   } catch {
@@ -195,40 +193,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     }));
-  } catch (e) {
-    console.warn('[Sitemap] Could not load blog posts', e);
+  } catch (err) {
+    console.warn('[Sitemap] Could not load blog posts', err);
   }
 
   // ─── Video / landing page entry (include thumbnail) ────────────
-  const videoRoutes: any[] = [];
+  const videoRoutes: MetadataRoute.Sitemap = [];
   try {
-    const poster = `${baseUrl}/Landingpagevideo-poster.jpg`;
-    // push as any to avoid strict type errors for sitemap video extensions
     videoRoutes.push({
       url: `${baseUrl}/`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.9,
-      images: [
-        {
-          url: poster,
-          title: 'AgriServe Landing Video',
-        },
-      ],
-      // include video metadata under a custom key; sitemap libraries may pick this up
-      video: {
-        thumbnailUrl: poster,
-        title: 'AgriServe — Equipment & Labour for Farmers',
-        description:
-          'Overview video: rent farm equipment and hire agricultural labour across India via AgriServe.',
-      } as any,
-    } as any);
-  } catch (e) {
-    console.warn('[Sitemap] Could not create video entry', e);
+    });
+  } catch (err) {
+    console.warn('[Sitemap] Could not create video entry', err);
   }
 
   // combine all routes; cast to MetadataRoute.Sitemap to satisfy return type
-  const all: any[] = [
+  const all = [
     ...staticRoutes,
     ...videoRoutes,
     ...stateRoutes,
@@ -237,7 +220,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...labourRoutes,
     ...userRoutes,
     ...blogRoutes,
-  ];
+  ] satisfies MetadataRoute.Sitemap;
 
-  return all as MetadataRoute.Sitemap;
+  return all;
 }

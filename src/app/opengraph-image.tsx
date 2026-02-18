@@ -12,7 +12,7 @@ async function tryFetch(path: string) {
   try {
     const res = await fetch(path);
     if (res.ok) return res.arrayBuffer();
-  } catch (e) {
+  } catch {
     return null;
   }
   return null;
@@ -31,7 +31,7 @@ export default async function Image() {
   try {
     const r = await fetch(`${siteOrigin}/logo.png`);
     hasLogo = r.ok;
-  } catch (e) {
+  } catch {
     hasLogo = false;
   }
 

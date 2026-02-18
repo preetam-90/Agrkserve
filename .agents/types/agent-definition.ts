@@ -20,103 +20,94 @@
 
 export interface AgentDefinition {
   /** Unique identifier for this agent. Must contain only lowercase letters, numbers, and hyphens, e.g. 'code-reviewer' */
-  id: string
+  id: string;
 
   /** Version string (if not provided, will default to '0.0.1' and be bumped on each publish) */
-  version?: string
+  version?: string;
 
   /** Publisher ID for the agent. Must be provided if you want to publish the agent. */
-  publisher?: string
+  publisher?: string;
 
   /** Human-readable name for the agent */
-  displayName: string
+  displayName: string;
 
-  /** AI model to use for this agent. Can be any model in OpenRouter: https://openrouter.ai/models */
-  model: ModelName
+  /** AI model to use for this agent. Can be any model from Groq. */
+  model: ModelName;
 
   /**
-   * https://openrouter.ai/docs/use-cases/reasoning-tokens
+   * https://groq.com/docs/reasoning
    * One of `max_tokens` or `effort` is required.
    * If `exclude` is true, reasoning will be removed from the response. Default is false.
    */
   reasoningOptions?: {
-    enabled?: boolean
-    exclude?: boolean
+    enabled?: boolean;
+    exclude?: boolean;
   } & (
     | {
-        max_tokens: number
+        max_tokens: number;
       }
     | {
-        effort: 'high' | 'medium' | 'low' | 'minimal' | 'none'
+        effort: 'high' | 'medium' | 'low' | 'minimal' | 'none';
       }
-  )
+  );
 
   /**
-   * Provider routing options for OpenRouter.
+   * Provider routing options.
    * Controls which providers to use and fallback behavior.
-   * See https://openrouter.ai/docs/features/provider-routing
    */
   providerOptions?: {
     /**
      * List of provider slugs to try in order (e.g. ["anthropic", "openai"])
      */
-    order?: string[]
+    order?: string[];
     /**
      * Whether to allow backup providers when primary is unavailable (default: true)
      */
-    allow_fallbacks?: boolean
+    allow_fallbacks?: boolean;
     /**
      * Only use providers that support all parameters in your request (default: false)
      */
-    require_parameters?: boolean
+    require_parameters?: boolean;
     /**
      * Control whether to use providers that may store data
      */
-    data_collection?: 'allow' | 'deny'
+    data_collection?: 'allow' | 'deny';
     /**
      * List of provider slugs to allow for this request
      */
-    only?: string[]
+    only?: string[];
     /**
      * List of provider slugs to skip for this request
      */
-    ignore?: string[]
+    ignore?: string[];
     /**
      * List of quantization levels to filter by (e.g. ["int4", "int8"])
      */
     quantizations?: Array<
-      | 'int4'
-      | 'int8'
-      | 'fp4'
-      | 'fp6'
-      | 'fp8'
-      | 'fp16'
-      | 'bf16'
-      | 'fp32'
-      | 'unknown'
-    >
+      'int4' | 'int8' | 'fp4' | 'fp6' | 'fp8' | 'fp16' | 'bf16' | 'fp32' | 'unknown'
+    >;
     /**
      * Sort providers by price, throughput, or latency
      */
-    sort?: 'price' | 'throughput' | 'latency'
+    sort?: 'price' | 'throughput' | 'latency';
     /**
      * Maximum pricing you want to pay for this request
      */
     max_price?: {
-      prompt?: number | string
-      completion?: number | string
-      image?: number | string
-      audio?: number | string
-      request?: number | string
-    }
-  }
+      prompt?: number | string;
+      completion?: number | string;
+      image?: number | string;
+      audio?: number | string;
+      request?: number | string;
+    };
+  };
 
   // ============================================================================
   // Tools and Subagents
   // ============================================================================
 
   /** MCP servers by name. Names cannot contain `/`. */
-  mcpServers?: Record<string, MCPConfig>
+  mcpServers?: Record<string, MCPConfig>;
 
   /**
    * Tools this agent can use.
@@ -126,7 +117,7 @@ export interface AgentDefinition {
    * in the format `'mcpServerName/toolName1'`, `'mcpServerName/toolName2'`,
    * etc.
    */
-  toolNames?: (ToolName | (string & {}))[]
+  toolNames?: (ToolName | string)[];
 
   /** Other agents this agent can spawn, like 'codebuff/file-picker@0.0.1'.
    *
@@ -135,7 +126,7 @@ export interface AgentDefinition {
    *
    * Or, use the agent id from a local agent file in your .agents directory: 'file-picker'.
    */
-  spawnableAgents?: string[]
+  spawnableAgents?: string[];
 
   // ============================================================================
   // Input and Output
@@ -148,9 +139,9 @@ export interface AgentDefinition {
    * }
    */
   inputSchema?: {
-    prompt?: { type: 'string'; description?: string }
-    params?: JsonObjectSchema
-  }
+    prompt?: { type: 'string'; description?: string };
+    params?: JsonObjectSchema;
+  };
 
   /** How the agent should output a response to its parent (defaults to 'last_message')
    *
@@ -160,10 +151,10 @@ export interface AgentDefinition {
    *
    * structured_output: Make the agent output a JSON object. Can be used with outputSchema or without if you want freeform json output.
    */
-  outputMode?: 'last_message' | 'all_messages' | 'structured_output'
+  outputMode?: 'last_message' | 'all_messages' | 'structured_output';
 
   /** JSON schema for structured output (when outputMode is 'structured_output') */
-  outputSchema?: JsonObjectSchema
+  outputSchema?: JsonObjectSchema;
 
   // ============================================================================
   // Prompts
@@ -172,14 +163,14 @@ export interface AgentDefinition {
   /** Prompt for when and why to spawn this agent. Include the main purpose and use cases.
    *
    * This field is key if the agent is intended to be spawned by other agents. */
-  spawnerPrompt?: string
+  spawnerPrompt?: string;
 
   /** Whether to include conversation history from the parent agent in context.
    *
    * Defaults to false.
    * Use this when the agent needs to know all the previous messages in the conversation.
    */
-  includeMessageHistory?: boolean
+  includeMessageHistory?: boolean;
 
   /** Whether to inherit the parent agent's system prompt instead of using this agent's own systemPrompt.
    *
@@ -187,22 +178,22 @@ export interface AgentDefinition {
    * Use this when you want to enable prompt caching by preserving the same system prompt prefix.
    * Cannot be used together with the systemPrompt field.
    */
-  inheritParentSystemPrompt?: boolean
+  inheritParentSystemPrompt?: boolean;
 
   /** Background information for the agent. Fairly optional. Prefer using instructionsPrompt for agent instructions. */
-  systemPrompt?: string
+  systemPrompt?: string;
 
   /** Instructions for the agent.
    *
    * IMPORTANT: Updating this prompt is the best way to shape the agent's behavior.
    * This prompt is inserted after each user input. */
-  instructionsPrompt?: string
+  instructionsPrompt?: string;
 
   /** Prompt inserted at each agent step.
    *
    * Powerful for changing the agent's behavior, but usually not necessary for smart models.
    * Prefer instructionsPrompt for most instructions. */
-  stepPrompt?: string
+  stepPrompt?: string;
 
   // ============================================================================
   // Handle Steps
@@ -260,12 +251,12 @@ export interface AgentDefinition {
     ToolCall | 'STEP' | 'STEP_ALL' | StepText | GenerateN,
     void,
     {
-      agentState: AgentState
-      toolResult: ToolResultOutput[] | undefined
-      stepsComplete: boolean
-      nResponses?: string[]
+      agentState: AgentState;
+      toolResult: ToolResultOutput[] | undefined;
+      stepsComplete: boolean;
+      nResponses?: string[];
     }
-  >
+  >;
 }
 
 // ============================================================================
@@ -273,55 +264,55 @@ export interface AgentDefinition {
 // ============================================================================
 
 export interface AgentState {
-  agentId: string
-  runId: string
-  parentId: string | undefined
+  agentId: string;
+  runId: string;
+  parentId: string | undefined;
 
   /** The agent's conversation history: messages from the user and the assistant. */
-  messageHistory: Message[]
+  messageHistory: Message[];
 
   /** The last value set by the set_output tool. This is a plain object or undefined if not set. */
-  output: Record<string, any> | undefined
+  output: Record<string, unknown> | undefined;
 
   /** The system prompt for this agent. */
-  systemPrompt: string
+  systemPrompt: string;
 
   /** The tool definitions for this agent. */
   toolDefinitions: Record<
     string,
-    { description: string | undefined; inputSchema: {} }
-  >
+    { description: string | undefined; inputSchema: Record<string, unknown> }
+  >;
 
   /**
    * The token count from the Anthropic API.
    * This is updated on every agent step via the /api/v1/token-count endpoint.
    */
-  contextTokenCount: number
+  contextTokenCount: number;
 }
 
 /**
  * Context provided to handleSteps generator function
  */
 export interface AgentStepContext {
-  agentState: AgentState
-  prompt?: string
-  params?: Record<string, any>
-  logger: Logger
+  agentState: AgentState;
+  prompt?: string;
+  params?: Record<string, unknown>;
+  logger: Logger;
 }
 
-export type StepText = { type: 'STEP_TEXT'; text: string }
-export type GenerateN = { type: 'GENERATE_N'; n: number }
+export type StepText = { type: 'STEP_TEXT'; text: string };
+export type GenerateN = { type: 'GENERATE_N'; n: number };
 
 /**
  * Tool call object for handleSteps generator
  */
 export type ToolCall<T extends ToolName = ToolName> = {
   [K in T]: {
-    toolName: K
-    input: GetToolParams<K>
-    includeToolCall?: boolean
-  }
-}[T]
+    toolName: K;
+    input: GetToolParams<K>;
+    includeToolCall?: boolean;
+  };
+}[T];
 
 // ============================================================================
 // Available Tools
@@ -330,41 +321,41 @@ export type ToolCall<T extends ToolName = ToolName> = {
 /**
  * File operation tools
  */
-export type FileEditingTools = 'read_files' | 'write_file' | 'str_replace'
+export type FileEditingTools = 'read_files' | 'write_file' | 'str_replace';
 
 /**
  * Code analysis tools
  */
-export type CodeAnalysisTools = 'code_search' | 'find_files' | 'read_files'
+export type CodeAnalysisTools = 'code_search' | 'find_files' | 'read_files';
 
 /**
  * Terminal and system tools
  */
-export type TerminalTools = 'run_terminal_command' | 'code_search'
+export type TerminalTools = 'run_terminal_command' | 'code_search';
 
 /**
  * Web and browser tools
  */
-export type WebTools = 'web_search' | 'read_docs'
+export type WebTools = 'web_search' | 'read_docs';
 
 /**
  * Agent management tools
  */
-export type AgentTools = 'spawn_agents'
+export type AgentTools = 'spawn_agents';
 
 /**
  * Output and control tools
  */
-export type OutputTools = 'set_output'
+export type OutputTools = 'set_output';
 
 // ============================================================================
-// Available Models (see: https://openrouter.ai/models)
+// Available Models (see: https://console.groq.com/docs/models)
 // ============================================================================
 
 /**
- * AI models available for agents. Pick from our selection of recommended models or choose any model in OpenRouter.
+ * AI models available for agents. Pick from our selection of recommended models or choose any model from Groq.
  *
- * See available models at https://openrouter.ai/models
+ * See available models at https://console.groq.com/docs/models
  */
 export type ModelName =
   // Recommended Models
@@ -419,15 +410,9 @@ export type ModelName =
   | 'z-ai/glm-4.6:nitro'
   | 'z-ai/glm-4.7'
   | 'z-ai/glm-4.7-flash'
-  | (string & {})
+  | string;
 
-import type { ToolName, GetToolParams } from './tools'
-import type {
-  Message,
-  ToolResultOutput,
-  JsonObjectSchema,
-  MCPConfig,
-  Logger,
-} from './util-types'
+import type { ToolName, GetToolParams } from './tools';
+import type { Message, ToolResultOutput, JsonObjectSchema, MCPConfig, Logger } from './util-types';
 
-export type { ToolName, GetToolParams }
+export type { ToolName, GetToolParams };

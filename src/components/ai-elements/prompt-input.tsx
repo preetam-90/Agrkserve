@@ -1,3 +1,21 @@
+/**
+ * PromptInput — Compound component for the AI chat input area.
+ *
+ * Exports (original, kept for backward compatibility):
+ *   PromptInput, PromptInputBody, PromptInputFooter, PromptInputHeader,
+ *   PromptInputTextarea, PromptInputTools, PromptInputButton,
+ *   PromptInputSubmit, PromptInputActionMenu, PromptInputActionMenuTrigger,
+ *   PromptInputActionMenuContent, PromptInputActionAddAttachments,
+ *   usePromptInputAttachments
+ *
+ * New exports (for media upload):
+ *   PromptInputFileButton  — paperclip button that opens the file picker
+ *   PromptInputMediaPreview — renders ChatMediaChip list above the textarea
+ *
+ * Types:
+ *   PromptInputAttachment  — legacy type (kept for backward compat)
+ *   PromptInputMessage     — legacy type (kept for backward compat)
+ */
 'use client';
 
 import { Paperclip, Plus, Send } from 'lucide-react';
@@ -14,9 +32,15 @@ import {
 import { nanoid } from 'nanoid';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import type { ChatMediaItem } from '@/hooks/use-chat-media';
+import { ChatMediaChip } from '@/components/ai-elements/attachments';
+
+// ─── Legacy types (kept for backward compatibility) ───────────────────────────
 
 export type PromptInputAttachment = { id: string; name: string; type: string; url: string };
 export type PromptInputMessage = { text?: string; files?: PromptInputAttachment[] };
+
+// ─── Legacy PromptInput context ───────────────────────────────────────────────
 
 const PromptInputContext = createContext<{
   files: PromptInputAttachment[];
@@ -25,6 +49,12 @@ const PromptInputContext = createContext<{
   clear: () => void;
 } | null>(null);
 
+// ─── Core PromptInput ─────────────────────────────────────────────────────────
+
+/**
+ * PromptInput — form container and context provider.
+ * Wraps all child prompt-input components in a styled form.
+ */
 export function PromptInput({
   children,
   onSubmit,
@@ -38,14 +68,12 @@ export function PromptInput({
 
   const addFiles = useCallback((list: FileList | null) => {
     if (!list) return;
-
     const next = Array.from(list).map((file) => ({
       id: nanoid(),
       name: file.name,
       type: file.type,
       url: URL.createObjectURL(file),
     }));
-
     setFiles((prev) => [...prev, ...next]);
   }, []);
 
@@ -64,7 +92,10 @@ export function PromptInput({
     });
   }, []);
 
-  const value = useMemo(() => ({ files, addFiles, remove, clear }), [files, addFiles, remove, clear]);
+  const value = useMemo(
+    () => ({ files, addFiles, remove, clear }),
+    [files, addFiles, remove, clear]
+  );
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -88,12 +119,11 @@ export function PromptInput({
 
 export function usePromptInputAttachments() {
   const ctx = useContext(PromptInputContext);
-  if (!ctx) {
-    return { files: [], remove: () => undefined };
-  }
-
+  if (!ctx) return { files: [], remove: () => undefined };
   return { files: ctx.files, remove: ctx.remove };
 }
+
+// ─── Layout primitives ────────────────────────────────────────────────────────
 
 export function PromptInputHeader({ children }: { children: ReactNode }) {
   return <div className="border-b border-white/10 px-3 py-2">{children}</div>;
@@ -104,8 +134,14 @@ export function PromptInputBody({ children }: { children: ReactNode }) {
 }
 
 export function PromptInputFooter({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-3 py-2">{children}</div>;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 px-3 py-2">
+      {children}
+    </div>
+  );
 }
+
+// ─── Textarea ─────────────────────────────────────────────────────────────────
 
 export function PromptInputTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -114,7 +150,6 @@ export function PromptInputTextarea(props: React.TextareaHTMLAttributes<HTMLText
       const form = event.currentTarget.form;
       if (form) form.requestSubmit();
     }
-
     props.onKeyDown?.(event);
   };
 
@@ -129,11 +164,18 @@ export function PromptInputTextarea(props: React.TextareaHTMLAttributes<HTMLText
   );
 }
 
+// ─── Buttons ──────────────────────────────────────────────────────────────────
+
 export function PromptInputTools({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-center gap-1.5">{children}</div>;
 }
 
-export function PromptInputButton({ children, className, variant, ...props }: React.ComponentProps<typeof Button>) {
+export function PromptInputButton({
+  children,
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<typeof Button>) {
   return (
     <Button
       className={`h-9 rounded-lg border border-transparent px-3 text-xs text-white/90 transition hover:border-white/20 hover:bg-white/10 ${className || ''}`}
@@ -154,7 +196,6 @@ export function PromptInputSubmit({
   status: 'submitted' | 'streaming' | 'ready' | 'error';
 }) {
   const label = status === 'streaming' ? 'Streaming' : 'Send';
-
   return (
     <Button
       className="h-9 rounded-lg bg-gradient-to-r from-emerald-500 to-green-500 px-3 text-xs text-black shadow-none hover:from-emerald-400 hover:to-green-400"
@@ -169,6 +210,10 @@ export function PromptInputSubmit({
   );
 }
 
+// ─── Action menu ──────────────────────────────────────────────────────────────
+
+const MenuContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(null);
+
 export function PromptInputActionMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
@@ -178,12 +223,9 @@ export function PromptInputActionMenu({ children }: { children: ReactNode }) {
   );
 }
 
-const MenuContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(null);
-
 export function PromptInputActionMenuTrigger() {
   const ctx = useContext(MenuContext);
   if (!ctx) return null;
-
   return (
     <Button
       className="h-9 rounded-lg border border-transparent text-white/90 hover:border-white/20 hover:bg-white/10"
@@ -200,13 +242,14 @@ export function PromptInputActionMenuTrigger() {
 export function PromptInputActionMenuContent({ children }: { children: ReactNode }) {
   const ctx = useContext(MenuContext);
   if (!ctx?.open) return null;
-
   return (
     <div className="absolute bottom-11 left-0 z-30 min-w-44 rounded-xl border border-white/15 bg-[#0d1713] p-1.5 shadow-xl">
       {children}
     </div>
   );
 }
+
+// ─── Legacy attachment (kept for backward compat) ─────────────────────────────
 
 export function PromptInputActionAddAttachments() {
   const ctx = useContext(PromptInputContext);
@@ -232,5 +275,93 @@ export function PromptInputActionAddAttachments() {
         type="file"
       />
     </>
+  );
+}
+
+// ─── New media upload components ──────────────────────────────────────────────
+
+/**
+ * PromptInputFileButton — paperclip icon button that opens the OS file picker.
+ *
+ * Designed to be placed in the PromptInputFooter alongside other tool buttons.
+ * Calls the provided onFilesSelected callback with the selected FileList.
+ *
+ * @param onFilesSelected  - Callback receiving FileList from the file input
+ * @param disabled         - Disables the button (e.g. while uploading)
+ * @param accept           - Optional MIME type filter for the file input
+ * @param multiple         - Whether to allow multiple file selection (default: true)
+ */
+export function PromptInputFileButton({
+  onFilesSelected,
+  disabled,
+  accept,
+  multiple = true,
+}: {
+  onFilesSelected: (files: FileList) => void;
+  disabled?: boolean;
+  accept?: string;
+  multiple?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      <Button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={disabled}
+        className="h-9 rounded-lg border border-transparent px-3 text-xs text-white/70 transition hover:border-white/20 hover:bg-white/10 hover:text-white/90 disabled:opacity-40"
+        size="sm"
+        variant="ghost"
+        title="Attach media (images, videos, documents)"
+      >
+        <Paperclip className="size-3.5" />
+        <span>Attach</span>
+      </Button>
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        multiple={multiple}
+        accept={
+          accept ||
+          'image/jpeg,image/jpg,image/png,image/webp,video/mp4,video/webm,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            onFilesSelected(e.target.files);
+            // Reset input so the same file can be re-selected after removal
+            e.target.value = '';
+          }
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * PromptInputMediaPreview — renders a row of ChatMediaChip items.
+ *
+ * Displays current uploads (uploading, uploaded, or error state) in the
+ * chat input area, above the textarea. Hidden when there are no uploads.
+ *
+ * @param uploads   - ChatMediaItem[] from useChatMedia hook
+ * @param onRemove  - Called with the item id when user clicks × on a chip
+ */
+export function PromptInputMediaPreview({
+  uploads,
+  onRemove,
+}: {
+  uploads: ChatMediaItem[];
+  onRemove: (id: string) => void;
+}) {
+  if (uploads.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5 px-3 pb-1 pt-2">
+      {uploads.map((item) => (
+        <ChatMediaChip key={item.id} item={item} onRemove={() => onRemove(item.id)} />
+      ))}
+    </div>
   );
 }

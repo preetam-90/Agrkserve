@@ -12,7 +12,7 @@ async function tryFetch(path: string) {
   try {
     const res = await fetch(path);
     if (res.ok) return res.arrayBuffer();
-  } catch (e) {
+  } catch {
     return null;
   }
   return null;

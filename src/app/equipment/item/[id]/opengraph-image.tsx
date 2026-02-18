@@ -12,7 +12,7 @@ async function tryFetch(path: string) {
   try {
     const res = await fetch(path);
     if (res.ok) return res.arrayBuffer();
-  } catch (e) {
+  } catch {
     return null;
   }
   return null;
@@ -27,7 +27,7 @@ async function getEquipment(id: string) {
       .eq('id', id)
       .single();
     return data;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

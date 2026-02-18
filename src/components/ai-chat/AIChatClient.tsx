@@ -1,14 +1,19 @@
 'use client';
 
-import type { PromptInputMessage } from '@/components/ai-elements/prompt-input';
+/**
+ * AIChatClient — Full-page AI chat interface for AgriServe.
+ *
+ * Features added:
+ *   - Media upload (images, videos, documents) via Cloudinary
+ *   - Automatic model switching: llama-4-scout for media, llama-3.1-8b for text
+ *   - Media preview in user message bubbles
+ *   - Auto-delete media on new chat or page leave (navigator.sendBeacon)
+ *   - Web search toggle
+ *   - Vision model badge indicator
+ */
+
 import type { UIMessage } from 'ai';
 
-import {
-  Attachment,
-  AttachmentPreview,
-  AttachmentRemove,
-  Attachments,
-} from '@/components/ai-elements/attachments';
 import {
   Conversation,
   ConversationContent,
@@ -22,186 +27,26 @@ import {
   MessageResponse,
 } from '@/components/ai-elements/message';
 import {
-  ModelSelector,
-  ModelSelectorContent,
-  ModelSelectorEmpty,
-  ModelSelectorGroup,
-  ModelSelectorInput,
-  ModelSelectorItem,
-  ModelSelectorList,
-  ModelSelectorLogo,
-  ModelSelectorLogoGroup,
-  ModelSelectorName,
-  ModelSelectorTrigger,
-} from '@/components/ai-elements/model-selector';
-import {
   PromptInput,
-  PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuTrigger,
   PromptInputBody,
   PromptInputButton,
+  PromptInputFileButton,
   PromptInputFooter,
-  PromptInputHeader,
+  PromptInputMediaPreview,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputTools,
-  usePromptInputAttachments,
 } from '@/components/ai-elements/prompt-input';
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from '@/components/ai-elements/reasoning';
+import { Reasoning, ReasoningContent, ReasoningTrigger } from '@/components/ai-elements/reasoning';
 import { Source, Sources, SourcesContent, SourcesTrigger } from '@/components/ai-elements/sources';
-import { SpeechInput } from '@/components/ai-elements/speech-input';
+import { ChatMediaPreviewList } from '@/components/ai-elements/attachments';
+import { useChatWidgetStore } from '@/lib/store/ai-chat-store';
+import { useChatMedia, type ChatMediaItem } from '@/hooks/use-chat-media';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { CheckIcon, GlobeIcon, Sparkles } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
+import { GlobeIcon, RotateCcw, Sparkles, Eye } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-interface ModelOption {
-  id: string;
-  name: string;
-  chef: string;
-  chefSlug: string;
-  providers: string[];
-}
-
-interface ModelApiResponse {
-  models: Array<{ id: string; name: string; provider: string }>;
-}
-
-const fallbackModels: ModelOption[] = [
-  {
-    chef: 'Groq',
-    chefSlug: 'groq',
-    id: 'groq/llama-3.3-70b-versatile',
-    name: 'llama-3.3-70b-versatile',
-    providers: ['groq'],
-  },
-  {
-    chef: 'Groq',
-    chefSlug: 'groq',
-    id: 'groq/llama-3.1-8b-instant',
-    name: 'llama-3.1-8b-instant',
-    providers: ['groq'],
-  },
-  {
-    chef: 'Groq',
-    chefSlug: 'groq',
-    id: 'groq/mixtral-8x7b-32768',
-    name: 'mixtral-8x7b-32768',
-    providers: ['groq'],
-  },
-  {
-    chef: 'Groq',
-    chefSlug: 'groq',
-    id: 'groq/gemma2-9b-it',
-    name: 'gemma2-9b-it',
-    providers: ['groq'],
-  },
-];
-
-const AttachmentItem = ({
-  attachment,
-  onRemove,
-}: {
-  attachment: { id: string; name: string; type: string; url: string };
-  onRemove: (id: string) => void;
-}) => {
-  const handleRemove = useCallback(() => {
-    onRemove(attachment.id);
-  }, [attachment.id, onRemove]);
-
-  return (
-    <Attachment data={attachment} onRemove={handleRemove}>
-      <AttachmentPreview />
-      <AttachmentRemove />
-    </Attachment>
-  );
-};
-
-const PromptInputAttachmentsDisplay = () => {
-  const attachments = usePromptInputAttachments();
-
-  const handleRemove = useCallback(
-    (id: string) => {
-      attachments.remove(id);
-    },
-    [attachments]
-  );
-
-  if (attachments.files.length === 0) {
-    return null;
-  }
-
-  return (
-    <Attachments variant="inline">
-      {attachments.files.map((attachment) => (
-        <AttachmentItem attachment={attachment} key={attachment.id} onRemove={handleRemove} />
-      ))}
-    </Attachments>
-  );
-};
-
-const ModelItem = ({
-  m,
-  isSelected,
-  onSelect,
-}: {
-  m: ModelOption;
-  isSelected: boolean;
-  onSelect: (id: string) => void;
-}) => {
-  const handleSelect = useCallback(() => {
-    onSelect(m.id);
-  }, [m.id, onSelect]);
-
-  return (
-    <ModelSelectorItem onSelect={handleSelect} value={`${m.id} ${m.name}`}>
-      <ModelSelectorLogo provider={m.chefSlug} />
-      <ModelSelectorName>{m.name}</ModelSelectorName>
-      <ModelSelectorLogoGroup>
-        {m.providers.map((provider) => (
-          <ModelSelectorLogo key={provider} provider={provider} />
-        ))}
-      </ModelSelectorLogoGroup>
-      {isSelected ? <CheckIcon className="ml-auto size-4" /> : <div className="ml-auto size-4" />}
-    </ModelSelectorItem>
-  );
-};
-
-const providerLabel = (provider: string) => {
-  const normalized = provider.toLowerCase();
-  if (normalized === 'groq') return 'Groq';
-  if (normalized === 'openrouter') return 'OpenRouter';
-  if (normalized === 'arcee-ai') return 'Arcee AI';
-  if (normalized === 'openai') return 'OpenAI';
-  if (normalized === 'anthropic') return 'Anthropic';
-  if (normalized === 'google') return 'Google';
-  if (normalized === 'meta-llama') return 'Meta';
-  if (normalized === 'mistralai') return 'Mistral';
-  if (normalized === 'x-ai') return 'xAI';
-  return provider.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-};
-
-const convertModels = (rows: ModelApiResponse['models']): ModelOption[] => {
-  const converted = rows.map((model) => {
-    const provider = model.provider || model.id.split('/')[0] || 'other';
-    return {
-      id: model.id,
-      name: model.name || model.id,
-      chef: providerLabel(provider),
-      chefSlug: provider.toLowerCase(),
-      providers: [provider.toLowerCase()],
-    };
-  });
-
-  return converted.length > 0 ? converted : fallbackModels;
-};
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getMessageText = (message: UIMessage) =>
   message.parts
@@ -217,51 +62,61 @@ const getMessageReasoningInfo = (message: UIMessage) => {
   const isStreaming = reasoningParts.some(
     (part) => part.type === 'reasoning' && part.state === 'streaming'
   );
-
   return { text, isStreaming };
 };
 
 const getMessageSources = (message: UIMessage) =>
-  message.parts.filter((part) => part.type === 'source-url');
+  message.parts.filter(
+    (part): part is Extract<(typeof message.parts)[number], { type: 'source-url' }> =>
+      part.type === 'source-url'
+  );
 
 const isRenderableMessage = (
   message: UIMessage
 ): message is UIMessage & { role: 'user' | 'assistant' } =>
   message.role === 'user' || message.role === 'assistant';
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const Example = () => {
-  const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+  const { chatId, resetChat } = useChatWidgetStore();
   const [text, setText] = useState<string>('');
   const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
-  const [models, setModels] = useState<ModelOption[]>(fallbackModels);
-  const [model, setModel] = useState<string>(fallbackModels[0].id);
 
+  /**
+   * Media upload state from the useChatMedia hook.
+   * Manages uploads, validation, progress, and Cloudinary deletion.
+   */
+  const {
+    uploads,
+    isUploading,
+    selectFiles,
+    removeAndDeleteUpload,
+    clearUploads,
+    deleteAllFromCloudinary,
+    getPayloads,
+  } = useChatMedia();
+
+  /**
+   * Tracks current uploads via a ref for the beforeunload event handler.
+   * Refs do not cause re-renders and are always up-to-date in event handlers.
+   */
+  const uploadsRef = useRef<ChatMediaItem[]>([]);
   useEffect(() => {
-    let active = true;
+    uploadsRef.current = uploads;
+  }, [uploads]);
 
-    const loadModels = async () => {
-      try {
-        const response = await fetch('/api/chat/models', { cache: 'no-store' });
-        if (!response.ok) return;
+  /**
+   * Per-user-message media history for displaying media in sent bubbles.
+   * Index i corresponds to the i-th user message in the conversation.
+   * Reset when a new chat session starts.
+   */
+  const [userMessageMedia, setUserMessageMedia] = useState<ChatMediaItem[][]>([]);
 
-        const payload = (await response.json()) as ModelApiResponse;
-        if (!active || !payload?.models) return;
-
-        const nextModels = convertModels(payload.models);
-        setModels(nextModels);
-        setModel((prev) => (nextModels.some((m) => m.id === prev) ? prev : nextModels[0].id));
-      } catch {
-        // fall back silently
-      }
-    };
-
-    void loadModels();
-    return () => {
-      active = false;
-    };
-  }, []);
+  // ─── Chat transport ───────────────────────────────────────────────────────
 
   const { messages, sendMessage, status, error } = useChat<UIMessage>({
+    id: chatId,
     transport: useMemo(
       () =>
         new DefaultChatTransport({
@@ -271,46 +126,55 @@ const Example = () => {
               ...(body ?? {}),
               id,
               messages: requestMessages,
-              model,
-              webSearch: useWebSearch,
             },
           }),
         }),
-      [model, useWebSearch]
+      []
     ),
   });
 
-  const selectedModelData = useMemo(() => models.find((m) => m.id === model), [model, models]);
-  const chefs = useMemo(() => Array.from(new Set(models.map((m) => m.chef))), [models]);
+  // ─── Handlers ─────────────────────────────────────────────────────────────
 
+  /**
+   * Handles form submission from the PromptInput component.
+   * Validates text, attaches pending media payloads, sends the message,
+   * and clears the input/uploads on success.
+   */
   const handleSubmit = useCallback(
-    async (message: PromptInputMessage) => {
-      const hasText = Boolean(message.text?.trim());
-      const hasAttachments = Boolean(message.files?.length);
+    async (message: { text?: string }) => {
+      const trimmed = message.text?.trim();
+      if (!trimmed || status === 'streaming' || status === 'submitted') return;
 
-      if (!(hasText || hasAttachments)) {
-        return;
+      // Block send while files are still uploading
+      if (isUploading) return;
+
+      const payloads = getPayloads();
+      const currentUploads = uploads.filter((u) => u.status === 'uploaded');
+
+      // Store media association for this user message (for display in bubble)
+      if (currentUploads.length > 0) {
+        setUserMessageMedia((prev) => [...prev, currentUploads]);
       }
 
-      if (message.files?.length) {
-        toast.success(`${message.files.length} file(s) attached to message`);
-      }
-
-      const prompt = message.text?.trim() || 'Sent with attachments';
       try {
-        await sendMessage({ text: prompt });
+        await sendMessage(
+          { text: trimmed },
+          {
+            body: {
+              mediaAttachments: payloads,
+              webSearch: useWebSearch,
+              model: 'groq/llama-3.1-8b-instant',
+            },
+          }
+        );
         setText('');
-      } catch (err) {
-        const messageText = err instanceof Error ? err.message : 'Failed to send message';
-        toast.error(messageText);
+        clearUploads(); // Clear local state (Cloudinary files stay until new chat/page leave)
+      } catch {
+        // error handled by useChat
       }
     },
-    [sendMessage]
+    [sendMessage, status, isUploading, getPayloads, uploads, clearUploads, useWebSearch]
   );
-
-  const handleTranscriptionChange = useCallback((transcript: string) => {
-    setText((prev) => (prev ? `${prev} ${transcript}` : transcript));
-  }, []);
 
   const handleTextChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value);
@@ -320,17 +184,78 @@ const Example = () => {
     setUseWebSearch((prev) => !prev);
   }, []);
 
-  const handleModelSelect = useCallback((modelId: string) => {
-    setModel(modelId);
-    setModelSelectorOpen(false);
-  }, []);
+  /**
+   * Handles file selection from the PromptInputFileButton.
+   * Passes files to useChatMedia for validation, upload, and tracking.
+   * Shows inline error messages for any rejected files.
+   */
+  const handleFilesSelected = useCallback(
+    async (files: FileList) => {
+      const errors = await selectFiles(files);
+      // Errors are shown inline via ChatMediaChip status — no separate toast needed
+      if (errors.length > 0) {
+        console.warn('[AIChatClient] File validation errors:', errors);
+      }
+    },
+    [selectFiles]
+  );
 
-  const isSubmitDisabled = status === 'streaming' || status === 'submitted';
+  /**
+   * Starts a new chat session.
+   * Deletes all uploaded media from Cloudinary before resetting.
+   */
+  const handleNewChat = useCallback(async () => {
+    await deleteAllFromCloudinary();
+    clearUploads();
+    setUserMessageMedia([]);
+    resetChat();
+  }, [deleteAllFromCloudinary, clearUploads, resetChat]);
+
+  // ─── beforeunload cleanup ─────────────────────────────────────────────────
+
+  /**
+   * Registers a beforeunload handler that sends a beacon to delete all
+   * uploaded media from Cloudinary when the user leaves/closes the page.
+   *
+   * Uses navigator.sendBeacon instead of fetch because:
+   * - Beacon requests are guaranteed to complete even during page unload
+   * - fetch() is cancelled when the page unloads
+   */
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const toDelete = uploadsRef.current.filter((u) => u.status === 'uploaded' && u.publicId);
+      if (toDelete.length === 0) return;
+
+      const payload = new Blob(
+        [
+          JSON.stringify({
+            mediaItems: toDelete.map((u) => ({ publicId: u.publicId, type: u.type })),
+          }),
+        ],
+        { type: 'application/json' }
+      );
+
+      navigator.sendBeacon('/api/chat/media/delete', payload);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []); // Empty deps — reads from ref, not state
+
+  // ─── Derived state ────────────────────────────────────────────────────────
+
+  const isSubmitDisabled = status === 'streaming' || status === 'submitted' || isUploading;
   const isThinking = status === 'submitted' || status === 'streaming';
   const visibleMessages = messages.filter(isRenderableMessage);
 
+  /** True when any uploaded file is ready to send (triggers vision model badge) */
+  const hasReadyMedia = uploads.some((u) => u.status === 'uploaded');
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+
   return (
     <div className="relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(circle_at_top,rgba(20,83,45,0.2),transparent_48%),linear-gradient(180deg,#030a07_0%,#050907_100%)]">
+      {/* ── Header ── */}
       <div className="sticky top-0 z-20 border-b border-white/10 bg-[#07100d]/85 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6">
           <div className="inline-flex items-center gap-2 text-sm text-emerald-100">
@@ -341,8 +266,23 @@ const Example = () => {
                 Thinking...
               </span>
             )}
+            {/* Vision model badge — shown when media is attached */}
+            {hasReadyMedia && !isThinking && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-2 py-0.5 text-[11px] text-violet-200">
+                <Eye className="size-3" />
+                Vision
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            <PromptInputButton
+              onClick={handleNewChat}
+              variant="ghost"
+              title="Start new conversation"
+            >
+              <RotateCcw className="size-4" />
+              <span>New Chat</span>
+            </PromptInputButton>
             <PromptInputButton
               className={useWebSearch ? 'border-emerald-300/35 bg-emerald-400/15' : ''}
               onClick={toggleWebSearch}
@@ -351,63 +291,50 @@ const Example = () => {
               <GlobeIcon className="size-4" />
               <span>{useWebSearch ? 'Web Search On' : 'Web Search Off'}</span>
             </PromptInputButton>
-            <div className="relative">
-              <ModelSelector onOpenChange={setModelSelectorOpen} open={modelSelectorOpen}>
-                <ModelSelectorTrigger asChild>
-                  <PromptInputButton variant="ghost">
-                    {selectedModelData?.chefSlug && (
-                      <ModelSelectorLogo provider={selectedModelData.chefSlug} />
-                    )}
-                    <ModelSelectorName>{selectedModelData?.name || 'Select model'}</ModelSelectorName>
-                  </PromptInputButton>
-                </ModelSelectorTrigger>
-                <ModelSelectorContent>
-                  <ModelSelectorInput placeholder="Search models..." />
-                  <ModelSelectorList>
-                    <ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
-                    {chefs.map((chef) => (
-                      <ModelSelectorGroup heading={chef} key={chef}>
-                        {models
-                          .filter((m) => m.chef === chef)
-                          .map((m) => (
-                            <ModelItem
-                              isSelected={model === m.id}
-                              key={m.id}
-                              m={m}
-                              onSelect={handleModelSelect}
-                            />
-                          ))}
-                      </ModelSelectorGroup>
-                    ))}
-                  </ModelSelectorList>
-                </ModelSelectorContent>
-              </ModelSelector>
-            </div>
           </div>
         </div>
       </div>
 
+      {/* ── Message history ── */}
       <Conversation>
         <ConversationContent forceAutoScroll={isThinking}>
           {visibleMessages.length === 0 && (
             <div className="mt-16 rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-8 text-center shadow-xl backdrop-blur md:p-10">
               <p className="text-base text-emerald-100">Start a conversation with AgriServe AI</p>
               <p className="mt-2 text-sm text-white/60">
-                Ask about crops, weather planning, equipment usage, or platform support.
+                Ask about crops, weather planning, equipment usage, or platform support. You can
+                also attach images, videos, or documents.
               </p>
             </div>
           )}
 
-          {visibleMessages.map((message) => {
+          {visibleMessages.map((message, absoluteIndex) => {
             const textContent = getMessageText(message);
             const reasoningInfo = getMessageReasoningInfo(message);
             const sources = getMessageSources(message);
+
+            /**
+             * Retrieve the media attached to this user message.
+             * We count user messages up to and including the current index
+             * to get the correct entry in userMessageMedia[].
+             */
+            const userMsgIndex =
+              message.role === 'user'
+                ? visibleMessages.slice(0, absoluteIndex + 1).filter((m) => m.role === 'user')
+                    .length - 1
+                : -1;
+            const messageMedia = userMsgIndex >= 0 ? (userMessageMedia[userMsgIndex] ?? []) : [];
 
             return (
               <MessageBranch defaultBranch={0} key={message.id}>
                 <MessageBranchContent>
                   <Message from={message.role} key={message.id}>
                     <div>
+                      {/* ── Media preview in user bubble ── */}
+                      {message.role === 'user' && messageMedia.length > 0 && (
+                        <ChatMediaPreviewList items={messageMedia} />
+                      )}
+
                       {sources.length > 0 && (
                         <Sources>
                           <SourcesTrigger count={sources.length} />
@@ -447,6 +374,7 @@ const Example = () => {
         <ConversationScrollButton />
       </Conversation>
 
+      {/* ── Input area ── */}
       <div className="sticky bottom-0 z-20 border-t border-white/10 bg-[#07100d]/90 pb-4 pt-3 backdrop-blur-xl">
         <div className="mx-auto w-full max-w-5xl px-4 md:px-6">
           {error && (
@@ -455,28 +383,44 @@ const Example = () => {
             </div>
           )}
 
-          <PromptInput globalDrop multiple onSubmit={handleSubmit}>
-            <PromptInputHeader>
-              <PromptInputAttachmentsDisplay />
-            </PromptInputHeader>
+          {/* Uploading-blocked hint */}
+          {isUploading && (
+            <div className="mb-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-200">
+              ⏳ Waiting for files to finish uploading before sending…
+            </div>
+          )}
+
+          <PromptInput onSubmit={handleSubmit}>
+            {/* ── Media attachment chips — shown above textarea ── */}
+            <PromptInputMediaPreview uploads={uploads} onRemove={removeAndDeleteUpload} />
+
             <PromptInputBody>
-              <PromptInputTextarea onChange={handleTextChange} value={text} />
+              <PromptInputTextarea
+                onChange={handleTextChange}
+                value={text}
+                placeholder={
+                  uploads.length > 0 ? 'Add a message about your media...' : 'Ask anything...'
+                }
+              />
             </PromptInputBody>
+
             <PromptInputFooter>
-              <PromptInputTools>
-                <PromptInputActionMenu>
-                  <PromptInputActionMenuTrigger />
-                  <PromptInputActionMenuContent>
-                    <PromptInputActionAddAttachments />
-                  </PromptInputActionMenuContent>
-                </PromptInputActionMenu>
-                <SpeechInput
-                  className="shrink-0"
-                  onTranscriptionChange={handleTranscriptionChange}
-                  size="icon-sm"
-                  variant="ghost"
+              <div className="flex items-center gap-1.5">
+                {/* File attachment button */}
+                <PromptInputFileButton
+                  onFilesSelected={handleFilesSelected}
+                  disabled={isSubmitDisabled}
                 />
-              </PromptInputTools>
+
+                {/* Vision model indicator */}
+                {hasReadyMedia && (
+                  <span className="inline-flex items-center gap-1 rounded-lg border border-violet-400/20 bg-violet-400/10 px-2 py-1 text-[11px] text-violet-300">
+                    <Eye className="size-3" />
+                    llama-4-scout active
+                  </span>
+                )}
+              </div>
+
               <PromptInputSubmit disabled={isSubmitDisabled} status={status} />
             </PromptInputFooter>
           </PromptInput>

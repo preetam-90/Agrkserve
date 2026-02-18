@@ -1,125 +1,73 @@
+'use client';
+
 import { create } from 'zustand';
-import type { AIChatMessage } from '@/lib/types';
+import { persist } from 'zustand/middleware';
 
-interface AIChatState {
-  // Messages
-  messages: AIChatMessage[];
-  messagesLoading: boolean;
-  hasMoreMessages: boolean;
-
-  // Chat session
-  conversationId: string | null;
-  isTyping: boolean;
-
-  // Local tracking
-  error: string | null;
+// Generate a stable chat ID
+function generateChatId(): string {
+  return `chat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-interface AIChatActions {
-  // Messages
-  sendMessage: (content: string) => Promise<void>;
-  clearChat: () => void;
-  setTyping: (typing: boolean) => void;
-
-  // Reset
-  reset: () => void;
+interface ChatWidgetState {
+  chatId: string;
+  isOpen: boolean;
+  hasUnread: boolean;
+  hasWidgetConversation: boolean;
 }
 
-const initialState: AIChatState = {
-  messages: [],
-  messagesLoading: false,
-  hasMoreMessages: false,
-  conversationId: null,
-  isTyping: false,
-  error: null,
+interface ChatWidgetActions {
+  openWidget: () => void;
+  closeWidget: () => void;
+  toggleWidget: () => void;
+  markRead: () => void;
+  setHasUnread: (value: boolean) => void;
+  setHasWidgetConversation: (value: boolean) => void;
+  resetChat: () => void;
+  generateNewChatId: () => string;
+}
+
+const initialState: ChatWidgetState = {
+  chatId: generateChatId(),
+  isOpen: false,
+  hasUnread: false,
+  hasWidgetConversation: false,
 };
 
-export const useAIChatStore = create<AIChatState & AIChatActions>((set, get) => ({
-  ...initialState,
+export const useChatWidgetStore = create<ChatWidgetState & ChatWidgetActions>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
 
-  sendMessage: async (content: string) => {
-    const { messages, conversationId } = get();
-
-    if (!content.trim()) return;
-
-    set({ messagesLoading: true, error: null });
-
-    try {
-      // Add user message optimistically
-      const userMessage: AIChatMessage = {
-        id: `temp-${Date.now()}`,
-        conversation_id: conversationId,
-        role: 'user',
-        content: content.trim(),
-        created_at: new Date().toISOString(),
-      };
-
-      set({ messages: [...messages, userMessage] });
-
-      // Send to API
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: content.trim(),
-          conversation_id: conversationId,
+      openWidget: () => set({ isOpen: true, hasUnread: false }),
+      closeWidget: () => set({ isOpen: false }),
+      toggleWidget: () => {
+        const { isOpen } = get();
+        set({ isOpen: !isOpen, hasUnread: isOpen ? get().hasUnread : false });
+      },
+      markRead: () => set({ hasUnread: false }),
+      setHasUnread: (value: boolean) => set({ hasUnread: value }),
+      setHasWidgetConversation: (value: boolean) => set({ hasWidgetConversation: value }),
+      resetChat: () =>
+        set({
+          chatId: generateChatId(),
+          hasWidgetConversation: false,
+          hasUnread: false,
         }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to send message: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      // Replace temporary user message with actual one from server
-      // Replace temporary user message with actual one from server
-      const actualUserMessage: AIChatMessage = {
-        id: data.user_message.id,
-        conversation_id: data.conversation_id || conversationId,
-        role: 'user',
-        content: content.trim(),
-        created_at: data.user_message.created_at,
-      };
-
-      // Add assistant response
-      const assistantMessage: AIChatMessage = {
-        id: data.assistant_message.id,
-        conversation_id: data.conversation_id || conversationId,
-        role: 'assistant',
-        content: data.assistant_message.content,
-        created_at: data.assistant_message.created_at,
-        model: data.assistant_message.model,
-      };
-
-      set({
-        messages: [...messages, actualUserMessage, assistantMessage],
-        conversationId: data.conversation_id,
-        messagesLoading: false,
-        isTyping: false,
-      });
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      set({
-        messagesLoading: false,
-        isTyping: false,
-        error: error instanceof Error ? error.message : 'Failed to send message',
-      });
-      throw error;
+      generateNewChatId: () => {
+        const newId = generateChatId();
+        set({ chatId: newId, hasWidgetConversation: false, hasUnread: false });
+        return newId;
+      },
+    }),
+    {
+      name: 'agri-serve-chat-widget',
+      partialize: (state) => ({
+        chatId: state.chatId,
+        hasWidgetConversation: state.hasWidgetConversation,
+      }),
     }
-  },
+  )
+);
 
-  clearChat: () => {
-    set(initialState);
-  },
-
-  setTyping: (typing: boolean) => {
-    set({ isTyping: typing });
-  },
-
-  reset: () => {
-    get().clearChat();
-  },
-}));
+// Re-export for backward compatibility (legacy store name)
+export const useAIChatStore = useChatWidgetStore;

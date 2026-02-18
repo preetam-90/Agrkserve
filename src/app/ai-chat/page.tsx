@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { AIChatClient } from '@/components/ai-chat/AIChatClient';
-import { Header } from '@/components/layout';
+
 import { MessagesSkeleton } from '@/components/skeletons/MessagesSkeleton';
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 function AIChatLoadingFallback() {
   return (
-    <main className="w-full min-h-0 flex-1 overflow-hidden pt-14">
+    <main className="min-h-0 w-full flex-1 overflow-hidden pt-14">
       <MessagesSkeleton />
     </main>
   );
@@ -21,9 +21,8 @@ function AIChatLoadingFallback() {
 export default function AIChatPage() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#030a07]">
-      <Header />
       <Suspense fallback={<AIChatLoadingFallback />}>
-        <main className="min-h-0 flex-1 overflow-hidden pt-14">
+        <main className="min-h-0 flex-1 overflow-hidden">
           <AIChatClient />
         </main>
       </Suspense>

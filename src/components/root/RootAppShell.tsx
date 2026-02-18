@@ -42,6 +42,11 @@ const FPSMonitor = dynamic(
   { ssr: false }
 );
 
+const ChatWidget = dynamic(
+  () => import('@/components/ai-chat/ChatWidget').then((mod) => mod.ChatWidget),
+  { ssr: false }
+);
+
 export function RootAppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLandingRoute = pathname === '/';
@@ -71,6 +76,7 @@ export function RootAppShell({ children }: { children: React.ReactNode }) {
         <EnhancedSmoothScroll>
           <Providers>
             <AuthenticatedLayout>{children}</AuthenticatedLayout>
+            <ChatWidget />
           </Providers>
           {analyticsEnabled && <Analytics />}
           {analyticsEnabled && <SpeedInsights />}

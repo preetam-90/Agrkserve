@@ -44,8 +44,6 @@ export async function GET() {
       }
     }
 
-    // OpenRouter models temporarily hidden
-
     // If no models fetched from APIs, use pinned models
     if (allModels.length === 0) {
       allModels.push(

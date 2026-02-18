@@ -1,24 +1,21 @@
-
-import Image from 'next/image';
-import Link from 'next/link';
-import { format } from 'date-fns';
 import { notFound } from 'next/navigation';
-import { Calendar, Clock, ChevronRight, Share2, Facebook, Twitter, Linkedin, ArrowLeft } from 'lucide-react';
-import { getBlogPostBySlug, getBlogPostsByCategory, type BlogPost as ContentBlogPost } from '@/lib/seo/blog-content';
+import { getBlogPostBySlug, getBlogPostsByCategory } from '@/lib/seo/blog-content';
 import {
   createBlogPostingSchema,
   createBlogBreadcrumbSchema,
   createAuthorSchema,
+  type BlogPost as SchemaBlogPost,
 } from '@/lib/seo/blog-schemas';
 import type { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import BlogPostContent from './BlogPostContent';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
   const { id } = await params;
   const post = getBlogPostBySlug(id);
   if (!post) return { title: 'Article not found' };
@@ -28,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const ogImage = `${siteUrl}/blog/${id}/opengraph-image`;
 
   // Build schema objects for JSON-LD
-  const schemaPost = {
+  const schemaPost: SchemaBlogPost = {
     title: post.title.en,
     description: post.metaDescription || post.excerpt,
     image: post.image,
@@ -37,7 +34,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     author: { name: post.author.name, url: post.author.url, image: post.author.avatar },
     url: `${siteUrl}/blog/${post.id}`,
     articleBody: post.content.replace(/<[^>]+>/g, ' ').slice(0, 3000),
-    wordCount: undefined,
     articleSection: post.category,
     keywords: post.keywords,
     inLanguage: 'en-IN' as const,
@@ -49,8 +45,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     url: post.author.url,
   });
 
-  const blogPostingJson = createBlogPostingSchema(schemaPost as any);
-  const breadcrumbJson = createBlogBreadcrumbSchema(schemaPost as any);
+  const blogPostingJson = createBlogPostingSchema(schemaPost);
+  const breadcrumbJson = createBlogBreadcrumbSchema(schemaPost);
 
   const jsonLd = [blogPostingJson, breadcrumbJson, authorSchema];
 
@@ -84,15 +80,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
 
   // Get related posts
   const relatedPosts = getBlogPostsByCategory(post.category)
-    .filter(p => p.id !== post.id)
+    .filter((p) => p.id !== post.id)
     .slice(0, 2);
 
   return (
-    <BlogPostContent
-      post={post}
-      relatedPosts={relatedPosts}
-      prevPost={null}
-      nextPost={null}
-    />
+    <BlogPostContent post={post} relatedPosts={relatedPosts} prevPost={null} nextPost={null} />
   );
 }

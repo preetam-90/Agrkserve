@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   AlertCircle,
   Tractor,
-  CreditCard,
   Clock,
   Loader2,
   MapPin,
@@ -25,7 +24,7 @@ import { Button, Card, CardContent, Input, Textarea, Badge, Avatar } from '@/com
 import { Calendar } from '@/components/ui/calendar';
 import { equipmentService, bookingService } from '@/lib/services';
 import { useAuthStore } from '@/lib/store';
-import { Equipment, Booking } from '@/lib/types';
+import { Equipment } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import {
@@ -37,23 +36,7 @@ import {
   differenceInCalendarDays,
 } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import { motion, AnimatePresence } from 'framer-motion';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-// --- Utility ---
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-// --- Animation Variants ---
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-  },
-};
+import { motion } from 'framer-motion';
 
 const itemVariants = {
   hidden: { y: 20, opacity: 0 },
@@ -103,17 +86,8 @@ export default function BookEquipmentPage() {
     return { days, rentalAmount, platformFee, gstOnPlatformFee, totalPayable };
   }, [dateRange, equipment]);
 
-  // --- Effects ---
-  useEffect(() => {
-    if (!user) {
-      router.push(`/login?redirect=/equipment/item/${equipmentId}/book`);
-      return;
-    }
-    loadData();
-  }, [equipmentId, user, router]);
-
   // --- Data Fetching ---
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [equipmentData, bookingsData] = await Promise.all([
         equipmentService.getEquipmentById(equipmentId),
@@ -139,12 +113,21 @@ export default function BookEquipmentPage() {
       if (profile?.address) {
         setFormData((prev) => ({ ...prev, deliveryAddress: profile.address || '' }));
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to load equipment data');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [equipmentId, profile?.address]);
+
+  // --- Effects ---
+  useEffect(() => {
+    if (!user) {
+      router.push(`/login?redirect=/equipment/item/${equipmentId}/book`);
+      return;
+    }
+    loadData();
+  }, [equipmentId, loadData, router, user]);
 
   // --- Handlers ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -152,7 +135,7 @@ export default function BookEquipmentPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDetectLocation = async () => {
+  const handleDetectLocation = useCallback(async () => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser');
       return;
@@ -202,32 +185,43 @@ export default function BookEquipmentPage() {
     } finally {
       setIsDetectingLocation(false);
     }
-  };
+  }, []);
 
-  const isRangeBlocked = (range: DateRange | undefined) => {
-    if (!range?.from) return false;
-    const end = range.to || range.from;
-    let current = range.from;
-    while (current <= end) {
-      if (bookedDates.some((booked) => isSameDay(booked, current))) return true;
-      current = addDays(current, 1);
-    }
-    return false;
-  };
+  const isRangeBlocked = useCallback(
+    (range: DateRange | undefined) => {
+      if (!range?.from) return false;
+      const end = range.to || range.from;
+      let current = range.from;
+      while (current <= end) {
+        if (bookedDates.some((booked) => isSameDay(booked, current))) return true;
+        current = addDays(current, 1);
+      }
+      return false;
+    },
+    [bookedDates]
+  );
 
-  const handleDateSelect = (range: DateRange | undefined) => {
-    if (range?.from && range?.to && range.to < range.from) {
-      toast.error('End date cannot be before start date');
-      return;
-    }
-    if (isRangeBlocked(range)) {
-      toast.error('Selected dates are unavailable');
-      return;
-    }
-    setDateRange(range);
-  };
+  const isValid = useMemo(
+    () => !!dateRange?.from && !isRangeBlocked(dateRange) && formData.deliveryAddress.length > 5,
+    [dateRange, formData.deliveryAddress.length, isRangeBlocked]
+  );
 
-  const validateForm = () => {
+  const handleDateSelect = useCallback(
+    (range: DateRange | undefined) => {
+      if (range?.from && range?.to && range.to < range.from) {
+        toast.error('End date cannot be before start date');
+        return;
+      }
+      if (isRangeBlocked(range)) {
+        toast.error('Selected dates are unavailable');
+        return;
+      }
+      setDateRange(range);
+    },
+    [isRangeBlocked]
+  );
+
+  const validateForm = useCallback(() => {
     if (!dateRange?.from) {
       toast.error('Please select dates');
       return false;
@@ -241,41 +235,46 @@ export default function BookEquipmentPage() {
       return false;
     }
     return true;
-  };
+  }, [dateRange, formData.deliveryAddress, isRangeBlocked]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm() || !equipment || !dateRange?.from) return;
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!validateForm() || !equipment || !dateRange?.from) return;
 
-    const endDate = dateRange.to || dateRange.from;
-    setIsSubmitting(true);
-    const loadingToast = toast.loading('Processing secure payment...');
+      const endDate = dateRange.to || dateRange.from;
+      setIsSubmitting(true);
+      const loadingToast = toast.loading('Processing secure payment...');
 
-    try {
-      await new Promise((r) => setTimeout(r, 1500)); // Simulate API
+      try {
+        await new Promise((r) => setTimeout(r, 1500)); // Simulate API
 
-      await bookingService.createBooking({
-        equipment_id: equipment.id,
-        start_date: format(dateRange.from, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
-        start_time: formData.startTime,
-        end_time: formData.endTime,
-        delivery_address: formData.deliveryAddress,
-        notes: formData.notes || undefined,
-        total_amount: pricing.totalPayable,
-        platform_fee: pricing.platformFee,
-      });
+        await bookingService.createBooking({
+          equipment_id: equipment.id,
+          start_date: format(dateRange.from, 'yyyy-MM-dd'),
+          end_date: format(endDate, 'yyyy-MM-dd'),
+          start_time: formData.startTime,
+          end_time: formData.endTime,
+          delivery_address: formData.deliveryAddress,
+          notes: formData.notes || undefined,
+          total_amount: pricing.totalPayable,
+          platform_fee: pricing.platformFee,
+        });
 
-      toast.dismiss(loadingToast);
-      toast.success('Booking Confirmed Successfully!');
-      router.push('/renter/bookings?success=true');
-    } catch (err) {
-      toast.dismiss(loadingToast);
-      toast.error('Payment failed. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+        toast.dismiss(loadingToast);
+        toast.success('Booking Confirmed Successfully!');
+        router.push('/renter/bookings?success=true');
+      } catch {
+        toast.dismiss(loadingToast);
+        toast.error('Payment failed. Please try again.');
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [dateRange, equipment, formData, pricing, router, validateForm]
+  );
+
+  const today = startOfDay(new Date());
 
   // --- Render States ---
   if (isLoading) {
@@ -310,10 +309,6 @@ export default function BookEquipmentPage() {
       </div>
     );
   }
-
-  const today = startOfDay(new Date());
-  const isValid =
-    !!dateRange?.from && !isRangeBlocked(dateRange) && formData.deliveryAddress.length > 5;
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-slate-50 selection:bg-emerald-500/30">
@@ -653,7 +648,13 @@ function PricingSummaryCard({
   isSubmitting,
 }: {
   equipment: Equipment;
-  pricing: any;
+  pricing: {
+    days: number;
+    rentalAmount: number;
+    platformFee: number;
+    gstOnPlatformFee: number;
+    totalPayable: number;
+  };
   isValid: boolean;
   isSubmitting: boolean;
 }) {
