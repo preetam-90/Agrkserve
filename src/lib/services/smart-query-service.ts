@@ -1,6 +1,37 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateEmbedding } from '@/lib/services/embedding-service';
 import { searchKnowledge } from '@/lib/services/knowledge-service';
+import { formatContextForPrompt } from '@/lib/rag/context-builder';
+
+/**
+ * In-memory cache for query embeddings.
+ * Avoids redundant Cloudflare AI API calls for the same query within a server instance.
+ * Key: normalized query string  Value: { embedding, timestamp }
+ * TTL: 5 minutes — embeddings are deterministic so cache can be fairly long-lived.
+ */
+const EMBEDDING_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const embeddingCache = new Map<string, { embedding: number[]; timestamp: number }>();
+
+function getCachedEmbedding(query: string): number[] | null {
+  const key = query.trim().toLowerCase();
+  const cached = embeddingCache.get(key);
+  if (!cached) return null;
+  if (Date.now() - cached.timestamp > EMBEDDING_CACHE_TTL_MS) {
+    embeddingCache.delete(key);
+    return null;
+  }
+  return cached.embedding;
+}
+
+function setCachedEmbedding(query: string, embedding: number[]): void {
+  const key = query.trim().toLowerCase();
+  // Prevent unbounded growth: evict oldest entry if cache exceeds 200 entries
+  if (embeddingCache.size >= 200) {
+    const oldest = embeddingCache.keys().next().value;
+    if (oldest) embeddingCache.delete(oldest);
+  }
+  embeddingCache.set(key, { embedding, timestamp: Date.now() });
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,6 +62,8 @@ type IntentType =
   | 'count_labour'
   | 'list_labour'
   | 'available_labour'
+  | 'count_providers'
+  | 'list_providers'
   | 'count_users'
   | 'list_users'
   | 'count_reviews'
@@ -176,6 +209,24 @@ function detectIntent(message: string): DetectedIntent {
   }
 
   // ── Count all equipment ──
+  // "how many equipment are available [give me detail]" → full available list
+  if (
+    /\b(how\s+many|count|number\s+of|total)\b/.test(msg) &&
+    /\b(equipment|machines|machinery|tools|items)\b/.test(msg) &&
+    /\b(available|free|ready)\b/.test(msg)
+  ) {
+    return { type: 'available_equipment' };
+  }
+
+  // "how many equipment ... detail/info/list" → full listing
+  if (
+    /\b(how\s+many|count|number\s+of|total)\b/.test(msg) &&
+    /\b(equipment|machines|machinery|tools|items)\b/.test(msg) &&
+    /\b(detail|details|info|information|list|show|name)\b/.test(msg)
+  ) {
+    return { type: 'list_equipment' };
+  }
+
   if (
     /\b(how\s+many|count|number\s+of|total)\s+(equipment|machines|machinery|tools|items)\b/.test(
       msg
@@ -220,6 +271,25 @@ function detectIntent(message: string): DetectedIntent {
   }
 
   // ── Labour / Workers ──
+
+  // "how many labours are available [give me detail]" → full available list (not just count)
+  if (
+    /\b(how\s+many|count|number\s+of|total)\b/.test(msg) &&
+    /\b(labour|labor|labourers|laborers|workers|labours)\b/.test(msg) &&
+    /\b(available|free|ready)\b/.test(msg)
+  ) {
+    return { type: 'available_labour' };
+  }
+
+  // "how many labours ... detail/info/list/name/who" → full listing (not just count)
+  if (
+    /\b(how\s+many|count|number\s+of|total)\b/.test(msg) &&
+    /\b(labour|labor|labourers|laborers|workers|labours)\b/.test(msg) &&
+    /\b(detail|details|info|information|list|show|name|who|profile)\b/.test(msg)
+  ) {
+    return { type: 'list_labour' };
+  }
+
   if (
     /\b(how\s+many|count|number\s+of|total)\s+(labour|labor|labourers|laborers|workers|labours)\b/.test(
       msg
@@ -244,6 +314,29 @@ function detectIntent(message: string): DetectedIntent {
     /\b(labour|labor|workers?)\s+(list|profiles?|directory)\b/.test(msg)
   ) {
     return { type: 'list_labour' };
+  }
+
+  // ── Providers / Equipment Owners ──
+  if (
+    /\b(how\s+many|count|number\s+of|total)\b/.test(msg) &&
+    /\b(provider|providers|equipment\s+owner|equipment\s+owners|lister|listers)\b/.test(msg)
+  ) {
+    return { type: 'count_providers' };
+  }
+
+  if (
+    /\b(list|show|get|fetch|display|all|who\s+are)\b/.test(msg) &&
+    /\b(provider|providers|equipment\s+owner|equipment\s+owners|lister|listers)\b/.test(msg)
+  ) {
+    return { type: 'list_providers' };
+  }
+
+  // "how many equipment providers ... detail/info" → full provider listing
+  if (
+    /\b(equipment\s+provider|equipment\s+owner)\b/.test(msg) &&
+    /\b(detail|details|info|information|name|who)\b/.test(msg)
+  ) {
+    return { type: 'list_providers' };
   }
 
   // ── Users ──
@@ -569,17 +662,22 @@ async function handleListEquipment(): Promise<SmartQueryResult> {
   if (data && data.length > 0) {
     lines.push('');
     lines.push(
-      '| # | Name | Category | Brand | Model | Price/Day | Price/Hr | Location | Rating | Reviews | Available |'
+      '| # | Name | Category | Brand | Model | Price/Day | Price/Hr | Location | HP | Fuel | Year | Rating | Available |'
     );
     lines.push(
-      '|---|------|----------|-------|-------|-----------|----------|----------|--------|---------|-----------|'
+      '|---|------|----------|-------|-------|-----------|----------|----------|----|------|------|--------|-----------|'
     );
 
     data.forEach((item, idx) => {
       lines.push(
-        `| ${idx + 1} | ${item.name || 'N/A'} | ${item.category || 'N/A'} | ${item.brand || 'N/A'} | ${item.model || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${formatCurrency(item.price_per_hour)} | ${truncate(item.location_name, 20)} | ${formatRating(item.rating)} | ${item.review_count ?? 0} | ${formatAvailability(item.is_available)} |`
+        `| ${idx + 1} | ${item.name || 'N/A'} | ${item.category || 'N/A'} | ${item.brand || 'N/A'} | ${item.model || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${formatCurrency(item.price_per_hour)} | ${truncate(item.location_name, 20)} | ${item.horsepower != null ? `${item.horsepower} HP` : 'N/A'} | ${item.fuel_type || 'N/A'} | ${item.year != null ? item.year : 'N/A'} | ${formatRating(item.rating)} | ${formatAvailability(item.is_available)} |`
       );
     });
+
+    lines.push('');
+    lines.push(
+      '> ⚠️ Only the columns above are stored. Do NOT add dimensions, weight, capacity, or any other specs.'
+    );
 
     if ((count ?? 0) > 30) {
       lines.push('');
@@ -640,9 +738,14 @@ async function handleListEquipmentCategory(category: string): Promise<SmartQuery
 
     data.forEach((item, idx) => {
       lines.push(
-        `| ${idx + 1} | ${item.name || 'N/A'} | ${item.brand || 'N/A'} | ${item.model || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${truncate(item.location_name, 20)} | ${item.horsepower ?? 'N/A'} | ${item.fuel_type || 'N/A'} | ${formatRating(item.rating)} | ${formatAvailability(item.is_available)} |`
+        `| ${idx + 1} | ${item.name || 'N/A'} | ${item.brand || 'N/A'} | ${item.model || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${truncate(item.location_name, 20)} | ${item.horsepower != null ? `${item.horsepower} HP` : 'N/A'} | ${item.fuel_type || 'N/A'} | ${formatRating(item.rating)} | ${formatAvailability(item.is_available)} |`
       );
     });
+
+    lines.push('');
+    lines.push(
+      '> ⚠️ Only the columns above are stored. Do NOT add dimensions, weight, capacity, or any other specs.'
+    );
 
     if ((count ?? 0) > 30) {
       lines.push('');
@@ -691,20 +794,25 @@ async function handleSearchEquipment(searchTerm: string): Promise<SmartQueryResu
     data.forEach((item, idx) => {
       lines.push(`--- Equipment ${idx + 1}: ${item.name || 'N/A'} ---`);
       lines.push(`  Category: ${item.category || 'N/A'}`);
-      lines.push(`  Brand: ${item.brand || 'N/A'}`);
-      lines.push(`  Model: ${item.model || 'N/A'}`);
-      lines.push(`  Description: ${truncate(item.description, 150)}`);
+      lines.push(`  Brand: ${item.brand || 'Not provided'}`);
+      lines.push(`  Model: ${item.model || 'Not provided'}`);
+      lines.push(
+        `  Description: ${item.description ? truncate(item.description, 150) : 'Not provided'}`
+      );
       lines.push(`  Price/Day: ${formatCurrency(item.price_per_day)}`);
       lines.push(`  Price/Hour: ${formatCurrency(item.price_per_hour)}`);
       lines.push(`  Location: ${item.location_name || 'N/A'}`);
       lines.push(`  Rating: ${formatRating(item.rating)} (${item.review_count ?? 0} reviews)`);
       lines.push(`  Available: ${formatAvailability(item.is_available)}`);
-      if (item.horsepower) lines.push(`  Horsepower: ${item.horsepower} HP`);
-      if (item.fuel_type) lines.push(`  Fuel Type: ${item.fuel_type}`);
-      if (item.year) lines.push(`  Year: ${item.year}`);
-      if (item.features && item.features.length > 0) {
-        lines.push(`  Features: ${item.features.join(', ')}`);
-      }
+      lines.push(
+        `  Horsepower: ${item.horsepower != null ? `${item.horsepower} HP` : 'Not provided'}`
+      );
+      lines.push(`  Fuel Type: ${item.fuel_type || 'Not provided'}`);
+      lines.push(`  Year: ${item.year != null ? item.year : 'Not provided'}`);
+      lines.push(
+        `  Features: ${item.features && item.features.length > 0 ? item.features.join(', ') : 'Not provided'}`
+      );
+      lines.push(`  [END OF PROVIDER DATA — do not add any other specs not listed above]`);
       lines.push('');
     });
   } else {
@@ -758,6 +866,11 @@ async function handleAvailableEquipment(): Promise<SmartQueryResult> {
         `| ${idx + 1} | ${item.name || 'N/A'} | ${item.category || 'N/A'} | ${item.brand || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${truncate(item.location_name, 20)} | ${formatRating(item.rating)} |`
       );
     });
+
+    lines.push('');
+    lines.push(
+      '> ⚠️ Only the columns above are stored. Do NOT add any specs (HP, fuel, dimensions, weight, etc.) not shown here.'
+    );
 
     if ((count ?? 0) > 30) {
       lines.push('');
@@ -989,6 +1102,159 @@ async function handleCountUsers(): Promise<SmartQueryResult> {
     ['user_profiles table (real-time count)'],
     true,
     'count_users',
+    'real-time'
+  );
+}
+
+async function handleCountProviders(): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  // Count distinct equipment owners (users who have at least one equipment listing)
+  const { data: ownerData, error: ownerError } = await supabase
+    .from('equipment')
+    .select('owner_id');
+
+  if (ownerError) {
+    return makeErrorResult('count_providers', `Failed to count providers: ${ownerError.message}`);
+  }
+
+  const uniqueOwnerIds = Array.from(
+    new Set((ownerData || []).map((e) => e.owner_id).filter(Boolean))
+  );
+
+  // Also count users with 'provider' role
+  const { count: roleCount, error: roleError } = await supabase
+    .from('user_roles')
+    .select('user_id', { count: 'exact', head: true })
+    .eq('role', 'provider')
+    .eq('is_active', true);
+
+  const stats = await fetchPlatformStats();
+
+  const context = [
+    '=== PLATFORM DATA (Real-time) ===',
+    '',
+    `🚜 Equipment Providers: ${uniqueOwnerIds.length} users have equipment listed on the platform`,
+    `  Users with provider role: ${roleError ? 'N/A' : (roleCount ?? 0)}`,
+    '',
+    'Note: Provider count is based on users who have at least one equipment listing.',
+    formatPlatformStats(stats),
+  ].join('\n');
+
+  return buildResult(
+    context,
+    ['equipment table (distinct owner_ids)', 'user_roles table (provider role count)'],
+    true,
+    'count_providers',
+    'real-time'
+  );
+}
+
+async function handleListProviders(): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  // Get all distinct owner_ids from equipment table
+  const { data: ownerData, error: ownerError } = await supabase
+    .from('equipment')
+    .select('owner_id');
+
+  if (ownerError) {
+    return makeErrorResult('list_providers', `Failed to fetch providers: ${ownerError.message}`);
+  }
+
+  const uniqueOwnerIds = Array.from(
+    new Set((ownerData || []).map((e) => e.owner_id).filter(Boolean))
+  ) as string[];
+
+  if (uniqueOwnerIds.length === 0) {
+    const stats = await fetchPlatformStats();
+    return buildResult(
+      [
+        '=== PLATFORM DATA (Real-time) ===',
+        '',
+        'No equipment providers found.',
+        formatPlatformStats(stats),
+      ].join('\n'),
+      ['equipment table (no owners found)'],
+      false,
+      'list_providers',
+      'real-time'
+    );
+  }
+
+  // Fetch provider profiles
+  const { data: profiles, error: profileError } = await supabase
+    .from('user_profiles')
+    .select('id, name, city, state, roles, is_verified')
+    .in('id', uniqueOwnerIds)
+    .order('name', { ascending: true, nullsFirst: false });
+
+  if (profileError) {
+    return makeErrorResult(
+      'list_providers',
+      `Failed to fetch provider profiles: ${profileError.message}`
+    );
+  }
+
+  // Fetch all equipment for these owners
+  const { data: equipment, error: equipError } = await supabase
+    .from('equipment')
+    .select(
+      'id, name, category, brand, model, price_per_day, price_per_hour, is_available, rating, owner_id'
+    )
+    .in('owner_id', uniqueOwnerIds)
+    .order('rating', { ascending: false, nullsFirst: false })
+    .limit(100);
+
+  if (equipError) {
+    return makeErrorResult('list_providers', `Failed to fetch equipment: ${equipError.message}`);
+  }
+
+  // Group equipment by owner
+  const equipByOwner = new Map<string, typeof equipment>();
+  (equipment || []).forEach((e) => {
+    if (!equipByOwner.has(e.owner_id)) equipByOwner.set(e.owner_id, []);
+    equipByOwner.get(e.owner_id)!.push(e);
+  });
+
+  const lines: string[] = [
+    '=== PLATFORM DATA (Real-time) ===',
+    '',
+    `🚜 Equipment Providers: ${uniqueOwnerIds.length} providers with ${equipment?.length ?? 0} total equipment listings`,
+    '',
+  ];
+
+  (profiles || []).forEach((provider, idx) => {
+    const provEquip = equipByOwner.get(provider.id) || [];
+    const location = [provider.city, provider.state].filter(Boolean).join(', ') || 'N/A';
+    lines.push(`--- Provider ${idx + 1}: ${provider.name || 'N/A'} ---`);
+    lines.push(`  Location: ${location}`);
+    lines.push(`  Verified: ${provider.is_verified ? '✅ Yes' : '❌ No'}`);
+    lines.push(`  Equipment Listed: ${provEquip.length}`);
+
+    if (provEquip.length > 0) {
+      lines.push('');
+      lines.push('  | # | Name | Category | Brand | Price/Day | Price/Hr | Available | Rating |');
+      lines.push('  |---|------|----------|-------|-----------|----------|-----------|--------|');
+      provEquip.forEach((e, ei) => {
+        lines.push(
+          `  | ${ei + 1} | ${e.name || 'N/A'} | ${e.category || 'N/A'} | ${e.brand || 'N/A'} | ${formatCurrency(e.price_per_day)} | ${formatCurrency(e.price_per_hour)} | ${formatAvailability(e.is_available)} | ${formatRating(e.rating)} |`
+        );
+      });
+    } else {
+      lines.push('  No equipment currently listed.');
+    }
+    lines.push('');
+  });
+
+  const stats = await fetchPlatformStats();
+  lines.push(formatPlatformStats(stats));
+
+  return buildResult(
+    lines.join('\n'),
+    ['equipment table joined with user_profiles (real-time provider listing)'],
+    (profiles?.length ?? 0) > 0,
+    'list_providers',
     'real-time'
   );
 }
@@ -1701,26 +1967,34 @@ async function handlePlatformStats(): Promise<SmartQueryResult> {
 
 async function handleVectorSearch(userMessage: string): Promise<SmartQueryResult> {
   try {
-    const embeddingResult = await generateEmbedding(userMessage);
+    // Check in-memory cache before calling Cloudflare AI
+    let embedding = getCachedEmbedding(userMessage);
 
-    if (!embeddingResult.success || embeddingResult.embedding.length === 0) {
-      const stats = await fetchPlatformStats();
-      return buildResult(
-        [
-          '=== PLATFORM DATA (Cached Knowledge Base) ===',
-          '',
-          'Unable to generate search embedding. Providing platform summary instead.',
-          formatPlatformStats(stats),
-        ].join('\n'),
-        ['platform summary (fallback)'],
-        false,
-        'vector_search',
-        'cached'
-      );
+    if (!embedding) {
+      const embeddingResult = await generateEmbedding(userMessage);
+
+      if (!embeddingResult.success || embeddingResult.embedding.length === 0) {
+        const stats = await fetchPlatformStats();
+        return buildResult(
+          [
+            '=== PLATFORM DATA (Cached Knowledge Base) ===',
+            '',
+            'Unable to generate search embedding. Providing platform summary instead.',
+            formatPlatformStats(stats),
+          ].join('\n'),
+          ['platform summary (fallback)'],
+          false,
+          'vector_search',
+          'cached'
+        );
+      }
+
+      embedding = embeddingResult.embedding;
+      setCachedEmbedding(userMessage, embedding);
     }
 
-    const results = await searchKnowledge(embeddingResult.embedding, {
-      threshold: 0.3,
+    const results = await searchKnowledge(embedding, {
+      threshold: 0.5, // Raised from 0.3 — filters low-quality matches
       limit: 10,
     });
 
@@ -1740,19 +2014,24 @@ async function handleVectorSearch(userMessage: string): Promise<SmartQueryResult
       );
     }
 
-    const lines: string[] = [
-      '=== PLATFORM DATA (Cached Knowledge Base) ===',
-      '',
-      `🔍 Found ${results.length} relevant result(s):`,
-      '',
-    ];
+    // Use context-builder for structured, metadata-aware formatting
+    const contexts = results.map((result) => ({
+      sourceType: result.source_type,
+      sourceId: result.source_id,
+      content: result.content,
+      similarity: result.similarity,
+      metadata: result.metadata,
+    }));
 
-    results.forEach((result, idx) => {
-      const similarity = (result.similarity * 100).toFixed(1);
-      lines.push(`--- Result ${idx + 1} (${similarity}% match, type: ${result.source_type}) ---`);
-      lines.push(result.content);
-      lines.push('');
-    });
+    const formattedContext = formatContextForPrompt(contexts);
+
+    const lines: string[] = [
+      '=== PLATFORM DATA (Semantic Search) ===',
+      '',
+      `🔍 Found ${results.length} relevant result(s) (semantic similarity search):`,
+      '',
+      formattedContext,
+    ];
 
     const stats = await fetchPlatformStats();
     lines.push(formatPlatformStats(stats));
@@ -2603,6 +2882,12 @@ export async function smartQuery(
 
       case 'available_labour':
         return await handleAvailableLabour();
+
+      case 'count_providers':
+        return await handleCountProviders();
+
+      case 'list_providers':
+        return await handleListProviders();
 
       case 'count_users':
         return await handleCountUsers();
