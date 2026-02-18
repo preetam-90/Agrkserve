@@ -1,7 +1,9 @@
 // Enhanced JSON-LD schemas for better SEO and GEO optimization
 // This file provides comprehensive structured data for search engines and AI models
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+import { getSiteUrl } from '@/lib/seo/site-url';
+
+const siteUrl = getSiteUrl();
 
 // Organization Schema
 export const organizationSchema = {

@@ -2,9 +2,10 @@ import { MetadataRoute } from 'next';
 import { INDIA_STATES, getAllCitySlugs } from '@/data/india-locations';
 import { createClient } from '@/lib/supabase/server';
 import { getAllBlogPosts } from '@/lib/seo/blog-content';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agrirental.vercel.app';
+  const baseUrl = getSiteUrl();
   const currentDate = new Date();
 
   // ─── Static routes ───────────────────────────────────────────────

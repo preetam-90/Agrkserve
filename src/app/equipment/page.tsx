@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import EquipmentClient from './EquipmentClient';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const BASE_URL = getSiteUrl();
 
 export const metadata: Metadata = {
   title: 'Rent Farm Equipment | Tractors, Harvesters & Agricultural Machinery | AgriServe',

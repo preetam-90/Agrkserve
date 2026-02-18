@@ -4,6 +4,7 @@ import Script from 'next/script';
 import './globals.css';
 import { RootAppShell } from '@/components/root/RootAppShell';
 import { rootJsonLd } from '@/lib/seo/schemas';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -18,9 +19,10 @@ const playfair = Playfair_Display({
   weight: ['400', '500', '600', '700'],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "AgriServe - Rent Farm Equipment | India's Trusted Agricultural Platform",
     template: '%s | AgriServe India',
@@ -87,6 +89,7 @@ export const metadata: Metadata = {
     'krishi equipment kiraya',
   ],
   authors: [{ name: 'AgriServe', url: siteUrl }],
+  applicationName: 'AgriServe',
   creator: 'AgriServe',
   publisher: 'AgriServe',
   manifest: '/site.webmanifest',

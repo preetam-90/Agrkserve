@@ -316,7 +316,7 @@ const equipmentJsonLd = {
     'Rent agricultural equipment including tractors, harvesters, planters, and more. AgriServe provides affordable farm equipment rental services across India. Search for "agri rent", "agri rental", and farm equipment near you.',
   keywords:
     'agri rent, agri rental, agricultural equipment rental, farm equipment rental, tractor rental, harvester rental, farm machinery rental, agri equipment hire, cheap farm equipment rental India',
-  url: 'https://agrirental.vercel.app/equipment',
+  url: `${process.env.NEXT_PUBLIC_SITE_URL || ''}/equipment`,
   mainEntity: {
     '@type': 'ItemList',
     name: 'Farm Equipment for Rent',
@@ -339,8 +339,8 @@ const equipmentJsonLd = {
   provider: {
     '@type': 'Organization',
     name: 'AgriServe',
-    url: 'https://agrirental.vercel.app',
-    logo: 'https://agrirental.vercel.app/logo.png',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://agrirental.vercel.app',
+    logo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://agrirental.vercel.app'}/logo.png`,
     description:
       "India's premier agricultural equipment rental platform connecting farmers with equipment providers",
     address: {

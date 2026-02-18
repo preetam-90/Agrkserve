@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import AboutPage from './AboutClient';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const BASE_URL = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "About AgriServe - India's Trusted Agricultural Equipment & Labour Platform",

@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
 import EquipmentDetailClient from './EquipmentDetailClient';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const BASE_URL = getSiteUrl();
 
 export async function generateMetadata({
   params,
@@ -131,22 +132,23 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     : null;
 
   // Image gallery structured data for Google Images
-  const imageGalleryJsonLd = productImages.length > 0
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'ImageGallery',
-        name: `${data?.name} - Photo Gallery`,
-        description: `View ${data?.name} images. Rent this equipment on AgriServe.`,
-        image: productImages.map((img: string, index: number) => ({
-          '@type': 'ImageObject',
-          url: img,
-          name: `${data?.name} - Image ${index + 1}`,
-          description: `Photo ${index + 1} of ${data?.name} available for rent in ${data?.location_name || 'India'}`,
-          contentUrl: img,
-          thumbnailUrl: img,
-        })),
-      }
-    : null;
+  const imageGalleryJsonLd =
+    productImages.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'ImageGallery',
+          name: `${data?.name} - Photo Gallery`,
+          description: `View ${data?.name} images. Rent this equipment on AgriServe.`,
+          image: productImages.map((img: string, index: number) => ({
+            '@type': 'ImageObject',
+            url: img,
+            name: `${data?.name} - Image ${index + 1}`,
+            description: `Photo ${index + 1} of ${data?.name} available for rent in ${data?.location_name || 'India'}`,
+            contentUrl: img,
+            thumbnailUrl: img,
+          })),
+        }
+      : null;
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',

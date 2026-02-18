@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import GalleryClient from './GalleryClient';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const BASE_URL = getSiteUrl();
 
 export const metadata: Metadata = {
   title: 'Gallery - AgriServe | Farm Equipment & Vehicle Photos India',
@@ -42,7 +43,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Gallery - AgriServe Farm Equipment Photos',
-    description: 'View farm equipment, tractors, harvesters and vehicles available for rent in India.',
+    description:
+      'View farm equipment, tractors, harvesters and vehicles available for rent in India.',
     images: [`${BASE_URL}/og-image.jpg`],
   },
   alternates: {
@@ -70,7 +72,8 @@ export default function GalleryPage() {
     '@context': 'https://schema.org',
     '@type': 'ImageGallery',
     name: 'AgriServe Farm Equipment & Vehicle Gallery',
-    description: 'Browse photos of tractors, harvesters, farm equipment and vehicles available for rent across India on AgriServe.',
+    description:
+      'Browse photos of tractors, harvesters, farm equipment and vehicles available for rent across India on AgriServe.',
     url: `${BASE_URL}/gallery`,
     publisher: {
       '@type': 'Organization',

@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agrirental.vercel.app';
+import { getSiteUrl } from '@/lib/seo/site-url';
+
+const baseUrl = getSiteUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -35,13 +37,7 @@ export default function robots(): MetadataRoute.Robots {
         // Allow Google Images to crawl image URLs
         userAgent: 'Googlebot-Image',
         allow: ['/'],
-        disallow: [
-          '/admin/',
-          '/api/',
-          '/auth/',
-          '/dashboard/',
-          '/settings/',
-        ],
+        disallow: ['/admin/', '/api/', '/auth/', '/dashboard/', '/settings/'],
       },
       {
         // Allow Googlebot for indexing

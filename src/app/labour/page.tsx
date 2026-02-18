@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import LabourClient from './LabourClient';
+import { getSiteUrl } from '@/lib/seo/site-url';
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
+const BASE_URL = getSiteUrl();
 
 export const metadata: Metadata = {
   title: 'Hire Agricultural Labour | Farm Workers for Rent - AgriServe',
@@ -37,7 +38,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Hire Agricultural Labour | Farm Workers - AgriServe',
-    description: 'Find skilled agricultural labour for farming. Verified farm workers available across India.',
+    description:
+      'Find skilled agricultural labour for farming. Verified farm workers available across India.',
     images: [`${BASE_URL}/og-image.jpg`],
   },
   alternates: {
@@ -70,7 +72,7 @@ export default function LabourPage() {
     provider: {
       '@type': 'Organization',
       name: 'AgriServe',
-      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://agrirental.vercel.app',
+      url: BASE_URL,
     },
     areaServed: {
       '@type': 'Country',
