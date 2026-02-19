@@ -1,6 +1,7 @@
 # Quick Fix - Contact Information Not Updating
 
 ## The Problem
+
 The `get_system_settings` RPC function requires admin access, but we need public access for contact information to work on the contact page and footer.
 
 ## The Solution (2 minutes)
@@ -14,6 +15,7 @@ The `get_system_settings` RPC function requires admin access, but we need public
 5. Click **Run** (or press Ctrl+Enter)
 
 **Expected output:**
+
 ```
 ✅ Public settings access has been fixed!
 ✅ Contact and general settings are now publicly accessible
@@ -26,6 +28,7 @@ The `get_system_settings` RPC function requires admin access, but we need public
 Visit: `http://localhost:3001/test-contact-sync`
 
 You should now see:
+
 - ✅ Realtime Status: SUBSCRIBED
 - ✅ API Endpoint: Shows 40+ fields
 - ✅ Database: Shows all contact records (no error)
@@ -49,12 +52,15 @@ You should now see:
 ## If You Still See Errors
 
 ### Error: "relation system_settings does not exist"
+
 **Solution:** Run `SETUP_ADMIN_SETTINGS.sql` first
 
 ### Error: "No data found"
+
 **Solution:** Run `ADD_EXTENDED_CONTACT_FIELDS.sql` to add contact fields
 
 ### Error: "permission denied"
+
 **Solution:** Make sure you ran `FIX_PUBLIC_SETTINGS_ACCESS.sql` completely
 
 ## Alternative: Direct Table Access
@@ -76,14 +82,16 @@ USING (category IN ('contact', 'general'));
 ## Quick Test Commands
 
 ### Test in Browser Console
+
 ```javascript
 // Test API endpoint
 fetch('/api/settings')
-  .then(r => r.json())
-  .then(data => console.log('Fields:', Object.keys(data.settings).length));
+  .then((r) => r.json())
+  .then((data) => console.log('Fields:', Object.keys(data.settings).length));
 ```
 
 ### Test in Supabase SQL Editor
+
 ```sql
 -- Test RPC function
 SELECT key, value FROM get_system_settings('contact') LIMIT 5;
@@ -95,6 +103,7 @@ SELECT key, value FROM system_settings WHERE category = 'contact' LIMIT 5;
 ## Success Indicators
 
 When everything works:
+
 - ✅ Test page shows no errors
 - ✅ API returns 40+ fields
 - ✅ Database query returns records

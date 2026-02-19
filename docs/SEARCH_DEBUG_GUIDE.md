@@ -7,11 +7,13 @@ I've added detailed console logging to help diagnose the issue.
 ## How to Debug
 
 ### Step 1: Open Browser Console
+
 1. Open your app in browser
 2. Press `F12` or `Right-click → Inspect`
 3. Go to **Console** tab
 
 ### Step 2: Test Search
+
 1. Click the ✨ Sparkles button to open Media Drawer
 2. Type in the search box (e.g., "tractor")
 3. Watch the console for logs
@@ -19,6 +21,7 @@ I've added detailed console logging to help diagnose the issue.
 ### What You Should See in Console
 
 When you type "tractor", you should see:
+
 ```
 [KLIPY] Filtering gif with query: "tractor"
 [KLIPY] Total items before filter: 8
@@ -44,6 +47,7 @@ When you type "tractor", you should see:
 ## Quick Test in Console
 
 Paste this in browser console to test the service directly:
+
 ```javascript
 // Test the search function
 const testSearch = async () => {
@@ -65,15 +69,15 @@ testSearch();
 
 ## Expected Behavior
 
-| Search Term | Expected Results |
-|-------------|-----------------|
-| `tractor` | Tractor Driving (GIF), Tractor Meme (Meme) |
-| `success` | Success (GIF), Success Kid (Meme), Success Sound (Clip) |
-| `thumbs` | Thumbs Up (GIF), Thumbs Up (Sticker) |
-| `heart` | Heart (Sticker) |
-| `deal` | Deal (GIF) |
-| `star` | Star (Sticker) |
-| (empty) | All items shown |
+| Search Term | Expected Results                                        |
+| ----------- | ------------------------------------------------------- |
+| `tractor`   | Tractor Driving (GIF), Tractor Meme (Meme)              |
+| `success`   | Success (GIF), Success Kid (Meme), Success Sound (Clip) |
+| `thumbs`    | Thumbs Up (GIF), Thumbs Up (Sticker)                    |
+| `heart`     | Heart (Sticker)                                         |
+| `deal`      | Deal (GIF)                                              |
+| `star`      | Star (Sticker)                                          |
+| (empty)     | All items shown                                         |
 
 ## Recent Fixes Applied
 
@@ -91,14 +95,17 @@ testSearch();
 ## Common Issues & Solutions
 
 ### Issue: Console shows logs but UI doesn't update
+
 **Cause**: React state not updating  
 **Fix**: Check if setItems() is being called after search
 
 ### Issue: No console logs at all
+
 **Cause**: Search handler not connected to input  
 **Fix**: Verify onChange={handleSearch} is on the input element
 
 ### Issue: Empty results for valid search
+
 **Cause**: Case sensitivity or matching logic  
 **Fix**: Already handled with toLowerCase() and includes()
 

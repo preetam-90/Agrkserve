@@ -1,9 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import type { 
-  Equipment, 
-  PaginatedResponse,
-  EquipmentCategory 
-} from '@/lib/types';
+import type { Equipment, PaginatedResponse, EquipmentCategory } from '@/lib/types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 
 // Local type for equipment status used in this service
@@ -39,11 +35,7 @@ export const equipmentService = {
 
   // Get equipment by ID
   async getById(id: string): Promise<Equipment | null> {
-    const { data, error } = await supabase
-      .from('equipment')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('equipment').select('*').eq('id', id).single();
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
@@ -57,7 +49,7 @@ export const equipmentService = {
 
     return {
       ...data,
-      owner: owner || null
+      owner: owner || null,
     };
   },
 
@@ -70,10 +62,7 @@ export const equipmentService = {
     const offset = (page - 1) * limit;
 
     // Query equipment without join first (no direct FK to user_profiles)
-    let query = supabase
-      .from('equipment')
-      .select('*', { count: 'exact' })
-      .eq('is_available', true);
+    let query = supabase.from('equipment').select('*', { count: 'exact' }).eq('is_available', true);
 
     if (filters.category) {
       query = query.eq('category', filters.category);
@@ -92,7 +81,9 @@ export const equipmentService = {
     }
 
     if (filters.search_query) {
-      query = query.or(`name.ilike.%${filters.search_query}%,description.ilike.%${filters.search_query}%`);
+      query = query.or(
+        `name.ilike.%${filters.search_query}%,description.ilike.%${filters.search_query}%`
+      );
     }
 
     // Apply brand filter if provided
@@ -109,17 +100,17 @@ export const equipmentService = {
     // Fetch owner profiles separately since there's no direct FK relationship
     let equipmentWithOwners = data || [];
     if (equipmentWithOwners.length > 0) {
-      const ownerIds = [...new Set(equipmentWithOwners.map(e => e.owner_id))];
+      const ownerIds = [...new Set(equipmentWithOwners.map((e) => e.owner_id))];
       const { data: owners } = await supabase
         .from('user_profiles')
         .select('id, name, profile_image, phone')
         .in('id', ownerIds);
-      
+
       if (owners) {
-        const ownerMap = new Map(owners.map(o => [o.id, o]));
-        equipmentWithOwners = equipmentWithOwners.map(e => ({
+        const ownerMap = new Map(owners.map((o) => [o.id, o]));
+        equipmentWithOwners = equipmentWithOwners.map((e) => ({
           ...e,
-          owner: ownerMap.get(e.owner_id) || null
+          owner: ownerMap.get(e.owner_id) || null,
         }));
       }
     }
@@ -142,10 +133,7 @@ export const equipmentService = {
   ): Promise<PaginatedResponse<Equipment>> {
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('equipment')
-      .select('*', { count: 'exact' })
-      .eq('owner_id', ownerId);
+    let query = supabase.from('equipment').select('*', { count: 'exact' }).eq('owner_id', ownerId);
 
     if (status) {
       const statusValue = String(status);
@@ -200,7 +188,9 @@ export const equipmentService = {
       longitude: number;
     }
   ): Promise<Equipment> {
-    const features = Array.isArray((equipment.specifications as { features?: string[] } | undefined)?.features)
+    const features = Array.isArray(
+      (equipment.specifications as { features?: string[] } | undefined)?.features
+    )
       ? (equipment.specifications as { features?: string[] }).features
       : undefined;
 
@@ -253,11 +243,16 @@ export const equipmentService = {
     if (equipment.title !== undefined) updateData.name = equipment.title;
     if (equipment.description !== undefined) updateData.description = equipment.description;
     if (equipment.category !== undefined) updateData.category = equipment.category;
-    if ((equipment as { brand?: string }).brand !== undefined) updateData.brand = (equipment as { brand?: string }).brand;
-    if ((equipment as { model?: string }).model !== undefined) updateData.model = (equipment as { model?: string }).model;
-    if ((equipment as { year?: number }).year !== undefined) updateData.year = (equipment as { year?: number }).year;
-    if ((equipment as { horsepower?: number }).horsepower !== undefined) updateData.horsepower = (equipment as { horsepower?: number }).horsepower;
-    if ((equipment as { fuel_type?: string }).fuel_type !== undefined) updateData.fuel_type = (equipment as { fuel_type?: string }).fuel_type;
+    if ((equipment as { brand?: string }).brand !== undefined)
+      updateData.brand = (equipment as { brand?: string }).brand;
+    if ((equipment as { model?: string }).model !== undefined)
+      updateData.model = (equipment as { model?: string }).model;
+    if ((equipment as { year?: number }).year !== undefined)
+      updateData.year = (equipment as { year?: number }).year;
+    if ((equipment as { horsepower?: number }).horsepower !== undefined)
+      updateData.horsepower = (equipment as { horsepower?: number }).horsepower;
+    if ((equipment as { fuel_type?: string }).fuel_type !== undefined)
+      updateData.fuel_type = (equipment as { fuel_type?: string }).fuel_type;
     if (equipment.hourly_rate !== undefined) updateData.price_per_hour = equipment.hourly_rate;
     if (equipment.daily_rate !== undefined) updateData.price_per_day = equipment.daily_rate;
     if (equipment.city !== undefined) updateData.location_name = equipment.city;
@@ -276,7 +271,8 @@ export const equipmentService = {
     if (equipment.status !== undefined) {
       const statusValue = String(equipment.status);
       if (statusValue === 'available') updateData.is_available = true;
-      if (statusValue === 'unavailable' || statusValue === 'inactive') updateData.is_available = false;
+      if (statusValue === 'unavailable' || statusValue === 'inactive')
+        updateData.is_available = false;
     }
 
     const { data, error } = await supabase
@@ -293,16 +289,17 @@ export const equipmentService = {
   // Update equipment status
   async updateStatus(id: string, status: EquipmentStatus): Promise<void> {
     const statusValue = String(status);
-    const isAvailable = statusValue === 'available'
-      ? true
-      : statusValue === 'unavailable' || statusValue === 'inactive'
-        ? false
-        : true;
+    const isAvailable =
+      statusValue === 'available'
+        ? true
+        : statusValue === 'unavailable' || statusValue === 'inactive'
+          ? false
+          : true;
     const { error } = await supabase
       .from('equipment')
-      .update({ 
+      .update({
         is_available: isAvailable,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id);
 
@@ -313,9 +310,9 @@ export const equipmentService = {
   async delete(id: string): Promise<void> {
     const { error } = await supabase
       .from('equipment')
-      .update({ 
+      .update({
         is_available: false,
-        updated_at: new Date().toISOString() 
+        updated_at: new Date().toISOString(),
       })
       .eq('id', id);
 
@@ -326,10 +323,12 @@ export const equipmentService = {
   async getFeatured(limit: number = 6): Promise<Equipment[]> {
     const { data, error } = await supabase
       .from('equipment')
-      .select(`
+      .select(
+        `
         *,
         owner:user_profiles!owner_id(id, full_name, avatar_url)
-      `)
+      `
+      )
       .eq('status', 'available')
       .order('total_bookings', { ascending: false })
       .order('average_rating', { ascending: false })
@@ -368,13 +367,15 @@ export const equipmentService = {
     });
 
     if (error) throw error;
-    return data || {
-      total_equipment: 0,
-      active_equipment: 0,
-      total_bookings: 0,
-      total_earnings: 0,
-      average_rating: 0,
-    };
+    return (
+      data || {
+        total_equipment: 0,
+        active_equipment: 0,
+        total_bookings: 0,
+        total_earnings: 0,
+        average_rating: 0,
+      }
+    );
   },
 
   // Convenience alias methods for page compatibility
@@ -417,7 +418,9 @@ export const equipmentService = {
 
   // Get current user's equipment
   async getMyEquipment(): Promise<Equipment[]> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
     const result = await this.getByOwner(user.id);
     return result.data;
@@ -449,7 +452,7 @@ export const equipmentService = {
   ): Promise<Equipment> {
     // Map from Equipment-style to service-style field names
     const updateData: Record<string, unknown> = {};
-    
+
     if (data.name !== undefined) updateData.title = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.category !== undefined) updateData.category = data.category;
@@ -475,28 +478,28 @@ export const equipmentService = {
   },
 
   // Alias for create - gets owner_id from current user, accepts Equipment-style fields
-  async createEquipment(
-    equipment: {
-      name: string;
-      description?: string;
-      category: string;
-      brand?: string;
-      model?: string;
-      year?: number;
-      horsepower?: number;
-      fuel_type?: string;
-      price_per_hour?: number;
-      price_per_day: number;
-      location_name: string;
-      latitude?: number;
-      longitude?: number;
-      images?: string[];
-      video_url?: string;
-      features?: string[];
-      is_available?: boolean;
-    }
-  ): Promise<Equipment> {
-    const { data: { user } } = await supabase.auth.getUser();
+  async createEquipment(equipment: {
+    name: string;
+    description?: string;
+    category: string;
+    brand?: string;
+    model?: string;
+    year?: number;
+    horsepower?: number;
+    fuel_type?: string;
+    price_per_hour?: number;
+    price_per_day: number;
+    location_name: string;
+    latitude?: number;
+    longitude?: number;
+    images?: string[];
+    video_url?: string;
+    features?: string[];
+    is_available?: boolean;
+  }): Promise<Equipment> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     const { data, error } = await supabase

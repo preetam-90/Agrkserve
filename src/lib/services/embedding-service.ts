@@ -95,7 +95,7 @@ async function callEmbeddingApi(
   return response.json();
 }
 
-export function chunkText(text: string, maxLength: number = 3000): string[] {
+function chunkText(text: string, maxLength: number = 3000): string[] {
   if (text.length <= maxLength) {
     return [text];
   }

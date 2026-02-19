@@ -15,7 +15,7 @@ interface Props {
   stats: Stats;
 }
 
-export function ExplosiveStats({ stats }: Props) {
+function ExplosiveStats({ stats }: Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // GSAP: Explosive counter animations

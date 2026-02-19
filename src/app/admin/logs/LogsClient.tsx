@@ -57,10 +57,10 @@ export default function AuditLogsPage() {
 
   useEffect(() => {
     fetchLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [search, currentPage]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const _getActionIcon = (action: string) => {
     if (action.includes('CREATE')) return <Plus className="h-3.5 w-3.5 text-green-500" />;
     if (action.includes('DELETE')) return <Trash2 className="h-3.5 w-3.5 text-red-500" />;

@@ -78,7 +78,6 @@ export function ChatList({
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {
       try {
-         
         console.debug(
           '[ChatList] searchQuery:',
           searchQuery,

@@ -124,8 +124,6 @@ export function MediaGrid({
                 onClick={() => onPreview(asset)}
               >
                 {asset.thumbnail_url ? (
-                   
-
                   <Image
                     src={asset.thumbnail_url}
                     alt={asset.public_id}

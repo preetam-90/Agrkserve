@@ -89,7 +89,7 @@ export default function PaymentsPage() {
 
   useEffect(() => {
     fetchPayments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [search, statusFilter, currentPage]);
 
   const formatCurrency = (amount: number) => {

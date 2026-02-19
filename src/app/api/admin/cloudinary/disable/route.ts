@@ -2,17 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requirePermission } from '@/lib/utils/admin-rbac';
 import { disableAsset, enableAsset } from '@/lib/services/cloudinary-admin-service';
 import { createMediaAuditLog } from '@/lib/services/media-audit-service';
-
-function extractRequestMetadata(request: NextRequest) {
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const ipAddress = forwardedFor
-    ? forwardedFor.split(',')[0].trim()
-    : request.headers.get('x-real-ip') || 'unknown';
-
-  const userAgent = request.headers.get('user-agent') || 'unknown';
-
-  return { ipAddress, userAgent };
-}
+import { extractRequestMetadata } from '@/lib/utils/request-utils';
 
 export async function POST(request: NextRequest) {
   try {

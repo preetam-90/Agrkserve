@@ -7,6 +7,7 @@ This document describes the implementation of the optimized media upload system 
 The system provides automatic image and video processing with the following features:
 
 ### Image Processing
+
 - **Auto-resize**: Images are resized to a maximum width of 1080px while maintaining aspect ratio
 - **Compression**: Images are compressed to 70-80% quality
 - **Format conversion**: Images are converted to WebP or JPEG for optimal web performance
@@ -14,6 +15,7 @@ The system provides automatic image and video processing with the following feat
 - **Storage**: Uploaded to Cloudinary for global CDN delivery
 
 ### Video Processing
+
 - **Duration limit**: Maximum 15 seconds
 - **Resolution optimization**: Videos are scaled to max 690p while maintaining aspect ratio
 - **Compression**: Videos are compressed using H.264 codec with optimized settings
@@ -68,12 +70,14 @@ pnpm add @radix-ui/react-slider
 The video processing requires FFmpeg to be installed on your system:
 
 **Ubuntu/Debian:**
+
 ```bash
 sudo apt update
 sudo apt install ffmpeg
 ```
 
 **macOS:**
+
 ```bash
 brew install ffmpeg
 ```
@@ -82,6 +86,7 @@ brew install ffmpeg
 Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH.
 
 **Fedora:**
+
 ```bash
 sudo dnf install ffmpeg
 ```
@@ -123,26 +128,26 @@ function EquipmentForm() {
 ```tsx
 <MediaUpload
   onUploadComplete={handleUploadComplete}
-  maxImages={10}              // Max number of images
-  maxVideos={3}               // Max number of videos
-  allowImages={true}          // Enable image uploads
-  allowVideos={true}          // Enable video uploads
+  maxImages={10} // Max number of images
+  maxVideos={3} // Max number of videos
+  allowImages={true} // Enable image uploads
+  allowVideos={true} // Enable video uploads
   folder="agri-serve/equipment" // Cloudinary folder path
-  value={existingFiles}       // Pre-populate with existing files
+  value={existingFiles} // Pre-populate with existing files
 />
 ```
 
 ### Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `onUploadComplete` | `(files: MediaFile[]) => void` | - | Callback when files are uploaded |
-| `maxImages` | `number` | `5` | Maximum number of images |
-| `maxVideos` | `number` | `2` | Maximum number of videos |
-| `allowImages` | `boolean` | `true` | Enable image uploads |
-| `allowVideos` | `boolean` | `true` | Enable video uploads |
-| `folder` | `string` | `'agri-serve/equipment'` | Cloudinary folder path |
-| `value` | `MediaFile[]` | `[]` | Pre-populated files |
+| Prop               | Type                           | Default                  | Description                      |
+| ------------------ | ------------------------------ | ------------------------ | -------------------------------- |
+| `onUploadComplete` | `(files: MediaFile[]) => void` | -                        | Callback when files are uploaded |
+| `maxImages`        | `number`                       | `5`                      | Maximum number of images         |
+| `maxVideos`        | `number`                       | `2`                      | Maximum number of videos         |
+| `allowImages`      | `boolean`                      | `true`                   | Enable image uploads             |
+| `allowVideos`      | `boolean`                      | `true`                   | Enable video uploads             |
+| `folder`           | `string`                       | `'agri-serve/equipment'` | Cloudinary folder path           |
+| `value`            | `MediaFile[]`                  | `[]`                     | Pre-populated files              |
 
 ## API Endpoints
 
@@ -151,6 +156,7 @@ function EquipmentForm() {
 Upload and process an image to Cloudinary.
 
 **Request:**
+
 ```typescript
 FormData {
   file: File,
@@ -159,6 +165,7 @@ FormData {
 ```
 
 **Response:**
+
 ```typescript
 {
   success: boolean,
@@ -179,6 +186,7 @@ FormData {
 Upload and process a video with optional trimming to Cloudinary.
 
 **Request:**
+
 ```typescript
 FormData {
   file: File,
@@ -188,6 +196,7 @@ FormData {
 ```
 
 **VideoTrimRequest:**
+
 ```typescript
 {
   startTime: number,  // seconds
@@ -197,6 +206,7 @@ FormData {
 ```
 
 **Response:**
+
 ```typescript
 {
   success: boolean,
@@ -219,6 +229,7 @@ FormData {
 Get video metadata without uploading.
 
 **Request:**
+
 ```typescript
 FormData {
   file: File
@@ -226,6 +237,7 @@ FormData {
 ```
 
 **Response:**
+
 ```typescript
 {
   success: boolean,
@@ -245,9 +257,11 @@ FormData {
 Delete uploaded media from Cloudinary.
 
 **Query Parameters:**
+
 - `publicId` (required): Cloudinary public_id of the file
 
 **Response:**
+
 ```typescript
 {
   success: boolean,
@@ -262,6 +276,7 @@ Delete uploaded media from Cloudinary.
 Main upload component with drag-and-drop support, preview, and automatic processing.
 
 **Features:**
+
 - Multiple file upload
 - Image and video support
 - Automatic validation
@@ -275,6 +290,7 @@ Main upload component with drag-and-drop support, preview, and automatic process
 Interactive video trimming component.
 
 **Features:**
+
 - Video preview with play/pause
 - Dual sliders for start/end selection
 - Real-time duration display
@@ -290,8 +306,8 @@ Interactive video trimming component.
 // src/lib/types/media.ts
 export const DEFAULT_IMAGE_CONFIG = {
   maxWidth: 1080,
-  quality: 75,      // 0-100
-  format: 'webp',   // 'webp' or 'jpeg'
+  quality: 75, // 0-100
+  format: 'webp', // 'webp' or 'jpeg'
 };
 ```
 
@@ -300,8 +316,8 @@ export const DEFAULT_IMAGE_CONFIG = {
 ```typescript
 // src/lib/types/media.ts
 export const DEFAULT_VIDEO_CONFIG = {
-  maxDuration: 15,        // seconds
-  maxResolution: 690,     // height in pixels
+  maxDuration: 15, // seconds
+  maxResolution: 690, // height in pixels
   format: 'mp4',
   maxFileSizeMB: 15,
   minFileSizeMB: 5,
@@ -319,7 +335,7 @@ import { processImage, validateImage, getImageMetadata } from '@/lib/utils/image
 const processedBuffer = await processImage(buffer, {
   maxWidth: 1080,
   quality: 75,
-  format: 'webp'
+  format: 'webp',
 });
 
 // Validate image
@@ -338,7 +354,7 @@ import {
   trimVideo,
   compressVideo,
   generateThumbnail,
-  getVideoMetadata
+  getVideoMetadata,
 } from '@/lib/utils/video-processor';
 
 // Full processing (trim + compress)
@@ -352,12 +368,12 @@ const { outputPath, metadata } = await processVideo(
 const trimmedPath = await trimVideo(inputPath, {
   startTime: 5,
   endTime: 20,
-  duration: 15
+  duration: 15,
 });
 
 // Just compress
 const compressedPath = await compressVideo(inputPath, {
-  maxResolution: 690
+  maxResolution: 690,
 });
 
 // Get metadata
@@ -370,18 +386,21 @@ const thumbnailPath = await generateThumbnail(inputPath, undefined, 1);
 ## Storage Buckets
 
 ### equipment-images
+
 - **Purpose**: Equipment listing photos
 - **File size limit**: 10MB (before processing)
 - **Allowed formats**: JPEG, PNG, WebP, GIF
 - **Public**: Yes
 
 ### equipment-videos
+
 - **Purpose**: Equipment demo videos
 - **File size limit**: 20MB (after processing)
 - **Allowed formats**: MP4, QuickTime, AVI, WebM
 - **Public**: Yes
 
 ### avatars
+
 - **Purpose**: User profile pictures
 - **File size limit**: 10MB
 - **Allowed formats**: JPEG, PNG, WebP, GIF
@@ -390,12 +409,14 @@ const thumbnailPath = await generateThumbnail(inputPath, undefined, 1);
 ## Performance Optimization
 
 ### Image Processing
+
 - Uses Sharp (libvips) for fast image processing
 - Mozjpeg for JPEG compression
 - WebP format for better compression
 - Streaming processing (no full file in memory)
 
 ### Video Processing
+
 - H.264 codec with CRF 28 (constant rate factor)
 - Medium preset for balance between speed and compression
 - Fast start for web streaming
@@ -403,6 +424,7 @@ const thumbnailPath = await generateThumbnail(inputPath, undefined, 1);
 - Progressive encoding
 
 ### Server-Side Processing
+
 - All heavy processing happens on the server
 - Prevents large file transfers from client
 - Consistent quality across all devices
@@ -477,7 +499,8 @@ curl -X POST http://localhost:3001/api/upload/video \
 
 **Error:** `Sharp installation failed`
 
-**Solution:** 
+**Solution:**
+
 ```bash
 pnpm rebuild sharp
 # or

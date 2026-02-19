@@ -1,14 +1,17 @@
 # Role Registration & Multi-Role System - Complete Guide
 
 ## Overview
+
 Users can now register for multiple roles (Renter, Provider, Labour) and switch between them seamlessly. Each role unlocks different features and has its own dashboard.
 
 ## ✅ Complete Implementation
 
 ### 1. Role Registration Page
+
 **Location:** `src/app/settings/roles/page.tsx`
 
 **Features:**
+
 - View all available roles (Renter, Provider, Labour)
 - Enable/disable any role with a toggle switch
 - See "Available" badge for roles you don't have yet
@@ -17,15 +20,18 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 - Setup hints for roles that require configuration
 
 **How to Access:**
+
 - Settings → Manage Roles
 - Or direct link: `/settings/roles`
 
 ### 2. Role Onboarding Flows
 
 #### Provider Onboarding
+
 **Location:** `src/app/onboarding/provider/page.tsx`
 
 **What It Does:**
+
 - Welcomes new providers
 - Shows step-by-step guide
 - Links to equipment listing page
@@ -33,13 +39,16 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 - Can skip and complete later
 
 **Triggered When:**
+
 - User enables Provider role for the first time
 - Automatic redirect after saving roles
 
 #### Labour Onboarding
+
 **Location:** `src/app/onboarding/labour/page.tsx`
 
 **What It Does:**
+
 - Complete profile setup form
 - Skills selection (10 common agricultural skills)
 - Experience years input
@@ -48,15 +57,18 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 - Creates labour profile in database
 
 **Triggered When:**
+
 - User enables Labour role for the first time
 - Automatic redirect after saving roles
 
 ### 3. API Endpoints
 
 #### Role Management API
+
 **Endpoint:** `/api/user/roles`
 
 **POST - Register/Update Roles:**
+
 ```typescript
 // Request
 {
@@ -72,6 +84,7 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 ```
 
 **GET - Fetch User Roles:**
+
 ```typescript
 // Response
 {
@@ -80,9 +93,11 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 ```
 
 #### Labour Profile API
+
 **Endpoint:** `/api/labour/profile`
 
 **POST - Create/Update Profile:**
+
 ```typescript
 // Request
 {
@@ -101,9 +116,11 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 ```
 
 ### 4. Role Switcher Component
+
 **Location:** `src/components/layout/role-switcher.tsx`
 
 **Features:**
+
 - Shows current active role with icon and color
 - Dropdown menu to switch between enabled roles
 - "Active" badge on current role
@@ -111,12 +128,15 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 - Only shows if user has 2+ roles
 
 **Placement:**
+
 - Header (next to notifications and messages)
 
 ### 5. Role Registration Banner
+
 **Location:** `src/components/layout/role-registration-banner.tsx`
 
 **Features:**
+
 - Shows when user doesn't have all roles
 - Dismissible (saves to localStorage)
 - Animated entrance
@@ -124,11 +144,12 @@ Users can now register for multiple roles (Renter, Provider, Labour) and switch 
 - Quick "Register Now" button
 
 **Usage:**
+
 ```tsx
 import { RoleRegistrationBanner } from '@/components/layout/role-registration-banner';
 
 // Add to any page
-<RoleRegistrationBanner />
+<RoleRegistrationBanner />;
 ```
 
 ## 🎯 Complete User Flow
@@ -235,7 +256,7 @@ const roleConfig = {
     color: 'text-amber-500',
     dashboard: '/dashboard',
     requiresSetup: true,
-    setupMessage: 'You\'ll need to complete your labour profile after enabling',
+    setupMessage: "You'll need to complete your labour profile after enabling",
   },
 };
 ```
@@ -243,6 +264,7 @@ const roleConfig = {
 ## 📋 Testing Checklist
 
 ### Role Registration
+
 - [ ] Navigate to Settings → Manage Roles
 - [ ] See all available roles
 - [ ] Enable a new role (Provider)
@@ -252,6 +274,7 @@ const roleConfig = {
 - [ ] Verify role is now active
 
 ### Labour Profile Creation
+
 - [ ] Enable Labour role
 - [ ] Redirected to labour onboarding
 - [ ] Select multiple skills
@@ -264,6 +287,7 @@ const roleConfig = {
 - [ ] Check profile appears in labour listings
 
 ### Role Switching
+
 - [ ] Enable 2+ roles
 - [ ] See role switcher in header
 - [ ] Click role switcher
@@ -275,6 +299,7 @@ const roleConfig = {
 - [ ] Switch back to original role
 
 ### Role Disabling
+
 - [ ] Go to Manage Roles
 - [ ] Try to disable last role (should fail)
 - [ ] Enable second role
@@ -283,6 +308,7 @@ const roleConfig = {
 - [ ] Verify role switcher updates
 
 ### Banner
+
 - [ ] New user sees banner
 - [ ] Banner shows available roles
 - [ ] Click "Register Now"
@@ -296,16 +322,18 @@ const roleConfig = {
 ## 🚀 Deployment Steps
 
 1. **Run Migration:**
+
    ```bash
    # Apply migration to ensure all users have roles
    supabase migration up
    ```
 
 2. **Verify Tables:**
+
    ```sql
    -- Check user_roles table
    SELECT * FROM user_roles LIMIT 10;
-   
+
    -- Check labour_profiles table
    SELECT * FROM labour_profiles LIMIT 10;
    ```
@@ -326,6 +354,7 @@ const roleConfig = {
 ## 🎨 UI/UX Features
 
 ### Visual Indicators
+
 - **Color Coding:**
   - Renter: Blue
   - Provider: Emerald/Green
@@ -344,12 +373,14 @@ const roleConfig = {
   - Admin: Shield icon
 
 ### Animations
+
 - Smooth role switcher dropdown
 - Banner slide-in animation
 - Card hover effects
 - Loading states during API calls
 
 ### Accessibility
+
 - Keyboard navigation
 - ARIA labels
 - Focus indicators
@@ -373,22 +404,26 @@ const roleConfig = {
 ## 🐛 Troubleshooting
 
 ### Role Switcher Not Showing
+
 - Check if user has 2+ roles
 - Verify roles array in auth store
 - Check browser console for errors
 
 ### Onboarding Not Triggering
+
 - Verify role was newly added (not just re-enabled)
 - Check redirect logic in handleSave
 - Ensure onboarding pages exist
 
 ### Labour Profile Not Creating
+
 - Check API endpoint logs
 - Verify labour_profiles table exists
 - Check required fields are provided
 - Verify user authentication
 
 ### Banner Not Dismissing
+
 - Check localStorage permissions
 - Verify localStorage key
 - Clear browser cache
@@ -402,6 +437,7 @@ const roleConfig = {
 ## 🎉 Success Metrics
 
 Track these metrics to measure success:
+
 - Role registration rate
 - Onboarding completion rate
 - Role switching frequency

@@ -57,7 +57,7 @@ export default function PublicUserProfilePage() {
 
   useEffect(() => {
     loadUserData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [userId]);
 
   const loadUserData = async () => {
@@ -379,11 +379,11 @@ export default function PublicUserProfilePage() {
                               <Briefcase className="h-4 w-4" />
                               <span>{labourProfile.experience_years} years experience</span>
                             </div>
-                            {labourProfile.rating && (
+                            {labourProfile.average_rating && (
                               <div className="flex items-center gap-1">
                                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                                 <span className="font-medium">
-                                  {labourProfile.rating.toFixed(1)}
+                                  {labourProfile.average_rating.toFixed(1)}
                                 </span>
                                 {labourProfile.review_count && (
                                   <span className="text-gray-500">

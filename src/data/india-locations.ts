@@ -1,7 +1,7 @@
 // Comprehensive India location data for SEO geo targeting
 // AgriServe - Agricultural equipment & labour booking platform
 
-export interface CityData {
+interface CityData {
   slug: string;
   name: string;
   nameHi: string;
@@ -9,7 +9,7 @@ export interface CityData {
   lng: number;
 }
 
-export interface StateData {
+interface StateData {
   slug: string;
   name: string;
   nameHi: string;
@@ -676,11 +676,11 @@ export function getAllCitySlugs(): { stateSlug: string; citySlug: string }[] {
   return slugs;
 }
 
-export function getNorthernStates(): StateData[] {
+function getNorthernStates(): StateData[] {
   return INDIA_STATES.filter((state) => state.region === 'north' || state.region === 'ut');
 }
 
-export function getStatesByRegion(region: StateData['region']): StateData[] {
+function getStatesByRegion(region: StateData['region']): StateData[] {
   return INDIA_STATES.filter((state) => state.region === region);
 }
 

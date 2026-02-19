@@ -5,6 +5,7 @@ This project **ONLY** supports **pnpm** as the package manager. Using npm or yar
 ## 🛡️ Protection Layers
 
 ### 1. **Engine Restrictions** (`package.json`)
+
 ```json
 "engines": {
   "node": ">=18.0.0",
@@ -15,16 +16,19 @@ This project **ONLY** supports **pnpm** as the package manager. Using npm or yar
 ```
 
 ### 2. **Preinstall Hook** (`scripts/only-pnpm.js`)
+
 - Blocks npm/yarn before any installation
 - Shows clear error message
 - Exits with code 1
 
 ### 3. **Backup Check** (`scripts/check-pm.sh`)
+
 - Secondary validation layer
 - Colorful, funny error messages
 - Prevents any script execution with wrong package manager
 
 ### 4. **`.npmrc` Configuration**
+
 - Enforces engine-strict mode
 - Configures pnpm-specific settings
 - Prevents npm from ignoring engines field
@@ -58,6 +62,7 @@ yarn dev        # ❌ Blocked
 ## 🎯 Error Message Example
 
 When someone tries to use npm:
+
 ```
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
@@ -91,6 +96,7 @@ When someone tries to use npm:
 If you're new to this project:
 
 1. **Install pnpm globally:**
+
    ```bash
    npm install -g pnpm
    # or
@@ -98,6 +104,7 @@ If you're new to this project:
    ```
 
 2. **Clone and install:**
+
    ```bash
    git clone <repo-url>
    cd agri-serve-web

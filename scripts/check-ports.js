@@ -68,7 +68,8 @@ function getProcessOnPort(port) {
 // Main function
 async function main() {
   const portsToCheck = process.argv.slice(2).map(Number);
-  const defaultPorts = portsToCheck.length > 0 ? portsToCheck : [3000, 3001, 3002, 3003, 3004, 3005];
+  const defaultPorts =
+    portsToCheck.length > 0 ? portsToCheck : [3000, 3001, 3002, 3003, 3004, 3005];
 
   console.log(`${colors.bold}${colors.cyan}🔍 Port Status Checker${colors.reset}\n`);
   console.log(`Checking ports: ${defaultPorts.join(', ')}\n`);
@@ -78,7 +79,9 @@ async function main() {
     const inUse = await isPortInUse(port);
 
     if (inUse) {
-      console.log(`\n${colors.red}✗ Port ${port}${colors.reset} - ${colors.red}${colors.bold}IN USE${colors.reset}`);
+      console.log(
+        `\n${colors.red}✗ Port ${port}${colors.reset} - ${colors.red}${colors.bold}IN USE${colors.reset}`
+      );
       const processInfo = getProcessOnPort(port);
       if (processInfo) {
         console.log(`  ${colors.yellow}Process:${colors.reset}`);
@@ -87,7 +90,9 @@ async function main() {
         });
       }
     } else {
-      console.log(`\n${colors.green}✓ Port ${port}${colors.reset} - ${colors.green}${colors.bold}AVAILABLE${colors.reset}`);
+      console.log(
+        `\n${colors.green}✓ Port ${port}${colors.reset} - ${colors.green}${colors.bold}AVAILABLE${colors.reset}`
+      );
     }
   }
 

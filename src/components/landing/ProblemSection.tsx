@@ -5,7 +5,7 @@ import { useRef } from 'react';
 import { useGSAPAnimation } from '@/lib/animations/gsap-context';
 import { AlertCircle, TrendingUp } from 'lucide-react';
 
-export function ProblemSection() {
+function ProblemSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 

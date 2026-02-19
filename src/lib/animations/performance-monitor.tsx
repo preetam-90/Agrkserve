@@ -27,7 +27,7 @@ interface PerformanceWithMemory extends Performance {
  * Performance monitor hook
  * Tracks FPS and adjusts animation quality dynamically
  */
-export function usePerformanceMonitor(
+function usePerformanceMonitor(
   onThrottle?: (metrics: PerformanceMetrics) => void
 ): PerformanceMetrics {
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
@@ -104,7 +104,7 @@ export function usePerformanceMonitor(
  * Adaptive performance manager
  * Automatically reduces animation quality when performance drops
  */
-export function useAdaptivePerformance() {
+function useAdaptivePerformance() {
   const [qualityLevel, setQualityLevel] = useState<'high' | 'medium' | 'low'>('high');
   const throttleCountRef = useRef(0);
 
@@ -117,10 +117,10 @@ export function useAdaptivePerformance() {
       // 60fps * 3 seconds
       if (qualityLevel === 'high') {
         setQualityLevel('medium');
-        console.warn('[Performance] Reducing animation quality to medium');
+        console.warn('Performance monitor reducing animation quality to medium');
       } else if (qualityLevel === 'medium') {
         setQualityLevel('low');
-        console.warn('[Performance] Reducing animation quality to low');
+        console.warn('Performance monitor reducing animation quality to low');
       }
       throttleCountRef.current = 0;
     }
@@ -170,17 +170,17 @@ export function FPSMonitor({ show = false }: { show?: boolean }) {
 /**
  * Log performance metrics to console
  */
-export function logPerformanceMetrics(label: string, start: number) {
+function logPerformanceMetrics(label: string, start: number) {
   const duration = performance.now() - start;
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[Performance] ${label}: ${duration.toFixed(2)}ms`);
+    console.log(`Performance ${label}: ${duration.toFixed(2)}ms`);
   }
 }
 
 /**
  * Measure component render time
  */
-export function useRenderTime(componentName: string) {
+function useRenderTime(componentName: string) {
   useEffect(() => {
     const start = performance.now();
     return () => {
@@ -192,7 +192,7 @@ export function useRenderTime(componentName: string) {
 /**
  * Debounce for performance-intensive operations
  */
-export function useDebounce<T>(value: T, delay: number): T {
+function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
@@ -211,7 +211,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 /**
  * Throttle for scroll/resize handlers
  */
-export function useThrottle<T>(value: T, interval: number): T {
+function useThrottle<T>(value: T, interval: number): T {
   const [throttledValue, setThrottledValue] = useState<T>(value);
   const lastExecuted = useRef<number>(0);
 

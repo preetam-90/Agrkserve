@@ -1,5 +1,3 @@
-import { gsap } from 'gsap';
-
 export function safeGsapRevert(context: gsap.Context | null | undefined) {
   if (!context) return;
 

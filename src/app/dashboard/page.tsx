@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: 'View your activity, bookings, and performance overview.',
 };
 
-export const revalidate = 60; // Enable ISR, revalidate every 60 seconds
+const revalidate = 60; // Enable ISR, revalidate every 60 seconds
 
 import { Header, Footer } from '@/components/layout';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeletons';

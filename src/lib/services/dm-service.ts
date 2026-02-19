@@ -1,71 +1,26 @@
 import { createClient } from '@/lib/supabase/client';
 import type { DirectMessage, DMConversation } from '@/lib/types';
+import { getImageDimensions, getVideoMetadata } from '@/lib/utils/media-utils';
 
 const supabase = createClient();
 
-// Helper functions for media metadata
-function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.width, height: img.height });
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-
-    img.src = url;
-  });
-}
-
-function getVideoMetadata(
-  file: File
-): Promise<{ duration: number; width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    const url = URL.createObjectURL(file);
-
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-      });
-    };
-
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load video'));
-    };
-
-    video.src = url;
-  });
-}
-
 export const dmService = {
-  /**
-   * Get or create a conversation between two users
-   * Uses database function to ensure uniqueness
-   */
   async getOrCreateConversation(otherUserId: string): Promise<string> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    // Prevent attempting to create a conversation with yourself which violates
-    // the database check constraint `no_self_conversation`.
     if (user.id === otherUserId) {
       throw new Error('Cannot create conversation with yourself');
     }
 
     try {
+      const existingConversation = await this.getConversationByUser(otherUserId);
+      if (existingConversation) {
+        return existingConversation.id;
+      }
+
       const { data, error } = await supabase.rpc('get_or_create_conversation', {
         user_1: user.id,
         user_2: otherUserId,
@@ -421,7 +376,7 @@ export const dmService = {
       const filePath = `${user.id}/${conversationId}/${timestamp}.${fileExt}`;
 
       // Upload file to Supabase Storage
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { data: _uploadData, error: uploadError } = await supabase.storage
         .from('chat-media')
         .upload(filePath, file, {

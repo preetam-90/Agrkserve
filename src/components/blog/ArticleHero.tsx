@@ -83,7 +83,7 @@ export function ArticleHero({
             </Link>
             <Badge
               variant="outline"
-              className="border-emerald-400/35 bg-emerald-500/12 px-3 py-1 text-xs uppercase tracking-[0.14em] text-emerald-200"
+              className="bg-emerald-500/12 border-emerald-400/35 px-3 py-1 text-xs uppercase tracking-[0.14em] text-emerald-200"
             >
               {category}
             </Badge>
@@ -102,7 +102,7 @@ export function ArticleHero({
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.16, ease: 'easeOut' }}
-            className="mt-6 max-w-[62ch] text-lg leading-relaxed text-white/82 md:text-xl"
+            className="text-white/82 mt-6 max-w-[62ch] text-lg leading-relaxed md:text-xl"
           >
             {excerpt}
           </motion.p>
@@ -111,7 +111,7 @@ export function ArticleHero({
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.24, ease: 'easeOut' }}
-            className="mt-8 flex flex-wrap items-center gap-4 border-t border-white/12 pt-7"
+            className="border-white/12 mt-8 flex flex-wrap items-center gap-4 border-t pt-7"
           >
             <div className="flex items-center gap-3 rounded-full border border-white/10 bg-black/20 px-3 py-2 backdrop-blur-md">
               <Avatar src={author.image} name={author.name} className="h-10 w-10" />

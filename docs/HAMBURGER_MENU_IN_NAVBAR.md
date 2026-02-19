@@ -25,6 +25,7 @@ Successfully moved the three-line hamburger menu button from below the navbar in
 ### Implementation Details
 
 The hamburger button:
+
 - Positioned in the navbar next to the tractor logo on the left
 - Uses the same glassmorphism style as other navbar elements
 - Toggles sidebar open/close state via `useAppStore`
@@ -34,12 +35,13 @@ The hamburger button:
 
 ### Visual Result
 
-**Before:** 
+**Before:**
+
 - Hamburger button in navbar (newly added)
 - Second hamburger button floated below navbar at `top-20` (duplicate)
 
-**After:** 
+**After:**
+
 - Single hamburger button integrated into navbar next to logo
 - No duplicate buttons
 - Clean, cohesive header layout
-

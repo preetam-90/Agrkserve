@@ -6,7 +6,7 @@ import { getSiteUrl } from '@/lib/seo/site-url';
 const siteUrl = getSiteUrl();
 
 // Organization Schema
-export const organizationSchema = {
+const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   '@id': `${siteUrl}/#organization`,
@@ -57,7 +57,7 @@ export const organizationSchema = {
 };
 
 // LocalBusiness Schema with enhanced details
-export const localBusinessSchema = {
+const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   '@id': `${siteUrl}/#localbusiness`,
@@ -163,7 +163,7 @@ export const localBusinessSchema = {
 };
 
 // Service Schema
-export const serviceSchema = {
+const serviceSchema = {
   '@context': 'https://schema.org',
   '@type': 'Service',
   '@id': `${siteUrl}/#service`,
@@ -275,7 +275,7 @@ export const serviceSchema = {
 };
 
 // WebSite Schema with SearchAction
-export const websiteSchema = {
+const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   '@id': `${siteUrl}/#website`,
@@ -299,7 +299,7 @@ export const websiteSchema = {
 };
 
 // BreadcrumbList Schema
-export const breadcrumbSchema = {
+const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   '@id': `${siteUrl}/#breadcrumb`,
@@ -314,7 +314,7 @@ export const breadcrumbSchema = {
 };
 
 // FAQ Schema for GEO optimization
-export const faqSchema = {
+const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
@@ -386,7 +386,7 @@ export const faqSchema = {
 };
 
 // Product Schema Template (for individual equipment pages)
-export const createProductSchema = (product: {
+const createProductSchema = (product: {
   name: string;
   description: string;
   price: string;

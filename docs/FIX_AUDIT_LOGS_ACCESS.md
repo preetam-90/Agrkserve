@@ -1,9 +1,11 @@
 # Fix Audit Logs Admin Access
 
 ## Problem
+
 The admin logs page at `/admin/logs` shows no data because the `audit_logs` table has RLS policies that only allow users to view their own logs. Admins need permission to view ALL logs.
 
 ## Solution
+
 Apply the migration that adds admin access policies to the `audit_logs` table.
 
 ## Steps to Fix
@@ -38,12 +40,14 @@ supabase db push
 After applying the migration:
 
 1. Make sure you have an admin role assigned:
+
    ```sql
    -- Check your roles
    SELECT * FROM user_roles WHERE user_id = auth.uid();
    ```
 
 2. If you don't have an admin role, add it:
+
    ```sql
    -- Replace 'your-email@example.com' with your actual email
    INSERT INTO public.user_roles (user_id, role, is_active)
@@ -73,6 +77,7 @@ VALUES
 ### Still no data showing?
 
 1. **Check if you're logged in as admin:**
+
    ```sql
    SELECT ur.role, ur.is_active
    FROM user_roles ur
@@ -80,6 +85,7 @@ VALUES
    ```
 
 2. **Check if audit_logs table has data:**
+
    ```sql
    SELECT COUNT(*) FROM audit_logs;
    ```

@@ -6,7 +6,11 @@ import AdminHeader from '@/components/admin/AdminHeader';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  user?: { profile?: { profile_image?: string; name?: string }; email?: string; name?: string } | null;
+  user?: {
+    profile?: { profile_image?: string; name?: string };
+    email?: string;
+    name?: string;
+  } | null;
 }
 
 export default function AdminLayoutClient({ children, user }: AdminLayoutProps) {
@@ -26,20 +30,20 @@ export default function AdminLayoutClient({ children, user }: AdminLayoutProps) 
     <div className="admin-container relative">
       {/* Animated Grid Background */}
       <div className="admin-grid-bg" />
-      
+
       {/* Scanline Effect */}
       <div className="admin-scanline" />
 
       {/* Sidebar - Fixed Position */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
+      <Sidebar
+        isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
 
       {/* Main Content Area - Adjusted margin based on sidebar state */}
-      <div 
+      <div
         className={`relative flex min-w-0 flex-1 flex-col transition-all duration-300 ${
           sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[280px]'
         }`}

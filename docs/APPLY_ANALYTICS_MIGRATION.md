@@ -35,8 +35,8 @@ After running the migration, verify it worked:
 ```bash
 # Check if functions exist
 supabase db execute --query "
-SELECT routine_name, routine_type 
-FROM information_schema.routines 
+SELECT routine_name, routine_type
+FROM information_schema.routines
 WHERE routine_name IN ('get_platform_analytics', 'get_revenue_stats');
 "
 
@@ -50,6 +50,7 @@ supabase db execute --query "SELECT get_revenue_stats('month');"
 ## Expected Output
 
 You should see:
+
 - ✅ Two functions listed (get_platform_analytics, get_revenue_stats)
 - ✅ JSON data with your platform metrics
 - ✅ JSON data with revenue labels, values, and total
@@ -63,17 +64,21 @@ You should see:
 ## Troubleshooting
 
 ### Error: "relation does not exist"
+
 Some tables might be missing. Check which tables exist:
+
 ```bash
 supabase db execute --query "
-SELECT table_name 
-FROM information_schema.tables 
+SELECT table_name
+FROM information_schema.tables
 WHERE table_schema = 'public';
 "
 ```
 
 ### Error: "permission denied"
+
 Grant permissions manually:
+
 ```bash
 supabase db execute --query "
 GRANT EXECUTE ON FUNCTION get_platform_analytics() TO authenticated;
@@ -82,4 +87,5 @@ GRANT EXECUTE ON FUNCTION get_revenue_stats(TEXT) TO authenticated;
 ```
 
 ### Still seeing mock data?
+
 Clear browser cache and check console for specific errors.

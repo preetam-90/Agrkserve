@@ -6,11 +6,7 @@ const supabase = createClient();
 export const paymentService = {
   // Get payment by ID
   async getById(id: string): Promise<Payment | null> {
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('payments').select('*').eq('id', id).single();
 
     if (error && error.code !== 'PGRST116') throw error;
     return data;
@@ -102,11 +98,7 @@ export const paymentService = {
   },
 
   // Process refund
-  async processRefund(
-    id: string,
-    refundAmount: number,
-    reason: string
-  ): Promise<Payment> {
+  async processRefund(id: string, refundAmount: number, reason: string): Promise<Payment> {
     const { data, error } = await supabase
       .from('payments')
       .update({
@@ -137,10 +129,7 @@ export const paymentService = {
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString();
 
     // Get all successful payments for bookings owned by this provider
-    const { data: bookings } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('owner_id', ownerId);
+    const { data: bookings } = await supabase.from('bookings').select('id').eq('owner_id', ownerId);
 
     if (!bookings || bookings.length === 0) {
       return {
@@ -192,7 +181,10 @@ export const paymentService = {
   },
 
   // Create a Razorpay order for payment (Mock version for development)
-  async createOrder(bookingId: string, amount: number): Promise<{
+  async createOrder(
+    bookingId: string,
+    amount: number
+  ): Promise<{
     order_id: string;
     amount: number;
     currency: string;

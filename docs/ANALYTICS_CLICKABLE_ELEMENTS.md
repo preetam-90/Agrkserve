@@ -1,11 +1,13 @@
 # Analytics Page - Clickable Elements
 
 ## Overview
+
 Made all key elements on the analytics page clickable to navigate to their respective admin pages.
 
 ## Clickable Elements
 
 ### Top Metrics Cards (4 cards)
+
 1. **Total Revenue** → `/admin/payments`
    - Shows total revenue with trend
    - Click to view payment management
@@ -23,6 +25,7 @@ Made all key elements on the analytics page clickable to navigate to their respe
    - Click to view equipment management
 
 ### Platform Overview Section (4 items)
+
 1. **Farmers** → `/admin/users?filter=renter`
    - Shows farmer/renter count
    - Click to view filtered user list
@@ -42,12 +45,14 @@ Made all key elements on the analytics page clickable to navigate to their respe
 ## UX Enhancements
 
 ### Visual Feedback
+
 - **Hover Effects**: Cards scale up slightly (1.02x) on hover
 - **Active State**: Cards scale down (0.98x) when clicked
 - **Cursor**: Pointer cursor indicates clickability
 - **Smooth Transitions**: All animations use smooth transitions
 
 ### Accessibility
+
 - All clickable elements use proper `<Link>` components
 - Maintains keyboard navigation support
 - Preserves screen reader compatibility
@@ -64,6 +69,7 @@ Made all key elements on the analytics page clickable to navigate to their respe
 ## Future Enhancements
 
 Consider adding:
+
 - Modal popups for quick actions without navigation
 - Tooltips showing "Click to view details"
 - Loading states during navigation

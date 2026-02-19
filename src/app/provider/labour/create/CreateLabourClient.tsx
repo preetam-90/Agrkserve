@@ -28,6 +28,7 @@ import {
 import { labourService } from '@/lib/services';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/lib/store';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import toast from 'react-hot-toast';
 import { LabourAvailability } from '@/lib/types';
 
@@ -52,7 +53,7 @@ export default function CreateLabourProfilePage() {
   const router = useRouter();
   const { user, profile } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
+  const { isLocating, getLocationWithCallback } = useGeolocation();
 
   const [formData, setFormData] = useState({
     skills: [] as string[],
@@ -113,44 +114,9 @@ export default function CreateLabourProfilePage() {
   };
 
   const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported');
-      return;
-    }
-
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        setFormData((prev) => ({ ...prev, latitude, longitude }));
-
-        // Try to get address from coordinates
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
-          const data = await response.json();
-          if (data.address) {
-            const city = data.address.city || data.address.town || data.address.village || '';
-            setFormData((prev) => ({
-              ...prev,
-              city: city || prev.city,
-              address: data.display_name || prev.address,
-            }));
-          }
-          toast.success('Location detected');
-        } catch {
-          toast.success('Coordinates captured');
-        } finally {
-          setIsLocating(false);
-        }
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        toast.error('Failed to get location');
-        setIsLocating(false);
-      }
-    );
+    getLocationWithCallback(({ latitude, longitude }) => {
+      setFormData((prev) => ({ ...prev, latitude, longitude }));
+    });
   };
 
   // Availability selector for labour profile

@@ -35,11 +35,11 @@ export function MediaUpload({
   const [uploadedFiles, setUploadedFiles] = useState<MediaFile[]>(value);
   const [uploading, setUploading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [_uploadType, setUploadType] = useState<'image' | 'video' | null>(null);
   const [showTrimmer, setShowTrimmer] = useState<boolean>(false);
   const [videoToTrim, setVideoToTrim] = useState<File | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [_videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,7 +76,7 @@ export function MediaUpload({
         fileInputRef.current.value = '';
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [currentImages, currentVideos, maxImages, maxVideos]
   );
 
@@ -403,10 +403,8 @@ export function MediaUpload({
               key={file.id}
               className="group relative aspect-square overflow-hidden rounded-lg border"
             >
-              { }
+              {}
               {file.type === 'image' ? (
-                 
-
                 <Image
                   src={file.publicUrl || file.url}
                   alt="Upload"

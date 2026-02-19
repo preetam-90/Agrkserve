@@ -30,6 +30,7 @@ import {
   type CompressionProgress,
   MAX_VIDEO_DURATION_SECONDS,
 } from '@/lib/utils/media-compression';
+import { getVideoMetadata } from '@/lib/utils/media-utils';
 import { VideoTrimmer } from './video-trimmer';
 import { MediaViewer } from './media-viewer';
 import { UnifiedMediaPicker } from './unified-media-picker';
@@ -39,32 +40,6 @@ import { LinkPreview, extractUrls } from './link-preview';
 import { ReplyPreview, LocationShare } from './message-reply';
 import type { DirectMessage, KlipyMedia } from '@/lib/types';
 import { klipyService } from '@/lib/services/klipy-service';
-
-// Helper to get video metadata
-function getVideoMetadata(
-  file: File
-): Promise<{ duration: number; width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    const url = URL.createObjectURL(file);
-
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-      });
-    };
-
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load video'));
-    };
-
-    video.src = url;
-  });
-}
 
 interface ChatWindowProps {
   conversationId: string;
@@ -827,9 +802,9 @@ function MessageBubble({
   message,
   isOwn,
   showAvatar,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   isFirstInGroup: _isFirstInGroup,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   isLastInGroup: _isLastInGroup,
   onMediaClick,
   onReply,
@@ -838,7 +813,7 @@ function MessageBubble({
   onDelete,
   currentUserId,
   isHovered,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   onHover: _onHover,
 }: MessageBubbleProps) {
   const time = format(new Date(message.created_at), 'h:mm a');

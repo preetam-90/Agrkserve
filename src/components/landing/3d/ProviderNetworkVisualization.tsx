@@ -21,7 +21,13 @@ function pseudoRandom(seed: number): number {
   return x - Math.floor(x);
 }
 
-function NetworkParticles({ nodes, connections }: { nodes: NetworkNode[]; connections: NetworkConnection[] }) {
+function NetworkParticles({
+  nodes,
+  connections,
+}: {
+  nodes: NetworkNode[];
+  connections: NetworkConnection[];
+}) {
   const pointsRef = useRef<THREE.Points>(null);
   const linesRef = useRef<THREE.LineSegments>(null);
 
@@ -29,7 +35,7 @@ function NetworkParticles({ nodes, connections }: { nodes: NetworkNode[]; connec
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(nodes.length * 3);
     const cols = new Float32Array(nodes.length * 3);
-    
+
     const colorMap: Record<string, [number, number, number]> = {
       provider: [0.06, 0.72, 0.51],
       farmer: [0.02, 0.71, 0.83],
@@ -40,13 +46,13 @@ function NetworkParticles({ nodes, connections }: { nodes: NetworkNode[]; connec
       pos[i * 3] = node.position[0];
       pos[i * 3 + 1] = node.position[1];
       pos[i * 3 + 2] = node.position[2];
-      
+
       const [r, g, b] = colorMap[node.type] || [1, 1, 1];
       cols[i * 3] = r;
       cols[i * 3 + 1] = g;
       cols[i * 3 + 2] = b;
     });
-    
+
     return [pos, cols];
   }, [nodes]);
 
@@ -67,7 +73,7 @@ function NetworkParticles({ nodes, connections }: { nodes: NetworkNode[]; connec
   useFrame((state) => {
     if (pointsRef.current) {
       pointsRef.current.rotation.y = state.clock.elapsedTime * 0.05;
-      
+
       const positionAttr = pointsRef.current.geometry.attributes.position;
       if (positionAttr) {
         const posArray = positionAttr.array as Float32Array;
@@ -87,37 +93,18 @@ function NetworkParticles({ nodes, connections }: { nodes: NetworkNode[]; connec
       {/* Particles */}
       <points ref={pointsRef}>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-          />
-          <bufferAttribute
-            attach="attributes-color"
-            args={[colors, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+          <bufferAttribute attach="attributes-color" args={[colors, 3]} />
         </bufferGeometry>
-        <pointsMaterial
-          size={0.08}
-          vertexColors
-          transparent
-          opacity={0.8}
-          sizeAttenuation
-        />
+        <pointsMaterial size={0.08} vertexColors transparent opacity={0.8} sizeAttenuation />
       </points>
 
       {/* Connection lines */}
       <lineSegments ref={linesRef}>
         <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[linePositions, 3]}
-          />
+          <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial
-          color="#10b981"
-          transparent
-          opacity={0.2}
-        />
+        <lineBasicMaterial color="#10b981" transparent opacity={0.2} />
       </lineSegments>
     </group>
   );
@@ -168,15 +155,13 @@ function Scene({ reducedMotion }: { reducedMotion?: boolean }) {
       <PerspectiveCamera makeDefault position={[0, 0, 6]} fov={50} />
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} intensity={1} />
-      
+
       {!reducedMotion && (
         <Float speed={1} rotationIntensity={0.2} floatIntensity={0.5}>
           <NetworkParticles nodes={nodes} connections={connections} />
         </Float>
       )}
-      {reducedMotion && (
-        <NetworkParticles nodes={nodes} connections={connections} />
-      )}
+      {reducedMotion && <NetworkParticles nodes={nodes} connections={connections} />}
     </>
   );
 }
@@ -186,12 +171,15 @@ interface ProviderNetworkVisualizationProps {
   className?: string;
 }
 
-export function ProviderNetworkVisualization({ reducedMotion, className = '' }: ProviderNetworkVisualizationProps) {
+function ProviderNetworkVisualization({
+  reducedMotion,
+  className = '',
+}: ProviderNetworkVisualizationProps) {
   return (
     <div className={`absolute inset-0 ${className}`}>
       <Canvas
-        gl={{ 
-          antialias: true, 
+        gl={{
+          antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
         }}

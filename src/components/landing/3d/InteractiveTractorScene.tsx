@@ -12,7 +12,7 @@ import {
 import * as THREE from 'three';
 import { InteractiveTractorModel } from './InteractiveTractorModel';
 
-export interface TractorInteractionState {
+interface TractorInteractionState {
   hovered: boolean;
   turboMode: boolean;
   dragging: boolean;

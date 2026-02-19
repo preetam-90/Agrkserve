@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
+
     if (error) {
       console.error('Auth callback error:', error);
       return NextResponse.redirect(`${origin}/login?error=auth_failed`);
@@ -24,8 +24,7 @@ export async function GET(request: Request) {
         .single();
 
       // Extract phone from Google if available
-      const googlePhone = data.user.user_metadata?.phone || 
-                         data.user.user_metadata?.phone_number;
+      const googlePhone = data.user.user_metadata?.phone || data.user.user_metadata?.phone_number;
 
       // Update last login
       try {
@@ -41,16 +40,14 @@ export async function GET(request: Request) {
 
       // If Google provided phone but not in profile, save it
       if (googlePhone && !profile?.phone) {
-        await supabase
-          .from('user_profiles')
-          .upsert({
-            id: data.user.id,
-            phone: googlePhone,
-            email: data.user.email,
-            name: data.user.user_metadata?.full_name || data.user.user_metadata?.name,
-            profile_image: data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture,
-            updated_at: new Date().toISOString()
-          });
+        await supabase.from('user_profiles').upsert({
+          id: data.user.id,
+          phone: googlePhone,
+          email: data.user.email,
+          name: data.user.user_metadata?.full_name || data.user.user_metadata?.name,
+          profile_image: data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture,
+          updated_at: new Date().toISOString(),
+        });
       }
 
       // If profile is not complete, go to onboarding

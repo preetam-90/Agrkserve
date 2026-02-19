@@ -1,22 +1,26 @@
 # Contact Information Sync - Debugging Guide
 
 ## Problem
+
 Contact information updates in admin panel don't appear on contact page or footer.
 
 ## What I've Implemented
 
 ### 1. Real-Time Updates System
+
 - **Hook**: `useContactInfo` - Subscribes to database changes via Supabase Realtime
 - **Service**: `getContactInfo()` - Fetches contact data from API
 - **API**: `/api/settings` - Public endpoint (no auth required)
 - **Cache**: 5-minute cache with `clearSettingsCache()` function
 
 ### 2. Data Flow
+
 ```
 Admin Panel → Save → API → Database → Realtime → Hook → React State → UI Update
 ```
 
 ### 3. Files Modified
+
 - `src/lib/hooks/useContactInfo.ts` - Real-time hook with logging
 - `src/lib/services/settings.ts` - Settings service with logging
 - `src/app/contact/page.tsx` - Uses hook for dynamic data
@@ -49,8 +53,8 @@ Open browser console and run:
 
 ```javascript
 fetch('/api/settings')
-  .then(r => r.json())
-  .then(data => {
+  .then((r) => r.json())
+  .then((data) => {
     console.log('Total fields:', Object.keys(data.settings).length);
     console.log('Email:', data.settings.support_email_primary);
     console.log('Phone:', data.settings.support_phone_primary);
@@ -84,6 +88,7 @@ ORDER BY key;
 5. Check console in contact page tab
 
 **Expected console logs:**
+
 ```
 🔔 Contact settings changed: { ... }
 🔄 Refetching contact info...
@@ -108,8 +113,8 @@ If data is cached, run in browser console:
 ```javascript
 // Force clear cache and refetch
 fetch('/api/settings')
-  .then(r => r.json())
-  .then(data => {
+  .then((r) => r.json())
+  .then((data) => {
     console.log('Fresh data:', data.settings);
     location.reload(); // Reload page
   });
@@ -118,33 +123,41 @@ fetch('/api/settings')
 ## Common Issues & Solutions
 
 ### Issue 1: "Returning cached settings"
+
 **Symptom**: Console shows "📦 Returning cached settings"
 **Cause**: 5-minute cache is active
-**Solution**: 
+**Solution**:
+
 - Wait 5 minutes, OR
 - Update settings in admin panel (triggers `clearSettingsCache()`), OR
 - Reload the page
 
 ### Issue 2: "Returning default settings (API failed)"
+
 **Symptom**: Console shows "⚠️ Returning default settings"
 **Cause**: API endpoint is failing
-**Solution**: 
+**Solution**:
+
 - Check `/api/settings` endpoint
 - Check Supabase connection
 - Check RLS policies
 
 ### Issue 3: No Realtime Events
+
 **Symptom**: No "🔔 Contact settings changed" logs when updating
 **Cause**: Realtime not enabled or subscription failed
 **Solution**:
+
 - Enable Realtime replication in Supabase Dashboard
 - Check subscription status in console
 - Verify `system_settings` table exists
 
 ### Issue 4: Data in Database but Not in API
+
 **Symptom**: SQL query shows new values but API returns old
 **Cause**: RPC function issue or RLS policy blocking
 **Solution**:
+
 ```sql
 -- Test RPC function
 SELECT * FROM get_system_settings('contact');
@@ -154,9 +167,11 @@ SELECT * FROM pg_policies WHERE tablename = 'system_settings';
 ```
 
 ### Issue 5: Admin Save Not Working
+
 **Symptom**: Clicking "Save All" doesn't update database
 **Cause**: RPC function `update_system_setting` failing
 **Solution**:
+
 ```sql
 -- Test RPC function manually
 SELECT update_system_setting('support_email_primary', '"test@example.com"'::jsonb);
@@ -215,24 +230,30 @@ When everything works correctly, you should see:
 ## Quick Fix Commands
 
 ### Force Refresh Data
+
 ```javascript
 // In browser console
 location.reload();
 ```
 
 ### Test API Directly
+
 ```javascript
 // In browser console
-fetch('/api/settings').then(r => r.json()).then(console.log);
+fetch('/api/settings')
+  .then((r) => r.json())
+  .then(console.log);
 ```
 
 ### Check Realtime Status
+
 ```javascript
 // In browser console on contact page
 // Look for "📡 Realtime subscription status: SUBSCRIBED"
 ```
 
 ### Clear Browser Cache
+
 ```
 Ctrl+Shift+R (Windows/Linux)
 Cmd+Shift+R (Mac)

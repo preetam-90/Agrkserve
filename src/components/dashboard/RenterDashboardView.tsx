@@ -106,7 +106,7 @@ function RenterDashboardView() {
     window.location.href = `/equipment?search=${encodeURIComponent(searchQuery)}`;
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const _getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':

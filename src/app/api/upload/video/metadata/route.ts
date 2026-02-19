@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Convert File to Buffer and save to temp file
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
+
     tempPath = join(tmpdir(), `check-${randomBytes(8).toString('hex')}.mp4`);
     await writeFile(tempPath, buffer);
 

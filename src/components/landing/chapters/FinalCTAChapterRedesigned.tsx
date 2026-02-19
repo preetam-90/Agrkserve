@@ -14,7 +14,7 @@ import {
   Shield,
   Clock,
   BadgeCheck,
-  Star
+  Star,
 } from 'lucide-react';
 import { safeGsapRevert } from '../shared/safeGsapRevert';
 
@@ -59,7 +59,7 @@ const trustBadges = [
 
 /**
  * Final CTA Chapter - Redesigned
- * 
+ *
  * Conversion-optimized layout:
  * 1. Clear headline with urgency
  * 2. Prominent primary CTAs
@@ -117,7 +117,7 @@ export function FinalCTAChapterRedesigned({ reducedMotion = false }: FinalCTACha
         '-=0.5'
       );
 
-      // CTA cards \u2014 3D perspective cascade  
+      // CTA cards \u2014 3D perspective cascade
       timeline.from(
         '.cta-primary > *',
         {
@@ -202,7 +202,12 @@ export function FinalCTAChapterRedesigned({ reducedMotion = false }: FinalCTACha
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="cta-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-              <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+              <path
+                d="M 60 0 L 0 0 0 60"
+                fill="none"
+                stroke="rgba(255,255,255,0.05)"
+                strokeWidth="1"
+              />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#cta-grid)" />
@@ -213,7 +218,10 @@ export function FinalCTAChapterRedesigned({ reducedMotion = false }: FinalCTACha
         data-scroll-content
         className="relative z-10 mx-auto w-full max-w-[var(--landing-max-width-narrow)] px-[var(--landing-padding-x)]"
       >
-        <div className="cta-container-glow rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6 backdrop-blur-xl md:p-10 lg:p-14" style={{ perspective: '1000px' }}>
+        <div
+          className="cta-container-glow rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-6 backdrop-blur-xl md:p-10 lg:p-14"
+          style={{ perspective: '1000px' }}
+        >
           {/* Inner gradient border */}
           <div className="cta-border-glow pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-transparent to-cyan-500/10 opacity-40" />
 
@@ -238,8 +246,8 @@ export function FinalCTAChapterRedesigned({ reducedMotion = false }: FinalCTACha
 
             {/* Description */}
             <p className="cta-description mx-auto mb-10 max-w-2xl text-base leading-relaxed text-white/70 md:text-lg">
-              Join thousands of farmers across India who have streamlined their operations
-              with AgriServe. Equipment, labour, and verified providers—all in one place.
+              Join thousands of farmers across India who have streamlined their operations with
+              AgriServe. Equipment, labour, and verified providers—all in one place.
             </p>
 
             {/* Primary CTAs */}
@@ -252,7 +260,9 @@ export function FinalCTAChapterRedesigned({ reducedMotion = false }: FinalCTACha
                     whileTap={{ scale: 0.98 }}
                     className="landing-touch group h-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition-all hover:border-white/20 hover:bg-white/10 md:p-5"
                   >
-                    <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${cta.color} text-white transition-transform group-hover:scale-110`}>
+                    <div
+                      className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${cta.color} text-white transition-transform group-hover:scale-110`}
+                    >
                       <cta.icon className="h-5 w-5" />
                     </div>
                     <h3 className="mb-1 font-semibold text-white">{cta.label}</h3>
@@ -269,7 +279,11 @@ export function FinalCTAChapterRedesigned({ reducedMotion = false }: FinalCTACha
             {/* Trust Badges */}
             <div className="cta-trust mb-8 flex flex-wrap items-center justify-center gap-4 md:gap-6">
               {trustBadges.map((badge) => (
-                <div key={badge.label} data-scroll-float className="flex items-center gap-2 text-white/60">
+                <div
+                  key={badge.label}
+                  data-scroll-float
+                  className="flex items-center gap-2 text-white/60"
+                >
                   <badge.icon className="h-4 w-4 text-emerald-400" />
                   <span className="text-sm font-medium">{badge.label}</span>
                 </div>

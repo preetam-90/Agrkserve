@@ -6,8 +6,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import DataTable from '@/components/admin/DataTable';
 import { format } from 'date-fns';
-import { ITEMS_PER_PAGE } from '@/lib/utils/admin-constants';
-import { FileText, Clock, User as UserIcon, Activity } from 'lucide-react';
+import { FileText, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function CloudinaryAuditLogsPage() {
@@ -17,7 +16,7 @@ export default function CloudinaryAuditLogsPage() {
   const initialPublicId = searchParams.get('publicId') || '';
   const initialPage = parseInt(searchParams.get('page') || '1', 10);
 
-  const [publicId, setPublicId] = useState(initialPublicId);
+  const [publicId] = useState(initialPublicId);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState<number>(initialPage || 1);

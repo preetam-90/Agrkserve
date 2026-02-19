@@ -120,8 +120,7 @@ export function LandingNavRedesigned() {
       return;
     }
 
-    const focusableSelector =
-      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
     const focusableElements = Array.from(menuNode.querySelectorAll<HTMLElement>(focusableSelector));
     const mobileToggleNode = mobileToggleRef.current;

@@ -11,6 +11,7 @@
 You have **3 options** to run the migration:
 
 ### Option A: Supabase Dashboard (Easiest)
+
 1. Go to your Supabase project dashboard
 2. Click **SQL Editor** in the sidebar
 3. Click **New Query**
@@ -18,12 +19,14 @@ You have **3 options** to run the migration:
 5. Click **RUN**
 
 ### Option B: Command Line (if you have supabase CLI)
+
 ```bash
 cd ~/Downloads/Agrkserve
 supabase db push
 ```
 
 ### Option C: Direct psql
+
 ```bash
 psql -U postgres -d your_database_name -f KLIPY_QUICK_MIGRATION.sql
 ```
@@ -31,10 +34,12 @@ psql -U postgres -d your_database_name -f KLIPY_QUICK_MIGRATION.sql
 ## What the Migration Does
 
 Adds two new columns to `dm_messages`:
+
 - `klipy_slug` - Tracks which KLIPY media was sent
 - `klipy_blur_preview` - Stores blur preview for fast loading
 
 Expands `message_type` to include:
+
 - `gif`, `meme`, `sticker`, `clip`
 
 ## Step 2: Test KLIPY Features
@@ -42,6 +47,7 @@ Expands `message_type` to include:
 After running the migration:
 
 1. **Start dev server**:
+
    ```bash
    bun run dev
    ```
@@ -69,6 +75,7 @@ After running the migration:
 ## Current Mock Data Available
 
 ### GIFs (8 items)
+
 - Tractor Driving
 - Thumbs Up
 - Deal
@@ -79,6 +86,7 @@ After running the migration:
 - Thinking
 
 ### Memes (6 items)
+
 - Farming Life Meme
 - Harvest Season
 - Success Kid
@@ -87,6 +95,7 @@ After running the migration:
 - Weather Meme
 
 ### Stickers (5 items)
+
 - Check Mark
 - Thumbs Up
 - Star
@@ -94,6 +103,7 @@ After running the migration:
 - Smile
 
 ### Clips (3 items)
+
 - Success Sound
 - Notification
 - Farm Animals
@@ -101,26 +111,32 @@ After running the migration:
 ## Troubleshooting
 
 ### "Database migration needed" error
+
 → Run the `KLIPY_QUICK_MIGRATION.sql` in Supabase SQL Editor
 
 ### Search not working
+
 → Now fixed! Search filters by title/slug (case-insensitive)
 
 ### Only 2-3 items showing
+
 → Fixed! Now shows 8 GIFs, 6 Memes, 5 Stickers, 3 Clips
 
 ### KLIPY API warnings in console
+
 → Expected! Using mock data until real API is configured
 
 ## Next Steps (Optional)
 
 ### Connect to Real KLIPY API
+
 1. Contact KLIPY support: support@klipy.com
 2. Confirm API endpoint format
 3. Update `.env` if needed
 4. Mock data will automatically stop once API responds
 
 ### Customize Mock Data
+
 Edit `src/lib/services/klipy-service.ts` → `getMockTrendingData()` method
 
 ## Files Reference

@@ -4,16 +4,16 @@
  * Decision tree for choosing the right animation library based on use case
  */
 
-export const AnimationLibrary = {
+const AnimationLibrary = {
   GSAP: 'gsap',
   FRAMER_MOTION: 'framer-motion',
   CSS: 'css',
   THREE: 'three',
 } as const;
 
-export type AnimationLibraryType = (typeof AnimationLibrary)[keyof typeof AnimationLibrary];
+type AnimationLibraryType = (typeof AnimationLibrary)[keyof typeof AnimationLibrary];
 
-export interface AnimationUseCase {
+interface AnimationUseCase {
   library: AnimationLibraryType;
   rationale: string;
   performance: 'high' | 'medium' | 'low';
@@ -24,7 +24,7 @@ export interface AnimationUseCase {
 /**
  * Animation selection matrix based on use case
  */
-export const ANIMATION_USE_CASES: Record<string, AnimationUseCase> = {
+const ANIMATION_USE_CASES: Record<string, AnimationUseCase> = {
   // Framer Motion - Declarative React animations
   uiTransitions: {
     library: AnimationLibrary.FRAMER_MOTION,
@@ -121,14 +121,14 @@ export const ANIMATION_USE_CASES: Record<string, AnimationUseCase> = {
 /**
  * Get recommended library for a specific animation need
  */
-export function getRecommendedLibrary(useCase: keyof typeof ANIMATION_USE_CASES): AnimationUseCase {
+function getRecommendedLibrary(useCase: keyof typeof ANIMATION_USE_CASES): AnimationUseCase {
   return ANIMATION_USE_CASES[useCase];
 }
 
 /**
  * Check if animation should be enabled based on device capability
  */
-export function shouldEnableAnimation(
+function shouldEnableAnimation(
   useCase: keyof typeof ANIMATION_USE_CASES,
   deviceCapability: 'low' | 'medium' | 'high'
 ): boolean {

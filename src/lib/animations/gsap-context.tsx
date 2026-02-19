@@ -73,7 +73,7 @@ export function GSAPProvider({ children }: { children: ReactNode }) {
 /**
  * Hook to access GSAP context
  */
-export function useGSAP() {
+function useGSAP() {
   const context = useContext(GSAPContext);
   if (!context) {
     throw new Error('useGSAP must be used within GSAPProvider');
@@ -109,14 +109,14 @@ export function useGSAPAnimation(
     return () => {
       contextRef.current?.revert();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [gsapInstance, scrollTriggerInstance, ...dependencies]);
 }
 
 /**
  * Hook for scroll-triggered animations
  */
-export function useScrollAnimation(
+function useScrollAnimation(
   trigger: string | Element,
   animation: (gsapInstance: typeof gsap) => void,
   options: ScrollTrigger.Vars = {}
@@ -152,7 +152,7 @@ export function useScrollAnimation(
 /**
  * Utility to create scroll-linked parallax effect
  */
-export function createParallax(
+function createParallax(
   element: string | Element,
   speed: number = 0.5,
   options: Partial<ScrollTrigger.Vars> = {}
@@ -173,7 +173,7 @@ export function createParallax(
 /**
  * Stagger animation helper
  */
-export function staggerAnimation(
+function staggerAnimation(
   selector: string,
   animationProps: gsap.TweenVars,
   staggerAmount: number = 0.1

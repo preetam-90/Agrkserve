@@ -3,10 +3,12 @@
 ## 📦 Allowed Package Managers
 
 This project **ONLY** supports:
+
 - ✅ **pnpm** (recommended)
 - ✅ **bun** (alternative)
 
 **NOT supported:**
+
 - ❌ npm
 - ❌ yarn
 
@@ -33,6 +35,7 @@ pnpm dev
 ```
 
 This will:
+
 - ✅ Always run on **port 3001**
 - ✅ Automatically kill any process using port 3001
 - ✅ Clean Next.js cache
@@ -53,6 +56,7 @@ pnpm dev
 ```
 
 The dev script will automatically:
+
 1. Detect port 3001 is in use
 2. Show a warning ⚠️
 3. Kill the process using that port
@@ -109,6 +113,7 @@ Forces port 3001 in Next.js config.
 ### 5. **Development Script (scripts/dev.sh)**
 
 Custom bash script that:
+
 - Detects port conflicts
 - Kills existing processes
 - Cleans cache

@@ -7,6 +7,7 @@ The KLIPY media integration is currently running with **mock/placeholder data** 
 ### What This Means
 
 ✅ **All UI features work perfectly:**
+
 - Media Drawer opens and displays tabs
 - Search functionality works
 - Trending, Recent views function
@@ -14,6 +15,7 @@ The KLIPY media integration is currently running with **mock/placeholder data** 
 - Message rendering displays correctly
 
 ⚠️ **Using placeholder content:**
+
 - GIFs: Sample animated GIFs from Giphy
 - Memes: Sample meme templates
 - Stickers: Simple PNG stickers
@@ -24,16 +26,19 @@ The KLIPY media integration is currently running with **mock/placeholder data** 
 Once you have confirmed the correct KLIPY API endpoint details:
 
 1. **Verify API Key**: Check that your API key is correct:
+
    ```env
    NEXT_PUBLIC_KLIPY_API_KEY=nTMLI3FW7DvfnkiIExscY3LHB4ZY8WDoo7adKxiBsG7fSHDmPIHYZIjrG9aRSAq7
    ```
 
 2. **Confirm API Base URL**: The current URL might need adjustment:
+
    ```env
    NEXT_PUBLIC_KLIPY_BASE_URL=https://api.klipy.com/api/v1
    ```
 
 3. **Check Endpoint Format**: The service is currently calling:
+
    ```
    GET ${BASE_URL}/${APP_KEY}/${type}/trending?limit=20
    GET ${BASE_URL}/${APP_KEY}/search?q=query&type=gif
@@ -46,6 +51,7 @@ Once you have confirmed the correct KLIPY API endpoint details:
 ### Current Implementation Benefits
 
 The mock data fallback ensures:
+
 - 🚀 **Development can continue** without blocking on API configuration
 - 🎨 **UI/UX is fully functional** for testing and demos
 - 🔄 **Automatic transition** to real data once API is configured
@@ -54,6 +60,7 @@ The mock data fallback ensures:
 ### How the Fallback Works
 
 The service automatically:
+
 1. Attempts to call the real KLIPY API
 2. If response is empty or errors → uses mock data
 3. Logs warnings to console (not errors)
@@ -64,17 +71,17 @@ The service automatically:
 async getTrending(type: KlipyMediaType, limit: number = 20) {
   try {
     const response = await fetch(/* KLIPY API */);
-    
+
     if (!response.ok) {
       console.warn('KLIPY API error, using mock data');
       return this.getMockTrendingData(type, limit);
     }
-    
+
     const text = await response.text();
     if (!text) {
       return this.getMockTrendingData(type, limit); // Fallback
     }
-    
+
     return JSON.parse(text);
   } catch (error) {
     return this.getMockTrendingData(type, limit); // Safe fallback
@@ -130,6 +137,7 @@ To fully connect to KLIPY, you need:
 ### Console Messages
 
 When mock data is active, you'll see:
+
 ```
 KLIPY API error: 404 Not Found, using mock data
 KLIPY API returned empty response, using mock data

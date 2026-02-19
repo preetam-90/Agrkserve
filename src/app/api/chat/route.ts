@@ -115,7 +115,7 @@ function buildSystemPrompt(
   const systemContext = formatSystemContextForPrompt();
   const userContextStr = formatUserContextForPrompt(userCtx);
 
-  let prompt = `You are **Agrirental AI** 🌾, the smart assistant for — India's agricultural equipment & labour rental platform ([agrirental.vercel.app](https://agrirental.vercel.app)).
+  const prompt = `You are **Agrirental AI** 🌾, the smart assistant for — India's agricultural equipment & labour rental platform ([agrirental.vercel.app](https://agrirental.vercel.app)).
 
 ## What AgriServe Offers
 - 🚜 **Equipment Rental** — Farmers can browse & book tractors, harvesters, and other agri machinery
@@ -197,7 +197,7 @@ export async function POST(request: Request) {
       mediaAttachments?: MediaAttachment[];
     };
 
-    console.log('[chat:debug] Request received:', {
+    console.log('chat debug: request received', {
       messageCount: messages?.length,
       model,
       webSearch,
@@ -268,7 +268,7 @@ export async function POST(request: Request) {
         };
       }
     } catch (e) {
-      console.warn('[chat] Auth check failed, continuing as guest:', e);
+      console.warn('chat auth check failed, continuing as guest:', e);
     }
 
     // --- Model selection ---
@@ -282,7 +282,7 @@ export async function POST(request: Request) {
         ? MODEL_MAP[model] || model
         : DEFAULT_TEXT_MODEL;
 
-    console.log('[chat:debug] Model selection:', { hasMedia, selectedModel, inputModel: model });
+    console.log('chat debug: model selection', { hasMedia, selectedModel, inputModel: model });
 
     // --- Smart query for platform data ---
     const latestUserMessage = extractLatestUserMessage(messages);
@@ -292,7 +292,7 @@ export async function POST(request: Request) {
       try {
         smartResult = await smartQuery(latestUserMessage, smartQueryUserContext);
       } catch (queryError) {
-        console.error('[chat] Smart query failed, continuing without platform data:', queryError);
+        console.error('chat smart query failed, continuing without platform data:', queryError);
       }
     }
 
@@ -307,11 +307,11 @@ export async function POST(request: Request) {
           if (searchResponse && searchResponse.results.length > 0) {
             webSearchContext = formatWebSearchContext(searchResponse);
             console.info(
-              `[chat] Tavily: ${searchResponse.results.length} results (${searchResponse.fromCache ? 'cached' : 'live'})`
+              `chat tavily: ${searchResponse.results.length} results (${searchResponse.fromCache ? 'cached' : 'live'})`
             );
           }
         } catch (searchError) {
-          console.warn('[chat] Tavily search failed, continuing without web context:', searchError);
+          console.warn('chat tavily search failed, continuing without web context:', searchError);
         }
       }
     }
@@ -392,7 +392,7 @@ export async function POST(request: Request) {
 
     if (hasMedia) {
       const lastMsg = modelMessages[modelMessages.length - 1];
-      console.log('[chat:debug] Enriched last message:', {
+      console.log('chat debug: enriched last message', {
         role: lastMsg?.role,
         contentType: typeof lastMsg?.content,
         contentLength: Array.isArray(lastMsg?.content) ? lastMsg.content.length : 'N/A',

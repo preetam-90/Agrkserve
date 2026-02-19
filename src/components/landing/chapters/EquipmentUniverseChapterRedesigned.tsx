@@ -207,7 +207,7 @@ function mapEquipmentToCard(item: Equipment): EquipmentCard {
  * 3. Touch-friendly card design
  * 4. Navigation dots and arrow buttons
  */
-export function EquipmentUniverseChapterRedesigned({
+function EquipmentUniverseChapterRedesigned({
   reducedMotion = false,
 }: EquipmentUniverseChapterProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -429,11 +429,7 @@ export function EquipmentUniverseChapterRedesigned({
             style={{ scrollSnapType: prefersReducedMotion ? 'none' : 'x mandatory' }}
           >
             {equipmentCards.map((card) => (
-              <EquipmentCard
-                key={card.id}
-                card={card}
-                reducedMotion={reducedMotion}
-              />
+              <EquipmentCard key={card.id} card={card} reducedMotion={reducedMotion} />
             ))}
           </div>
 
@@ -443,10 +439,11 @@ export function EquipmentUniverseChapterRedesigned({
               <button
                 key={index}
                 onClick={() => scrollToIndex(index)}
-                className={`h-2 rounded-full transition-all ${index === currentIndex
-                  ? 'w-8 bg-emerald-400'
-                  : 'w-2 bg-white/20 hover:bg-white/40'
-                  }`}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentIndex
+                    ? 'w-8 bg-emerald-400'
+                    : 'w-2 bg-white/20 hover:bg-white/40'
+                }`}
                 aria-label={`Go to equipment ${index + 1}`}
                 aria-current={index === currentIndex ? 'page' : undefined}
               />
@@ -505,14 +502,16 @@ function EquipmentCard({ card, reducedMotion }: EquipmentCardProps) {
           {/* Availability Badge */}
           <div className="absolute right-3 top-3 md:right-4 md:top-4">
             <div
-              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-xl ${card.available
-                ? 'border border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
-                : 'border border-amber-500/50 bg-amber-500/20 text-amber-300'
-                }`}
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur-xl ${
+                card.available
+                  ? 'border border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
+                  : 'border border-amber-500/50 bg-amber-500/20 text-amber-300'
+              }`}
             >
               <span
-                className={`h-1.5 w-1.5 rounded-full ${card.available ? 'animate-pulse bg-emerald-400' : 'bg-amber-400'
-                  }`}
+                className={`h-1.5 w-1.5 rounded-full ${
+                  card.available ? 'animate-pulse bg-emerald-400' : 'bg-amber-400'
+                }`}
               />
               {card.available ? 'Available' : 'Booked'}
             </div>

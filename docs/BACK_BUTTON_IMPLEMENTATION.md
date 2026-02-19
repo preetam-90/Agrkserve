@@ -1,17 +1,21 @@
 # Back Button Implementation
 
 ## Overview
+
 Added a reusable back button component to all major pages in the application, allowing users to easily navigate back to the previous page or a fallback URL.
 
 ## Component Created
 
 ### `src/components/ui/back-button.tsx`
+
 A flexible back button component with three variants:
+
 - **default**: Standard button with border and background
 - **minimal**: Text-only button with hover effects
 - **floating**: Fixed position floating button (useful for full-screen pages)
 
 **Features:**
+
 - Smart navigation: Uses browser history if available, otherwise redirects to fallback URL
 - Customizable label and styling
 - Accessible with proper ARIA labels
@@ -21,6 +25,7 @@ A flexible back button component with three variants:
 ## Pages Updated
 
 ### Main Application Pages
+
 1. **Equipment Listing** (`src/app/equipment/page.tsx`) - minimal variant
 2. **Labour Listing** (`src/app/labour/page.tsx`) - minimal variant
 3. **Dashboard** (`src/app/dashboard/page.tsx`) - minimal variant
@@ -44,8 +49,8 @@ import { BackButton } from '@/components/ui/back-button';
 <BackButton variant="floating" />
 
 // Custom fallback and label
-<BackButton 
-  fallbackUrl="/dashboard" 
+<BackButton
+  fallbackUrl="/dashboard"
   label="Go Back"
   variant="minimal"
 />
@@ -71,6 +76,7 @@ import { BackButton } from '@/components/ui/back-button';
 ## Future Enhancements
 
 Consider adding back buttons to:
+
 - Individual equipment detail pages
 - Booking confirmation pages
 - Message conversation pages

@@ -17,14 +17,14 @@ export default function Forbidden403Page() {
         errorCode="403"
         title="पहुंच अस्वीकृत | Access Denied"
         description="आपको इस पृष्ठ को देखने की अनुमति नहीं है। यदि आपको लगता है कि यह गलती है तो सहायता से संपर्क करें। | You do not have permission to view this page. Please contact support if you think this is a mistake."
-        illustration={<ErrorIllustration className="w-full h-full" />}
+        illustration={<ErrorIllustration className="h-full w-full" />}
         primaryAction={{
-          label: "होम पर जाएं | Go Home",
-          href: "/",
+          label: 'होम पर जाएं | Go Home',
+          href: '/',
         }}
         secondaryAction={{
-          label: "सहायता से संपर्क करें | Contact Support",
-          href: "/help",
+          label: 'सहायता से संपर्क करें | Contact Support',
+          href: '/help',
         }}
       />
     </SystemPageLayout>

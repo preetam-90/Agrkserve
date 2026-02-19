@@ -164,9 +164,7 @@ export function LandingPageRedesigned({
         />
 
         {/* Interactive 3D Tractor Experience - SKIP on mobile */}
-        {!isMobileViewport && (
-          <InteractiveTractorChapter reducedMotion={prefersReducedMotion} />
-        )}
+        {!isMobileViewport && <InteractiveTractorChapter reducedMotion={prefersReducedMotion} />}
 
         {/* Feature Matrix - loads automatically after previous component */}
         <FeaturesChapter reducedMotion={prefersReducedMotion} />

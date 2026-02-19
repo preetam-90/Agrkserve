@@ -153,7 +153,7 @@ export interface NotificationPreferences {
   updated_at: string;
 }
 
-export interface NotificationDeliveryLog {
+interface NotificationDeliveryLog {
   id: string;
   notification_id: string;
   channel: NotificationDeliveryChannel;
@@ -194,7 +194,7 @@ export interface NotificationStats {
 }
 
 // Notification Templates
-export interface NotificationTemplate {
+interface NotificationTemplate {
   category: NotificationCategory;
   event_type: NotificationEventType;
   priority: NotificationPriority;

@@ -116,12 +116,8 @@ var(--glow-lg)            /* Large glow */
 
 ```tsx
 <div className="admin-glass-card p-6">
-  <h3 className="font-['Fira_Code'] text-lg font-bold text-white">
-    CARD TITLE
-  </h3>
-  <p className="text-[var(--admin-text-secondary)]">
-    Card content goes here
-  </p>
+  <h3 className="font-['Fira_Code'] text-lg font-bold text-white">CARD TITLE</h3>
+  <p className="text-[var(--admin-text-secondary)]">Card content goes here</p>
 </div>
 ```
 
@@ -162,17 +158,14 @@ import { Users } from 'lucide-react';
   icon={Users}
   color="blue"
   trend={{ value: 12.5, isUp: true }}
-/>
+/>;
 ```
 
 ### Progress Bar
 
 ```tsx
 <div className="admin-progress-bar">
-  <div 
-    className="admin-progress-fill" 
-    style={{ width: '75%' }}
-  />
+  <div className="admin-progress-fill" style={{ width: '75%' }} />
 </div>
 ```
 
@@ -200,11 +193,7 @@ import { Users } from 'lucide-react';
 ### Input Field
 
 ```tsx
-<input
-  type="text"
-  className="admin-input"
-  placeholder="Enter value..."
-/>
+<input type="text" className="admin-input" placeholder="Enter value..." />
 ```
 
 ---
@@ -215,29 +204,30 @@ import { Users } from 'lucide-react';
 
 ```tsx
 /* Headings & Labels */
-className="font-['Fira_Code']"
+className = "font-['Fira_Code']";
 
 /* Body Text */
-className="font-['Fira_Sans']"
+className = "font-['Fira_Sans']";
 ```
 
 ### Common Text Styles
 
 ```tsx
 /* Page Title */
-className="font-['Fira_Code'] text-3xl font-bold text-white"
+className = "font-['Fira_Code'] text-3xl font-bold text-white";
 
 /* Section Heading */
-className="font-['Fira_Code'] text-lg font-bold text-white"
+className = "font-['Fira_Code'] text-lg font-bold text-white";
 
 /* Label (Uppercase) */
-className="font-['Fira_Code'] text-xs font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]"
+className =
+  "font-['Fira_Code'] text-xs font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]";
 
 /* Body Text */
-className="text-sm text-[var(--admin-text-secondary)]"
+className = 'text-sm text-[var(--admin-text-secondary)]';
 
 /* Muted Text */
-className="text-xs text-[var(--admin-text-muted)]"
+className = 'text-xs text-[var(--admin-text-muted)]';
 ```
 
 ---
@@ -246,13 +236,13 @@ className="text-xs text-[var(--admin-text-muted)]"
 
 ### When to Use Each Color
 
-| Color | Use For | Example |
-|-------|---------|---------|
-| **Primary (Green)** | Success, primary actions, active states | Save button, success messages, active indicators |
-| **Secondary (Cyan)** | Info, secondary actions, links | Info badges, secondary buttons, hyperlinks |
-| **Warning (Amber)** | Warnings, pending states | Pending status, warning messages |
-| **Danger (Red)** | Errors, destructive actions | Delete button, error messages |
-| **Accent (Magenta)** | Highlights, special features | Premium features, highlights |
+| Color                | Use For                                 | Example                                          |
+| -------------------- | --------------------------------------- | ------------------------------------------------ |
+| **Primary (Green)**  | Success, primary actions, active states | Save button, success messages, active indicators |
+| **Secondary (Cyan)** | Info, secondary actions, links          | Info badges, secondary buttons, hyperlinks       |
+| **Warning (Amber)**  | Warnings, pending states                | Pending status, warning messages                 |
+| **Danger (Red)**     | Errors, destructive actions             | Delete button, error messages                    |
+| **Accent (Magenta)** | Highlights, special features            | Premium features, highlights                     |
 
 ---
 
@@ -262,26 +252,26 @@ className="text-xs text-[var(--admin-text-muted)]"
 
 ```tsx
 /* Card Hover */
-className="transition-all hover:scale-[1.02]"
+className = 'transition-all hover:scale-[1.02]';
 
 /* Button Hover */
-className="transition-all hover:border-[var(--admin-primary)]/30"
+className = 'transition-all hover:border-[var(--admin-primary)]/30';
 
 /* Icon Hover */
-className="transition-colors hover:text-white"
+className = 'transition-colors hover:text-white';
 ```
 
 ### Transitions
 
 ```tsx
 /* Standard */
-className="transition-all duration-300"
+className = 'transition-all duration-300';
 
 /* Fast */
-className="transition-all duration-150"
+className = 'transition-all duration-150';
 
 /* Smooth */
-className="transition-all duration-500"
+className = 'transition-all duration-500';
 ```
 
 ---
@@ -307,13 +297,13 @@ className="grid grid-cols-1 lg:grid-cols-3 gap-8"
 
 ```tsx
 /* Padding */
-className="p-4 md:p-6 lg:p-8"
+className = 'p-4 md:p-6 lg:p-8';
 
 /* Margin */
-className="m-4 md:m-6 lg:m-8"
+className = 'm-4 md:m-6 lg:m-8';
 
 /* Gap */
-className="gap-4 md:gap-6 lg:gap-8"
+className = 'gap-4 md:gap-6 lg:gap-8';
 ```
 
 ---
@@ -323,6 +313,7 @@ className="gap-4 md:gap-6 lg:gap-8"
 ### Focus States
 
 All interactive elements automatically get focus states:
+
 - Visible outline on keyboard focus
 - High contrast for visibility
 - Respects `prefers-reduced-motion`
@@ -373,21 +364,17 @@ All interactive elements automatically get focus states:
 
 ```tsx
 <div className="admin-glass-card overflow-hidden">
-  <div className="border-b border-[var(--admin-border)] bg-gradient-to-br from-[var(--admin-primary)]/10 to-transparent p-6">
-    <h2 className="font-['Fira_Code'] text-lg font-bold text-white">
-      CARD TITLE
-    </h2>
+  <div className="from-[var(--admin-primary)]/10 border-b border-[var(--admin-border)] bg-gradient-to-br to-transparent p-6">
+    <h2 className="font-['Fira_Code'] text-lg font-bold text-white">CARD TITLE</h2>
   </div>
-  <div className="p-6">
-    {/* Content */}
-  </div>
+  <div className="p-6">{/* Content */}</div>
 </div>
 ```
 
 ### Icon with Badge
 
 ```tsx
-<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--admin-primary)]/10 border border-[var(--admin-primary)]/30">
+<div className="bg-[var(--admin-primary)]/10 border-[var(--admin-primary)]/30 flex h-10 w-10 items-center justify-center rounded-lg border">
   <Icon className="h-5 w-5 text-[var(--admin-primary)]" />
 </div>
 ```
@@ -395,7 +382,7 @@ All interactive elements automatically get focus states:
 ### List Item with Hover
 
 ```tsx
-<div className="admin-glass-card flex items-center gap-3 p-3 transition-all hover:scale-[1.02] cursor-pointer">
+<div className="admin-glass-card flex cursor-pointer items-center gap-3 p-3 transition-all hover:scale-[1.02]">
   {/* Content */}
 </div>
 ```

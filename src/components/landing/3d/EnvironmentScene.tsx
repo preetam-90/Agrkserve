@@ -26,7 +26,12 @@ export function EnvironmentScene({ lite = false }: EnvironmentSceneProps) {
 
       {!lite && <Sparkles count={32} scale={6} size={2.2} speed={0.3} color="#6ee7b7" />}
       <Environment preset="night" />
-      <OrbitControls enableZoom={false} enablePan={false} maxPolarAngle={Math.PI / 2.2} minPolarAngle={Math.PI / 2.8} />
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        maxPolarAngle={Math.PI / 2.2}
+        minPolarAngle={Math.PI / 2.8}
+      />
     </>
   );
 }

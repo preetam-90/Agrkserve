@@ -67,7 +67,7 @@ function MessagesContent() {
       // Start a new conversation with a user
       startConversationWithUser(userParam);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [searchParams, user]);
 
   // Cleanup on unmount

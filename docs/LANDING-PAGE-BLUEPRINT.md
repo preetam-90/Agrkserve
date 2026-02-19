@@ -149,17 +149,17 @@ src/
 
 ### Component Responsibilities
 
-| Component | Responsibility | Key Features |
-|-----------|----------------|--------------|
-| `LandingPageRedesigned` | Orchestration | Lazy loading, accessibility context, device detection |
-| `HeroChapterRedesigned` | First impression | Clear value prop, trust signals, progressive media |
-| `ProblemChapterRedesigned` | Pain-solution narrative | Scroll-tied morph, visual transition |
-| `EquipmentUniverseChapterRedesigned` | Product showcase | Native snap-scroll, real pricing, availability |
-| `FinalCTAChapterRedesigned` | Conversion | Multiple CTAs, trust reinforcement, support phone |
-| `LandingNavRedesigned` | Navigation | Scroll state change, mobile menu, keyboard support |
-| `MobileBottomActions` | Mobile UX | Dismissible bottom-sheet, safe-area support |
-| `OptimizedHeroMedia` | Media loading | LQIP pattern, connection detection, multi-format |
-| `TrustLayer` | Credibility | Real metrics, certifications, social proof |
+| Component                            | Responsibility          | Key Features                                          |
+| ------------------------------------ | ----------------------- | ----------------------------------------------------- |
+| `LandingPageRedesigned`              | Orchestration           | Lazy loading, accessibility context, device detection |
+| `HeroChapterRedesigned`              | First impression        | Clear value prop, trust signals, progressive media    |
+| `ProblemChapterRedesigned`           | Pain-solution narrative | Scroll-tied morph, visual transition                  |
+| `EquipmentUniverseChapterRedesigned` | Product showcase        | Native snap-scroll, real pricing, availability        |
+| `FinalCTAChapterRedesigned`          | Conversion              | Multiple CTAs, trust reinforcement, support phone     |
+| `LandingNavRedesigned`               | Navigation              | Scroll state change, mobile menu, keyboard support    |
+| `MobileBottomActions`                | Mobile UX               | Dismissible bottom-sheet, safe-area support           |
+| `OptimizedHeroMedia`                 | Media loading           | LQIP pattern, connection detection, multi-format      |
+| `TrustLayer`                         | Credibility             | Real metrics, certifications, social proof            |
 
 ---
 
@@ -193,7 +193,7 @@ semantic: {
   textSecondary: 'rgba(255,255,255,0.85)', // 12.63:1 contrast
   textTertiary: 'rgba(255,255,255,0.65)',  // 7.12:1 contrast
   textMuted: 'rgba(255,255,255,0.50)',     // Large text only
-  
+
   background: '#030705',
   backgroundElevated: '#0a0f0c',
 }
@@ -204,15 +204,15 @@ semantic: {
 ```css
 /* Fluid Typography using clamp() */
 
---text-hero: clamp(2.5rem, 8vw, 7rem);      /* 40px → 112px */
---text-display: clamp(2rem, 6vw, 5rem);      /* 32px → 80px */
---text-chapter: clamp(1.75rem, 5vw, 4rem);   /* 28px → 64px */
---text-section: clamp(1.5rem, 4vw, 3rem);    /* 24px → 48px */
+--text-hero: clamp(2.5rem, 8vw, 7rem); /* 40px → 112px */
+--text-display: clamp(2rem, 6vw, 5rem); /* 32px → 80px */
+--text-chapter: clamp(1.75rem, 5vw, 4rem); /* 28px → 64px */
+--text-section: clamp(1.5rem, 4vw, 3rem); /* 24px → 48px */
 --text-body: clamp(1rem, 1.125vw, 1.125rem); /* 16px → 18px */
 --text-label: clamp(0.75rem, 0.9vw, 0.875rem); /* 12px → 14px */
 
 /* Letter Spacing */
---tracking-label: 0.15em;  /* Only for uppercase labels */
+--tracking-label: 0.15em; /* Only for uppercase labels */
 --tracking-label-wide: 0.25em;
 ```
 
@@ -334,14 +334,14 @@ Timeline (triggered at 60% viewport):
 
 ### Performance Budget
 
-| Metric | Target | Critical |
-|--------|--------|----------|
-| First Contentful Paint | < 1.5s | < 2.5s |
-| Largest Contentful Paint | < 2.5s | < 4s |
-| Time to Interactive | < 3.5s | < 5s |
-| Cumulative Layout Shift | < 0.1 | < 0.25 |
-| Total Bundle Size | < 200KB | < 350KB |
-| Video Asset | < 5MB | < 10MB |
+| Metric                   | Target  | Critical |
+| ------------------------ | ------- | -------- |
+| First Contentful Paint   | < 1.5s  | < 2.5s   |
+| Largest Contentful Paint | < 2.5s  | < 4s     |
+| Time to Interactive      | < 3.5s  | < 5s     |
+| Cumulative Layout Shift  | < 0.1   | < 0.25   |
+| Total Bundle Size        | < 200KB | < 350KB  |
+| Video Asset              | < 5MB   | < 10MB   |
 
 ### Optimization Strategies
 
@@ -350,7 +350,7 @@ Timeline (triggered at 60% viewport):
 <LQIP blur poster (20px) → Sharp poster → Video>
 
 // 2. Dynamic Imports
-const HeroChapter = dynamic(() => import('...'), { 
+const HeroChapter = dynamic(() => import('...'), {
   ssr: false,
   loading: () => <ChapterSkeleton />
 });
@@ -366,17 +366,17 @@ if (connection.saveData || connection.effectiveType === '2g') {
 
 ### Accessibility Requirements
 
-| Requirement | Implementation | Status |
-|-------------|----------------|--------|
-| Skip to main content | `<a href="#main-content">` | ✅ |
-| Keyboard navigation | Tab order, focus trap | ✅ |
-| Focus visible | Custom emerald ring | ✅ |
-| Screen reader labels | `aria-label`, `aria-describedby` | ✅ |
-| Reduced motion | `prefers-reduced-motion` check | ✅ |
-| High contrast | Media query support | ✅ |
-| Touch targets | Min 44px × 44px | ✅ |
-| Custom cursor | Disabled for keyboard users | ✅ |
-| Error states | Announced via `aria-live` | ✅ |
+| Requirement          | Implementation                   | Status |
+| -------------------- | -------------------------------- | ------ |
+| Skip to main content | `<a href="#main-content">`       | ✅     |
+| Keyboard navigation  | Tab order, focus trap            | ✅     |
+| Focus visible        | Custom emerald ring              | ✅     |
+| Screen reader labels | `aria-label`, `aria-describedby` | ✅     |
+| Reduced motion       | `prefers-reduced-motion` check   | ✅     |
+| High contrast        | Media query support              | ✅     |
+| Touch targets        | Min 44px × 44px                  | ✅     |
+| Custom cursor        | Disabled for keyboard users      | ✅     |
+| Error states         | Announced via `aria-live`        | ✅     |
 
 ### Safe Area Support (iOS)
 

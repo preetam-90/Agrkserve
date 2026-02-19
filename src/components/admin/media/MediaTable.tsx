@@ -154,8 +154,6 @@ export function MediaTable({
                     <div className="flex items-center gap-3">
                       <div className="relative h-12 w-12 overflow-hidden rounded-lg bg-[#0f0f0f]">
                         {asset.thumbnail_url ? (
-                           
-
                           <Image
                             src={asset.thumbnail_url}
                             alt={asset.public_id}

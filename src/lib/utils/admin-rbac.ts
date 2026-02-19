@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { AdminRole, AdminPermissions } from '@/lib/types/cloudinary-admin';
 import { ROLE_PERMISSIONS } from '@/lib/types/cloudinary-admin';
 
-export interface AdminUser {
+interface AdminUser {
   id: string;
   email: string;
   role: AdminRole;

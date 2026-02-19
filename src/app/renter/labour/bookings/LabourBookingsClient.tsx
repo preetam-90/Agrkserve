@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, ChevronRight, Users, CheckCircle, XCircle, Search } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  ChevronRight,
+  Users,
+  CheckCircle,
+  XCircle,
+  Search,
+  Star,
+} from 'lucide-react';
 import { Header, Footer } from '@/components/layout';
 import {
   Button,
@@ -21,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  Textarea,
 } from '@/components/ui';
 import { labourService } from '@/lib/services';
 import { LabourBooking, LabourProfile } from '@/lib/types';
@@ -39,6 +49,10 @@ export default function RenterLabourBookingsPage() {
 
   const [selectedBooking, setSelectedBooking] = useState<LabourBooking | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [ratingValue, setRatingValue] = useState(5);
+  const [ratingComment, setRatingComment] = useState('');
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   useEffect(() => {
     loadBookings();
@@ -52,8 +66,44 @@ export default function RenterLabourBookingsPage() {
     } catch (err) {
       console.error('Failed to load bookings:', err);
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
     }
+  };
+
+  const handleSubmitRating = async () => {
+    if (!selectedBooking || !selectedBooking.labour) return;
+
+    setIsSubmittingRating(true);
+    try {
+      const result = await labourService.submitLabourRating({
+        bookingId: selectedBooking.id,
+        labourId: selectedBooking.labour.id,
+        rating: ratingValue,
+        comment: ratingComment.trim() || undefined,
+      });
+
+      if (!result.success) {
+        toast.error(result.message || 'Could not submit rating');
+        return;
+      }
+
+      toast.success('Rating submitted! Thank you for your feedback.');
+      setRatingOpen(false);
+      setRatingComment('');
+      setRatingValue(5);
+      setSelectedBooking(null);
+      loadBookings();
+    } catch (err) {
+      console.error('Failed to submit rating:', err);
+      toast.error('Failed to submit rating');
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
+  const openRatingDialog = (booking: LabourBooking) => {
+    setSelectedBooking(booking);
+    setRatingOpen(true);
   };
 
   const handleConfirmBooking = async () => {
@@ -254,6 +304,17 @@ export default function RenterLabourBookingsPage() {
                                     </>
                                   )}
 
+                                  {booking.status === 'completed' && (
+                                    <Button
+                                      size="sm"
+                                      className="bg-emerald-600 hover:bg-emerald-700"
+                                      onClick={() => openRatingDialog(booking)}
+                                    >
+                                      <Star className="mr-1 h-4 w-4" />
+                                      Rate
+                                    </Button>
+                                  )}
+
                                   <Link href={`/renter/labour/bookings/${booking.id}`}>
                                     <Button size="sm" variant="outline">
                                       View Booking
@@ -337,6 +398,73 @@ export default function RenterLabourBookingsPage() {
               Confirm
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rating Dialog */}
+      <Dialog open={ratingOpen} onOpenChange={setRatingOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-500" />
+              Rate Your Experience
+            </DialogTitle>
+            <DialogDescription>
+              How was your experience with{' '}
+              {(selectedBooking as LabourBooking & { labour?: LabourProfile })?.labour?.user
+                ?.name || 'the labour'}
+              ?
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedBooking && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRatingValue(star)}
+                    className="focus:outline-none"
+                  >
+                    <Star
+                      className={`h-8 w-8 transition-colors ${
+                        star <= ratingValue
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'fill-gray-200 text-gray-200'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <Textarea
+                placeholder="Share your feedback about the labour's work..."
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setRatingOpen(false)}
+                  disabled={isSubmittingRating}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmitRating}
+                  loading={isSubmittingRating}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Submit Rating
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

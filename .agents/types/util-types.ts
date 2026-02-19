@@ -1,14 +1,14 @@
 // ===== JSON Types =====
-export type JSONValue = null | string | number | boolean | JSONObject | JSONArray;
+type JSONValue = null | string | number | boolean | JSONObject | JSONArray;
 
-export type JSONObject = { [key: string]: JSONValue };
+type JSONObject = { [key: string]: JSONValue };
 
-export type JSONArray = JSONValue[];
+type JSONArray = JSONValue[];
 
 /**
  * JSON Schema definition (for prompt schema or output schema)
  */
-export type JsonSchema = {
+type JsonSchema = {
   type?: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null' | 'integer';
   description?: string;
   properties?: Record<string, JsonSchema | boolean>;
@@ -16,13 +16,13 @@ export type JsonSchema = {
   enum?: Array<string | number | boolean | null>;
   [k: string]: unknown;
 };
-export type JsonObjectSchema = JsonSchema & { type: 'object' };
+type JsonObjectSchema = JsonSchema & { type: 'object' };
 
 // ===== Data Content Types =====
-export type DataContent = string | Uint8Array | ArrayBuffer | Buffer;
+type DataContent = string | Uint8Array | ArrayBuffer | Buffer;
 
 // ===== Provider Metadata Types =====
-export type ProviderMetadata = Record<string, Record<string, JSONValue>>;
+type ProviderMetadata = Record<string, Record<string, JSONValue>>;
 
 // ===== Content Part Types =====
 export type TextPart = {
@@ -46,13 +46,13 @@ export type FilePart = {
   providerOptions?: ProviderMetadata;
 };
 
-export type ReasoningPart = {
+type ReasoningPart = {
   type: 'reasoning';
   text: string;
   providerOptions?: ProviderMetadata;
 };
 
-export type ToolCallPart = {
+type ToolCallPart = {
   type: 'tool-call';
   toolCallId: string;
   toolName: string;
@@ -61,7 +61,7 @@ export type ToolCallPart = {
   providerExecuted?: boolean;
 };
 
-export type ToolResultOutput =
+type ToolResultOutput =
   | {
       type: 'json';
       value: JSONValue;
@@ -73,7 +73,7 @@ export type ToolResultOutput =
     };
 
 // ===== Message Types =====
-export type AuxiliaryMessageData = {
+type AuxiliaryMessageData = {
   providerOptions?: ProviderMetadata;
   tags?: string[];
 
@@ -85,22 +85,22 @@ export type AuxiliaryMessageData = {
   keepLastTags?: string[];
 };
 
-export type SystemMessage = {
+type SystemMessage = {
   role: 'system';
   content: TextPart[];
 } & AuxiliaryMessageData;
 
-export type UserMessage = {
+type UserMessage = {
   role: 'user';
   content: (TextPart | ImagePart | FilePart)[];
 } & AuxiliaryMessageData;
 
-export type AssistantMessage = {
+type AssistantMessage = {
   role: 'assistant';
   content: (TextPart | ReasoningPart | ToolCallPart)[];
 } & AuxiliaryMessageData;
 
-export type ToolMessage = {
+type ToolMessage = {
   role: 'tool';
   toolCallId: string;
   toolName: string;
@@ -133,7 +133,7 @@ export type Message = SystemMessage | UserMessage | AssistantMessage | ToolMessa
  * }
  * ```
  */
-export type MCPConfig =
+type MCPConfig =
   | {
       type?: 'stdio';
       command: string;

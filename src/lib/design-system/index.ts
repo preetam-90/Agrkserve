@@ -14,11 +14,7 @@ export function getToken<T extends Record<string, unknown>>(
 }
 
 // Clamp utility for fluid typography
-export function clamp(
-  min: string | number,
-  preferred: string,
-  max: string | number
-): string {
+export function clamp(min: string | number, preferred: string, max: string | number): string {
   return `clamp(${typeof min === 'number' ? `${min}px` : min}, ${preferred}, ${
     typeof max === 'number' ? `${max}px` : max
   })`;

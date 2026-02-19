@@ -14,7 +14,10 @@ export const metadata: Metadata = {
 };
 
 type Params = Promise<{ id: string }>;
-type BookingWithRelations = Booking & { equipment?: Equipment | null; provider?: UserProfile | null };
+type BookingWithRelations = Booking & {
+  equipment?: Equipment | null;
+  provider?: UserProfile | null;
+};
 
 export default async function BookingDetailPage({ params }: { params: Params }) {
   const { id } = await params;

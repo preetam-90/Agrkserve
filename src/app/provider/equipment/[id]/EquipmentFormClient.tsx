@@ -66,6 +66,14 @@ interface EquipmentFormData {
   is_available: boolean;
 }
 
+const safeParseJson = <T,>(value: string): T | null => {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+};
+
 const sanitizeForFileName = (value: string): string => {
   return value
     .toLowerCase()
@@ -144,7 +152,7 @@ export default function EquipmentFormPage() {
     if (isEdit && equipmentId) {
       loadEquipment();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [isEdit, equipmentId]);
 
   const loadEquipment = async () => {
@@ -189,13 +197,7 @@ export default function EquipmentFormPage() {
   };
 
   const buildEquipmentMediaBaseName = () => {
-    const parts = [
-      formData.category,
-      formData.brand,
-      formData.model,
-      formData.name,
-      formData.year,
-    ]
+    const parts = [formData.category, formData.brand, formData.model, formData.name, formData.year]
       .filter((part) => typeof part === 'string' && part.trim().length > 0)
       .map((part) => sanitizeForFileName(part as string))
       .filter(Boolean);
@@ -411,8 +413,12 @@ export default function EquipmentFormPage() {
 
           xhr.addEventListener('load', () => {
             if (xhr.status === 200) {
-              const data = JSON.parse(xhr.responseText);
-              resolve(data.secure_url as string);
+              const data = safeParseJson<{ secure_url?: string }>(xhr.responseText);
+              if (data?.secure_url) {
+                resolve(data.secure_url);
+              } else {
+                reject(new Error('Invalid server response'));
+              }
             } else {
               reject(new Error('Video upload failed'));
             }

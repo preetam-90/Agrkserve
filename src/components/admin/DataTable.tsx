@@ -68,7 +68,9 @@ export default function DataTable({
       .map((item) =>
         columns
           .map((col) => {
-            const value = col.render ? String(col.render(item)).replace(/,/g, ';') : String(item[col.key] ?? '');
+            const value = col.render
+              ? String(col.render(item)).replace(/,/g, ';')
+              : String(item[col.key] ?? '');
             return `"${value}"`;
           })
           .join(',')
@@ -230,7 +232,8 @@ export default function DataTable({
                                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                   const iconProp = action.icon as any;
                                   const Icon: IconComponent | undefined =
-                                    typeof iconProp === 'function' && !(iconProp.$$typeof || iconProp.prototype?.isReactComponent)
+                                    typeof iconProp === 'function' &&
+                                    !(iconProp.$$typeof || iconProp.prototype?.isReactComponent)
                                       ? iconProp(item)
                                       : iconProp;
                                   const isDanger =

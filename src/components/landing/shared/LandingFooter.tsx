@@ -10,39 +10,64 @@ export function LandingFooter() {
           <div>
             <p className="text-[11px] uppercase tracking-[0.32em] text-emerald-200/75">AgriServe</p>
             <h3 className="mt-3 text-2xl font-semibold text-white">Agriculture. Reimagined.</h3>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-white/66">
+            <p className="text-white/66 mt-3 max-w-md text-sm leading-relaxed">
               A premium marketplace for equipment, labour, and verified providers across India.
             </p>
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">Explore</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
+              Explore
+            </p>
             <div className="mt-3 grid gap-2 text-sm text-zinc-300">
-              <Link className="landing-touch inline-flex items-center hover:text-white" href="/equipment">
+              <Link
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="/equipment"
+              >
                 Equipment
               </Link>
-              <Link className="landing-touch inline-flex items-center hover:text-white" href="/labour">
+              <Link
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="/labour"
+              >
                 Labour
               </Link>
-              <Link className="landing-touch inline-flex items-center hover:text-white" href="/about">
+              <Link
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="/about"
+              >
                 About
               </Link>
-              <Link className="landing-touch inline-flex items-center hover:text-white" href="/#pricing">
+              <Link
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="/#pricing"
+              >
                 Pricing
               </Link>
             </div>
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">Support</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">
+              Support
+            </p>
             <div className="mt-3 grid gap-2 text-sm text-zinc-300">
-              <Link className="landing-touch inline-flex items-center hover:text-white" href="/help">
+              <Link
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="/help"
+              >
                 Help Center
               </Link>
-              <Link className="landing-touch inline-flex items-center hover:text-white" href="/contact">
+              <Link
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="/contact"
+              >
                 Contact
               </Link>
-              <a className="landing-touch inline-flex items-center hover:text-white" href="tel:+911234567890">
+              <a
+                className="landing-touch inline-flex items-center hover:text-white"
+                href="tel:+911234567890"
+              >
                 +91 12345 67890
               </a>
             </div>

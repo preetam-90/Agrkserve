@@ -184,7 +184,7 @@ export const bookingService = {
 
   // Lightweight fetch for public availability preview
   async getEquipmentAvailability(equipmentId: string): Promise<Date[]> {
-    console.log(`[bookingService] Fetching availability for: ${equipmentId}`);
+    console.log(`bookingService fetching availability for: ${equipmentId}`);
 
     try {
       const { data, error } = await supabase
@@ -196,13 +196,13 @@ export const bookingService = {
       if (error) {
         // RLS may block access for unauthenticated users - return empty array
         console.warn(
-          '[bookingService] Availability query blocked or failed:',
+          'bookingService availability query blocked or failed:',
           error.message || error
         );
         return [];
       }
 
-      console.log(`[bookingService] Raw bookings found: ${data?.length || 0}`);
+      console.log(`bookingService raw bookings found: ${data?.length || 0}`);
 
       const booked: Date[] = [];
       data?.forEach((booking) => {
@@ -223,15 +223,15 @@ export const bookingService = {
             safety++;
           }
         } catch (e) {
-          console.error('[bookingService] Error parsing range:', e);
+          console.error('bookingService error parsing range:', e);
         }
       });
 
-      console.log(`[bookingService] Total expanded busy days: ${booked.length}`);
+      console.log(`bookingService total expanded busy days: ${booked.length}`);
       return booked;
     } catch (err) {
       // Gracefully handle any unexpected errors
-      console.warn('[bookingService] Unexpected error fetching availability:', err);
+      console.warn('bookingService unexpected error fetching availability:', err);
       return [];
     }
   },
@@ -289,7 +289,6 @@ export const bookingService = {
     id: string,
     status: BookingStatus,
     notes?: string,
-    cancelledBy?: string,
     cancellationReason?: string
   ): Promise<Booking> {
     const normalizedStatus =
@@ -353,8 +352,8 @@ export const bookingService = {
   },
 
   // Cancel booking
-  async cancel(id: string, cancelledBy: string, reason?: string): Promise<Booking> {
-    return this.updateStatus(id, 'cancelled', undefined, cancelledBy, reason);
+  async cancel(id: string, _cancelledBy: string, reason?: string): Promise<Booking> {
+    return this.updateStatus(id, 'cancelled', undefined, reason);
   },
 
   // Get upcoming bookings for dashboard

@@ -32,7 +32,7 @@ supabase db execute --query "SELECT table_name FROM information_schema.tables WH
 
 # Should show:
 # - notifications
-# - notification_preferences  
+# - notification_preferences
 # - notification_delivery_log
 ```
 
@@ -50,17 +50,15 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <header className="flex items-center justify-between p-4">
-            <nav>
-              {/* Your existing nav items */}
-            </nav>
-            
+            <nav>{/* Your existing nav items */}</nav>
+
             {/* Add the notification bell */}
             <div className="flex items-center gap-4">
               <NotificationBell />
               {/* Your other header items (profile, etc.) */}
             </div>
           </header>
-          
+
           <main>{children}</main>
         </AuthProvider>
       </body>
@@ -99,7 +97,9 @@ SELECT create_notification(
 import { notificationService } from '@/lib/services/notifications';
 
 // Get your user ID (you'll need to be authenticated)
-const { data: { user } } = await supabase.auth.getUser();
+const {
+  data: { user },
+} = await supabase.auth.getUser();
 
 // Create a test notification
 await notificationService.createNotification({
@@ -123,7 +123,7 @@ import { notifyNewBookingRequest } from '@/lib/services/notifications';
 
 async function createBooking(data) {
   // ... your booking creation logic
-  
+
   await notifyNewBookingRequest({
     ownerId: equipment.owner_id,
     renterName: currentUser.name,
@@ -143,7 +143,7 @@ import { notifyBookingAccepted } from '@/lib/services/notifications';
 
 async function acceptBooking(bookingId) {
   // ... update booking status
-  
+
   await notifyBookingAccepted({
     renterId: booking.renter_id,
     equipmentName: booking.equipment.name,
@@ -188,9 +188,7 @@ Make sure you wrapped your app with `AuthProvider`:
 ```tsx
 import { AuthProvider } from '@/lib/supabase/auth-context';
 
-<AuthProvider>
-  {/* Your app */}
-</AuthProvider>
+<AuthProvider>{/* Your app */}</AuthProvider>;
 ```
 
 ## Next Steps

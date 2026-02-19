@@ -1,6 +1,7 @@
 # Admin Dashboard - Real Data Implementation
 
 ## Overview
+
 The admin dashboard at `/admin` now displays **100% real data** from the database with no mock or fake values.
 
 ## What Changed
@@ -8,23 +9,27 @@ The admin dashboard at `/admin` now displays **100% real data** from the databas
 ### ✅ Real Data Now Displayed
 
 #### 1. **Statistics Cards with Real Trends**
+
 - **Total Revenue**: Calculated from `payments` table (status = 'completed')
 - **Active Users**: Count from `user_profiles` table
 - **Total Bookings**: Count from `bookings` table
 - **Equipment**: Count from `equipment` table
 
-**Trend Calculations**: 
+**Trend Calculations**:
+
 - Compares current period vs previous period
 - Automatically calculates percentage change
 - Shows up/down arrows based on actual data
 
 #### 2. **Time Range Filter (Functional)**
+
 - **Last 7 Days**: Shows data from last 7 days vs previous 7 days
 - **Last 30 Days**: Shows data from last 30 days vs previous 30 days
 - **This Year**: Shows data from current year vs previous year
 - Filter updates all stats and recent bookings in real-time
 
 #### 3. **System Health Metrics (Real)**
+
 - **Database Load**: Actual connection count / max connections
 - **Storage Usage**: Real storage size from `storage.objects` table
 - Color-coded status:
@@ -33,6 +38,7 @@ The admin dashboard at `/admin` now displays **100% real data** from the databas
   - Red (> 80%): High
 
 #### 4. **Recent Transactions**
+
 - Shows last 5 bookings within selected time range
 - Displays real equipment names, user info, amounts, and status
 - Updates when time filter changes
@@ -40,15 +46,19 @@ The admin dashboard at `/admin` now displays **100% real data** from the databas
 ## Database Functions Added
 
 ### `get_database_stats()`
+
 Returns database metrics:
+
 - Database size
 - Table count
 - Total rows
 
 ### `get_connection_count()`
+
 Returns current number of active database connections.
 
 ## Migration File
+
 - **File**: `supabase/migrations/020_system_health_functions.sql`
 - **Status**: Ready to apply
 
@@ -94,6 +104,7 @@ supabase db push
 ## Fallback Behavior
 
 If system health queries fail (e.g., insufficient permissions):
+
 - Shows 0% with "Unknown" status
 - Dashboard remains functional
 - Other stats continue to work
@@ -116,6 +127,7 @@ If system health queries fail (e.g., insufficient permissions):
 ## Summary
 
 The admin dashboard now provides accurate, real-time insights into your platform's performance with:
+
 - ✅ Real revenue and user metrics
 - ✅ Actual trend calculations
 - ✅ Functional time filtering

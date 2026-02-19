@@ -18,7 +18,7 @@ interface Review {
   created_at: string;
 }
 
-export function TestimonialsCarousel() {
+function TestimonialsCarousel() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
   const [currentIndex, setCurrentIndex] = useState(0);

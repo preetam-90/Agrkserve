@@ -133,8 +133,6 @@ export function ReplaceAssetModal({
                 <div className="mt-2 flex items-center gap-3">
                   <div className="h-16 w-16 overflow-hidden rounded-lg bg-[#0f0f0f]">
                     {asset.thumbnail_url ? (
-                       
-
                       <Image
                         src={asset.thumbnail_url}
                         alt={asset.public_id}
@@ -197,9 +195,13 @@ export function ReplaceAssetModal({
                         {isVideo ? (
                           <video src={preview} className="h-full w-full object-cover" />
                         ) : (
-                           
-
-                          <Image src={preview} alt="Preview" fill className="object-cover" sizes="64px" />
+                          <Image
+                            src={preview}
+                            alt="Preview"
+                            fill
+                            className="object-cover"
+                            sizes="64px"
+                          />
                         )}
                       </div>
                       <div>

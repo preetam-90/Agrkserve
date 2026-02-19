@@ -1,12 +1,15 @@
 # Fix Payments Admin Access
 
 ## Problem
+
 The admin payments page at `/admin/payments` shows "No payments found" even when there are payments in the database.
 
 ## Root Cause
+
 The Row Level Security (RLS) policies on the `payments` table only allowed users to view payments related to their own bookings. Admins were not granted permission to view all payments.
 
 ## Solution
+
 Created migration `027_fix_payments_admin_access.sql` that:
 
 1. **Updates the SELECT policy** to allow admins to view all payments
@@ -16,21 +19,25 @@ Created migration `027_fix_payments_admin_access.sql` that:
 ## How to Apply
 
 ### Option 1: Using the Script (Recommended)
+
 ```bash
 ./scripts/fix-payments-access.sh
 ```
 
 ### Option 2: Manual Application
+
 ```bash
 supabase db push
 ```
 
 ### Option 3: Direct SQL (If using Supabase Dashboard)
+
 Run the SQL from `supabase/migrations/027_fix_payments_admin_access.sql` in your Supabase SQL Editor.
 
 ## What Changed
 
 ### Before
+
 ```sql
 CREATE POLICY "Users can view related payments"
     ON public.payments FOR SELECT
@@ -38,13 +45,14 @@ CREATE POLICY "Users can view related payments"
         auth.uid() IN (
             SELECT renter_id FROM public.bookings WHERE id = booking_id
             UNION
-            SELECT owner_id FROM public.equipment 
+            SELECT owner_id FROM public.equipment
             WHERE id IN (SELECT equipment_id FROM public.bookings WHERE id = booking_id)
         )
     );
 ```
 
 ### After
+
 ```sql
 CREATE POLICY "Users can view related payments"
     ON public.payments FOR SELECT
@@ -61,7 +69,7 @@ CREATE POLICY "Users can view related payments"
         auth.uid() IN (
             SELECT renter_id FROM public.bookings WHERE id = booking_id
             UNION
-            SELECT owner_id FROM public.equipment 
+            SELECT owner_id FROM public.equipment
             WHERE id IN (SELECT equipment_id FROM public.bookings WHERE id = booking_id)
         )
     );

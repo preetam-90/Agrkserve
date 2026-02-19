@@ -54,6 +54,34 @@ body {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .scrollbar-emerald {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-emerald-500) var(--surface-hover);
+  }
+
+  .scrollbar-emerald::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-emerald::-webkit-scrollbar-track {
+    background: rgba(30, 41, 59, 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-emerald::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.5);
+    border-radius: 3px;
+    transition: background 200ms ease;
+  }
+
+  .scrollbar-emerald::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.7);
+  }
+
+  .scrollbar-emerald::-webkit-scrollbar-thumb:active {
+    background: rgba(16, 185, 129, 0.9);
+  }
 }
 
 /* Prevent horizontal scroll on main container */

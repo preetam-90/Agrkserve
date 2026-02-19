@@ -27,7 +27,7 @@ export function VideoTrimmer({
     startX: 0,
     initialValue: 0,
   });
-  
+
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [duration, setDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -41,8 +41,8 @@ export function VideoTrimmer({
     if (videoFile) {
       const url = URL.createObjectURL(videoFile);
 
-// eslint-disable-next-line react-hooks/set-state-in-effect
-          setVideoUrl(url);
+       
+      setVideoUrl(url);
       return () => URL.revokeObjectURL(url);
     }
   }, [videoFile]);
@@ -110,10 +110,10 @@ export function VideoTrimmer({
   const handlePointerDown = (e: React.PointerEvent, type: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Capture the pointer to this element
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    
+
     dragRef.current = {
       type,
       startX: e.clientX,
@@ -125,10 +125,10 @@ export function VideoTrimmer({
   // Pointer move while dragging
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging || !dragRef.current.type) return;
-    
+
     e.preventDefault();
     const time = getTimeFromX(e.clientX);
-    
+
     if (dragRef.current.type === 'start') {
       let newStart = Math.max(0, Math.min(time, endTime - 0.5));
       // Enforce max duration
@@ -136,7 +136,7 @@ export function VideoTrimmer({
         newStart = endTime - maxDuration;
       }
       setStartTime(newStart);
-      
+
       // Update video position
       if (videoRef.current && currentTime < newStart) {
         videoRef.current.currentTime = newStart;
@@ -149,7 +149,7 @@ export function VideoTrimmer({
         newEnd = startTime + maxDuration;
       }
       setEndTime(newEnd);
-      
+
       // Update video position
       if (videoRef.current && currentTime > newEnd) {
         videoRef.current.currentTime = newEnd;
@@ -170,14 +170,14 @@ export function VideoTrimmer({
   // Click on timeline to seek
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging) return;
-    
+
     // Check if click is on a handle
     const target = e.target as HTMLElement;
     if (target.closest('[data-handle]')) return;
-    
+
     const time = getTimeFromX(e.clientX);
     const clampedTime = Math.max(startTime, Math.min(endTime, time));
-    
+
     if (videoRef.current) {
       videoRef.current.currentTime = clampedTime;
       setCurrentTime(clampedTime);
@@ -204,7 +204,7 @@ export function VideoTrimmer({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
@@ -214,32 +214,32 @@ export function VideoTrimmer({
 
         <div className="space-y-4">
           {/* Video Player */}
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+          <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
             <video
               ref={videoRef}
               src={videoUrl}
-              className="w-full h-full object-contain"
+              className="h-full w-full object-contain"
               playsInline
               muted={isMuted}
               onClick={togglePlayPause}
             />
-            
+
             {/* Play/Pause Overlay */}
             <button
               onClick={togglePlayPause}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-all"
+              className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/50 transition-all hover:bg-black/70"
             >
               {isPlaying ? (
                 <Pause className="h-8 w-8 text-white" />
               ) : (
-                <Play className="h-8 w-8 text-white ml-1" />
+                <Play className="ml-1 h-8 w-8 text-white" />
               )}
             </button>
 
             {/* Mute Button */}
             <button
               onClick={toggleMute}
-              className="absolute bottom-3 right-3 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-all"
+              className="absolute bottom-3 right-3 rounded-full bg-black/50 p-2 transition-all hover:bg-black/70"
             >
               {isMuted ? (
                 <VolumeX className="h-5 w-5 text-white" />
@@ -249,7 +249,7 @@ export function VideoTrimmer({
             </button>
 
             {/* Current Time Display */}
-            <div className="absolute bottom-3 left-3 px-2 py-1 bg-black/70 rounded text-white text-sm font-mono">
+            <div className="absolute bottom-3 left-3 rounded bg-black/70 px-2 py-1 font-mono text-sm text-white">
               {formatTime(currentTime)}
             </div>
           </div>
@@ -257,13 +257,17 @@ export function VideoTrimmer({
           {/* Time Labels */}
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">
-              Start: <span className="font-mono font-semibold text-blue-600">{formatTime(startTime)}</span>
+              Start:{' '}
+              <span className="font-mono font-semibold text-blue-600">{formatTime(startTime)}</span>
             </span>
-            <span className={`font-semibold ${selectedDuration > maxDuration ? 'text-red-600' : 'text-green-600'}`}>
+            <span
+              className={`font-semibold ${selectedDuration > maxDuration ? 'text-red-600' : 'text-green-600'}`}
+            >
               Duration: {formatTime(selectedDuration)} / {maxDuration}s
             </span>
             <span className="text-gray-600">
-              End: <span className="font-mono font-semibold text-blue-600">{formatTime(endTime)}</span>
+              End:{' '}
+              <span className="font-mono font-semibold text-blue-600">{formatTime(endTime)}</span>
             </span>
           </div>
 
@@ -271,26 +275,26 @@ export function VideoTrimmer({
           <div
             ref={timelineRef}
             onClick={handleTimelineClick}
-            className="relative h-24 bg-gray-300 rounded-lg cursor-pointer select-none touch-none"
+            className="relative h-24 cursor-pointer touch-none select-none rounded-lg bg-gray-300"
           >
             {/* Timeline background gradient */}
-            <div className="absolute inset-0 rounded-lg overflow-hidden bg-gradient-to-r from-gray-400 via-gray-500 to-gray-400" />
+            <div className="absolute inset-0 overflow-hidden rounded-lg bg-gradient-to-r from-gray-400 via-gray-500 to-gray-400" />
 
             {/* Dimmed left area (before start) */}
             <div
-              className="absolute top-0 bottom-0 left-0 bg-black/60 rounded-l-lg"
+              className="absolute bottom-0 left-0 top-0 rounded-l-lg bg-black/60"
               style={{ width: `${startPercent}%` }}
             />
 
             {/* Dimmed right area (after end) */}
             <div
-              className="absolute top-0 bottom-0 right-0 bg-black/60 rounded-r-lg"
+              className="absolute bottom-0 right-0 top-0 rounded-r-lg bg-black/60"
               style={{ width: `${100 - endPercent}%` }}
             />
 
             {/* Selected region highlight */}
             <div
-              className="absolute top-0 bottom-0 bg-green-500/20 border-t-4 border-b-4 border-yellow-400"
+              className="absolute bottom-0 top-0 border-b-4 border-t-4 border-yellow-400 bg-green-500/20"
               style={{
                 left: `${startPercent}%`,
                 width: `${endPercent - startPercent}%`,
@@ -304,23 +308,23 @@ export function VideoTrimmer({
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className="absolute top-0 bottom-0 cursor-ew-resize z-30 touch-none"
+              className="absolute bottom-0 top-0 z-30 cursor-ew-resize touch-none"
               style={{
                 left: `calc(${startPercent}% - 14px)`,
                 width: '28px',
               }}
             >
               {/* Handle visual */}
-              <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-2 bg-yellow-400 hover:bg-yellow-300 active:bg-yellow-200 transition-colors shadow-lg">
+              <div className="absolute bottom-0 left-1/2 top-0 w-2 -translate-x-1/2 bg-yellow-400 shadow-lg transition-colors hover:bg-yellow-300 active:bg-yellow-200">
                 {/* Grip dots */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-1">
-                  <div className="w-1 h-1 rounded-full bg-yellow-700" />
-                  <div className="w-1 h-1 rounded-full bg-yellow-700" />
-                  <div className="w-1 h-1 rounded-full bg-yellow-700" />
+                <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1">
+                  <div className="h-1 w-1 rounded-full bg-yellow-700" />
+                  <div className="h-1 w-1 rounded-full bg-yellow-700" />
+                  <div className="h-1 w-1 rounded-full bg-yellow-700" />
                 </div>
               </div>
               {/* Extended touch target visual */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-14 bg-yellow-400/30 rounded-lg border-2 border-yellow-400 hover:bg-yellow-400/50" />
+              <div className="absolute left-1/2 top-1/2 h-14 w-7 -translate-x-1/2 -translate-y-1/2 rounded-lg border-2 border-yellow-400 bg-yellow-400/30 hover:bg-yellow-400/50" />
             </div>
 
             {/* END HANDLE */}
@@ -330,53 +334,52 @@ export function VideoTrimmer({
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerCancel={handlePointerUp}
-              className="absolute top-0 bottom-0 cursor-ew-resize z-30 touch-none"
+              className="absolute bottom-0 top-0 z-30 cursor-ew-resize touch-none"
               style={{
                 left: `calc(${endPercent}% - 14px)`,
                 width: '28px',
               }}
             >
               {/* Handle visual */}
-              <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-2 bg-yellow-400 hover:bg-yellow-300 active:bg-yellow-200 transition-colors shadow-lg">
+              <div className="absolute bottom-0 left-1/2 top-0 w-2 -translate-x-1/2 bg-yellow-400 shadow-lg transition-colors hover:bg-yellow-300 active:bg-yellow-200">
                 {/* Grip dots */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-1">
-                  <div className="w-1 h-1 rounded-full bg-yellow-700" />
-                  <div className="w-1 h-1 rounded-full bg-yellow-700" />
-                  <div className="w-1 h-1 rounded-full bg-yellow-700" />
+                <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1">
+                  <div className="h-1 w-1 rounded-full bg-yellow-700" />
+                  <div className="h-1 w-1 rounded-full bg-yellow-700" />
+                  <div className="h-1 w-1 rounded-full bg-yellow-700" />
                 </div>
               </div>
               {/* Extended touch target visual */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-14 bg-yellow-400/30 rounded-lg border-2 border-yellow-400 hover:bg-yellow-400/50" />
+              <div className="absolute left-1/2 top-1/2 h-14 w-7 -translate-x-1/2 -translate-y-1/2 rounded-lg border-2 border-yellow-400 bg-yellow-400/30 hover:bg-yellow-400/50" />
             </div>
 
             {/* Playhead (current position) */}
             <div
-              className="absolute top-0 bottom-0 w-1 bg-white shadow-lg pointer-events-none z-20"
+              className="pointer-events-none absolute bottom-0 top-0 z-20 w-1 bg-white shadow-lg"
               style={{ left: `${currentPercent}%` }}
             >
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-white" />
+              <div className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-white" />
             </div>
           </div>
 
           {/* Instructions */}
-          <p className="text-sm text-gray-600 text-center">
-            👆 <strong>Drag the yellow handles</strong> left or right to select your clip • Click on timeline to seek • Max {maxDuration} seconds
+          <p className="text-center text-sm text-gray-600">
+            👆 <strong>Drag the yellow handles</strong> left or right to select your clip • Click on
+            timeline to seek • Max {maxDuration} seconds
           </p>
 
           {/* Duration Warning */}
           {selectedDuration > maxDuration && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm font-medium">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              <p className="text-sm font-medium text-red-600">
                 ⚠️ Selection exceeds {maxDuration} seconds. Please shorten your selection.
               </p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex justify-between items-center pt-2">
-            <div className="text-sm text-gray-500">
-              Total video: {formatTime(duration)}
-            </div>
+          <div className="flex items-center justify-between pt-2">
+            <div className="text-sm text-gray-500">Total video: {formatTime(duration)}</div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={onCancel} size="lg">
                 Cancel

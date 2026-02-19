@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useDeviceCapability } from '@/lib/animations/device-capability';
 
-export type VisualTier = 'high' | 'mid' | 'low';
+type VisualTier = 'high' | 'mid' | 'low';
 
 function supportsWebGL(): boolean {
   if (typeof window === 'undefined') return false;

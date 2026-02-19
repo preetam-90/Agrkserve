@@ -103,14 +103,14 @@ export function UnifiedMediaPicker({
       }
     },
     // Remove 'loading' from dependencies to prevent flickering loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [activeTab, viewMode, debouncedQuery, user?.id, page]
   );
 
   // Load content when tab, view mode, or debounced query changes
   // Use a ref to prevent duplicate calls
   const lastLoadKey = useRef('');
-  
+
   useEffect(() => {
     if (isOpen && activeTab !== 'emoji') {
       const loadKey = `${activeTab}-${viewMode}-${debouncedQuery}`;
@@ -132,7 +132,7 @@ export function UnifiedMediaPicker({
 
   // Infinite scroll handler with debounce
   const isLoadingMore = useRef(false);
-  
+
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container || loading || isLoadingMore.current || !hasMore || activeTab === 'emoji') return;
@@ -360,7 +360,9 @@ export function UnifiedMediaPicker({
 
               {/* No More Items */}
               {!loading && !hasMore && items.length > 0 && (
-                <div className="py-4 text-center text-xs text-gray-500">That&apos;s all for now! 🎉</div>
+                <div className="py-4 text-center text-xs text-gray-500">
+                  That&apos;s all for now! 🎉
+                </div>
               )}
             </div>
           )}

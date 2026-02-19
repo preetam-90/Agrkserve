@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     const {
       data: { user },
       error: authError,
@@ -19,17 +19,11 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!skills || !Array.isArray(skills) || skills.length === 0) {
-      return NextResponse.json(
-        { error: 'At least one skill is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'At least one skill is required' }, { status: 400 });
     }
 
     if (!daily_rate || daily_rate <= 0) {
-      return NextResponse.json(
-        { error: 'Valid daily rate is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Valid daily rate is required' }, { status: 400 });
     }
 
     // Get user profile for location data
@@ -63,40 +57,32 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error('Error updating labour profile:', updateError);
-        return NextResponse.json(
-          { error: 'Failed to update labour profile' },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: 'Failed to update labour profile' }, { status: 500 });
       }
     } else {
       // Create new profile
-      const { error: insertError } = await supabase
-        .from('labour_profiles')
-        .insert({
-          user_id: user.id,
-          skills,
-          experience_years: experience_years || 0,
-          daily_rate,
-          hourly_rate: hourly_rate || null,
-          bio: bio || '',
-          availability: 'available',
-          latitude: profile?.latitude || null,
-          longitude: profile?.longitude || null,
-          location_name: profile?.address || '',
-        });
+      const { error: insertError } = await supabase.from('labour_profiles').insert({
+        user_id: user.id,
+        skills,
+        experience_years: experience_years || 0,
+        daily_rate,
+        hourly_rate: hourly_rate || null,
+        bio: bio || '',
+        availability: 'available',
+        latitude: profile?.latitude || null,
+        longitude: profile?.longitude || null,
+        location_name: profile?.address || '',
+      });
 
       if (insertError) {
         console.error('Error creating labour profile:', insertError);
-        return NextResponse.json(
-          { error: 'Failed to create labour profile' },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: 'Failed to create labour profile' }, { status: 500 });
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Labour profile created successfully'
+      message: 'Labour profile created successfully',
     });
   } catch (error) {
     console.error('Error in POST /api/labour/profile:', error);
@@ -104,11 +90,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     const {
       data: { user },
       error: authError,

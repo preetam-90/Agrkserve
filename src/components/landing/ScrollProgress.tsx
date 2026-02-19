@@ -17,9 +17,13 @@ export function ScrollProgress() {
       if (document.readyState === 'complete') {
         setPageLoaded(true);
       } else {
-        window.addEventListener('load', () => {
-          setPageLoaded(true);
-        }, { once: true });
+        window.addEventListener(
+          'load',
+          () => {
+            setPageLoaded(true);
+          },
+          { once: true }
+        );
       }
     };
 

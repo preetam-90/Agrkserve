@@ -9,7 +9,7 @@ interface CursorState {
   setCursor: (x: number, y: number, isPointer: boolean) => void;
 }
 
-export const useLandingStore = create<CursorState>((set) => ({
+const useLandingStore = create<CursorState>((set) => ({
   x: 0,
   y: 0,
   isPointer: false,

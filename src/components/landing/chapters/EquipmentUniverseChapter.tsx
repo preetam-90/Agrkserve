@@ -65,7 +65,8 @@ const equipmentCards: EquipmentCard[] = [
     category: 'Field Diagnostics',
     range: 'Terrain Mapping',
     accent: 'from-emerald-300/35 to-amber-500/30',
-    description: 'Ground-level diagnostics for compaction, moisture pockets, and crop stress zones.',
+    description:
+      'Ground-level diagnostics for compaction, moisture pockets, and crop stress zones.',
   },
 ];
 
@@ -101,8 +102,12 @@ function TiltCard({ card }: { card: EquipmentCard }) {
 
       <div className="relative z-10 space-y-4">
         <p className="text-[11px] uppercase tracking-[0.3em] text-white/70">{card.category}</p>
-        <h3 className="text-3xl font-semibold uppercase leading-tight text-white md:text-4xl">{card.name}</h3>
-        <p className="max-w-sm text-sm leading-relaxed text-white/80 md:text-base">{card.description}</p>
+        <h3 className="text-3xl font-semibold uppercase leading-tight text-white md:text-4xl">
+          {card.name}
+        </h3>
+        <p className="max-w-sm text-sm leading-relaxed text-white/80 md:text-base">
+          {card.description}
+        </p>
       </div>
 
       <div className="relative z-10 mt-6 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-emerald-100/80">

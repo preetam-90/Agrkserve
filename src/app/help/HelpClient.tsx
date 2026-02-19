@@ -250,7 +250,7 @@ export default function HelpPage() {
 
   // Fix hydration: Generate particles only on client
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setMounted(true);
   }, []);
 

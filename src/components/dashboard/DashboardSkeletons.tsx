@@ -209,7 +209,7 @@ export function ProviderDashboardSkeleton() {
   );
 }
 
-export function LabourDashboardSkeleton() {
+function LabourDashboardSkeleton() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner - Enhanced gradient with decorative elements */}

@@ -87,7 +87,7 @@ export class NotificationService {
   // =====================================================
   // GET UNREAD COUNT
   // =====================================================
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async getUnreadCount(_userId: string): Promise<number> {
     const { data, error } = await this.supabase.rpc('get_unread_notification_count');
 
@@ -182,7 +182,7 @@ export class NotificationService {
   async createNotification(
     params: CreateNotificationParams & { context?: Record<string, unknown> }
   ): Promise<Notification | null> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { context: _context = {}, ...baseParams } = params;
 
     // Build message if not provided
@@ -264,7 +264,7 @@ export class NotificationService {
   // =====================================================
   // MARK ALL AS READ
   // =====================================================
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async markAllAsRead(_userId: string): Promise<number> {
     const { data, error } = await this.supabase.rpc('mark_all_notifications_read');
 

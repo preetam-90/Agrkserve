@@ -3,7 +3,9 @@
 import { ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-const SourcesContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(null);
+const SourcesContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(
+  null
+);
 
 export function Sources({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -30,7 +32,11 @@ export function SourcesContent({ children }: { children: ReactNode }) {
   const ctx = useContext(SourcesContext);
   if (!ctx?.open) return null;
 
-  return <div className="mb-2 space-y-1 rounded-xl border border-white/10 bg-black/25 p-2">{children}</div>;
+  return (
+    <div className="mb-2 space-y-1 rounded-xl border border-white/10 bg-black/25 p-2">
+      {children}
+    </div>
+  );
 }
 
 export function Source({ href, title }: { href: string; title: string }) {

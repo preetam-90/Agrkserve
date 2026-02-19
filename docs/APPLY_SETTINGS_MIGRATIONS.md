@@ -76,10 +76,11 @@ After running the migrations, verify everything is set up correctly:
 ### 1. Check Tables Exist
 
 Run this query in SQL Editor:
+
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 AND table_name IN ('system_settings', 'maintenance_mode', 'user_sessions', 'system_health_logs');
 ```
 
@@ -88,11 +89,13 @@ You should see 4 rows returned.
 ### 2. Check Default Settings
 
 Run this query:
+
 ```sql
 SELECT * FROM system_settings;
 ```
 
 You should see default settings like:
+
 - platform_name
 - platform_version
 - support_email
@@ -103,6 +106,7 @@ You should see default settings like:
 ### 3. Test Public Access
 
 Run this query (should work without admin role):
+
 ```sql
 SELECT * FROM system_settings WHERE category IN ('general', 'contact');
 ```
@@ -110,27 +114,33 @@ SELECT * FROM system_settings WHERE category IN ('general', 'contact');
 ## Troubleshooting
 
 ### Error: "relation already exists"
+
 This means the table is already created. You can skip that migration or drop the table first:
+
 ```sql
 DROP TABLE IF EXISTS system_settings CASCADE;
 -- Then run the migration again
 ```
 
 ### Error: "permission denied"
+
 Make sure you're running the SQL as a superuser or service_role in Supabase.
 
 ### Error: "function does not exist"
+
 Make sure you ran migration 023 completely. The RPC functions are defined there.
 
 ## What Gets Created
 
 ### Tables:
+
 1. **system_settings** - Stores all system configuration
 2. **maintenance_mode** - Manages maintenance mode settings
 3. **user_sessions** - Tracks active user sessions
 4. **system_health_logs** - Logs system health metrics
 
 ### RPC Functions:
+
 - `get_system_settings()` - Fetch settings
 - `update_system_setting()` - Update a setting
 - `get_maintenance_mode()` - Get maintenance status
@@ -142,6 +152,7 @@ Make sure you ran migration 023 completely. The RPC functions are defined there.
 - `get_system_health_metrics()` - Get health data
 
 ### RLS Policies:
+
 - Public read access for contact/general settings
 - Admin-only write access
 - Users can view their own sessions
@@ -151,11 +162,13 @@ Make sure you ran migration 023 completely. The RPC functions are defined there.
 Once migrations are applied:
 
 1. **Restart your dev server** (if running)
+
    ```bash
    npm run dev
    ```
 
 2. **Test the admin settings page**
+
    ```
    http://localhost:3001/admin/settings
    ```

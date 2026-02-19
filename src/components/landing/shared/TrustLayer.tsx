@@ -40,7 +40,7 @@ interface TrustLayerProps {
 
 /**
  * Trust Layer Component
- * 
+ *
  * Displays real trust signals for Indian rural/urban users:
  * - Verified providers count
  * - Geographic coverage
@@ -122,7 +122,9 @@ export function TrustLayer({ variant = 'hero', className = '' }: TrustLayerProps
 
   // Footer variant - compact horizontal
   return (
-    <div className={`flex flex-wrap items-center justify-center gap-6 text-xs text-white/50 ${className}`}>
+    <div
+      className={`flex flex-wrap items-center justify-center gap-6 text-xs text-white/50 ${className}`}
+    >
       <span className="flex items-center gap-1.5">
         <Shield className="h-3.5 w-3.5 text-emerald-500" />
         Verified Providers

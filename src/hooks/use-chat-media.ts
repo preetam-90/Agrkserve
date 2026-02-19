@@ -63,7 +63,7 @@ export interface ChatMediaItem {
  * Serialisable shape sent to /api/chat as part of mediaAttachments[].
  * Contains only data the LLM needs — never includes Cloudinary credentials.
  */
-export interface MediaAttachmentPayload {
+interface MediaAttachmentPayload {
   url: string;
   publicId: string;
   type: 'image' | 'video' | 'document';
@@ -184,12 +184,7 @@ export function useChatMedia() {
    * @param extractedText - Pre-extracted text content (for TXT/CSV)
    */
   const uploadFile = useCallback(
-    (
-      localId: string,
-      file: File,
-      category: 'image' | 'video' | 'document',
-      extractedText?: string
-    ) => {
+    (localId: string, file: File, extractedText?: string) => {
       const xhr = new XMLHttpRequest();
       xhrRef.current.set(localId, xhr);
 
@@ -321,12 +316,12 @@ export function useChatMedia() {
           try {
             extractedText = await readFileAsText(file);
           } catch {
-            console.warn(`[useChatMedia] Failed to read text from "${file.name}"`);
+            console.warn(`useChatMedia failed to read text from "${file.name}"`);
           }
         }
 
         // Start async upload (does not block selectFiles return)
-        uploadFile(localId, file, category, extractedText);
+        uploadFile(localId, file, extractedText);
       }
 
       return errors;
@@ -387,7 +382,7 @@ export function useChatMedia() {
             }),
           });
         } catch (err) {
-          console.error('[useChatMedia] Failed to delete from Cloudinary:', err);
+          console.error('useChatMedia failed to delete from Cloudinary:', err);
         }
       }
     },
@@ -427,7 +422,7 @@ export function useChatMedia() {
         }),
       });
     } catch (err) {
-      console.error('[useChatMedia] Bulk delete failed:', err);
+      console.error('useChatMedia bulk delete failed:', err);
     }
   }, [uploads]);
 

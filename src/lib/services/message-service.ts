@@ -8,10 +8,12 @@ export const messageService = {
   async getConversation(id: string): Promise<Conversation | null> {
     const { data, error } = await supabase
       .from('conversations')
-      .select(`
+      .select(
+        `
         *,
         booking:bookings(id, equipment_id, status)
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -23,10 +25,12 @@ export const messageService = {
   async getConversationByBooking(bookingId: string): Promise<Conversation | null> {
     const { data, error } = await supabase
       .from('conversations')
-      .select(`
+      .select(
+        `
         *,
         booking:bookings(id, equipment_id, status)
-      `)
+      `
+      )
       .eq('booking_id', bookingId)
       .single();
 
@@ -38,10 +42,12 @@ export const messageService = {
   async getUserConversations(userId: string): Promise<Conversation[]> {
     const { data, error } = await supabase
       .from('conversations')
-      .select(`
+      .select(
+        `
         *,
         booking:bookings(id, equipment_id, status, equipment:equipment(title, images))
-      `)
+      `
+      )
       .contains('participant_ids', [userId])
       .order('last_message_at', { ascending: false, nullsFirst: false });
 
@@ -57,7 +63,8 @@ export const messageService = {
 
       return data.map((conversation) => ({
         ...conversation,
-        participants: participants?.filter((p) => conversation.participant_ids.includes(p.id)) || [],
+        participants:
+          participants?.filter((p) => conversation.participant_ids.includes(p.id)) || [],
       }));
     }
 
@@ -72,10 +79,12 @@ export const messageService = {
   ): Promise<Message[]> {
     let query = supabase
       .from('messages')
-      .select(`
+      .select(
+        `
         *,
         sender:user_profiles!sender_id(id, full_name, avatar_url)
-      `)
+      `
+      )
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -122,11 +131,7 @@ export const messageService = {
   },
 
   // Send a message
-  async sendMessage(
-    conversationId: string,
-    senderId: string,
-    content: string
-  ): Promise<Message> {
+  async sendMessage(conversationId: string, senderId: string, content: string): Promise<Message> {
     const { data, error } = await supabase
       .from('messages')
       .insert({
@@ -134,10 +139,12 @@ export const messageService = {
         sender_id: senderId,
         content,
       })
-      .select(`
+      .select(
+        `
         *,
         sender:user_profiles!sender_id(id, full_name, avatar_url)
-      `)
+      `
+      )
       .single();
 
     if (error) throw error;
@@ -193,10 +200,7 @@ export const messageService = {
   },
 
   // Subscribe to new messages in a conversation
-  subscribeToMessages(
-    conversationId: string,
-    onMessage: (message: Message) => void
-  ) {
+  subscribeToMessages(conversationId: string, onMessage: (message: Message) => void) {
     return supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -211,10 +215,12 @@ export const messageService = {
           // Fetch full message with sender details
           const { data } = await supabase
             .from('messages')
-            .select(`
+            .select(
+              `
               *,
               sender:user_profiles!sender_id(id, full_name, avatar_url)
-            `)
+            `
+            )
             .eq('id', payload.new.id)
             .single();
 

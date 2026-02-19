@@ -3,16 +3,16 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Equipment, Booking, LabourBooking } from '@/lib/types';
 
-export type DashboardRole = 'admin' | 'provider' | 'labour' | 'renter';
+type DashboardRole = 'admin' | 'provider' | 'labour' | 'renter';
 
-export interface DashboardUser {
+interface DashboardUser {
   id: string;
   email: string;
   fullName: string;
   avatarUrl?: string;
 }
 
-export interface DashboardProfile {
+interface DashboardProfile {
   id: string;
   user_id: string;
   full_name: string;

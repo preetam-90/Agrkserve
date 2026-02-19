@@ -263,7 +263,7 @@ export const labourService = {
     }
 
     // Regular update - exclude latitude/longitude since they can't be directly updated
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { latitude, longitude, ...updateData } = profile;
     const { data, error } = await supabase
       .from('labour_profiles')
@@ -576,5 +576,79 @@ export const labourService = {
       return result.data.filter((b) => status.includes(b.status as any));
     }
     return result.data;
+  },
+
+  async submitLabourRating(params: {
+    bookingId: string;
+    labourId: string;
+    rating: number;
+    comment?: string;
+  }): Promise<{ success: boolean; message?: string }> {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, message: 'Not authenticated' };
+    }
+
+    const { data: booking, error: bookingError } = await supabase
+      .from('labour_bookings')
+      .select('id, labour_id, employer_id, status')
+      .eq('id', params.bookingId)
+      .single();
+
+    if (bookingError) {
+      return { success: false, message: bookingError.message };
+    }
+
+    if (!booking) {
+      return { success: false, message: 'Booking not found' };
+    }
+
+    if (booking.status !== 'completed') {
+      return { success: false, message: 'Rating allowed only after completion' };
+    }
+
+    if (booking.employer_id !== user.id) {
+      return { success: false, message: 'Only the employer can rate this labour' };
+    }
+
+    const { data: existingReview, error: existingError } = await supabase
+      .from('labour_reviews')
+      .select('id')
+      .eq('labour_booking_id', params.bookingId)
+      .eq('reviewer_id', user.id)
+      .single();
+
+    if (existingError && existingError.code !== 'PGRST116') {
+      return { success: false, message: existingError.message };
+    }
+
+    if (existingReview) {
+      return { success: false, message: 'Rating already submitted' };
+    }
+
+    const { error: insertError } = await supabase.from('labour_reviews').insert({
+      labour_booking_id: params.bookingId,
+      labour_id: params.labourId,
+      reviewer_id: user.id,
+      rating: params.rating,
+      comment: params.comment || null,
+    });
+
+    if (insertError) {
+      return { success: false, message: insertError.message };
+    }
+
+    const { error: avgError } = await supabase.rpc('update_labour_average_rating', {
+      p_labour_id: params.labourId,
+    });
+
+    if (avgError && avgError.code !== 'PGRST116') {
+      return { success: false, message: avgError.message };
+    }
+
+    return { success: true };
   },
 };

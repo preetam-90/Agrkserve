@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 /**
  * Fetch featured equipment list
  */
-export function useFeaturedEquipment(limit = 6) {
+function useFeaturedEquipment(limit = 6) {
   return useQuery({
     queryKey: equipmentKeys.featured(limit),
     queryFn: async () => {
@@ -21,7 +21,7 @@ export function useFeaturedEquipment(limit = 6) {
 /**
  * Fetch equipment by ID
  */
-export function useEquipment(id: string) {
+function useEquipment(id: string) {
   return useQuery({
     queryKey: equipmentKeys.detail(id),
     queryFn: () => equipmentService.getById(id),
@@ -32,7 +32,7 @@ export function useEquipment(id: string) {
 /**
  * Fetch equipment categories
  */
-export function useEquipmentCategories() {
+function useEquipmentCategories() {
   return useQuery({
     queryKey: equipmentKeys.categories(),
     queryFn: () => equipmentService.getCategories(),
@@ -43,7 +43,7 @@ export function useEquipmentCategories() {
 /**
  * Fetch home page stats (total counts for equipment, providers, bookings, categories)
  */
-export function useHomeStats() {
+function useHomeStats() {
   return useQuery({
     queryKey: statsKeys.home(),
     queryFn: async () => {

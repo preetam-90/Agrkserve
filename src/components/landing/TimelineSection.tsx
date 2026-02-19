@@ -38,7 +38,7 @@ const steps = [
   },
 ];
 
-export function TimelineSection() {
+function TimelineSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 

@@ -75,7 +75,7 @@ export function LandingPageFooter() {
     };
 
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -274,10 +274,10 @@ export function LandingPageFooter() {
               <motion.div
                 key="subscribe-form"
                 initial={{ opacity: 1, height: 'auto' }}
-                exit={{ 
-                  opacity: 0, 
+                exit={{
+                  opacity: 0,
                   height: 0,
-                  transition: { duration: 0.5, ease: 'easeInOut' }
+                  transition: { duration: 0.5, ease: 'easeInOut' },
                 }}
                 className="grid gap-8 lg:grid-cols-2 lg:items-center"
               >
@@ -286,8 +286,8 @@ export function LandingPageFooter() {
                     Stay Updated
                   </h4>
                   <p className="max-w-md text-sm text-white/50">
-                    Get the latest updates on new equipment, provider expansions, and exclusive offers
-                    for the farming community.
+                    Get the latest updates on new equipment, provider expansions, and exclusive
+                    offers for the farming community.
                   </p>
                 </div>
                 <form onSubmit={handleSubscribe} className="flex flex-col gap-3 sm:flex-row">
@@ -317,11 +317,11 @@ export function LandingPageFooter() {
               <motion.div
                 key="success-message"
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0, 
+                animate={{
+                  opacity: 1,
+                  y: 0,
                   scale: 1,
-                  transition: { duration: 0.5, delay: 0.2, ease: 'easeOut' }
+                  transition: { duration: 0.5, delay: 0.2, ease: 'easeOut' },
                 }}
                 className="flex flex-col items-center justify-center gap-4 py-4 lg:flex-row"
               >

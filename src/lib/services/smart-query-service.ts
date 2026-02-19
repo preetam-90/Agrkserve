@@ -35,7 +35,7 @@ function setCachedEmbedding(query: string, embedding: number[]): void {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export interface SmartQueryResult {
+interface SmartQueryResult {
   context: string;
   sources: string[];
   hasContext: boolean;

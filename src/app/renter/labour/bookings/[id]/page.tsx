@@ -13,4 +13,3 @@ export const metadata: Metadata = {
 export default function RenterLabourBookingDetailPage() {
   return <LabourBookingDetailClient />;
 }
-

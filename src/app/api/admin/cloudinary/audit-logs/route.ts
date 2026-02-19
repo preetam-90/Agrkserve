@@ -14,7 +14,7 @@ export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {
   try {
     // Check permission
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const _admin = await requirePermission('canViewAuditLogs');
 
     // Parse query parameters

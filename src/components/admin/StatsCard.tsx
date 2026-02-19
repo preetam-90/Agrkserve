@@ -54,7 +54,13 @@ const colorMap = {
   },
 };
 
-export default function StatsCard({ title, value, icon: Icon, color = 'green', trend }: StatsCardProps) {
+export default function StatsCard({
+  title,
+  value,
+  icon: Icon,
+  color = 'green',
+  trend,
+}: StatsCardProps) {
   const colors = colorMap[color];
 
   return (
@@ -81,9 +87,7 @@ export default function StatsCard({ title, value, icon: Icon, color = 'green', t
 
           {/* Trend Indicator */}
           {trend && (
-            <div
-              className={`admin-stat-trend ${trend.isUp ? 'up' : 'down'}`}
-            >
+            <div className={`admin-stat-trend ${trend.isUp ? 'up' : 'down'}`}>
               {trend.isUp ? (
                 <TrendingUp className="h-3 w-3" />
               ) : (
@@ -95,19 +99,20 @@ export default function StatsCard({ title, value, icon: Icon, color = 'green', t
         </div>
 
         {/* Value */}
-        <div className="admin-stat-value" style={{
-          background: `linear-gradient(135deg, ${colors.text}, ${colors.text}dd)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}>
+        <div
+          className="admin-stat-value"
+          style={{
+            background: `linear-gradient(135deg, ${colors.text}, ${colors.text}dd)`,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
           {value}
         </div>
 
         {/* Label */}
-        <div className="admin-stat-label font-['Fira_Sans']">
-          {title}
-        </div>
+        <div className="admin-stat-label font-['Fira_Sans']">{title}</div>
 
         {/* Decorative line */}
         <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-[var(--admin-bg-elevated)]">

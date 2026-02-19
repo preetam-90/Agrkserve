@@ -7,7 +7,7 @@ import { MagneticButton } from '@/components/ui/MagneticButton';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-export function CinematicCTA() {
+function CinematicCTA() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // GSAP: Dramatic reveal

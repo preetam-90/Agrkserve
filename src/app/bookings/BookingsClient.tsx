@@ -34,7 +34,7 @@ export default function BookingsRedirect() {
   }, [user, activeRole, isLoading, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center">
       <Spinner size="lg" />
     </div>
   );

@@ -169,7 +169,7 @@ export function PerformanceMonitor({ show = false }: { show?: boolean }) {
  *
  * Shows warnings when performance issues are detected
  */
-export function PerformanceWarning() {
+function PerformanceWarning() {
   const deviceCapabilities = useDeviceCapabilities();
   const { isLowEnd } = deviceCapabilities;
 
@@ -192,7 +192,7 @@ export function PerformanceWarning() {
  *
  * Logs performance metrics to console for debugging
  */
-export function usePerformanceLogger(componentName: string) {
+function usePerformanceLogger(componentName: string) {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
 
@@ -200,7 +200,7 @@ export function usePerformanceLogger(componentName: string) {
 
     return () => {
       const duration = performance.now() - start;
-      console.log(`[Performance] ${componentName} render: ${duration.toFixed(2)}ms`);
+      console.log(`Performance ${componentName} render: ${duration.toFixed(2)}ms`);
     };
   }, [componentName]);
 }
@@ -210,7 +210,7 @@ export function usePerformanceLogger(componentName: string) {
  *
  * Reports Core Web Vitals metrics
  */
-export function WebVitalsReporter() {
+function WebVitalsReporter() {
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
 
@@ -218,7 +218,7 @@ export function WebVitalsReporter() {
     const lcpObserver = new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       const lastEntry = entries[entries.length - 1];
-      console.log('[Web Vitals] LCP:', lastEntry.startTime.toFixed(2), 'ms');
+      console.log('Web Vitals LCP:', lastEntry.startTime.toFixed(2), 'ms');
     });
     lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
 
@@ -227,7 +227,7 @@ export function WebVitalsReporter() {
       const entries = entryList.getEntries();
       entries.forEach((entry) => {
         const fidEntry = entry as PerformanceEventTiming;
-        console.log('[Web Vitals] FID:', fidEntry.processingStart - fidEntry.startTime, 'ms');
+        console.log('Web Vitals FID:', fidEntry.processingStart - fidEntry.startTime, 'ms');
       });
     });
     fidObserver.observe({ entryTypes: ['first-input'] });
@@ -239,7 +239,7 @@ export function WebVitalsReporter() {
         const layoutShiftEntry = entry as LayoutShiftEntry;
         if (!layoutShiftEntry.hadRecentInput) {
           clsValue += layoutShiftEntry.value;
-          console.log('[Web Vitals] CLS:', clsValue.toFixed(4));
+          console.log('Web Vitals CLS:', clsValue.toFixed(4));
         }
       }
     });

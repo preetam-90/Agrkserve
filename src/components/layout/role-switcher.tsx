@@ -13,15 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Tractor, 
-  Briefcase, 
-  Shield, 
-  ChevronDown, 
-  Check,
-  Settings
-} from 'lucide-react';
+import { User, Tractor, Briefcase, Shield, ChevronDown, Check, Settings } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -79,7 +71,7 @@ export function RoleSwitcher() {
   const handleRoleSwitch = (role: UserRole) => {
     switchRole(role);
     setIsOpen(false);
-    
+
     // Navigate to the appropriate dashboard
     const targetDashboard = roleConfig[role].dashboard;
     router.push(targetDashboard);
@@ -88,10 +80,10 @@ export function RoleSwitcher() {
   // Don't show switcher if user only has one role
   if (roles.length === 1) {
     return (
-      <Badge 
-        variant="outline" 
+      <Badge
+        variant="outline"
         className={cn(
-          'flex items-center gap-2 px-3 py-1.5 border',
+          'flex items-center gap-2 border px-3 py-1.5',
           currentRoleConfig.bgColor,
           currentRoleConfig.borderColor,
           currentRoleConfig.color
@@ -122,10 +114,13 @@ export function RoleSwitcher() {
           <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 border-slate-800 bg-slate-900/95 backdrop-blur-xl">
+      <DropdownMenuContent
+        align="end"
+        className="w-64 border-slate-800 bg-slate-900/95 backdrop-blur-xl"
+      >
         <DropdownMenuLabel className="text-slate-400">Switch Role</DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-800" />
-        
+
         {roles.map((role) => {
           const config = roleConfig[role];
           const Icon = config.icon;
@@ -136,7 +131,7 @@ export function RoleSwitcher() {
               key={role}
               onClick={() => handleRoleSwitch(role)}
               className={cn(
-                'flex items-start gap-3 cursor-pointer p-3 transition-all',
+                'flex cursor-pointer items-start gap-3 p-3 transition-all',
                 isActive && config.bgColor,
                 'hover:bg-slate-800 focus:bg-slate-800'
               )}
@@ -158,13 +153,13 @@ export function RoleSwitcher() {
         })}
 
         <DropdownMenuSeparator className="bg-slate-800" />
-        
+
         <DropdownMenuItem
           onClick={() => {
             setIsOpen(false);
             router.push('/settings/roles');
           }}
-          className="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-slate-200"
+          className="flex cursor-pointer items-center gap-2 text-slate-400 hover:text-slate-200"
         >
           <Settings className="h-4 w-4" />
           <span>Manage Roles</span>

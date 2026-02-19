@@ -46,9 +46,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return (
-    <LandingPageRedesigned 
-      fontClassName={`${spaceGrotesk.variable} ${inter.variable}`} 
-    />
-  );
+  return <LandingPageRedesigned fontClassName={`${spaceGrotesk.variable} ${inter.variable}`} />;
 }

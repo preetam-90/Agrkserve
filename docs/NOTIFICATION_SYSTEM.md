@@ -3,6 +3,7 @@
 ## Overview
 
 A comprehensive, real-time notification system for the AgriServe platform with support for:
+
 - ✅ Real-time notifications via Supabase Realtime
 - ✅ User-controlled preferences with quiet hours
 - ✅ Category-based filtering (Bookings, Payments, Messages, etc.)
@@ -105,6 +106,7 @@ await notifyNewBookingRequest({
 ## 📋 Notification Categories
 
 ### 1. **Booking & Rental** 🚜
+
 - New booking request
 - Booking accepted/rejected
 - Booking cancelled
@@ -112,32 +114,38 @@ await notifyNewBookingRequest({
 - Overdue alerts
 
 ### 2. **Payment** 💳
+
 - Payment due
 - Payment received
 - Payment failed
 - Refund processed
 
 ### 3. **Messages** 💬
+
 - New message
 - Equipment inquiry
 - Reply received
 
 ### 4. **Trust & Reputation** ⭐
+
 - New review/rating
 - Review reply
 - Report raised
 
 ### 5. **Security** 🔐
+
 - New login detected
 - New device login
 - Password changed
 
 ### 6. **Business Insights** 📊
+
 - View milestones
 - High demand alerts
 - Performance tips
 
 ### 7. **System** 🔧
+
 - Welcome message
 - Maintenance notices
 - Feature announcements
@@ -209,13 +217,7 @@ await notificationService.createNotification({
 import { useNotifications, useNotificationPreferences } from '@/lib/services/notifications';
 
 export function MyComponent() {
-  const {
-    notifications,
-    unreadCount,
-    loading,
-    markAsRead,
-    markAllAsRead,
-  } = useNotifications();
+  const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
 
   const { preferences, updatePreferences } = useNotificationPreferences();
 
@@ -239,21 +241,25 @@ export function MyComponent() {
 Users can control notifications via `/dashboard/notifications/preferences`:
 
 ### Category Toggles
+
 - Enable/disable each notification category
 - Booking, Payment, Message, Trust, Security, Insight, System
 
 ### Delivery Channels
+
 - ✅ In-app notifications (always available)
 - ✅ Email notifications
 - 🔜 SMS notifications (coming soon)
 - 🔜 Push notifications (coming soon)
 
 ### Quiet Hours (Do Not Disturb)
+
 - Set start/end time
 - Critical notifications bypass DND
 - Timezone support
 
 ### Digest Mode
+
 - Bundle notifications together
 - Frequency: Immediate, Hourly, Daily
 
@@ -266,11 +272,11 @@ Users can control notifications via `/dashboard/notifications/preferences`:
 ```tsx
 import { NotificationBell } from '@/components/notifications';
 
-<NotificationBell 
-  variant="ghost"  // 'default' | 'ghost' | 'outline'
-  size="icon"      // 'default' | 'sm' | 'lg' | 'icon'
+<NotificationBell
+  variant="ghost" // 'default' | 'ghost' | 'outline'
+  size="icon" // 'default' | 'sm' | 'lg' | 'icon'
   showLabel={false}
-/>
+/>;
 ```
 
 ### NotificationPanel
@@ -278,7 +284,7 @@ import { NotificationBell } from '@/components/notifications';
 ```tsx
 import { NotificationPanel } from '@/components/notifications';
 
-<NotificationPanel onClose={() => setOpen(false)} />
+<NotificationPanel onClose={() => setOpen(false)} />;
 ```
 
 ### Full Page
@@ -299,12 +305,9 @@ Notifications automatically update in real-time via Supabase Realtime:
 // Already handled in hooks, but if you need manual subscription:
 import { notificationService } from '@/lib/services/notifications';
 
-const unsubscribe = notificationService.subscribeToNotifications(
-  userId,
-  (newNotification) => {
-    console.log('New notification:', newNotification);
-  }
-);
+const unsubscribe = notificationService.subscribeToNotifications(userId, (newNotification) => {
+  console.log('New notification:', newNotification);
+});
 
 // Clean up
 unsubscribe();
@@ -373,6 +376,7 @@ export const buildNotificationMessage = (eventType, context) => {
 ### RLS Policies
 
 All tables have Row Level Security enabled:
+
 - Users can only view/update their own notifications
 - Service role can create notifications for any user
 
@@ -388,7 +392,7 @@ import { notifyNewBookingRequest } from '@/lib/services/notifications';
 
 async function createBooking(data) {
   const booking = await db.bookings.create(data);
-  
+
   // Notify equipment owner
   await notifyNewBookingRequest({
     ownerId: data.ownerId,
@@ -399,7 +403,7 @@ async function createBooking(data) {
     startDate: data.startDate,
     endDate: data.endDate,
   });
-  
+
   return booking;
 }
 ```
@@ -412,7 +416,7 @@ import { notifyPaymentReceived } from '@/lib/services/notifications';
 
 async function processPayment(paymentData) {
   await processStripePayment(paymentData);
-  
+
   // Notify equipment owner
   await notifyPaymentReceived({
     ownerId: paymentData.ownerId,
@@ -432,7 +436,7 @@ import { notifyNewMessage } from '@/lib/services/notifications';
 
 async function sendMessage(messageData) {
   await db.messages.create(messageData);
-  
+
   // Notify recipient
   await notifyNewMessage({
     recipientId: messageData.recipientId,
@@ -516,29 +520,29 @@ await notificationService.createNotification({
 ```tsx
 class NotificationService {
   // Get notifications with pagination & filters
-  getNotifications(userId, { limit, offset, filters }): Promise<{notifications, total}>
-  
+  getNotifications(userId, { limit, offset, filters }): Promise<{ notifications; total }>;
+
   // Get unread count
-  getUnreadCount(userId): Promise<number>
-  
+  getUnreadCount(userId): Promise<number>;
+
   // Create notification
-  createNotification(params): Promise<Notification>
-  
+  createNotification(params): Promise<Notification>;
+
   // Mark as read
-  markAsRead(notificationId): Promise<void>
-  markAllAsRead(userId): Promise<number>
-  
+  markAsRead(notificationId): Promise<void>;
+  markAllAsRead(userId): Promise<number>;
+
   // Delete
-  deleteNotification(notificationId): Promise<void>
-  clearAll(userId): Promise<void>
-  
+  deleteNotification(notificationId): Promise<void>;
+  clearAll(userId): Promise<void>;
+
   // Preferences
-  getPreferences(userId): Promise<NotificationPreferences>
-  updatePreferences(userId, updates): Promise<NotificationPreferences>
-  
+  getPreferences(userId): Promise<NotificationPreferences>;
+  updatePreferences(userId, updates): Promise<NotificationPreferences>;
+
   // Real-time
-  subscribeToNotifications(userId, callback): Unsubscribe
-  subscribeToPreferences(userId, callback): Unsubscribe
+  subscribeToNotifications(userId, callback): Unsubscribe;
+  subscribeToPreferences(userId, callback): Unsubscribe;
 }
 ```
 
@@ -565,6 +569,7 @@ Part of the AgriServe platform. All rights reserved.
 ## 💡 Support
 
 For questions or issues:
+
 - Check this README
 - Review code comments
 - Check browser console for errors

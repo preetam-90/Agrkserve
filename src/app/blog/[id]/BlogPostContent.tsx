@@ -26,7 +26,10 @@ interface ProcessedContent {
 }
 
 function stripHtml(input: string) {
-  return input.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return input
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function slugify(value: string) {
@@ -44,39 +47,47 @@ function createProcessedContent(rawHtml: string): ProcessedContent {
   const headings: TocHeading[] = [];
   const usedIds = new Set<string>();
 
-  const html = rawHtml.replace(/<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi, (match, levelStr, attrs, content) => {
-    const level = Number(levelStr) as 2 | 3;
-    const existingId = attrs.match(/\sid=["']([^"']+)["']/i)?.[1];
+  const html = rawHtml.replace(
+    /<h([23])([^>]*)>([\s\S]*?)<\/h\1>/gi,
+    (match, levelStr, attrs, content) => {
+      const level = Number(levelStr) as 2 | 3;
+      const existingId = attrs.match(/\sid=["']([^"']+)["']/i)?.[1];
 
-    const headingText = stripHtml(content);
-    if (!headingText) {
-      return match;
+      const headingText = stripHtml(content);
+      if (!headingText) {
+        return match;
+      }
+
+      let finalId = existingId || slugify(headingText) || `section-${headings.length + 1}`;
+      let suffix = 1;
+
+      while (usedIds.has(finalId)) {
+        suffix += 1;
+        finalId = `${finalId}-${suffix}`;
+      }
+
+      usedIds.add(finalId);
+
+      headings.push({
+        id: finalId,
+        text: headingText,
+        level,
+      });
+
+      const attrsWithoutId = attrs.replace(/\sid=["'][^"']+["']/i, '');
+      return `<h${level}${attrsWithoutId} id="${finalId}">${content}</h${level}>`;
     }
-
-    let finalId = existingId || slugify(headingText) || `section-${headings.length + 1}`;
-    let suffix = 1;
-
-    while (usedIds.has(finalId)) {
-      suffix += 1;
-      finalId = `${finalId}-${suffix}`;
-    }
-
-    usedIds.add(finalId);
-
-    headings.push({
-      id: finalId,
-      text: headingText,
-      level,
-    });
-
-    const attrsWithoutId = attrs.replace(/\sid=["'][^"']+["']/i, '');
-    return `<h${level}${attrsWithoutId} id="${finalId}">${content}</h${level}>`;
-  });
+  );
 
   return { html, headings };
 }
 
-export default function BlogPostContent({ post, relatedPosts, prevPost, nextPost }: BlogPostPageProps) {
+export default function BlogPostContent({
+  post,
+  relatedPosts,
+  prevPost,
+  nextPost,
+}: BlogPostPageProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
   const postUrl = `${siteUrl}/blog/${post.id}`;
 
@@ -107,14 +118,43 @@ export default function BlogPostContent({ post, relatedPosts, prevPost, nextPost
       button.className =
         'absolute right-3 top-3 inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-white/15 bg-black/55 px-3 text-xs font-semibold text-white/85 transition hover:border-emerald-300/40 hover:text-emerald-100';
       button.setAttribute('aria-label', 'Copy code block');
-      button.innerHTML = '<span class="copy-label">Copy</span>';
+      const setCopyLabel = (label: 'copy' | 'copied') => {
+        button.replaceChildren();
+
+        const span = document.createElement('span');
+        if (label === 'copy') {
+          span.className = 'copy-label';
+          span.textContent = 'Copy';
+          button.appendChild(span);
+          return;
+        }
+
+        span.className = 'inline-flex items-center gap-1';
+
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('width', '14');
+        icon.setAttribute('height', '14');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('stroke', 'currentColor');
+        icon.setAttribute('stroke-width', '2');
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M20 6 9 17l-5-5');
+        icon.appendChild(path);
+
+        span.append(icon, document.createTextNode('Copied'));
+        button.appendChild(span);
+      };
+
+      setCopyLabel('copy');
 
       const onClick = async () => {
         const text = codeEl.textContent || '';
         await navigator.clipboard.writeText(text);
-        button.innerHTML = '<span class="inline-flex items-center gap-1"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>';
+        setCopyLabel('copied');
         window.setTimeout(() => {
-          button.innerHTML = '<span class="copy-label">Copy</span>';
+          setCopyLabel('copy');
         }, 1500);
       };
 
@@ -173,12 +213,12 @@ export default function BlogPostContent({ post, relatedPosts, prevPost, nextPost
             <>
               <div
                 data-article-body
-                className="editorial-prose prose prose-invert prose-lg max-w-none md:prose-xl"
+                className="editorial-prose prose prose-invert prose-lg md:prose-xl max-w-none"
                 dangerouslySetInnerHTML={{ __html: processedContent.html }}
               />
 
               {processedContent.headings.length > 0 && (
-                <details className="mt-8 rounded-2xl border border-white/12 bg-black/20 p-5 lg:hidden">
+                <details className="border-white/12 mt-8 rounded-2xl border bg-black/20 p-5 lg:hidden">
                   <summary className="cursor-pointer list-none text-sm font-semibold uppercase tracking-[0.13em] text-emerald-200">
                     On This Page
                   </summary>
@@ -200,13 +240,15 @@ export default function BlogPostContent({ post, relatedPosts, prevPost, nextPost
 
               {post.tags.length > 0 && (
                 <div className="mt-16 border-t border-white/10 pt-8">
-                  <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.13em] text-white/45">Tags</h4>
+                  <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.13em] text-white/45">
+                    Tags
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {post.tags.map((tag) => (
                       <Link
                         key={tag}
                         href={`/blog?tag=${encodeURIComponent(tag)}`}
-                        className="rounded-full border border-white/12 bg-white/[0.06] px-4 py-1.5 text-sm text-white/75 transition-all hover:border-emerald-400/35 hover:bg-emerald-500/12 hover:text-emerald-200"
+                        className="border-white/12 hover:bg-emerald-500/12 rounded-full border bg-white/[0.06] px-4 py-1.5 text-sm text-white/75 transition-all hover:border-emerald-400/35 hover:text-emerald-200"
                       >
                         #{tag}
                       </Link>
@@ -257,7 +299,9 @@ export default function BlogPostContent({ post, relatedPosts, prevPost, nextPost
                           <h4 className="mb-3 line-clamp-2 text-xl font-bold text-white transition-colors group-hover:text-emerald-100">
                             {relatedPost.title.en}
                           </h4>
-                          <p className="line-clamp-2 text-sm leading-relaxed text-white/60">{relatedPost.excerpt}</p>
+                          <p className="line-clamp-2 text-sm leading-relaxed text-white/60">
+                            {relatedPost.excerpt}
+                          </p>
                         </div>
                       </Link>
                     ))}
@@ -267,7 +311,11 @@ export default function BlogPostContent({ post, relatedPosts, prevPost, nextPost
             </>
           }
           sidebar={
-            <ArticleSidebar title={post.title.en} url={postUrl} headings={processedContent.headings} />
+            <ArticleSidebar
+              title={post.title.en}
+              url={postUrl}
+              headings={processedContent.headings}
+            />
           }
         />
       </main>

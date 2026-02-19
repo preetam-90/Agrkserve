@@ -92,11 +92,9 @@ export function MessagesView({ className }: MessagesViewProps) {
   // Auto-select first conversation on desktop
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-
-// eslint-disable-next-line react-hooks/set-state-in-effect
-          setSelectedConversation(conversations[0]?.id ?? null);
+       
+      setSelectedConversation(conversations[0]?.id ?? null);
     }
-     
   }, []);
 
   // Scroll to bottom when messages change or conversation changes

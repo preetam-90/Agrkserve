@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-export interface AccessibilityState {
+interface AccessibilityState {
   isKeyboardMode: boolean;
   prefersReducedMotion: boolean;
   prefersHighContrast: boolean;
@@ -182,7 +182,7 @@ export function useAccessibility(): AccessibilityState {
 /**
  * Hook for managing focus trap
  */
-export function useFocusTrap(isActive: boolean, containerRef: React.RefObject<HTMLElement>) {
+function useFocusTrap(isActive: boolean, containerRef: React.RefObject<HTMLElement>) {
   useEffect(() => {
     if (!isActive || !containerRef.current) return;
 
@@ -226,7 +226,7 @@ export function useFocusTrap(isActive: boolean, containerRef: React.RefObject<HT
 /**
  * Hook for skip navigation link
  */
-export function useSkipNavigation() {
+function useSkipNavigation() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab' && e.shiftKey && document.activeElement === document.body) {
@@ -248,13 +248,13 @@ export function useSkipNavigation() {
 /**
  * Hook for ARIA live regions
  */
-export function useLiveRegion(message: string, politeness: 'polite' | 'assertive' = 'polite') {
+function useLiveRegion(message: string, politeness: 'polite' | 'assertive' = 'polite') {
   const liveRegionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (message && liveRegionRef.current) {
       liveRegionRef.current.textContent = message;
-      
+
       // Clear message after a short delay
       const timer = setTimeout(() => {
         if (liveRegionRef.current) {
@@ -282,11 +282,7 @@ export function useLiveRegion(message: string, politeness: 'polite' | 'assertive
 /**
  * Hook for managing modal accessibility
  */
-export function useModalAccessibility(
-  isOpen: boolean,
-  onClose: () => void,
-  title: string
-) {
+function useModalAccessibility(isOpen: boolean, onClose: () => void, title: string) {
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -335,7 +331,7 @@ export function useModalAccessibility(
 /**
  * Hook for accessible tooltips
  */
-export function useTooltip() {
+function useTooltip() {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [content, setContent] = useState('');
@@ -367,7 +363,7 @@ export function useTooltip() {
 /**
  * Hook for accessible tabs
  */
-export function useTabs(initialIndex: number = 0) {
+function useTabs(initialIndex: number = 0) {
   const [activeIndex, setActiveIndex] = useState(initialIndex);
   const tabRefs = useRef<(HTMLElement | null)[]>([]);
 
@@ -410,7 +406,7 @@ export function useTabs(initialIndex: number = 0) {
 /**
  * Hook for accessible dropdowns
  */
-export function useDropdown() {
+function useDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -443,7 +439,7 @@ export function useDropdown() {
 /**
  * Hook for accessible form validation
  */
-export function useFormValidation() {
+function useFormValidation() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateField = (name: string, value: string, rules: string[]) => {
@@ -469,7 +465,7 @@ export function useFormValidation() {
       }
     }
 
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
       [name]: newErrors.join(', '),
     }));
@@ -478,7 +474,7 @@ export function useFormValidation() {
   };
 
   const clearError = (name: string) => {
-    setErrors(prev => {
+    setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[name];
       return newErrors;

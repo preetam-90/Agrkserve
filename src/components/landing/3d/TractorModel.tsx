@@ -38,7 +38,14 @@ export function TractorModel({ lite = false }: TractorModelProps) {
         {/* Glass canopy with holographic tint */}
         <mesh position={[0.26, 0.9, 0]}>
           <boxGeometry args={[1.08, 0.52, 0.88]} />
-          <meshPhysicalMaterial color="#9fdcff" transmission={0.82} roughness={0.1} thickness={0.5} transparent opacity={0.62} />
+          <meshPhysicalMaterial
+            color="#9fdcff"
+            transmission={0.82}
+            roughness={0.1}
+            thickness={0.5}
+            transparent
+            opacity={0.62}
+          />
         </mesh>
 
         {/* Front sensor module */}

@@ -4,21 +4,17 @@ import AdminLayoutClient from '@/components/admin/AdminLayoutClient';
 import './admin-theme-futuristic.css';
 
 export const metadata = {
-    title: 'Admin Control Center - AgriServe',
-    description: 'Futuristic admin dashboard for AgriServe platform management',
+  title: 'Admin Control Center - AgriServe',
+  description: 'Futuristic admin dashboard for AgriServe platform management',
 };
 
-export default async function AdminLayout({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    // Check if user is admin
-    const adminUser = await getAdminUser();
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Check if user is admin
+  const adminUser = await getAdminUser();
 
-    if (!adminUser) {
-        redirect('/login?redirect=/admin');
-    }
+  if (!adminUser) {
+    redirect('/login?redirect=/admin');
+  }
 
-    return <AdminLayoutClient user={adminUser}>{children}</AdminLayoutClient>;
+  return <AdminLayoutClient user={adminUser}>{children}</AdminLayoutClient>;
 }

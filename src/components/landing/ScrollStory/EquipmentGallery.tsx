@@ -16,7 +16,7 @@ interface EquipmentItem {
   category?: string;
 }
 
-export function EquipmentGallery({ equipment }: { equipment: EquipmentItem[] }) {
+function EquipmentGallery({ equipment }: { equipment: EquipmentItem[] }) {
   const rootRef = useRef<HTMLElement>(null);
   const items = useMemo(() => equipment.slice(0, 8), [equipment]);
 
@@ -58,7 +58,11 @@ export function EquipmentGallery({ equipment }: { equipment: EquipmentItem[] }) 
   }, [items.length]);
 
   return (
-    <section id="equipment-universe" ref={rootRef} className="relative bg-[#050906] px-5 py-24 md:px-8 md:py-36">
+    <section
+      id="equipment-universe"
+      ref={rootRef}
+      className="relative bg-[#050906] px-5 py-24 md:px-8 md:py-36"
+    >
       <div className="mx-auto mb-14 max-w-7xl">
         <p className="mb-4 text-[11px] uppercase tracking-[0.3em] text-cyan-300/90">Chapter 02</p>
         <h2 className="max-w-4xl text-[clamp(2.8rem,6vw,5.2rem)] font-semibold leading-[0.9] tracking-[-0.02em] text-white">
@@ -77,11 +81,15 @@ export function EquipmentGallery({ equipment }: { equipment: EquipmentItem[] }) 
               <div className="relative flex h-full flex-col justify-between">
                 <div className="flex items-start justify-between gap-8">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">Machine {String(i + 1).padStart(2, '0')}</p>
+                    <p className="text-xs uppercase tracking-[0.18em] text-cyan-200">
+                      Machine {String(i + 1).padStart(2, '0')}
+                    </p>
                     <h3 className="mt-3 text-[clamp(2.2rem,4vw,3.8rem)] font-semibold tracking-[-0.02em] text-white">
                       {item.name}
                     </h3>
-                    <p className="mt-3 text-zinc-300">{item.category || 'Farm Equipment'} · {item.location}</p>
+                    <p className="mt-3 text-zinc-300">
+                      {item.category || 'Farm Equipment'} · {item.location}
+                    </p>
                   </div>
                   <p className="rounded-full border border-emerald-300/35 px-4 py-2 text-sm text-emerald-100">
                     Rs {item.price}/day

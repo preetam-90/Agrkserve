@@ -3,6 +3,7 @@
 This guide will help you fix the authentication error by setting up your Supabase database correctly.
 
 ## 🚨 Current Issue
+
 **Error:** "Database error saving new user"
 **Cause:** Missing database tables or incorrect Supabase configuration
 
@@ -17,6 +18,7 @@ This guide will help you fix the authentication error by setting up your Supabas
    - Copy your Project URL and anon/public key
 
 2. **Create `.env.local` file in the root directory:**
+
    ```bash
    # agro/agri-serve-web/.env.local
    NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -53,6 +55,7 @@ This guide will help you fix the authentication error by setting up your Supabas
 **Option B: Using Supabase CLI**
 
 If you have Supabase CLI installed:
+
 ```bash
 # Navigate to project directory
 cd agro/agri-serve-web
@@ -85,7 +88,7 @@ supabase db push
    - Supabase Dashboard → **Table Editor**
    - You should see these tables:
      - `user_profiles`
-     - `user_roles` 
+     - `user_roles`
      - `equipment`
      - `bookings`
      - `reviews`
@@ -102,25 +105,30 @@ supabase db push
 ## 🔍 Troubleshooting
 
 ### "Still getting database errors"
+
 - Check your `.env.local` file exists and has correct values
 - Verify Supabase project URL and key are correct
 - Make sure you ran the migrations in the correct order
 
 ### "Tables don't exist"
+
 - Re-run `001_initial_schema.sql` in SQL Editor
 - Check for any error messages in the SQL Editor
 
 ### "Trigger errors"
+
 - Re-run `013_add_handle_new_user_trigger_COMPLETE.sql`
 - This creates the function that handles new user signups
 
 ### "Storage errors"
+
 - Run `008_setup_storage.sql` to create storage buckets
 - Check Authentication → Settings → Site URL is correct
 
 ## ✅ Expected Result
 
 After completing these steps:
+
 - New user signup should work without errors
 - User profiles will be automatically created
 - Authentication flow will work properly

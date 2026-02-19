@@ -6,11 +6,14 @@ interface PostgresError {
   message?: string;
 }
 
-const supabase = createClient();
+// Helper to get a fresh Supabase client for each operation
+// This ensures auth state is always current
+const getClient = () => createClient();
 
 export const authService = {
   // Sign in with email and password
   async signInWithEmail(email: string, password: string) {
+    const supabase = getClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -22,6 +25,7 @@ export const authService = {
 
   // Sign up with email and password
   async signUpWithEmail(email: string, password: string, name?: string) {
+    const supabase = getClient();
     // Validate password strength
     if (password.length < 8) {
       throw new Error('Password must be at least 8 characters long');
@@ -56,6 +60,7 @@ export const authService = {
 
   // Sign in with Google
   async signInWithGoogle() {
+    const supabase = getClient();
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -69,6 +74,7 @@ export const authService = {
 
   // Send password reset email
   async resetPassword(email: string) {
+    const supabase = getClient();
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
@@ -79,6 +85,7 @@ export const authService = {
 
   // Update password
   async updatePassword(newPassword: string) {
+    const supabase = getClient();
     const { data, error } = await supabase.auth.updateUser({
       password: newPassword,
     });
@@ -89,6 +96,7 @@ export const authService = {
 
   // Get current session
   async getSession() {
+    const supabase = getClient();
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
     return data.session;
@@ -96,6 +104,7 @@ export const authService = {
 
   // Get current user
   async getUser() {
+    const supabase = getClient();
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     return data.user;
@@ -103,12 +112,14 @@ export const authService = {
 
   // Sign out
   async signOut() {
+    const supabase = getClient();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
 
   // Get user profile
   async getProfile(userId: string): Promise<UserProfile | null> {
+    const supabase = getClient();
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -137,24 +148,45 @@ export const authService = {
   // Create or update user profile
   async upsertProfile(userId: string, profile: Partial<UserProfile>): Promise<UserProfile | null> {
     try {
-      // First, upsert the profile
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .upsert({
-          id: userId,
-          ...profile,
-          updated_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
+      // Verify user is authenticated first via the browser client
+      const supabase = getClient();
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-      if (error) {
-        if (error.code === '42P01') {
-          console.warn('user_profiles table does not exist yet');
-          return null;
-        }
-        throw error;
+      if (authError) {
+        console.error('Auth error in upsertProfile:', authError);
+        throw new Error(`Authentication error: ${authError.message}`);
       }
+
+      if (!user) {
+        console.error('No authenticated user found in upsertProfile');
+        throw new Error('Not authenticated. Please log in again.');
+      }
+
+      if (user.id !== userId) {
+        console.error('User ID mismatch in upsertProfile:', {
+          authUserId: user.id,
+          requestedUserId: userId,
+        });
+        throw new Error('User ID mismatch. Please refresh and try again.');
+      }
+
+      // Call server-side API route for the upsert (avoids RLS permission issues)
+      const response = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profile),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save profile');
+      }
+
+      const { data } = await response.json();
+      console.log('Profile upserted successfully for user:', userId);
 
       // If roles are provided, add them to user_roles table
       if (profile.roles && Array.isArray(profile.roles)) {
@@ -165,12 +197,11 @@ export const authService = {
 
       return data;
     } catch (error: unknown) {
-      const pgError = error as PostgresError;
-      if (pgError.code === '42P01') {
-        console.warn('user_profiles table does not exist yet');
-        return null;
+      if (error instanceof Error) {
+        throw error;
       }
-      throw error;
+      console.error('Unexpected error in upsertProfile:', error);
+      throw new Error('An unexpected error occurred. Please try again.');
     }
   },
 
@@ -181,6 +212,7 @@ export const authService = {
     latitude: number,
     longitude: number
   ): Promise<UserProfile> {
+    const supabase = getClient();
     // Use raw SQL to properly handle PostGIS geography type
     const { data, error } = await supabase.rpc('update_user_profile_with_location', {
       p_user_id: userId,
@@ -200,6 +232,7 @@ export const authService = {
 
   // Get user roles
   async getUserRoles(userId: string): Promise<UserRole[]> {
+    const supabase = getClient();
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -229,6 +262,7 @@ export const authService = {
 
   // Add user role to user_roles table (with duplicate handling)
   async addUserRole(userId: string, role: UserRole): Promise<void> {
+    const supabase = getClient();
     try {
       const { error } = await supabase.from('user_roles').insert({
         user_id: userId,
@@ -265,6 +299,7 @@ export const authService = {
 
   // Remove user role
   async removeUserRole(userId: string, role: UserRole): Promise<void> {
+    const supabase = getClient();
     try {
       const { error } = await supabase
         .from('user_roles')
@@ -294,6 +329,7 @@ export const authService = {
 
   // Update user profile
   async updateProfile(profile: Partial<UserProfile>): Promise<UserProfile | null> {
+    const supabase = getClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -335,6 +371,7 @@ export const authService = {
 
   // Update last login time
   async updateLastLogin(userId: string): Promise<void> {
+    const supabase = getClient();
     try {
       await supabase.rpc('update_last_login', { user_id: userId });
     } catch (error) {
@@ -345,6 +382,7 @@ export const authService = {
 
   // Subscribe to auth state changes
   onAuthStateChange(callback: (event: string, session: unknown) => void) {
+    const supabase = getClient();
     return supabase.auth.onAuthStateChange(callback);
   },
 };

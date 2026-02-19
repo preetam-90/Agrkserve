@@ -24,13 +24,7 @@ const AttachmentContext = createContext<{
   onRemove?: () => void;
 } | null>(null);
 
-export function Attachments({
-  children,
-  variant,
-}: {
-  children: ReactNode;
-  variant?: 'inline' | 'stack';
-}) {
+function Attachments({ children, variant }: { children: ReactNode; variant?: 'inline' | 'stack' }) {
   return (
     <div className={variant === 'inline' ? 'flex flex-wrap gap-2' : 'grid gap-2'}>{children}</div>
   );
@@ -54,7 +48,7 @@ export function Attachment({
   );
 }
 
-export function AttachmentPreview() {
+function AttachmentPreview() {
   const ctx = useContext(AttachmentContext);
   if (!ctx) return null;
   return (
@@ -65,7 +59,7 @@ export function AttachmentPreview() {
   );
 }
 
-export function AttachmentRemove() {
+function AttachmentRemove() {
   const ctx = useContext(AttachmentContext);
   if (!ctx?.onRemove) return null;
   return (
@@ -181,7 +175,7 @@ export function ChatMediaChip({ item, onRemove }: { item: ChatMediaItem; onRemov
  *   - Videos: dark card with video icon, filename, and URL link
  *   - Documents: dark card with document icon and filename
  */
-export function ChatMediaPreview({
+function ChatMediaPreview({
   item,
 }: {
   item: Pick<ChatMediaItem, 'type' | 'url' | 'name' | 'previewUrl' | 'mimeType'>;

@@ -3,12 +3,27 @@
 import { motion } from 'framer-motion';
 
 const profiles = [
-  { name: 'Ravi Kumar', role: 'Harvest Specialist', availability: 'Available Now', skills: ['Harvesting', 'Sorting', 'Packing'] },
-  { name: 'Suman Patel', role: 'Irrigation Technician', availability: 'Available in 2h', skills: ['Irrigation', 'Pump Setup', 'Field Lines'] },
-  { name: 'Anita Devi', role: 'Machine Operator', availability: 'Available Now', skills: ['Tractor', 'Seeding', 'Soil Prep'] },
+  {
+    name: 'Ravi Kumar',
+    role: 'Harvest Specialist',
+    availability: 'Available Now',
+    skills: ['Harvesting', 'Sorting', 'Packing'],
+  },
+  {
+    name: 'Suman Patel',
+    role: 'Irrigation Technician',
+    availability: 'Available in 2h',
+    skills: ['Irrigation', 'Pump Setup', 'Field Lines'],
+  },
+  {
+    name: 'Anita Devi',
+    role: 'Machine Operator',
+    availability: 'Available Now',
+    skills: ['Tractor', 'Seeding', 'Soil Prep'],
+  },
 ];
 
-export function LabourMarketplace() {
+function LabourMarketplace() {
   return (
     <section className="relative overflow-hidden bg-[#060c09] px-5 py-24 md:px-8 md:py-36">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_16%,rgba(34,197,94,0.18),transparent_45%),radial-gradient(circle_at_84%_78%,rgba(6,182,212,0.2),transparent_52%)]" />
@@ -29,7 +44,7 @@ export function LabourMarketplace() {
             viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
             transition={{ delay: i * 0.12, duration: 0.65 }}
             whileHover={{ y: -10, rotateX: -4, rotateY: 4 }}
-            className="group relative rounded-[1.8rem] border border-white/10 bg-white/8 p-6 backdrop-blur-2xl"
+            className="bg-white/8 group relative rounded-[1.8rem] border border-white/10 p-6 backdrop-blur-2xl"
             style={{ perspective: 1000 }}
           >
             <div className="mb-6 flex items-center gap-3">

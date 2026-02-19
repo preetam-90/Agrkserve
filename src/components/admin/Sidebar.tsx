@@ -71,17 +71,18 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
         animate={{ width: isCollapsed ? 80 : 280 }}
         className={cn(
           'fixed bottom-0 left-0 top-0 z-50 lg:translate-x-0',
-          'border-r border-[var(--admin-border)] bg-[var(--admin-bg-elevated)]/80 backdrop-blur-xl',
+          'bg-[var(--admin-bg-elevated)]/80 border-r border-[var(--admin-border)] backdrop-blur-xl',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
         initial={false}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         {/* Holographic Border Effect */}
-        <div className="pointer-events-none absolute inset-0 rounded-r-2xl border-r-2 border-[var(--admin-primary)] opacity-20" 
-             style={{
-               boxShadow: '0 0 20px var(--admin-primary-glow)',
-             }}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-r-2xl border-r-2 border-[var(--admin-primary)] opacity-20"
+          style={{
+            boxShadow: '0 0 20px var(--admin-primary-glow)',
+          }}
         />
 
         <div className="relative flex h-full flex-col">
@@ -115,7 +116,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 </div>
               </Link>
             )}
-            
+
             {/* Mobile close button */}
             <button
               onClick={onClose}
@@ -123,7 +124,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
             >
               <X className="h-5 w-5" />
             </button>
-            
+
             {/* Desktop collapse toggle */}
             <button
               onClick={onToggleCollapse}
@@ -143,9 +144,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
             {menuItems.map((item, idx) => {
               if (item.type === 'divider') {
                 if (isCollapsed) {
-                  return (
-                    <div key={idx} className="my-3 border-t border-[var(--admin-border)]" />
-                  );
+                  return <div key={idx} className="my-3 border-t border-[var(--admin-border)]" />;
                 }
                 return (
                   <div key={idx} className="mt-4 px-3 py-4 first:mt-0">
@@ -160,7 +159,11 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
               const Icon = item.icon as React.ComponentType<{ className?: string }>;
 
               return (
-                <Link key={idx} href={item.href || '#'} title={isCollapsed ? item.label : undefined}>
+                <Link
+                  key={idx}
+                  href={item.href || '#'}
+                  title={isCollapsed ? item.label : undefined}
+                >
                   <motion.div
                     whileHover={{ x: isCollapsed ? 0 : 4 }}
                     whileTap={{ scale: 0.98 }}
@@ -168,7 +171,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                       'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                       isCollapsed ? 'justify-center' : '',
                       isActive
-                        ? 'bg-gradient-to-r from-[var(--admin-primary)]/10 to-[var(--admin-secondary)]/5 text-[var(--admin-primary)]'
+                        ? 'from-[var(--admin-primary)]/10 to-[var(--admin-secondary)]/5 bg-gradient-to-r text-[var(--admin-primary)]'
                         : 'text-[var(--admin-text-secondary)] hover:bg-white/5 hover:text-white'
                     )}
                   >
@@ -183,7 +186,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                       />
                     )}
-                    
+
                     <Icon
                       className={cn(
                         'h-5 w-5 transition-colors',
@@ -192,7 +195,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                           : 'text-[var(--admin-text-muted)] group-hover:text-[var(--admin-text-secondary)]'
                       )}
                     />
-                    
+
                     {!isCollapsed && (
                       <>
                         <span className="font-['Fira_Sans']">{item.label}</span>
@@ -208,9 +211,9 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                         )}
                       </>
                     )}
-                    
+
                     {isCollapsed && isActive && (
-                      <div 
+                      <div
                         className="absolute right-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-l-full bg-gradient-to-b from-[var(--admin-primary)] to-[var(--admin-secondary)]"
                         style={{
                           boxShadow: '0 0 10px var(--admin-primary-glow)',
@@ -233,7 +236,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 </div>
 
                 <div className="relative z-10">
-                  <p className="font-['Fira_Code'] mb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
+                  <p className="mb-2 font-['Fira_Code'] text-[10px] font-semibold uppercase tracking-wider text-[var(--admin-text-muted)]">
                     System Status
                   </p>
                   <div className="flex items-center gap-2">
@@ -243,14 +246,16 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                   <div className="mt-3 border-t border-[var(--admin-divider)] pt-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-[var(--admin-text-secondary)]">Uptime</span>
-                      <span className="font-['Fira_Code'] font-semibold text-[var(--admin-primary)]">99.9%</span>
+                      <span className="font-['Fira_Code'] font-semibold text-[var(--admin-primary)]">
+                        99.9%
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Collapsed Footer - Just Status Indicator */}
           {isCollapsed && (
             <div className="border-t border-[var(--admin-border)] p-4">

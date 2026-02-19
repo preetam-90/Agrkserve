@@ -80,7 +80,7 @@ function BookingDetailPageContent({ initialBooking }: BookingDetailClientProps) 
     if (isSuccess) {
       toast.success('Booking confirmed successfully!');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [bookingId, isSuccess]);
 
   const loadBooking = async () => {

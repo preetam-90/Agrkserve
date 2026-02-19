@@ -7,41 +7,37 @@ const supabase = createClient();
 // Helper to fetch reviewer profiles for reviews
 async function attachReviewerProfiles(reviews: Review[]): Promise<Review[]> {
   if (reviews.length === 0) return reviews;
-  
-  const reviewerIds = [...new Set(reviews.map(r => r.reviewer_id))];
+
+  const reviewerIds = [...new Set(reviews.map((r) => r.reviewer_id))];
   const { data: reviewers } = await supabase
     .from('user_profiles')
     .select('*')
     .in('id', reviewerIds);
-  
+
   if (!reviewers) return reviews;
-  
-  const reviewerMap = new Map(reviewers.map(r => [r.id, r as UserProfile]));
-  return reviews.map(review => ({
+
+  const reviewerMap = new Map(reviewers.map((r) => [r.id, r as UserProfile]));
+  return reviews.map((review) => ({
     ...review,
-    reviewer: reviewerMap.get(review.reviewer_id) || undefined
+    reviewer: reviewerMap.get(review.reviewer_id) || undefined,
   }));
 }
 
 export const reviewService = {
   // Get review by ID
   async getById(id: string): Promise<Review | null> {
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('reviews').select('*').eq('id', id).single();
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
-    
+
     // Fetch reviewer profile
     const { data: reviewer } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', data.reviewer_id)
       .single();
-    
+
     return { ...data, reviewer: reviewer || undefined };
   },
 
@@ -55,14 +51,14 @@ export const reviewService = {
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
-    
+
     // Fetch reviewer profile
     const { data: reviewer } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', data.reviewer_id)
       .single();
-    
+
     return { ...data, reviewer: reviewer || undefined };
   },
 
@@ -171,14 +167,14 @@ export const reviewService = {
       .single();
 
     if (error) throw error;
-    
+
     // Fetch reviewer profile
     const { data: reviewer } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', data.reviewer_id)
       .single();
-    
+
     return { ...data, reviewer: reviewer || undefined };
   },
 
@@ -202,23 +198,20 @@ export const reviewService = {
       .single();
 
     if (error) throw error;
-    
+
     // Fetch reviewer profile
     const { data: reviewer } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', data.reviewer_id)
       .single();
-    
+
     return { ...data, reviewer: reviewer || undefined };
   },
 
   // Delete a review
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -231,9 +224,7 @@ export const reviewService = {
     const { data, error } = await supabase
       .from('reviews')
       .select('rating')
-      .eq('equipment_id', equipmentId)
-      ;
-
+      .eq('equipment_id', equipmentId);
     if (error) throw error;
 
     if (!data || data.length === 0) {
@@ -252,9 +243,7 @@ export const reviewService = {
     const { data, error } = await supabase
       .from('reviews')
       .select('rating')
-      .eq('equipment_id', equipmentId)
-      ;
-
+      .eq('equipment_id', equipmentId);
     if (error) throw error;
 
     const distribution: Record<number, number> = {
@@ -279,7 +268,9 @@ export const reviewService = {
     rating: number;
     comment?: string;
   }): Promise<Review> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
     return this.create({

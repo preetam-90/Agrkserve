@@ -6,7 +6,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-export interface DeviceCapabilities {
+interface DeviceCapabilities {
   isMobile: boolean;
   isTablet: boolean;
   isLowEnd: boolean;
@@ -227,7 +227,7 @@ function subscribe(callback: () => void) {
 /**
  * Detect device capabilities for performance optimization
  */
-export function getDeviceCapabilities(): DeviceCapabilities {
+function getDeviceCapabilities(): DeviceCapabilities {
   if (!isBrowser()) {
     return DEFAULT_CAPABILITIES;
   }
@@ -250,7 +250,7 @@ export function useDeviceCapabilities(): DeviceCapabilities {
 /**
  * Check if animations should be reduced based on device capability
  */
-export function shouldReduceAnimations(): boolean {
+function shouldReduceAnimations(): boolean {
   // Check user preference
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     return true;
@@ -270,7 +270,7 @@ export function shouldReduceAnimations(): boolean {
 /**
  * Get appropriate animation duration based on device capability
  */
-export function getAnimationDuration(baseDuration: number): number {
+function getAnimationDuration(baseDuration: number): number {
   const capabilities = getDeviceCapabilities();
 
   if (capabilities.isLowEnd) {
@@ -306,7 +306,7 @@ export function shouldEnable3D(): boolean {
 /**
  * Check if video backgrounds should be enabled
  */
-export function shouldEnableVideoBackground(): boolean {
+function shouldEnableVideoBackground(): boolean {
   const capabilities = getDeviceCapabilities();
 
   // Disable video on low-end devices or slow connections
@@ -330,7 +330,7 @@ export function shouldEnableVideoBackground(): boolean {
 /**
  * Get appropriate image quality based on device capability
  */
-export function getImageQuality(): 'low' | 'medium' | 'high' {
+function getImageQuality(): 'low' | 'medium' | 'high' {
   const capabilities = getDeviceCapabilities();
 
   if (capabilities.isLowEnd) {
@@ -347,7 +347,7 @@ export function getImageQuality(): 'low' | 'medium' | 'high' {
 /**
  * Debounced capability check for performance
  */
-export function useDebouncedDeviceCapabilities(delay: number = 250): DeviceCapabilities {
+function useDebouncedDeviceCapabilities(delay: number = 250): DeviceCapabilities {
   // Retained for API compatibility; updates are already debounced in the shared store.
   void delay;
   return useDeviceCapabilities();

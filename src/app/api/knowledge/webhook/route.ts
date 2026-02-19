@@ -16,11 +16,16 @@ type WebhookPayload = {
   old_record: Record<string, unknown> | null;
 };
 
+/**
+ * Maps Supabase table names to knowledge_embeddings source_type values.
+ * Must match the CHECK constraint in migration 028_pgvector_rag_setup.sql.
+ */
 const TABLE_SOURCE_MAP: Record<string, KnowledgeEntry['source_type']> = {
   equipment: 'equipment',
   user_profiles: 'user',
   labour_profiles: 'labour',
   reviews: 'review',
+  bookings: 'booking',
 };
 
 function authorize(request: Request): boolean {
@@ -183,6 +188,71 @@ async function fetchAndFormatContent(
           equipment_name: equipmentData?.name || null,
           rating: data.rating,
           reviewer_name: reviewerData?.name || null,
+        },
+      };
+    }
+
+    case 'booking': {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(
+          'id, equipment_id, renter_id, start_date, end_date, total_days, price_per_day, total_amount, status'
+        )
+        .eq('id', sourceId)
+        .single();
+
+      if (error || !data) return null;
+
+      // Fetch related entities in parallel
+      const [equipRes, renterRes, paymentRes] = await Promise.all([
+        data.equipment_id
+          ? supabase.from('equipment').select('name').eq('id', data.equipment_id).single()
+          : Promise.resolve({ data: null }),
+        data.renter_id
+          ? supabase.from('user_profiles').select('name').eq('id', data.renter_id).single()
+          : Promise.resolve({ data: null }),
+        supabase
+          .from('payments')
+          .select('status')
+          .eq('booking_id', sourceId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      const equipmentName = equipRes.data?.name || 'Unknown Equipment';
+      const renterName = renterRes.data?.name || 'Unknown Renter';
+      const paymentStatus = paymentRes.data?.status || null;
+
+      const dateRange =
+        data.start_date && data.end_date ? `from ${data.start_date} to ${data.end_date}` : '';
+      const days = data.total_days != null ? `${data.total_days} days` : '';
+      const amount = data.total_amount != null ? `₹${data.total_amount}` : 'amount TBD';
+      const paymentStr = paymentStatus ? `Payment: ${paymentStatus}` : '';
+
+      const parts = [
+        `Booking for ${equipmentName} by ${renterName}`,
+        `Status: ${data.status}`,
+        dateRange,
+        days,
+        amount,
+        paymentStr,
+      ].filter(Boolean);
+
+      return {
+        content: parts.join(' - '),
+        metadata: {
+          id: data.id,
+          equipment_id: data.equipment_id,
+          equipment_name: equipmentName,
+          renter_id: data.renter_id,
+          renter_name: renterName,
+          status: data.status,
+          start_date: data.start_date,
+          end_date: data.end_date,
+          total_days: data.total_days,
+          total_amount: data.total_amount,
+          payment_status: paymentStatus,
         },
       };
     }

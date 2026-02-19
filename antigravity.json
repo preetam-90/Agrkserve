@@ -1,13 +1,11 @@
 {
-    "mcpServers": {
-        "TestSprite": {
-            "command": "npx",
-            "args": [
-                "@testsprite/testsprite-mcp@latest"
-            ],
-            "env": {
-                "API_KEY": "sk-user-_tG5-gI4JyNymGjD05mZ-XCa_HQYFFACF-i31Z3s6VrZIOTwXmPNuvM_jwQY6AcPgWeZxpMtumHxa2W-xcwnkbWSc7Whl3DvcmMbv40nbekZ9q9gKgb3KVWxnkRh3RlJEq4"
-            }
-        }
+  "mcpServers": {
+    "TestSprite": {
+      "command": "npx",
+      "args": ["@testsprite/testsprite-mcp@latest"],
+      "env": {
+        "API_KEY": "sk-user-_tG5-gI4JyNymGjD05mZ-XCa_HQYFFACF-i31Z3s6VrZIOTwXmPNuvM_jwQY6AcPgWeZxpMtumHxa2W-xcwnkbWSc7Whl3DvcmMbv40nbekZ9q9gKgb3KVWxnkRh3RlJEq4"
+      }
     }
+  }
 }

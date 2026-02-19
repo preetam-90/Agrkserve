@@ -6,7 +6,6 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Download, ExternalLink, Calendar, HardDrive } from 'lucide-react';
 import { BackButton } from '@/components/ui/back-button';
-import type { Metadata } from 'next';
 
 // Gallery/ImageGallery JSON-LD for SEO
 const galleryJsonLd = {

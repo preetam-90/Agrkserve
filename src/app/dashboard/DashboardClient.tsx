@@ -70,7 +70,7 @@ export default function DashboardClient({ serverData }: DashboardClientProps) {
         initialize();
       }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   // Redirect logic
   useEffect(() => {

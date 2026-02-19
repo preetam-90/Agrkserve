@@ -47,7 +47,6 @@ export default function NotFoundPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-     
     setMounted(true);
   }, []);
 

@@ -1,6 +1,7 @@
 # Contact Information Sync Debugging
 
 ## Issue
+
 User updates contact information in admin panel but changes don't appear on contact page or footer.
 
 ## Debugging Steps
@@ -26,8 +27,8 @@ Open browser console and run:
 ```javascript
 // Test the public settings API
 fetch('/api/settings')
-  .then(r => r.json())
-  .then(data => {
+  .then((r) => r.json())
+  .then((data) => {
     console.log('📊 Total fields:', Object.keys(data.settings).length);
     console.log('📧 Email:', data.settings.support_email_primary);
     console.log('📞 Phone:', data.settings.support_phone_primary);
@@ -45,8 +46,8 @@ In browser console (while logged in as admin):
 ```javascript
 // Test the admin settings API
 fetch('/api/admin/settings')
-  .then(r => r.json())
-  .then(data => {
+  .then((r) => r.json())
+  .then((data) => {
     console.log('Admin API response:', data);
   });
 ```
@@ -96,7 +97,7 @@ Run this SQL query:
 
 ```sql
 -- Check RLS policies for system_settings
-SELECT 
+SELECT
   schemaname,
   tablename,
   policyname,
@@ -114,6 +115,7 @@ WHERE tablename = 'system_settings';
 ## Common Issues
 
 ### Issue 1: Data Not Saved
+
 **Symptom**: SQL query shows old values
 **Solution**: Check if `update_system_setting` RPC function is working
 
@@ -126,14 +128,17 @@ SELECT key, value FROM system_settings WHERE key = 'support_email_primary';
 ```
 
 ### Issue 2: API Returns Old Data
+
 **Symptom**: Database has new values but API returns old
 **Solution**: Cache issue - clear browser cache or wait 5 minutes
 
 ### Issue 3: Realtime Not Working
+
 **Symptom**: No console logs when updating settings
 **Solution**: Enable Realtime replication in Supabase Dashboard
 
 ### Issue 4: Wrong Field Names
+
 **Symptom**: Some fields show default values
 **Solution**: Check field name mapping in `getContactInfo()` function
 
@@ -146,7 +151,7 @@ Run this in Supabase SQL Editor to manually update a field:
 INSERT INTO system_settings (key, value, category)
 VALUES ('support_email_primary', '"newemail@example.com"'::jsonb, 'contact')
 ON CONFLICT (key)
-DO UPDATE SET 
+DO UPDATE SET
   value = EXCLUDED.value,
   updated_at = NOW();
 

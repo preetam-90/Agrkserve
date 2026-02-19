@@ -12,11 +12,7 @@ interface MessageBadgeProps {
   iconOnly?: boolean;
 }
 
-export function MessageBadge({ 
-  className, 
-  showIcon = true,
-  iconOnly = false,
-}: MessageBadgeProps) {
+export function MessageBadge({ className, showIcon = true, iconOnly = false }: MessageBadgeProps) {
   const { user } = useAuthStore();
   const { unreadCount, fetchUnreadCount, subscribeToConversations } = useMessagesStore();
 
@@ -32,7 +28,7 @@ export function MessageBadge({
       <Link
         href="/messages"
         className={cn(
-          "relative flex h-8 w-8 items-center justify-center rounded-lg text-[#a8c9b8] transition-colors hover:bg-[#4a7c5a]/20 hover:text-[#e8f5e9]",
+          'relative flex h-8 w-8 items-center justify-center rounded-lg text-[#a8c9b8] transition-colors hover:bg-[#4a7c5a]/20 hover:text-[#e8f5e9]',
           className
         )}
       >
@@ -47,10 +43,10 @@ export function MessageBadge({
   }
 
   return (
-    <Link 
-      href="/messages" 
+    <Link
+      href="/messages"
       className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors",
+        'flex items-center gap-2 rounded-lg px-3 py-2 transition-colors hover:bg-gray-100',
         className
       )}
     >
@@ -58,7 +54,7 @@ export function MessageBadge({
         <div className="relative">
           <MessageSquare className="h-5 w-5 text-gray-600" />
           {unreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-bold text-white bg-green-600 rounded-full">
+            <span className="absolute -right-2 -top-2 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-green-600 px-1 text-[10px] font-bold text-white">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -66,7 +62,7 @@ export function MessageBadge({
       )}
       <span className="text-sm font-medium text-gray-700">Messages</span>
       {!showIcon && unreadCount > 0 && (
-        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-green-600 rounded-full">
+        <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-green-600 px-1.5 text-xs font-bold text-white">
           {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}

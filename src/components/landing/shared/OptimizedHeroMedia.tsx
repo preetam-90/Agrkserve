@@ -33,15 +33,15 @@ function isSlowNetwork(connection?: ConnectionInfo): boolean {
 
 /**
  * Optimized Hero Media Component
- * 
+ *
  * Implements Apple/Netflix-style progressive loading:
  * 1. Instant blurred placeholder (20px blurred version)
  * 2. Sharp poster image
  * 3. Video when connection allows
- * 
+ *
  * Performance budget: < 50KB initial, video loads after interaction or delay
  */
-export function OptimizedHeroMedia({
+function OptimizedHeroMedia({
   videoSrc,
   posterSrc,
   posterBlurSrc,
@@ -60,8 +60,7 @@ export function OptimizedHeroMedia({
   });
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(
     () =>
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -141,7 +140,7 @@ export function OptimizedHeroMedia({
           <img
             src={posterBlurSrc}
             alt=""
-            className="h-full w-full object-cover blur-xl scale-110"
+            className="h-full w-full scale-110 object-cover blur-xl"
             style={{ filter: 'blur(20px)' }}
           />
         )}
@@ -220,7 +219,8 @@ export function OptimizedHeroMedia({
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background: 'linear-gradient(180deg, rgba(3,7,5,0.2) 0%, rgba(3,7,5,0.5) 50%, rgba(3,7,5,0.95) 100%)',
+          background:
+            'linear-gradient(180deg, rgba(3,7,5,0.2) 0%, rgba(3,7,5,0.5) 50%, rgba(3,7,5,0.95) 100%)',
           zIndex: 10,
         }}
       />

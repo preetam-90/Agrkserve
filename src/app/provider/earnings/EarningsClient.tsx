@@ -4,8 +4,22 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { IndianRupee, TrendingUp, Calendar, ArrowUpRight, Download, CreditCard, Wallet } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  IndianRupee,
+  TrendingUp,
+  Calendar,
+  ArrowUpRight,
+  Download,
+  CreditCard,
+  Wallet,
+} from 'lucide-react';
 
 // Mock data
 const transactions = [
@@ -85,18 +99,18 @@ export default function ProviderEarningsPage() {
   const [timeRange, setTimeRange] = useState('this-month');
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="container mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Earnings & Payments</h1>
-          <p className="text-gray-500 mt-1">Track your revenue and manage payouts.</p>
+          <p className="mt-1 text-gray-500">Track your revenue and manage payouts.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Download Report
           </Button>
-          <Button className="bg-green-600 hover:bg-green-700 gap-2">
+          <Button className="gap-2 bg-green-600 hover:bg-green-700">
             <ArrowUpRight className="h-4 w-4" />
             Withdraw Funds
           </Button>
@@ -104,13 +118,13 @@ export default function ProviderEarningsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
         {earningsStats.map((stat, index) => (
-          <Card key={index} className="border-none shadow-sm hover:shadow-md transition-shadow">
+          <Card key={index} className="border-none shadow-sm transition-shadow hover:shadow-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${stat.bg}`}>
+                  <div className={`rounded-full p-3 ${stat.bg}`}>
                     <stat.icon className={`h-6 w-6 ${stat.color}`} />
                   </div>
                   <div>
@@ -119,13 +133,13 @@ export default function ProviderEarningsPage() {
                   </div>
                 </div>
                 {stat.trend === 'up' && (
-                  <div className="flex items-center text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
-                    <TrendingUp className="h-3 w-3 mr-1" />
+                  <div className="flex items-center rounded-full bg-green-50 px-2 py-1 text-sm font-medium text-green-600">
+                    <TrendingUp className="mr-1 h-3 w-3" />
                     {stat.change}
                   </div>
                 )}
                 {stat.trend === 'neutral' && (
-                  <div className="flex items-center text-gray-600 text-sm font-medium bg-gray-100 px-2 py-1 rounded-full">
+                  <div className="flex items-center rounded-full bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600">
                     {stat.change}
                   </div>
                 )}
@@ -135,7 +149,7 @@ export default function ProviderEarningsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Transaction History */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -158,32 +172,51 @@ export default function ProviderEarningsPage() {
           <CardContent>
             <div className="space-y-4">
               {transactions.map((txn) => (
-                <div key={txn.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div
+                  key={txn.id}
+                  className="flex items-center justify-between rounded-lg bg-gray-50 p-4 transition-colors hover:bg-gray-100"
+                >
                   <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-full mt-1 ${
-                      txn.amount > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-                    }`}>
+                    <div
+                      className={`mt-1 rounded-full p-2 ${
+                        txn.amount > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                      }`}
+                    >
                       <IndianRupee className="h-4 w-4" />
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{txn.description}</p>
-                      <p className="text-sm text-gray-500">{txn.date} • {txn.customer}</p>
+                      <p className="text-sm text-gray-500">
+                        {txn.date} • {txn.customer}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={`font-semibold ${
-                      txn.amount > 0 ? 'text-green-600' : 'text-gray-900'
-                    }`}>
-                      {txn.amount > 0 ? '+' : ''}{txn.amount}
+                    <span
+                      className={`font-semibold ${
+                        txn.amount > 0 ? 'text-green-600' : 'text-gray-900'
+                      }`}
+                    >
+                      {txn.amount > 0 ? '+' : ''}
+                      {txn.amount}
                     </span>
                     <div className="mt-1">
-                      <Badge variant={
-                        txn.status === 'Completed' ? 'default' :
-                        txn.status === 'Processing' ? 'secondary' : 'destructive'
-                      } className={
-                        txn.status === 'Completed' ? 'bg-green-100 text-green-800 hover:bg-green-100 border-none' :
-                        txn.status === 'Processing' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-none' : ''
-                      }>
+                      <Badge
+                        variant={
+                          txn.status === 'Completed'
+                            ? 'default'
+                            : txn.status === 'Processing'
+                              ? 'secondary'
+                              : 'destructive'
+                        }
+                        className={
+                          txn.status === 'Completed'
+                            ? 'border-none bg-green-100 text-green-800 hover:bg-green-100'
+                            : txn.status === 'Processing'
+                              ? 'border-none bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
+                              : ''
+                        }
+                      >
                         {txn.status}
                       </Badge>
                     </div>
@@ -191,7 +224,10 @@ export default function ProviderEarningsPage() {
                 </div>
               ))}
             </div>
-            <Button variant="ghost" className="w-full mt-4 text-green-600 hover:text-green-700 hover:bg-green-50">
+            <Button
+              variant="ghost"
+              className="mt-4 w-full text-green-600 hover:bg-green-50 hover:text-green-700"
+            >
               View All Transactions
             </Button>
           </CardContent>
@@ -199,18 +235,20 @@ export default function ProviderEarningsPage() {
 
         {/* Payout Details */}
         <div className="space-y-6">
-          <Card className="bg-gradient-to-br from-green-600 to-green-700 text-white border-none shadow-md">
+          <Card className="border-none bg-gradient-to-br from-green-600 to-green-700 text-white shadow-md">
             <CardContent className="p-6">
               <div className="mb-4">
-                <p className="text-green-100 text-sm font-medium mb-1">Available Balance</p>
+                <p className="mb-1 text-sm font-medium text-green-100">Available Balance</p>
                 <h3 className="text-3xl font-bold">₹8,400.00</h3>
               </div>
               <div className="space-y-4">
-                <div className="bg-white/10 rounded-lg p-3">
-                  <p className="text-xs text-green-100 mb-1">Bank Account</p>
+                <div className="rounded-lg bg-white/10 p-3">
+                  <p className="mb-1 text-xs text-green-100">Bank Account</p>
                   <div className="flex items-center justify-between">
                     <span className="font-medium">HDFC Bank ****4521</span>
-                    <span className="text-xs bg-green-500/20 px-2 py-0.5 rounded text-green-100">Primary</span>
+                    <span className="rounded bg-green-500/20 px-2 py-0.5 text-xs text-green-100">
+                      Primary
+                    </span>
                   </div>
                 </div>
                 <Button className="w-full bg-white text-green-700 hover:bg-green-50">
@@ -225,29 +263,33 @@ export default function ProviderEarningsPage() {
               <CardTitle className="text-lg">Payment Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-12 bg-gray-100 rounded flex items-center justify-center">
+                  <div className="flex h-8 w-12 items-center justify-center rounded bg-gray-100">
                     <span className="text-xs font-bold text-gray-500">BANK</span>
                   </div>
                   <div>
-                    <p className="font-medium text-sm">HDFC Bank</p>
+                    <p className="text-sm font-medium">HDFC Bank</p>
                     <p className="text-xs text-gray-500">****4521</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">Edit</Button>
+                <Button variant="ghost" size="sm">
+                  Edit
+                </Button>
               </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-12 bg-blue-50 rounded flex items-center justify-center">
+                  <div className="flex h-8 w-12 items-center justify-center rounded bg-blue-50">
                     <span className="text-xs font-bold text-blue-600">UPI</span>
                   </div>
                   <div>
-                    <p className="font-medium text-sm">UPI ID</p>
+                    <p className="text-sm font-medium">UPI ID</p>
                     <p className="text-xs text-gray-500">rahul@okhdfcbank</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">Edit</Button>
+                <Button variant="ghost" size="sm">
+                  Edit
+                </Button>
               </div>
               <Button variant="outline" className="w-full border-dashed">
                 + Add Payment Method

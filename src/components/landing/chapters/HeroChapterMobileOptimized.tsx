@@ -1,6 +1,6 @@
 /**
  * Mobile-Optimized Hero Chapter - Performance First
- * 
+ *
  * This component is specifically designed for mobile performance:
  * - NO video loading (static image only)
  * - NO GSAP animations (CSS-only)
@@ -26,7 +26,11 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-const HEADLINE_LINES = ["INDIA'S AGRI", 'OPERATING SYSTEM', 'Built for Scale. Built to Win.'] as const;
+const HEADLINE_LINES = [
+  "INDIA'S AGRI",
+  'OPERATING SYSTEM',
+  'Built for Scale. Built to Win.',
+] as const;
 
 const TELEMETRY_CHIPS = [
   { value: '120K+', label: 'Verified Providers', icon: ShieldCheck },
@@ -87,20 +91,22 @@ export function HeroChapterMobileOptimized() {
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMCwsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBEQCEAwEPwAB//9k="
         />
         {/* Gradient overlay for text readability - critical CSS */}
-        <div 
-          className="absolute inset-0" 
+        <div
+          className="absolute inset-0"
           style={{
-            background: 'linear-gradient(180deg, rgba(3,7,5,0.7) 0%, rgba(3,7,5,0.5) 40%, rgba(3,7,5,0.8) 100%)'
-          }} 
+            background:
+              'linear-gradient(180deg, rgba(3,7,5,0.7) 0%, rgba(3,7,5,0.5) 40%, rgba(3,7,5,0.8) 100%)',
+          }}
         />
       </div>
 
       {/* Simplified ambient effect - CSS only, no JS */}
       <div className="pointer-events-none absolute inset-0 opacity-30">
-        <div 
+        <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(circle at 50% 30%, rgba(16,185,129,0.15) 0%, transparent 50%)'
+            background:
+              'radial-gradient(circle at 50% 30%, rgba(16,185,129,0.15) 0%, transparent 50%)',
           }}
         />
       </div>
@@ -108,7 +114,7 @@ export function HeroChapterMobileOptimized() {
       {/* Hero Content - Rendered immediately, no waiting */}
       <div className="relative z-10 mx-auto flex min-h-[85vh] w-full max-w-xl flex-col justify-center px-5 py-8">
         {/* Kicker - Immediate render */}
-        <div 
+        <div
           className={`mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200/20 bg-black/50 px-3 py-1.5 backdrop-blur-sm transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         >
           <Sparkles className="h-3 w-3 text-emerald-300" />
@@ -120,8 +126,8 @@ export function HeroChapterMobileOptimized() {
         {/* Headline - Critical for SEO and above fold */}
         <h1 className="mb-4">
           {HEADLINE_LINES.map((line, index) => (
-            <span 
-              key={line} 
+            <span
+              key={line}
               className={`block transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
@@ -141,15 +147,16 @@ export function HeroChapterMobileOptimized() {
         </h1>
 
         {/* Subcopy */}
-        <p 
+        <p
           className={`mb-6 text-sm leading-relaxed text-white/80 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{ transitionDelay: '300ms' }}
         >
-          The command network for modern agriculture: instant equipment access, real-time provider matching, and nationwide dispatch intelligence.
+          The command network for modern agriculture: instant equipment access, real-time provider
+          matching, and nationwide dispatch intelligence.
         </p>
 
         {/* CTA Buttons - No magnetic effects on mobile for performance */}
-        <div 
+        <div
           className={`mb-6 flex flex-col gap-3 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{ transitionDelay: '400ms' }}
         >
@@ -184,7 +191,7 @@ export function HeroChapterMobileOptimized() {
         </div>
 
         {/* Telemetry Stats - Simple grid, no animations */}
-        <div 
+        <div
           className={`mb-6 grid grid-cols-3 gap-2 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{ transitionDelay: '500ms' }}
         >
@@ -203,7 +210,7 @@ export function HeroChapterMobileOptimized() {
         </div>
 
         {/* Trust Indicators */}
-        <div 
+        <div
           className={`transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
           style={{ transitionDelay: '600ms' }}
         >
@@ -214,11 +221,9 @@ export function HeroChapterMobileOptimized() {
       {/* Simple scroll indicator - CSS animation only */}
       <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2">
         <div className="flex flex-col items-center gap-1">
-          <span className="text-[10px] uppercase tracking-[0.15em] text-white/40">
-            Scroll
-          </span>
-          <ChevronDown 
-            className="h-4 w-4 text-white/40 animate-bounce" 
+          <span className="text-[10px] uppercase tracking-[0.15em] text-white/40">Scroll</span>
+          <ChevronDown
+            className="h-4 w-4 animate-bounce text-white/40"
             style={{ animationDuration: '1.5s' }}
           />
         </div>

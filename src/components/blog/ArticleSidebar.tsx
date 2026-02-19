@@ -111,9 +111,11 @@ export function ArticleSidebar({ title, url, headings }: ArticleSidebarProps) {
       />
 
       <aside className="hidden max-h-[calc(100vh-6.5rem)] flex-col gap-6 overflow-hidden lg:sticky lg:top-24 lg:flex">
-        <div className="rounded-2xl border border-white/12 bg-black/25 p-4 backdrop-blur-xl">
+        <div className="border-white/12 rounded-2xl border bg-black/25 p-4 backdrop-blur-xl">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Engage</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+              Engage
+            </p>
             <button
               type="button"
               onClick={() => setLiked((prev) => !prev)}
@@ -158,8 +160,10 @@ export function ArticleSidebar({ title, url, headings }: ArticleSidebarProps) {
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/12 bg-black/25 p-5 backdrop-blur-xl">
-          <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/45">On This Page</h4>
+        <div className="border-white/12 min-h-0 flex-1 overflow-hidden rounded-2xl border bg-black/25 p-5 backdrop-blur-xl">
+          <h4 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+            On This Page
+          </h4>
 
           {headings.length ? (
             <nav className="h-full space-y-1 overflow-y-auto overscroll-contain pr-1">
@@ -183,7 +187,9 @@ export function ArticleSidebar({ title, url, headings }: ArticleSidebarProps) {
               })}
             </nav>
           ) : (
-            <p className="text-sm leading-relaxed text-white/55">No sections detected in this article.</p>
+            <p className="text-sm leading-relaxed text-white/55">
+              No sections detected in this article.
+            </p>
           )}
         </div>
       </aside>

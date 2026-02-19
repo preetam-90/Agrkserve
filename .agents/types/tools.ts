@@ -1,7 +1,7 @@
 /**
  * Union type of all available tool names
  */
-export type ToolName =
+type ToolName =
   | 'add_message'
   | 'ask_user'
   | 'code_search'
@@ -32,7 +32,7 @@ export type ToolName =
 /**
  * Map of tool names to their parameter types
  */
-export interface ToolParamsMap {
+interface ToolParamsMap {
   add_message: AddMessageParams;
   ask_user: AskUserParams;
   code_search: CodeSearchParams;
@@ -64,7 +64,7 @@ export interface ToolParamsMap {
 /**
  * Add a new message to the conversation history. To be used for complex requests that can't be solved in a single step, as you may forget what happened!
  */
-export interface AddMessageParams {
+interface AddMessageParams {
   role: 'user' | 'assistant';
   content: string;
 }
@@ -72,7 +72,7 @@ export interface AddMessageParams {
 /**
  * Ask the user multiple choice questions and pause execution until they respond.
  */
-export interface AskUserParams {
+interface AskUserParams {
   /** List of multiple choice questions to ask the user */
   questions: {
     /** The question to ask the user */
@@ -105,7 +105,7 @@ export interface AskUserParams {
 /**
  * Search for string patterns in the project's files. This tool uses ripgrep (rg), a fast line-oriented search tool. Use this tool only when read_files is not sufficient to find the files you need.
  */
-export interface CodeSearchParams {
+interface CodeSearchParams {
   /** The pattern to search for. */
   pattern: string;
   /** Optional ripgrep flags to customize the search (e.g., "-i" for case-insensitive, "-g *.ts -g *.js" for TypeScript and JavaScript files only, "-g !*.test.ts" to exclude Typescript test files,  "-A 3" for 3 lines after match, "-B 2" for 2 lines before match). */
@@ -119,14 +119,14 @@ export interface CodeSearchParams {
 /**
  * End your turn, regardless of any new tool results that might be coming. This will allow the user to type another prompt.
  */
-export interface EndTurnParams {
+interface EndTurnParams {
   [key: string]: never;
 }
 
 /**
  * Find several files related to a brief natural language description of the files or the name of a function or class you are looking for.
  */
-export interface FindFilesParams {
+interface FindFilesParams {
   /** A brief natural language description of the files or the name of a function or class you are looking for. It's also helpful to mention a directory or two to look within. */
   prompt: string;
 }
@@ -134,7 +134,7 @@ export interface FindFilesParams {
 /**
  * Search for files matching a glob pattern. Returns matching file paths sorted by modification time.
  */
-export interface GlobParams {
+interface GlobParams {
   /** Glob pattern to match files against (e.g., *.js, src/glob/*.ts, glob/test/glob/*.go). */
   pattern: string;
   /** Optional working directory to search within, relative to project root. If not provided, searches from project root. */
@@ -144,7 +144,7 @@ export interface GlobParams {
 /**
  * List files and directories in the specified path. Returns separate arrays of file names and directory names.
  */
-export interface ListDirectoryParams {
+interface ListDirectoryParams {
   /** Directory path to list, relative to the project root. */
   path: string;
 }
@@ -152,7 +152,7 @@ export interface ListDirectoryParams {
 /**
  * Retrieve information about an agent by ID
  */
-export interface LookupAgentInfoParams {
+interface LookupAgentInfoParams {
   /** Agent ID (short local or full published format) */
   agentId: string;
 }
@@ -160,7 +160,7 @@ export interface LookupAgentInfoParams {
 /**
  * Propose string replacements in a file without actually applying them.
  */
-export interface ProposeStrReplaceParams {
+interface ProposeStrReplaceParams {
   /** The path to the file to edit. */
   path: string;
   /** Array of replacements to make. */
@@ -177,7 +177,7 @@ export interface ProposeStrReplaceParams {
 /**
  * Propose creating or editing a file without actually applying the changes.
  */
-export interface ProposeWriteFileParams {
+interface ProposeWriteFileParams {
   /** Path to the file relative to the **project root** */
   path: string;
   /** What the change is intended to do in only one sentence. */
@@ -189,7 +189,7 @@ export interface ProposeWriteFileParams {
 /**
  * Fetch up-to-date documentation for libraries and frameworks using Context7 API.
  */
-export interface ReadDocsParams {
+interface ReadDocsParams {
   /** The library or framework name (e.g., "Next.js", "MongoDB", "React"). Use the official name as it appears in documentation if possible. Only public libraries available in Context7's database are supported, so small or private libraries may not be available. */
   libraryTitle: string;
   /** Specific topic to focus on (e.g., "routing", "hooks", "authentication") */
@@ -201,7 +201,7 @@ export interface ReadDocsParams {
 /**
  * Read the multiple files from disk and return their contents. Use this tool to read as many files as would be helpful to answer the user's request.
  */
-export interface ReadFilesParams {
+interface ReadFilesParams {
   /** List of file paths to read. */
   paths: string[];
 }
@@ -209,7 +209,7 @@ export interface ReadFilesParams {
 /**
  * Read one or more directory subtrees (as a blob including subdirectories, file names, and parsed variables within each source file) or return parsed variable names for files. If no paths are provided, returns the entire project tree.
  */
-export interface ReadSubtreeParams {
+interface ReadSubtreeParams {
   /** List of paths to directories or files. Relative to the project root. If omitted, the entire project tree is used. */
   paths?: string[];
   /** Maximum token budget for the subtree blob; the tree will be truncated to fit within this budget by first dropping file variables and then removing the most-nested files and directories. */
@@ -219,7 +219,7 @@ export interface ReadSubtreeParams {
 /**
  * Parameters for run_file_change_hooks tool
  */
-export interface RunFileChangeHooksParams {
+interface RunFileChangeHooksParams {
   /** List of file paths that were changed and should trigger file change hooks */
   files: string[];
 }
@@ -227,7 +227,7 @@ export interface RunFileChangeHooksParams {
 /**
  * Execute a CLI command from the **project root** (different from the user's cwd).
  */
-export interface RunTerminalCommandParams {
+interface RunTerminalCommandParams {
   /** CLI command valid for user's OS. */
   command: string;
   /** Either SYNC (waits, returns output) or BACKGROUND (runs in background). Default SYNC */
@@ -241,21 +241,21 @@ export interface RunTerminalCommandParams {
 /**
  * Set the conversation history to the provided messages.
  */
-export interface SetMessagesParams {
+interface SetMessagesParams {
   messages: unknown;
 }
 
 /**
  * JSON object to set as the agent output. This completely replaces any previous output. If the agent was spawned, this value will be passed back to its parent. If the agent has an outputSchema defined, the output will be validated against it.
  */
-export interface SetOutputParams {
+interface SetOutputParams {
   [key: string]: never;
 }
 
 /**
  * Load a skill's full instructions when relevant to the current task. Skills are loaded on-demand - only load them when you need their specific guidance.
  */
-export interface SkillParams {
+interface SkillParams {
   /** The name of the skill to load */
   name: string;
 }
@@ -263,7 +263,7 @@ export interface SkillParams {
 /**
  * Spawn multiple agents and send a prompt and/or parameters to each of them. These agents will run in parallel. Note that that means they will run independently. If you need to run agents sequentially, use spawn_agents with one agent at a time instead.
  */
-export interface SpawnAgentsParams {
+interface SpawnAgentsParams {
   agents: {
     /** Agent to spawn */
     agent_type: string;
@@ -277,7 +277,7 @@ export interface SpawnAgentsParams {
 /**
  * Replace strings in a file with new strings.
  */
-export interface StrReplaceParams {
+interface StrReplaceParams {
   /** The path to the file to edit. */
   path: string;
   /** Array of replacements to make. */
@@ -294,7 +294,7 @@ export interface StrReplaceParams {
 /**
  * Suggest clickable followup prompts to the user.
  */
-export interface SuggestFollowupsParams {
+interface SuggestFollowupsParams {
   /** List of suggested followup prompts the user can click to send */
   followups: {
     /** The full prompt text to send as a user message when clicked */
@@ -312,14 +312,14 @@ export interface SuggestFollowupsParams {
 
 This tool explicitly marks the end of your work on the current task.
  */
-export interface TaskCompletedParams {
+interface TaskCompletedParams {
   [key: string]: never;
 }
 
 /**
  * Deeply consider complex tasks by brainstorming approaches and tradeoffs step-by-step.
  */
-export interface ThinkDeeplyParams {
+interface ThinkDeeplyParams {
   /** Detailed step-by-step analysis. Initially keep each step concise (max ~5-7 words per step). */
   thought: string;
 }
@@ -327,7 +327,7 @@ export interface ThinkDeeplyParams {
 /**
  * Search the web for current information using Linkup API.
  */
-export interface WebSearchParams {
+interface WebSearchParams {
   /** The search query to find relevant web content */
   query: string;
   /** Search depth - 'standard' for quick results, 'deep' for more comprehensive search. Default is 'standard'. */
@@ -337,7 +337,7 @@ export interface WebSearchParams {
 /**
  * Create or edit a file with the given content.
  */
-export interface WriteFileParams {
+interface WriteFileParams {
   /** Path to the file relative to the **project root** */
   path: string;
   /** What the change is intended to do in only one sentence. */
@@ -349,7 +349,7 @@ export interface WriteFileParams {
 /**
  * Write a todo list to track tasks for multi-step implementations. Use this frequently to maintain an updated step-by-step plan.
  */
-export interface WriteTodosParams {
+interface WriteTodosParams {
   /** List of todos with their completion status. Add ALL of the applicable tasks to the list, so you don't forget to do anything. Try to order the todos the same way you will complete them. Do not mark todos as completed if you have not completed them yet! */
   todos: {
     /** Description of the task */
@@ -362,4 +362,4 @@ export interface WriteTodosParams {
 /**
  * Get parameters type for a specific tool
  */
-export type GetToolParams<T extends ToolName> = ToolParamsMap[T];
+type GetToolParams<T extends ToolName> = ToolParamsMap[T];

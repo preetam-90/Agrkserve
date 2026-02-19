@@ -21,7 +21,7 @@ export interface UserContext {
   };
 }
 
-export interface FarmingSeason {
+interface FarmingSeason {
   name: 'Kharif' | 'Rabi' | 'Zaid' | 'Pre-Kharif Preparation';
   description: string;
   months: string;
@@ -29,7 +29,7 @@ export interface FarmingSeason {
   equipmentDemand: string[];
 }
 
-export interface SystemContext {
+interface SystemContext {
   dateTime: string;
   date: string;
   time: string;
@@ -151,7 +151,7 @@ const SEASONS: Record<string, FarmingSeason> = {
  *   Nov (11) → Rabi
  *   Dec (12) → Rabi
  */
-export function getFarmingSeason(month?: number): FarmingSeason {
+function getFarmingSeason(month?: number): FarmingSeason {
   const m =
     month ??
     Number(
@@ -174,7 +174,7 @@ export function getFarmingSeason(month?: number): FarmingSeason {
 /**
  * Returns an object with the current IST date/time and farming season info.
  */
-export function getSystemContext(): SystemContext {
+function getSystemContext(): SystemContext {
   const { dateString, timeString, dayOfWeek, monthName, year, monthNumber } = formatISTParts();
   const season = getFarmingSeason(Number(monthNumber));
 

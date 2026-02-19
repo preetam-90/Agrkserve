@@ -4,9 +4,8 @@ import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 let ffmpegInstance: FFmpeg | null = null;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let isLoading = false;
 let loadPromise: Promise<FFmpeg> | null = null;
+let isLoading = false;
 
 /**
  * Load and initialize FFmpeg instance

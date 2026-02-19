@@ -14,7 +14,7 @@ const particlePosition = (index: number) => ({
   top: `${(index * 61.73 + 29.3) % 100}%`,
 });
 
-export function HeroRevolution() {
+function HeroRevolution() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
 

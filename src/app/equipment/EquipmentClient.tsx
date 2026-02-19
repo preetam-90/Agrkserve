@@ -397,7 +397,7 @@ function AvailabilityCalendar({
   equipmentName: string;
 }) {
   console.log(
-    `[AvailabilityCalendar] Rendering ${equipmentName} with ${bookedDates.length} booked dates. Loading: ${isLoading}`
+    `AvailabilityCalendar rendering ${equipmentName} with ${bookedDates.length} booked dates. Loading: ${isLoading}`
   );
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -594,17 +594,17 @@ function EquipmentCard({
     if (showCalendar) {
       fetchBookedDates();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [showCalendar, equipment.id]);
 
   const fetchBookedDates = async () => {
     setIsLoadingBooked(true);
     try {
       const bookedData = await bookingService.getEquipmentAvailability(equipment.id);
-      console.log(`[Calendar] ${equipment.name}: Found ${bookedData.length} occupied dates`);
+      console.log(`Calendar ${equipment.name}: Found ${bookedData.length} occupied dates`);
       setBookedDates(bookedData);
     } catch (error: unknown) {
-      console.warn('[Calendar] Could not fetch availability:', error);
+      console.warn('Calendar could not fetch availability:', error);
       setBookedDates([]);
     } finally {
       setIsLoadingBooked(false);
@@ -999,7 +999,7 @@ function PublicEquipmentPageContent() {
   useEffect(() => {
     setPage(1);
     loadEquipment(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [selectedCategory, sortBy, minRating, selectedBrands]);
 
   useEffect(() => {

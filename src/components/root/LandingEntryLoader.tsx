@@ -55,7 +55,8 @@ export function LandingEntryLoader() {
         });
       }
 
-      const shouldFinish = (pageReady && elapsed >= minVisibleDuration) || elapsed >= maxVisibleDuration;
+      const shouldFinish =
+        (pageReady && elapsed >= minVisibleDuration) || elapsed >= maxVisibleDuration;
       if (shouldFinish) {
         finishLoader();
       }
@@ -124,7 +125,10 @@ export function LandingEntryLoader() {
         aria-valuemax={100}
         aria-valuenow={progressRounded}
       >
-        <div className="entry-loader__progress-bar" style={{ transform: `scaleX(${progress / 100})` }} />
+        <div
+          className="entry-loader__progress-bar"
+          style={{ transform: `scaleX(${progress / 100})` }}
+        />
       </div>
       <p className="entry-loader__percent">{progressRounded}%</p>
     </div>

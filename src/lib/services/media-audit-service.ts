@@ -11,7 +11,7 @@ import type {
   MediaType,
 } from '@/lib/types/cloudinary-admin';
 
-export interface CreateMediaAuditLogParams {
+interface CreateMediaAuditLogParams {
   adminId: string;
   adminEmail?: string;
   adminRole: AdminRole;

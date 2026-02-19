@@ -84,7 +84,7 @@ const itemVariants = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const _scaleInVariants = {
   hidden: { opacity: 0, scale: 0.9 },
   visible: {
@@ -97,7 +97,7 @@ const _scaleInVariants = {
   },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const _slideInVariants = {
   hidden: { opacity: 0, x: -20 },
   visible: {

@@ -56,7 +56,13 @@ function CameraRig({ reducedMotion = false }: { reducedMotion?: boolean }) {
   return null;
 }
 
-function SceneContent({ quality, reducedMotion }: { quality: 'high' | 'lite'; reducedMotion?: boolean }) {
+function SceneContent({
+  quality,
+  reducedMotion,
+}: {
+  quality: 'high' | 'lite';
+  reducedMotion?: boolean;
+}) {
   const lite = quality === 'lite';
 
   return (
@@ -100,7 +106,7 @@ function SceneContent({ quality, reducedMotion }: { quality: 'high' | 'lite'; re
   );
 }
 
-export function HeroScene({ quality = 'high', reducedMotion = false }: HeroSceneProps) {
+function HeroScene({ quality = 'high', reducedMotion = false }: HeroSceneProps) {
   const lite = quality === 'lite';
 
   return (

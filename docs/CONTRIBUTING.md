@@ -27,6 +27,7 @@ git checkout -b fix/your-bug-fix
 ```
 
 Branch naming conventions:
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `docs/` - Documentation changes
@@ -75,6 +76,7 @@ footer (optional)
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -84,6 +86,7 @@ footer (optional)
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```
 feat(auth): add phone number verification
 fix(booking): resolve date picker timezone issue
@@ -97,6 +100,7 @@ git push origin your-branch-name
 ```
 
 Then create a pull request on GitHub with:
+
 - Clear title describing the change
 - Detailed description of what and why
 - Screenshots/videos for UI changes
@@ -152,12 +156,14 @@ src/
 ## 🔍 Code Review Process
 
 Pull requests require:
+
 - At least one approval from maintainers
 - Passing CI/CD checks
 - No merge conflicts
 - Up-to-date with main branch
 
 Reviewers will check:
+
 - Code quality and style
 - Test coverage
 - Documentation updates
@@ -167,6 +173,7 @@ Reviewers will check:
 ## 🐛 Reporting Bugs
 
 When reporting bugs, include:
+
 - Clear description of the issue
 - Steps to reproduce
 - Expected vs actual behavior
@@ -177,6 +184,7 @@ When reporting bugs, include:
 ## 💡 Suggesting Features
 
 For feature requests:
+
 - Describe the problem you're trying to solve
 - Explain your proposed solution
 - Consider alternative approaches

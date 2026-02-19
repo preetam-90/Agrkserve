@@ -8,15 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Tractor, 
-  Briefcase, 
-  Shield, 
+import {
+  User,
+  Tractor,
+  Briefcase,
+  Shield,
   CheckCircle,
   AlertCircle,
   Loader2,
-  Info
+  Info,
 } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -61,14 +61,9 @@ const roleConfig = {
     bgColor: 'bg-amber-500/10',
     borderColor: 'border-amber-500/20',
     description: 'Offer your agricultural skills and get hired by farmers',
-    features: [
-      'Create your profile',
-      'List your skills',
-      'Set your rates',
-      'Get hired directly',
-    ],
+    features: ['Create your profile', 'List your skills', 'Set your rates', 'Get hired directly'],
     requiresSetup: true,
-    setupMessage: 'You\'ll need to complete your labour profile after enabling',
+    setupMessage: "You'll need to complete your labour profile after enabling",
   },
 };
 
@@ -76,7 +71,7 @@ export default function RoleManagementPage() {
   const router = useRouter();
   const { user, roles, activeRole, fetchRoles } = useAuthStore();
   const [enabledRoles, setEnabledRoles] = useState<UserRole[]>(roles);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [isLoading, _setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -93,10 +88,8 @@ export default function RoleManagementPage() {
     }
 
     setEnabledRoles((prev) => {
-      const newRoles = prev.includes(role)
-        ? prev.filter((r) => r !== role)
-        : [...prev, role];
-      
+      const newRoles = prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role];
+
       setHasChanges(JSON.stringify(newRoles.sort()) !== JSON.stringify(roles.sort()));
       return newRoles;
     });
@@ -128,17 +121,17 @@ export default function RoleManagementPage() {
 
       // Refresh roles from the store
       await fetchRoles();
-      
+
       toast.success('Roles updated successfully!');
       setHasChanges(false);
 
       // Check if new roles were added
-      const newRoles = enabledRoles.filter(role => !roles.includes(role));
-      
+      const newRoles = enabledRoles.filter((role) => !roles.includes(role));
+
       if (newRoles.length > 0) {
         // Redirect to onboarding for the first new role
         const firstNewRole = newRoles[0];
-        
+
         if (firstNewRole === 'provider') {
           toast.success('Redirecting to provider setup...');
           setTimeout(() => router.push('/onboarding/provider'), 1000);
@@ -207,8 +200,8 @@ export default function RoleManagementPage() {
           <div className="text-sm text-[#94A3B8]">
             <p className="font-semibold text-[#F8FAFC]">Register for New Roles</p>
             <p>
-              Enable any role to unlock new features. You can be a Renter, Provider, and Labour all at once!
-              Switch between roles anytime using the role switcher in the header.
+              Enable any role to unlock new features. You can be a Renter, Provider, and Labour all
+              at once! Switch between roles anytime using the role switcher in the header.
             </p>
           </div>
         </div>
@@ -245,25 +238,25 @@ export default function RoleManagementPage() {
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
+                    <div className="flex flex-1 items-start gap-4">
                       <div className={cn('rounded-xl p-3', config.bgColor)}>
                         <Icon className={cn('h-6 w-6', config.color)} />
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex flex-wrap items-center gap-2">
                           <CardTitle className="text-[#F8FAFC]">{config.label}</CardTitle>
                           {isCurrentActive && (
-                            <Badge className="bg-[#22C55E]/20 text-[#22C55E] border-[#22C55E]/30">
+                            <Badge className="border-[#22C55E]/30 bg-[#22C55E]/20 text-[#22C55E]">
                               Active
                             </Badge>
                           )}
                           {!wasOriginallyEnabled && (
-                            <Badge className="bg-[#60A5FA]/20 text-[#60A5FA] border-[#60A5FA]/30">
+                            <Badge className="border-[#60A5FA]/30 bg-[#60A5FA]/20 text-[#60A5FA]">
                               Available
                             </Badge>
                           )}
                           {isNewRole && (
-                            <Badge className="bg-[#FCD34D]/20 text-[#FCD34D] border-[#FCD34D]/30">
+                            <Badge className="border-[#FCD34D]/30 bg-[#FCD34D]/20 text-[#FCD34D]">
                               New!
                             </Badge>
                           )}
@@ -273,7 +266,7 @@ export default function RoleManagementPage() {
                         </CardDescription>
                         {isNewRole && config.requiresSetup && 'setupMessage' in config && (
                           <div className="mt-2 flex items-start gap-2 rounded-lg border border-[#FCD34D]/20 bg-[#FCD34D]/5 p-2">
-                            <Info className="h-4 w-4 flex-shrink-0 text-[#FCD34D] mt-0.5" />
+                            <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#FCD34D]" />
                             <p className="text-xs text-[#94A3B8]">{config.setupMessage}</p>
                           </div>
                         )}
@@ -283,7 +276,7 @@ export default function RoleManagementPage() {
                       checked={isEnabled}
                       onCheckedChange={() => toggleRole(role, isEnabled)}
                       disabled={isEnabled && enabledRoles.length === 1}
-                      className="data-[state=checked]:bg-[#22C55E] flex-shrink-0"
+                      className="flex-shrink-0 data-[state=checked]:bg-[#22C55E]"
                     />
                   </div>
                 </CardHeader>

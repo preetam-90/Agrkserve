@@ -15,7 +15,7 @@ import crypto from 'crypto';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface TavilySearchResult {
+interface TavilySearchResult {
   title: string;
   url: string;
   content: string;
@@ -29,7 +29,7 @@ interface TavilyAPIResponse {
   results: TavilySearchResult[];
 }
 
-export interface WebSearchResult {
+interface WebSearchResult {
   title: string;
   url: string;
   snippet: string;
@@ -37,7 +37,7 @@ export interface WebSearchResult {
   publishedDate?: string;
 }
 
-export interface WebSearchResponse {
+interface WebSearchResponse {
   results: WebSearchResult[];
   query: string;
   answer?: string;
@@ -64,7 +64,7 @@ const rateLimiter = {
     const now = Date.now();
     this.timestamps = this.timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
     if (this.timestamps.length >= RATE_LIMIT_MAX) {
-      console.warn('[Tavily] Rate limit reached. Skipping search.');
+      console.warn('Tavily rate limit reached. Skipping search.');
       return false;
     }
     this.timestamps.push(now);
@@ -146,7 +146,7 @@ export function detectWebSearchIntent(message: string): boolean {
 /**
  * Sanitize user query to prevent injection attacks and API abuse.
  */
-export function sanitizeQuery(query: string): string {
+function sanitizeQuery(query: string): string {
   return query
     .replace(/<[^>]*>/g, '') // Strip HTML tags
     .replace(/[<>{}|\\^`]/g, '') // Remove potentially dangerous chars
@@ -218,7 +218,7 @@ async function cacheResult(
       { onConflict: 'query_hash' }
     );
   } catch (err) {
-    console.warn('[Tavily Cache] Failed to cache result:', err);
+    console.warn('Tavily cache failed to store result:', err);
   }
 }
 
@@ -272,7 +272,7 @@ export async function performWebSearch(rawQuery: string): Promise<WebSearchRespo
 
   // 2. Check rate limit
   if (!rateLimiter.isAllowed()) {
-    console.warn('[Tavily] Rate limit exceeded, skipping search for:', query.slice(0, 50));
+    console.warn('Tavily rate limit exceeded, skipping search for:', query.slice(0, 50));
     return null;
   }
 
@@ -280,13 +280,13 @@ export async function performWebSearch(rawQuery: string): Promise<WebSearchRespo
   const queryHash = hashQuery(query);
   const cached = await getCachedResult(queryHash);
   if (cached) {
-    console.info('[Tavily] Cache hit for query hash:', queryHash.slice(0, 8));
+    console.info('Tavily cache hit for query hash:', queryHash.slice(0, 8));
     return cached;
   }
 
   // 4. Call Tavily API
   try {
-    console.info('[Tavily] Fetching search results for:', query.slice(0, 80));
+    console.info('Tavily fetching search results for:', query.slice(0, 80));
     const apiResponse = await callTavilyAPI(query);
 
     const results: WebSearchResult[] = (apiResponse.results || [])
@@ -314,7 +314,7 @@ export async function performWebSearch(rawQuery: string): Promise<WebSearchRespo
     return webSearchResponse;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('[Tavily] Search failed:', message);
+    console.error('Tavily search failed:', message);
 
     // Non-fatal: return null so the chatbot continues without web context
     return null;

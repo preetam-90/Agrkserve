@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export interface BreadcrumbItem {
+interface BreadcrumbItem {
   label: string;
   href?: string;
   icon?: React.ReactNode;
@@ -67,10 +67,10 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
   );
 }
 
-export function createEquipmentBreadcrumb(
+function createEquipmentBreadcrumb(
   category: { label: string; icon?: React.ReactNode } | null,
   equipmentName: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   _equipmentId?: string
 ): BreadcrumbItem[] {
   const items: BreadcrumbItem[] = [{ label: 'Equipment', href: '/equipment' }];
@@ -87,10 +87,7 @@ export function createEquipmentBreadcrumb(
   return items;
 }
 
-export function createBookingBreadcrumb(
-  equipmentName: string,
-  equipmentId: string
-): BreadcrumbItem[] {
+function createBookingBreadcrumb(equipmentName: string, equipmentId: string): BreadcrumbItem[] {
   return [
     { label: 'Equipment', href: '/equipment' },
     { label: equipmentName, href: `/equipment/item/${equipmentId}` },
@@ -98,7 +95,7 @@ export function createBookingBreadcrumb(
   ];
 }
 
-export function createDashboardBreadcrumb(
+function createDashboardBreadcrumb(
   role: 'renter' | 'provider' | 'admin',
   section?: string
 ): BreadcrumbItem[] {
@@ -119,6 +116,6 @@ export function createDashboardBreadcrumb(
   return items;
 }
 
-export function createUserBreadcrumb(userName: string): BreadcrumbItem[] {
+function createUserBreadcrumb(userName: string): BreadcrumbItem[] {
   return [{ label: 'Profile', href: '/profile' }, { label: userName }];
 }

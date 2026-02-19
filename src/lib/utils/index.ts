@@ -27,11 +27,11 @@ export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOpt
 export function formatDateRange(startDate: string | Date, endDate: string | Date): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
+
   if (start.toDateString() === end.toDateString()) {
     return formatDate(start);
   }
-  
+
   return `${formatDate(start)} - ${formatDate(end)}`;
 }
 
@@ -58,7 +58,7 @@ export function getInitials(name: string | null | undefined): string {
   if (!name) return '?';
   return name
     .split(' ')
-    .map(word => word[0])
+    .map((word) => word[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
@@ -83,19 +83,13 @@ export function generateBookingReference(): string {
   return `AGR-${timestamp}-${random}`;
 }
 
-export function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in kilometers
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }

@@ -14,7 +14,7 @@ export interface VideoUploadConfig {
   minFileSizeMB: number;
 }
 
-export interface MediaUploadResponse {
+interface MediaUploadResponse {
   success: boolean;
   url?: string;
   publicUrl?: string;

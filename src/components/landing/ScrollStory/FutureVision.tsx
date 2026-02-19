@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 
-export function FutureVision() {
+function FutureVision() {
   return (
     <section className="relative overflow-hidden bg-[#040805] px-5 py-24 md:px-8 md:py-36">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(34,197,94,0.33),transparent_42%),radial-gradient(circle_at_82%_76%,rgba(6,182,212,0.3),transparent_50%)]" />

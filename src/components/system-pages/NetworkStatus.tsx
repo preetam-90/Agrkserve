@@ -5,8 +5,8 @@ import { WifiOff, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { addNetworkListeners } from '@/lib/system-pages/network-detector';
 
-export type NetworkStatusType = 'online' | 'offline' | 'slow';
-export type NetworkStatusPosition = 'top' | 'bottom';
+type NetworkStatusType = 'online' | 'offline' | 'slow';
+type NetworkStatusPosition = 'top' | 'bottom';
 
 export interface NetworkStatusProps {
   status?: NetworkStatusType;

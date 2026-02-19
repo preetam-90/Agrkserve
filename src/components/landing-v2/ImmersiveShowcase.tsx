@@ -23,7 +23,7 @@ interface Props {
   equipment: Equipment[];
 }
 
-export function ImmersiveShowcase({ equipment }: Props) {
+function ImmersiveShowcase({ equipment }: Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // GSAP: Horizontal scroll takeover

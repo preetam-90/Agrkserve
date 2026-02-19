@@ -17,14 +17,14 @@ export default function InternalServerError500Page() {
         errorCode="500"
         title="कुछ गलत हो गया | Something Went Wrong"
         description="हमें तकनीकी समस्या हो रही है। हमारी टीम इसे ठीक कर रही है। कृपया बाद में पुनः प्रयास करें। | We are experiencing technical difficulties. Our team is working to fix this. Please try again later."
-        illustration={<ErrorIllustration className="w-full h-full" />}
+        illustration={<ErrorIllustration className="h-full w-full" />}
         primaryAction={{
-          label: "होम पर जाएं | Go Home",
-          href: "/",
+          label: 'होम पर जाएं | Go Home',
+          href: '/',
         }}
         secondaryAction={{
-          label: "सहायता से संपर्क करें | Contact Support",
-          href: "/help",
+          label: 'सहायता से संपर्क करें | Contact Support',
+          href: '/help',
         }}
       />
     </SystemPageLayout>

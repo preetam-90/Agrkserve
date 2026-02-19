@@ -51,7 +51,7 @@ const publicNav = [
 ];
 
 // Magnetic button hook for desktop
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 function useMagneticButton(strength: number = 0.3) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -140,7 +140,7 @@ export function Header() {
   }, [mouseX, mouseY]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setMobileMenuOpen(false);
   }, [pathname]);
 

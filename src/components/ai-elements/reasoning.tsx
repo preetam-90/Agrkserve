@@ -3,11 +3,15 @@
 import { Brain, ChevronDown } from 'lucide-react';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-const ReasoningContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(null);
+const ReasoningContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(
+  null
+);
 
 export function Reasoning({ children }: { children: ReactNode; duration?: number }) {
   const [open, setOpen] = useState(false);
-  return <ReasoningContext.Provider value={{ open, setOpen }}>{children}</ReasoningContext.Provider>;
+  return (
+    <ReasoningContext.Provider value={{ open, setOpen }}>{children}</ReasoningContext.Provider>
+  );
 }
 
 export function ReasoningTrigger() {

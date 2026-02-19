@@ -7,14 +7,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import {
-  Image as ImageIcon,
-  Trash2,
-  BarChart3,
-  FileText,
-  Loader2,
-  AlertCircle,
-} from 'lucide-react';
+import { Image as ImageIcon, Trash2, BarChart3, Loader2, AlertCircle } from 'lucide-react';
 import {
   useCloudinaryAssets,
   useCloudinaryAnalytics,

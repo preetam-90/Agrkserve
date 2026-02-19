@@ -5,6 +5,7 @@
 ### Theme: Cyberpunk-Inspired Futuristic Interface
 
 The new admin dashboard features a cutting-edge, cyberpunk-inspired design system that combines:
+
 - **Neon color palette** with holographic effects
 - **Animated grid backgrounds** for depth
 - **Glass morphism cards** with backdrop blur
@@ -16,18 +17,21 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ## 🎯 Key Design Principles
 
 ### 1. **Visual Hierarchy**
+
 - Primary actions use neon green (#00ff9d)
 - Secondary elements use cyan (#00d4ff)
 - Warnings use amber (#ffaa00)
 - Dangers use hot pink (#ff0055)
 
 ### 2. **Accessibility**
+
 - WCAG AAA contrast ratios
 - `prefers-reduced-motion` support
 - Keyboard navigation with visible focus states
 - Screen reader friendly
 
 ### 3. **Performance**
+
 - CSS-based animations (GPU accelerated)
 - Optimized backdrop filters
 - Lazy loading for heavy components
@@ -39,23 +43,27 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ### Core Layout Components
 
 #### 1. **AdminLayoutClient**
+
 - Animated grid background
 - Scanline overlay effect
 - Responsive sidebar integration
 
 #### 2. **Sidebar (Futuristic)**
+
 - Holographic border effects
 - Animated active indicators
 - Collapsible with smooth transitions
 - System status footer
 
 #### 3. **AdminHeader (Futuristic)**
+
 - Glass morphism design
 - Neon notification badges
 - Animated dropdowns
 - System status indicator
 
 #### 4. **StatsCard (Futuristic)**
+
 - Holographic hover effects
 - Animated progress bars
 - Trend indicators with icons
@@ -67,23 +75,13 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 
 ```css
 /* Primary Colors */
---admin-primary: #00ff9d      /* Neon Green */
---admin-secondary: #00d4ff    /* Cyan */
---admin-accent: #ff00ff       /* Magenta */
---admin-warning: #ffaa00      /* Amber */
---admin-danger: #ff0055       /* Hot Pink */
---admin-success: #00ff9d      /* Neon Green */
-
-/* Background Layers */
---admin-bg-base: #0a0a0f      /* Deep Black */
---admin-bg-elevated: #12121a  /* Elevated Surface */
---admin-bg-card: #1a1a24      /* Card Background */
---admin-bg-hover: #22222e     /* Hover State */
-
-/* Text Colors */
---admin-text-primary: #ffffff
---admin-text-secondary: #a0a0b0
---admin-text-muted: #606070
+--admin-primary: #00ff9d /* Neon Green */ --admin-secondary: #00d4ff /* Cyan */
+  --admin-accent: #ff00ff /* Magenta */ --admin-warning: #ffaa00 /* Amber */ --admin-danger: #ff0055
+  /* Hot Pink */ --admin-success: #00ff9d /* Neon Green */ /* Background Layers */
+  --admin-bg-base: #0a0a0f /* Deep Black */ --admin-bg-elevated: #12121a /* Elevated Surface */
+  --admin-bg-card: #1a1a24 /* Card Background */ --admin-bg-hover: #22222e /* Hover State */
+  /* Text Colors */ --admin-text-primary: #ffffff --admin-text-secondary: #a0a0b0
+  --admin-text-muted: #606070;
 ```
 
 ---
@@ -91,9 +89,10 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ## ✨ Special Effects
 
 ### 1. **Animated Grid Background**
+
 ```css
 .admin-grid-bg {
-  background-image: 
+  background-image:
     linear-gradient(var(--grid-color) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -102,6 +101,7 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ```
 
 ### 2. **Scanline Effect**
+
 ```css
 .admin-scanline {
   background: repeating-linear-gradient(
@@ -116,14 +116,20 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ```
 
 ### 3. **Holographic Rotation**
+
 ```css
 @keyframes holographic-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 ```
 
 ### 4. **Neon Glow**
+
 ```css
 --glow-sm: 0 0 10px var(--admin-primary-glow);
 --glow-md: 0 0 20px var(--admin-primary-glow);
@@ -135,10 +141,12 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ## 🔧 Typography
 
 ### Font Families
+
 - **Headings & Code**: Fira Code (monospace)
 - **Body Text**: Fira Sans (sans-serif)
 
 ### Font Sizes
+
 - **Stat Values**: 32px (Fira Code)
 - **Headings**: 16-24px (Fira Code)
 - **Body**: 14px (Fira Sans)
@@ -150,12 +158,14 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ## 📊 Data Visualization
 
 ### Chart Recommendations
+
 1. **Trend Analysis**: Streaming Area Chart with neon colors
 2. **Comparisons**: Horizontal Bar Chart with gradient fills
 3. **Real-time Data**: Line Chart with glowing points
 4. **Multi-variable**: Radar Chart with transparent fills
 
 ### Chart Color Scheme
+
 - Primary series: #00ff9d (Neon Green)
 - Secondary series: #00d4ff (Cyan)
 - Tertiary series: #ff00ff (Magenta)
@@ -166,17 +176,20 @@ The new admin dashboard features a cutting-edge, cyberpunk-inspired design syste
 ## 🎭 Animation Guidelines
 
 ### Timing Functions
+
 - **Entering**: `cubic-bezier(0.4, 0, 0.2, 1)` (ease-out)
 - **Exiting**: `cubic-bezier(0.4, 0, 1, 1)` (ease-in)
 - **Interactive**: `cubic-bezier(0.4, 0, 0.2, 1)` (ease-in-out)
 
 ### Duration Standards
+
 - **Micro**: 150ms (hover states)
 - **Standard**: 300ms (transitions)
 - **Complex**: 500ms (page transitions)
 - **Ambient**: 2-4s (background animations)
 
 ### Reduced Motion
+
 All animations respect `prefers-reduced-motion: reduce` media query.
 
 ---
@@ -194,6 +207,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ```
 
 ### Responsive Adjustments
+
 - **Sidebar**: Collapses to 80px on desktop, drawer on mobile
 - **Stats Cards**: 1 column mobile, 2 tablet, 4 desktop
 - **Tables**: Horizontal scroll on mobile
@@ -204,12 +218,14 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 🔐 Security & Performance
 
 ### Security Features
+
 - Admin-only routes with middleware
 - Session validation on every request
 - Audit logging for all actions
 - CSRF protection
 
 ### Performance Optimizations
+
 - CSS-based animations (no JS)
 - Lazy loading for charts
 - Virtualized tables for large datasets
@@ -220,6 +236,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 🚀 Implementation Status
 
 ### ✅ Completed
+
 - [x] Futuristic CSS theme
 - [x] AdminLayoutClient with grid background
 - [x] Sidebar with holographic effects
@@ -230,6 +247,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 - [x] Responsive utilities
 
 ### 🔄 In Progress
+
 - [ ] Dashboard page redesign
 - [ ] Analytics page with charts
 - [ ] Users management table
@@ -237,6 +255,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 - [ ] Bookings calendar view
 
 ### 📋 Planned
+
 - [ ] Real-time data updates
 - [ ] Advanced filtering
 - [ ] Bulk actions
@@ -248,22 +267,21 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 📚 Usage Examples
 
 ### Creating a Neon Button
+
 ```tsx
-<button className="admin-btn-neon">
-  EXECUTE COMMAND
-</button>
+<button className="admin-btn-neon">EXECUTE COMMAND</button>
 ```
 
 ### Creating a Glass Card
+
 ```tsx
 <div className="admin-glass-card">
-  <div className="admin-stat-card-content">
-    {/* Content here */}
-  </div>
+  <div className="admin-stat-card-content">{/* Content here */}</div>
 </div>
 ```
 
 ### Creating a Status Badge
+
 ```tsx
 <span className="admin-badge admin-badge-success">
   <div className="admin-status-pulse" />
@@ -272,6 +290,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ```
 
 ### Creating a Progress Bar
+
 ```tsx
 <div className="admin-progress-bar">
   <div className="admin-progress-fill" style={{ width: '75%' }} />
@@ -283,6 +302,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 🎯 Best Practices
 
 ### DO ✅
+
 - Use CSS variables for colors
 - Implement keyboard navigation
 - Add loading states
@@ -293,6 +313,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 - Lazy load heavy components
 
 ### DON'T ❌
+
 - Use emojis as icons (use Lucide icons)
 - Ignore reduced motion preferences
 - Use inline styles (use CSS classes)
@@ -307,6 +328,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 🔍 Testing Checklist
 
 ### Visual Testing
+
 - [ ] All colors meet WCAG AAA standards
 - [ ] Animations are smooth (60fps)
 - [ ] No layout shifts on load
@@ -314,6 +336,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 - [ ] Focus states are clear
 
 ### Functional Testing
+
 - [ ] Sidebar collapse works
 - [ ] Dropdowns close on outside click
 - [ ] Forms validate properly
@@ -321,6 +344,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 - [ ] Charts render data accurately
 
 ### Accessibility Testing
+
 - [ ] Keyboard navigation works
 - [ ] Screen reader announces correctly
 - [ ] Focus trap in modals
@@ -328,6 +352,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 - [ ] Alt text on all images
 
 ### Performance Testing
+
 - [ ] First Contentful Paint < 1.5s
 - [ ] Time to Interactive < 3s
 - [ ] No layout shifts (CLS < 0.1)
@@ -339,18 +364,21 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 📖 Resources
 
 ### Design Inspiration
+
 - Cyberpunk 2077 UI
 - Blade Runner 2049 interfaces
 - Tron Legacy aesthetics
 - Ghost in the Shell HUD
 
 ### Libraries Used
+
 - **Framer Motion**: Animations
 - **Lucide React**: Icons
 - **Tailwind CSS**: Utility classes
 - **Next.js**: Framework
 
 ### Documentation
+
 - [Framer Motion Docs](https://www.framer.com/motion/)
 - [Lucide Icons](https://lucide.dev/)
 - [Tailwind CSS](https://tailwindcss.com/)
@@ -361,6 +389,7 @@ All animations respect `prefers-reduced-motion: reduce` media query.
 ## 🎉 Conclusion
 
 This futuristic redesign transforms the admin dashboard into a cutting-edge control center with:
+
 - **Modern aesthetics** that inspire confidence
 - **Smooth interactions** that feel responsive
 - **Clear hierarchy** that guides users

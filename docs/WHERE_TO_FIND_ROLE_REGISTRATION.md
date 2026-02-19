@@ -44,6 +44,7 @@ Settings Page:
 ### Method 3: Direct URL
 
 Just type this in your browser:
+
 ```
 /settings/roles
 ```
@@ -134,6 +135,7 @@ Once you're on the Role Management page (`/settings/roles`), you'll see:
 ## 📸 Visual Reference
 
 ### Where is the User Menu?
+
 ```
 Top of page, right side:
 [Logo] [Nav] [Nav] [Nav]     [🔔] [💬] [👤] ← Click here!
@@ -142,6 +144,7 @@ Top of page, right side:
 ```
 
 ### What Does "Manage Roles" Look Like?
+
 ```
 It's highlighted in GREEN with a border:
 ┌─────────────────────────────────┐
@@ -154,6 +157,7 @@ It's highlighted in GREEN with a border:
 ## ✅ Success Indicators
 
 You'll know you're in the right place when you see:
+
 - ✅ Page title: "Manage Roles"
 - ✅ Three role cards (Renter, Provider, Labour)
 - ✅ Toggle switches for each role

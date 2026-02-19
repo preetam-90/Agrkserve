@@ -33,7 +33,7 @@ interface ReviewFormProps {
   };
 }
 
-export function ReviewForm({
+function ReviewForm({
   equipmentId,
   bookingId,
   onSuccess,

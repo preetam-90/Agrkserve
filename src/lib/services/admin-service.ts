@@ -1,16 +1,28 @@
 import { createClient } from '@/lib/supabase/client';
-import type { 
-  UserProfile, 
-  Booking, 
-  Equipment, 
+import type {
+  UserProfile,
+  Booking,
+  Equipment,
   Dispute,
   DisputeStatus,
   PlatformAnalytics,
-  PaginatedResponse 
+  PaginatedResponse,
 } from '@/lib/types';
 import { DEFAULT_PAGE_SIZE } from '@/lib/utils/constants';
 
 const supabase = createClient();
+
+function safeParseRpcJson<T>(data: unknown, fallback: T): T {
+  if (typeof data !== 'string') {
+    return (data as T) ?? fallback;
+  }
+
+  try {
+    return (JSON.parse(data) as T) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export const adminService = {
   // Get platform analytics
@@ -21,11 +33,8 @@ export const adminService = {
       console.error('RPC Error (get_platform_analytics):', error);
       throw error;
     }
-    
-    // The RPC function returns JSON, so we need to parse it if it's a string
-    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-    
-    return parsedData || {
+
+    return safeParseRpcJson(data, {
       total_users: 0,
       total_farmers: 0,
       total_providers: 0,
@@ -36,7 +45,7 @@ export const adminService = {
       total_labour: 0,
       active_disputes: 0,
       date: new Date().toISOString(),
-    };
+    });
   },
 
   // Get all users with pagination
@@ -47,12 +56,12 @@ export const adminService = {
   ): Promise<PaginatedResponse<UserProfile>> {
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('user_profiles')
-      .select('*', { count: 'exact' });
+    let query = supabase.from('user_profiles').select('*', { count: 'exact' });
 
     if (search) {
-      query = query.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
+      query = query.or(
+        `full_name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`
+      );
     }
 
     const { data, error, count } = await query
@@ -133,13 +142,11 @@ export const adminService = {
   // Activate user
   async activateUser(userId: string, roles: string[]): Promise<void> {
     for (const role of roles) {
-      await supabase
-        .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role,
-          is_active: true,
-        });
+      await supabase.from('user_roles').upsert({
+        user_id: userId,
+        role,
+        is_active: true,
+      });
     }
 
     await supabase.from('notifications').insert({
@@ -159,14 +166,15 @@ export const adminService = {
   ): Promise<PaginatedResponse<Booking>> {
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('bookings')
-      .select(`
+    let query = supabase.from('bookings').select(
+      `
         *,
         equipment:equipment(id, title, images),
         renter:user_profiles!renter_id(id, full_name, phone),
         owner:user_profiles!owner_id(id, full_name, phone)
-      `, { count: 'exact' });
+      `,
+      { count: 'exact' }
+    );
 
     if (status) {
       query = query.eq('status', status);
@@ -195,12 +203,13 @@ export const adminService = {
   ): Promise<PaginatedResponse<Equipment>> {
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('equipment')
-      .select(`
+    let query = supabase.from('equipment').select(
+      `
         *,
         owner:user_profiles!owner_id(id, full_name, phone)
-      `, { count: 'exact' });
+      `,
+      { count: 'exact' }
+    );
 
     if (status) {
       query = query.eq('status', status);
@@ -229,14 +238,15 @@ export const adminService = {
   ): Promise<PaginatedResponse<Dispute>> {
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from('disputes')
-      .select(`
+    let query = supabase.from('disputes').select(
+      `
         *,
         booking:bookings(id, equipment_id, status),
         raised_by_user:user_profiles!raised_by(id, full_name, phone),
         against_user_profile:user_profiles!against_user(id, full_name, phone)
-      `, { count: 'exact' });
+      `,
+      { count: 'exact' }
+    );
 
     if (status) {
       query = query.eq('status', status);
@@ -315,17 +325,12 @@ export const adminService = {
       throw error;
     }
 
-    // The RPC function returns JSON, so we need to parse it if it's a string
-    const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
-    
-    return parsedData || { labels: [], values: [], total: 0 };
+    return safeParseRpcJson(data, { labels: [], values: [], total: 0 });
   },
 
   // Send announcement to all users
   async sendAnnouncement(title: string, body: string): Promise<void> {
-    const { data: users } = await supabase
-      .from('user_profiles')
-      .select('id');
+    const { data: users } = await supabase.from('user_profiles').select('id');
 
     if (!users) return;
 
@@ -337,9 +342,7 @@ export const adminService = {
       data: { is_announcement: true },
     }));
 
-    const { error } = await supabase
-      .from('notifications')
-      .insert(notifications);
+    const { error } = await supabase.from('notifications').insert(notifications);
 
     if (error) throw error;
   },
@@ -364,11 +367,11 @@ export const adminService = {
       const response = await fetch('/api/admin/health', {
         cache: 'no-store',
       });
-      
+
       if (!response.ok) {
         throw new Error('Health check failed');
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('Failed to fetch system health:', error);

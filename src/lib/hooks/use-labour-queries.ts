@@ -32,7 +32,7 @@ export function useLabourBookings(userId: string | undefined, role: 'labour' | '
 /**
  * Fetch featured labour profiles
  */
-export function useFeaturedLabour(limit = 6) {
+function useFeaturedLabour(limit = 6) {
   return useQuery({
     queryKey: labourKeys.featured(limit),
     queryFn: () => labourService.getFeatured(limit),

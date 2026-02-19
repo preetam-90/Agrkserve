@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import {
-  Bell,
   CheckCheck,
   Settings,
   Loader2,
@@ -28,13 +27,8 @@ import {
   X,
   Sparkles,
   Zap,
-  Filter,
-  MoreVertical,
-  Archive,
-  Trash2,
   BellRing,
   BellOff,
-  Circle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';

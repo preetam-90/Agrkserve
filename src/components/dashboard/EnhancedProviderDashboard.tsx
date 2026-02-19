@@ -154,7 +154,7 @@ export function EnhancedProviderDashboard({ initialData }: { initialData?: Initi
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const loadDashboardData = async () => {

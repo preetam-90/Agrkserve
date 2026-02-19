@@ -5,15 +5,17 @@ import {
   syncUsers,
   syncLabour,
   syncReviews,
+  syncBookings,
 } from '@/lib/services/knowledge-service';
 
 export const maxDuration = 300;
 
-type SyncType = 'equipment' | 'users' | 'labour' | 'reviews' | 'all';
+type SyncType = 'equipment' | 'users' | 'labour' | 'reviews' | 'bookings' | 'all';
 
 function isValidSyncType(type: unknown): type is SyncType {
   return (
-    typeof type === 'string' && ['equipment', 'users', 'labour', 'reviews', 'all'].includes(type)
+    typeof type === 'string' &&
+    ['equipment', 'users', 'labour', 'reviews', 'bookings', 'all'].includes(type)
   );
 }
 
@@ -30,7 +32,7 @@ export async function GET() {
     status: 'ok',
     service: 'knowledge-sync',
     timestamp: new Date().toISOString(),
-    availableTypes: ['equipment', 'users', 'labour', 'reviews', 'all'],
+    availableTypes: ['equipment', 'users', 'labour', 'reviews', 'bookings', 'all'],
   });
 }
 
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
           return NextResponse.json(
             {
               success: false,
-              error: `Invalid sync type: "${body.type}". Must be one of: equipment, users, labour, reviews, all`,
+              error: `Invalid sync type: "${body.type}". Must be one of: equipment, users, labour, reviews, bookings, all`,
             },
             { status: 400 }
           );
@@ -82,13 +84,14 @@ export async function POST(request: Request) {
 
     if (type === 'all') {
       if (since) {
-        const [equipment, users, labour, reviews] = await Promise.all([
+        const [equipment, users, labour, reviews, bookings] = await Promise.all([
           syncEquipment(since),
           syncUsers(since),
           syncLabour(since),
           syncReviews(since),
+          syncBookings(since),
         ]);
-        results = { equipment, users, labour, reviews };
+        results = { equipment, users, labour, reviews, bookings };
       } else {
         results = await syncAllKnowledge();
       }
@@ -98,6 +101,7 @@ export async function POST(request: Request) {
         users: syncUsers,
         labour: syncLabour,
         reviews: syncReviews,
+        bookings: syncBookings,
       }[type];
 
       const result = await syncFn(since);

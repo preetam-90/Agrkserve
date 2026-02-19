@@ -7,15 +7,14 @@ import { Button } from '@/components/ui/button';
 import { X, Tractor, Briefcase, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function RoleRegistrationBanner() {
+function RoleRegistrationBanner() {
   const router = useRouter();
   const { roles } = useAuthStore();
   const [isDismissed, setIsDismissed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     setMounted(true);
     // Check if banner was previously dismissed
     const dismissed = localStorage.getItem('role-banner-dismissed');
@@ -65,16 +64,16 @@ export function RoleRegistrationBanner() {
                 <Sparkles className="h-4 w-4 text-emerald-400" />
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <p className="text-sm font-semibold text-white">
-                  Unlock More Features!
-                </p>
+                <p className="text-sm font-semibold text-white">Unlock More Features!</p>
                 <p className="text-xs text-emerald-300 sm:text-sm">
-                  Register as {availableRoles.map((r, i) => (
+                  Register as{' '}
+                  {availableRoles.map((r, i) => (
                     <span key={r.name}>
                       {i > 0 && (i === availableRoles.length - 1 ? ' or ' : ', ')}
                       <span className="font-semibold">{r.name}</span>
                     </span>
-                  ))} to access more opportunities
+                  ))}{' '}
+                  to access more opportunities
                 </p>
               </div>
             </div>

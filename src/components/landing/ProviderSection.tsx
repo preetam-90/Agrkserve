@@ -14,7 +14,7 @@ interface ProviderSectionProps {
   };
 }
 
-export function ProviderSection({ stats }: ProviderSectionProps) {
+function ProviderSection({ stats }: ProviderSectionProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 

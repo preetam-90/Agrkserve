@@ -1,17 +1,21 @@
 # ✅ SETUP FILE FIXED AND READY!
 
 ## The Issue
+
 Your database uses `roles` (array) instead of `role` (single value).
 
 ## The Fix
+
 I've updated `SETUP_ADMIN_SETTINGS.sql` to use the correct column:
 
 **Before:**
+
 ```sql
 WHERE user_profiles.role = 'admin'
 ```
 
 **After:**
+
 ```sql
 WHERE 'admin' = ANY(user_profiles.roles)
 ```
@@ -44,11 +48,13 @@ It should work perfectly now! ✅
 ## Verify It Worked
 
 Run this query in SQL Editor:
+
 ```sql
 SELECT * FROM system_settings;
 ```
 
 You should see 9 default settings including:
+
 - support_email
 - support_phone
 - business_address

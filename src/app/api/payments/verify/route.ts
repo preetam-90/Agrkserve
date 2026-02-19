@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Get the authenticated user
     const {
       data: { user },
@@ -12,13 +12,11 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, payment_id, is_mock } = await request.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, payment_id, is_mock } =
+      await request.json();
 
     // Handle mock payment verification
     if (is_mock && payment_id) {
@@ -33,10 +31,7 @@ export async function POST(request: NextRequest) {
 
       if (updateError) {
         console.error('Payment update error:', updateError);
-        return NextResponse.json(
-          { error: 'Failed to update payment status' },
-          { status: 500 }
-        );
+        return NextResponse.json({ error: 'Failed to update payment status' }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -55,7 +50,7 @@ export async function POST(request: NextRequest) {
     // In a real implementation, you would verify the payment signature with Razorpay
     // For now, we'll simulate successful verification
     // In production, replace this with actual Razorpay signature verification
-    
+
     // Update payment status to completed
     const { error: updateError } = await supabase
       .from('payments')
@@ -68,10 +63,7 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Payment update error:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update payment status' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to update payment status' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -80,9 +72,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Payment verification error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

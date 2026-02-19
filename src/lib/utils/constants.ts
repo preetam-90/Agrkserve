@@ -28,7 +28,7 @@ export const LABOUR_SKILLS = [
 ] as const;
 
 // Booking status options
-export const BOOKING_STATUSES = [
+const BOOKING_STATUSES = [
   { value: 'pending', label: 'Pending', labelHi: 'लंबित' },
   { value: 'approved', label: 'Approved', labelHi: 'स्वीकृत' },
   { value: 'rejected', label: 'Rejected', labelHi: 'अस्वीकृत' },
@@ -38,7 +38,7 @@ export const BOOKING_STATUSES = [
 ] as const;
 
 // Equipment status options
-export const EQUIPMENT_STATUSES = [
+const EQUIPMENT_STATUSES = [
   { value: 'available', label: 'Available', labelHi: 'उपलब्ध' },
   { value: 'rented', label: 'Rented', labelHi: 'किराए पर' },
   { value: 'inactive', label: 'Inactive', labelHi: 'निष्क्रिय' },
@@ -46,7 +46,7 @@ export const EQUIPMENT_STATUSES = [
 ] as const;
 
 // Service radius options
-export const SERVICE_RADIUS_OPTIONS = [
+const SERVICE_RADIUS_OPTIONS = [
   { value: 5, label: '5 km', labelHi: '5 किमी' },
   { value: 10, label: '10 km', labelHi: '10 किमी' },
   { value: 25, label: '25 km', labelHi: '25 किमी' },
@@ -55,7 +55,7 @@ export const SERVICE_RADIUS_OPTIONS = [
 ] as const;
 
 // Distance filter options
-export const DISTANCE_FILTER_OPTIONS = [
+const DISTANCE_FILTER_OPTIONS = [
   { value: 5, label: 'Within 5 km', labelHi: '5 किमी के भीतर' },
   { value: 10, label: 'Within 10 km', labelHi: '10 किमी के भीतर' },
   { value: 25, label: 'Within 25 km', labelHi: '25 किमी के भीतर' },
@@ -84,19 +84,17 @@ export const RATING_OPTIONS = [
 
 // Default pagination
 export const DEFAULT_PAGE_SIZE = 12;
-export const DEFAULT_PAGE = 1;
 
 // Default location (India center)
-export const DEFAULT_LOCATION = {
+const DEFAULT_LOCATION = {
   latitude: 20.5937,
   longitude: 78.9629,
 };
 
 // Service fee percentage
-export const SERVICE_FEE_PERCENTAGE = 5;
 
 // Cancellation policy
-export const CANCELLATION_POLICY = {
+const CANCELLATION_POLICY = {
   FREE_CANCELLATION_HOURS: 24,
   PARTIAL_REFUND_PERCENTAGE: 50,
   NO_REFUND_HOURS: 6,
@@ -110,20 +108,20 @@ export const IMAGE_UPLOAD = {
 };
 
 // OTP settings
-export const OTP_SETTINGS = {
+const OTP_SETTINGS = {
   LENGTH: 6,
   EXPIRY_SECONDS: 300,
   RESEND_COOLDOWN_SECONDS: 60,
 };
 
 // Languages
-export const LANGUAGES = [
+const LANGUAGES = [
   { value: 'en', label: 'English', nativeLabel: 'English' },
   { value: 'hi', label: 'Hindi', nativeLabel: 'हिंदी' },
 ] as const;
 
 // User roles
-export const USER_ROLES = [
+const USER_ROLES = [
   { value: 'farmer', label: 'Farmer / Renter', labelHi: 'किसान / किराएदार' },
   { value: 'provider', label: 'Equipment Provider', labelHi: 'उपकरण प्रदाता' },
   { value: 'admin', label: 'Administrator', labelHi: 'प्रशासक' },

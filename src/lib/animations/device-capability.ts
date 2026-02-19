@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 
 export type DeviceCapability = 'low' | 'medium' | 'high';
-export type ConnectionSpeed = 'slow' | 'medium' | 'fast';
+type ConnectionSpeed = 'slow' | 'medium' | 'fast';
 
 interface NetworkConnectionInfo {
   effectiveType?: string;
@@ -46,7 +46,7 @@ const DEFAULT_DEVICE_INFO: DeviceInfo = {
 /**
  * Detect device performance capability
  */
-export function detectDeviceCapability(): DeviceInfo {
+function detectDeviceCapability(): DeviceInfo {
   if (typeof window === 'undefined') {
     return getDefaultDeviceInfo();
   }
@@ -196,7 +196,7 @@ export function useDeviceCapability(): DeviceInfo {
 /**
  * Should enable heavy animations?
  */
-export function shouldEnableHeavyAnimations(deviceInfo: DeviceInfo): boolean {
+function shouldEnableHeavyAnimations(deviceInfo: DeviceInfo): boolean {
   if (deviceInfo.prefersReducedMotion) return false;
   if (deviceInfo.capability === 'low') return false;
   if (deviceInfo.connectionSpeed === 'slow') return false;
@@ -216,7 +216,7 @@ export function shouldEnable3D(deviceInfo: DeviceInfo): boolean {
 /**
  * Get animation quality settings based on device
  */
-export function getAnimationQuality(deviceInfo: DeviceInfo): {
+function getAnimationQuality(deviceInfo: DeviceInfo): {
   particleCount: number;
   shadowQuality: 'high' | 'medium' | 'low' | 'off';
   antialiasing: boolean;

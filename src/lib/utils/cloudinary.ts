@@ -8,7 +8,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export interface CloudinaryUploadOptions {
+interface CloudinaryUploadOptions {
   folder?: string;
   fileName?: string;
   resourceType: 'image' | 'video' | 'raw';
@@ -16,7 +16,7 @@ export interface CloudinaryUploadOptions {
   transformation?: unknown[];
 }
 
-export interface CloudinaryUploadResult {
+interface CloudinaryUploadResult {
   public_id: string;
   secure_url: string;
   url: string;
@@ -129,7 +129,7 @@ export async function getVideoMetadataFromCloudinary(publicId: string): Promise<
 /**
  * Generate a signed upload URL for direct upload from client
  */
-export function generateSignedUploadUrl(
+function generateSignedUploadUrl(
   folder: string,
   fileName: string,
   resourceType: 'image' | 'video' = 'image'

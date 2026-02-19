@@ -39,14 +39,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [saving, setSaving] = useState(false);
 
   const supabase = createClient();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const _router = useRouter();
 
   const allRoleOptions = ['renter', 'provider', 'labour', 'admin'];
 
   useEffect(() => {
     fetchUserDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [resolvedParams.id]);
 
   const fetchUserDetails = async () => {

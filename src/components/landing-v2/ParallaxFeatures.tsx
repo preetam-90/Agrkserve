@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useGSAPAnimation } from '@/lib/animations/gsap-context';
 import { Tractor, Users, Zap, Shield } from 'lucide-react';
 
-export function ParallaxFeatures() {
+function ParallaxFeatures() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // GSAP: Layered parallax storytelling

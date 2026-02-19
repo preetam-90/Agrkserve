@@ -18,7 +18,7 @@ export function useMyBookings() {
 /**
  * Fetch bookings for a renter
  */
-export function useRenterBookings(renterId: string, status?: BookingStatus | BookingStatus[]) {
+function useRenterBookings(renterId: string, status?: BookingStatus | BookingStatus[]) {
   return useQuery({
     queryKey: bookingKeys.renter(renterId, status as string | undefined),
     queryFn: async () => {
@@ -32,7 +32,7 @@ export function useRenterBookings(renterId: string, status?: BookingStatus | Boo
 /**
  * Fetch a single booking by ID
  */
-export function useBooking(id: string) {
+function useBooking(id: string) {
   return useQuery({
     queryKey: bookingKeys.detail(id),
     queryFn: () => bookingService.getById(id),
@@ -43,7 +43,7 @@ export function useBooking(id: string) {
 /**
  * Fetch booking stats for a user
  */
-export function useBookingStats(userId: string, role: 'renter' | 'owner') {
+function useBookingStats(userId: string, role: 'renter' | 'owner') {
   return useQuery({
     queryKey: bookingKeys.stats(userId, role),
     queryFn: () => bookingService.getStats(userId, role),
@@ -54,7 +54,7 @@ export function useBookingStats(userId: string, role: 'renter' | 'owner') {
 /**
  * Update booking status mutation
  */
-export function useUpdateBookingStatus() {
+function useUpdateBookingStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({

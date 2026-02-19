@@ -20,7 +20,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-export interface ContactField {
+interface ContactField {
   key: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -30,7 +30,7 @@ export interface ContactField {
   required?: boolean;
 }
 
-export const contactFieldsConfig: ContactField[] = [
+const contactFieldsConfig: ContactField[] = [
   // Primary Contact
   {
     key: 'support_email_primary',

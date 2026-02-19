@@ -58,7 +58,7 @@ const plans = [
   },
 ] as const;
 
-export function PricingChapterRedesigned({ reducedMotion = false }: PricingChapterRedesignedProps) {
+function PricingChapterRedesigned({ reducedMotion = false }: PricingChapterRedesignedProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {

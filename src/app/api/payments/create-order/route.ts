@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Get the authenticated user
     const {
       data: { user },
@@ -12,10 +12,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { bookingId, amount } = await request.json();
@@ -30,9 +27,9 @@ export async function POST(request: NextRequest) {
     // In a real implementation, you would call Razorpay's API here
     // For now, we'll create a mock order response
     // In production, replace this with actual Razorpay integration
-    
+
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // Create a payment record in the database
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
@@ -52,10 +49,7 @@ export async function POST(request: NextRequest) {
 
     if (paymentError) {
       console.error('Payment creation error:', paymentError);
-      return NextResponse.json(
-        { error: 'Failed to create payment record' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to create payment record' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -67,9 +61,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Create order error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

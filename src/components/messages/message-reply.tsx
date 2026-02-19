@@ -26,45 +26,43 @@ export function ReplyPreview({ message, onCancel }: ReplyPreviewProps) {
   };
 
   return (
-    <div className="relative mb-3 animate-in slide-in-from-bottom-2 duration-200">
-      <div className="group relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-500/15 via-blue-500/8 to-transparent p-3.5 shadow-lg shadow-blue-500/10 backdrop-blur-sm transition-all hover:border-blue-500/60 hover:shadow-blue-500/20">
+    <div className="animate-in slide-in-from-bottom-2 relative mb-3 duration-200">
+      <div className="via-blue-500/8 group relative overflow-hidden rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-500/15 to-transparent p-3.5 shadow-lg shadow-blue-500/10 backdrop-blur-sm transition-all hover:border-blue-500/60 hover:shadow-blue-500/20">
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
-        
+
         {/* Reply icon badge with pulse animation */}
         <div className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/50">
-          <Reply className="h-3.5 w-3.5 text-white animate-pulse" />
+          <Reply className="h-3.5 w-3.5 animate-pulse text-white" />
         </div>
-        
+
         <div className="relative flex items-start gap-3">
           {/* Left accent bar */}
           <div className="absolute -left-3.5 top-0 h-full w-1 rounded-r-full bg-gradient-to-b from-blue-500 via-blue-400 to-blue-500" />
-          
+
           {/* Reply icon */}
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/20 shadow-inner">
             <Reply className="h-4.5 w-4.5 text-blue-400" />
           </div>
-          
+
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex items-center gap-2">
               <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500/25 to-blue-600/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-300 shadow-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />
                 Replying to
               </span>
-              <p className="text-xs font-bold text-blue-200">
-                {message.sender?.name || 'Unknown'}
-              </p>
+              <p className="text-xs font-bold text-blue-200">{message.sender?.name || 'Unknown'}</p>
             </div>
             <p className="line-clamp-2 text-sm leading-relaxed text-gray-200">
               {getMessagePreview()}
             </p>
           </div>
-          
+
           <Button
             variant="ghost"
             size="sm"
             onClick={onCancel}
-            className="h-8 w-8 flex-shrink-0 rounded-full p-0 text-gray-400 transition-all hover:bg-red-500/20 hover:text-red-400 hover:scale-110 hover:rotate-90"
+            className="h-8 w-8 flex-shrink-0 rounded-full p-0 text-gray-400 transition-all hover:rotate-90 hover:scale-110 hover:bg-red-500/20 hover:text-red-400"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -118,14 +116,14 @@ interface ImagePreviewProps {
   onRemove: () => void;
 }
 
-export function ImagePreviewBeforeSend({ file, onRemove }: ImagePreviewProps) {
+function ImagePreviewBeforeSend({ file, onRemove }: ImagePreviewProps) {
   const [previewUrl, setPreviewUrl] = useState<string>('');
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
 
-// eslint-disable-next-line react-hooks/set-state-in-effect
-        setPreviewUrl(url);
+     
+    setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
 

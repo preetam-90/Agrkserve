@@ -65,7 +65,7 @@ const sizeConfig = {
 /**
  * StatusIndicator Component
  * Visual status feedback component with color-coded icons
- * 
+ *
  * Features:
  * - Color-coded status (green, red, yellow, blue, gray)
  * - Icon representation

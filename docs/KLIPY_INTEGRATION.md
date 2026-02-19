@@ -17,12 +17,12 @@ KLIPY is integrated into the direct messaging system to allow users to send rich
 
 ### 1. Media Types
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| **GIFs** | Animated reactions | Quick responses like "Deal!" or "On my way" |
-| **Memes** | Humorous images | Community building and farming humor |
-| **Stickers** | Transparent overlays | Status updates and reactions |
-| **Clips** | Short video/audio | Farm sounds, celebrations, notifications |
+| Type         | Description          | Use Case                                    |
+| ------------ | -------------------- | ------------------------------------------- |
+| **GIFs**     | Animated reactions   | Quick responses like "Deal!" or "On my way" |
+| **Memes**    | Humorous images      | Community building and farming humor        |
+| **Stickers** | Transparent overlays | Status updates and reactions                |
+| **Clips**    | Short video/audio    | Farm sounds, celebrations, notifications    |
 
 ### 2. Search & Discovery
 
@@ -35,6 +35,7 @@ KLIPY is integrated into the direct messaging system to allow users to send rich
 ### 3. Agricultural Keywords
 
 Default suggestions include:
+
 - Tractors, Harvest, Plowing
 - Success, Weather, Deal
 - Farming, Crop, Rural life
@@ -43,13 +44,16 @@ Default suggestions include:
 ### 4. Performance Optimizations
 
 #### Blur Preview
+
 All KLIPY media includes a Base64-encoded blur preview that displays instantly while the high-res image loads. Perfect for rural areas with slow internet.
 
 #### Resolution Selection
+
 - **Preview (xs/sm)**: Shown in chat feed to save bandwidth
 - **Full View (md/hd)**: Loaded only when user taps to view
 
 #### Local Caching
+
 Recent items are stored in localStorage, allowing instant access to favorite reactions without API calls.
 
 ## Implementation Details
@@ -91,6 +95,7 @@ klipy_blur_preview: TEXT   -- Base64 blur preview
 ### API Integration
 
 #### Environment Variables
+
 ```env
 NEXT_PUBLIC_KLIPY_API_KEY=your_api_key_here
 NEXT_PUBLIC_KLIPY_BASE_URL=https://api.klipy.com/api/v1
@@ -162,6 +167,7 @@ INSERT INTO dm_messages (
 ### 1. MediaDrawer Component
 
 The main KLIPY interface with:
+
 - Tab navigation (GIF, Meme, Sticker, Clip)
 - Search bar with autocomplete
 - View mode toggles (Trending, Recent)
@@ -171,6 +177,7 @@ The main KLIPY interface with:
 ### 2. KlipyMediaGrid Component
 
 Displays media in a responsive grid with:
+
 - Blur preview for instant display
 - Lazy loading of high-res images
 - Hover effects and metadata
@@ -180,6 +187,7 @@ Displays media in a responsive grid with:
 ### 3. KLIPY Service
 
 Handles all API interactions:
+
 - Search and filtering
 - Category browsing
 - Trending items
@@ -191,6 +199,7 @@ Handles all API interactions:
 ### 4. Message Rendering
 
 Different rendering logic for each type:
+
 - **GIFs**: Auto-play with blur preview
 - **Memes**: Static image with blur preview
 - **Stickers**: Transparent background, smaller size
@@ -199,21 +208,25 @@ Different rendering logic for each type:
 ## Best Practices
 
 ### 1. Bandwidth Optimization
+
 - Always show blur preview first
 - Use small/xs sizes for chat feed
 - Load HD only on full view
 
 ### 2. User Experience
+
 - Cache recent items locally
 - Provide agricultural keywords
 - Show trending content by default
 
 ### 3. API Usage
+
 - Always call share endpoint when sending
 - Track customer_id for personalization
 - Respect rate limits
 
 ### 4. Error Handling
+
 - Fallback to local cache if API fails
 - Show empty state with suggestions
 - Graceful degradation
@@ -250,6 +263,7 @@ psql -U postgres -d your_database -f supabase/migrations/017_add_klipy_media_sup
 ## Analytics
 
 A view `dm_klipy_media_stats` is available for tracking:
+
 - Total media sent per type
 - Unique senders
 - Unique conversations
@@ -262,17 +276,20 @@ SELECT * FROM dm_klipy_media_stats;
 ## Troubleshooting
 
 ### Media Not Loading
+
 1. Check API key in `.env`
 2. Verify network connectivity
 3. Check browser console for errors
 4. Try fallback to recent items
 
 ### Blur Preview Not Showing
+
 1. Verify `klipy_blur_preview` is stored in DB
 2. Check Base64 encoding is valid
 3. Ensure `data:image/jpeg;base64,` prefix
 
 ### Share Tracking Failing
+
 - Not critical, logs warning only
 - Doesn't block message sending
 - Check KLIPY API status
@@ -290,5 +307,6 @@ SELECT * FROM dm_klipy_media_stats;
 
 For KLIPY API issues, contact: support@klipy.com
 For implementation questions, see the code comments in:
+
 - `src/lib/services/klipy-service.ts`
 - `src/components/messages/media-drawer.tsx`

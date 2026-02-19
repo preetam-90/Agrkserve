@@ -5,14 +5,14 @@ import { motion } from 'framer-motion';
 import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Tractor, 
-  CheckCircle, 
+import {
+  Tractor,
+  CheckCircle,
   ArrowRight,
   Upload,
   DollarSign,
   Calendar,
-  MapPin
+  MapPin,
 } from 'lucide-react';
 
 const steps = [
@@ -77,7 +77,8 @@ export default function ProviderOnboardingPage() {
             Welcome, Equipment Provider! 🚜
           </h1>
           <p className="mx-auto max-w-2xl text-lg text-[#94A3B8]">
-            You&apos;re now registered as an Equipment Provider. Let&apos;s get your equipment listed and start earning!
+            You&apos;re now registered as an Equipment Provider. Let&apos;s get your equipment
+            listed and start earning!
           </p>
         </motion.div>
 

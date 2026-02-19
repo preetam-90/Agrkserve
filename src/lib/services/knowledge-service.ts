@@ -83,6 +83,42 @@ function formatReviewContent(review: {
   return parts.join(': ');
 }
 
+/**
+ * Formats a booking record into a rich text string for embedding.
+ * Includes equipment name, renter name, booking status, dates, amount,
+ * and payment status so semantic search can match booking-related queries.
+ */
+function formatBookingContent(booking: {
+  equipment_name: string | null;
+  renter_name: string | null;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  total_days: number | null;
+  total_amount: number | null;
+  payment_status: string | null;
+}): string {
+  const equipmentName = booking.equipment_name || 'Unknown Equipment';
+  const renterName = booking.renter_name || 'Unknown Renter';
+  const dateRange =
+    booking.start_date && booking.end_date
+      ? `from ${booking.start_date} to ${booking.end_date}`
+      : '';
+  const days = booking.total_days != null ? `${booking.total_days} days` : '';
+  const amount = booking.total_amount != null ? `₹${booking.total_amount}` : 'amount TBD';
+  const paymentStr = booking.payment_status ? `Payment: ${booking.payment_status}` : '';
+
+  const parts = [
+    `Booking for ${equipmentName} by ${renterName}`,
+    `Status: ${booking.status}`,
+    dateRange,
+    days,
+    amount,
+    paymentStr,
+  ].filter(Boolean);
+  return parts.join(' - ');
+}
+
 export async function syncEquipment(since?: Date): Promise<{ synced: number; errors: string[] }> {
   const supabase = createAdminClient();
   const errors: string[] = [];
@@ -389,20 +425,154 @@ export async function syncReviews(since?: Date): Promise<{ synced: number; error
   return { synced, errors };
 }
 
+/**
+ * Syncs booking records to the knowledge_embeddings table.
+ *
+ * Each booking embedding captures: equipment name, renter name, booking status,
+ * date range, total amount, and payment status. This enables semantic search
+ * over booking data for queries like "my pending bookings" or "John Deere tractor booking".
+ *
+ * Payment status is fetched via the payments table (one-to-one with bookings).
+ */
+export async function syncBookings(since?: Date): Promise<{ synced: number; errors: string[] }> {
+  const supabase = createAdminClient();
+  const errors: string[] = [];
+  let synced = 0;
+
+  let query = supabase
+    .from('bookings')
+    .select(
+      'id, equipment_id, renter_id, start_date, end_date, total_days, price_per_day, total_amount, status, updated_at'
+    );
+
+  if (since) {
+    query = query.gte('updated_at', since.toISOString());
+  }
+
+  const { data: bookings, error: fetchError } = await query;
+
+  if (fetchError) {
+    errors.push(`Failed to fetch bookings: ${fetchError.message}`);
+    return { synced, errors };
+  }
+
+  if (!bookings || bookings.length === 0) {
+    return { synced, errors };
+  }
+
+  // Batch-fetch related entities to avoid N+1 queries
+  const equipmentIds = [
+    ...new Set(bookings.map((b) => b.equipment_id).filter(Boolean)),
+  ] as string[];
+  const renterIds = [...new Set(bookings.map((b) => b.renter_id).filter(Boolean))] as string[];
+  const bookingIds = bookings.map((b) => b.id) as string[];
+
+  const [equipRes, renterRes, paymentRes] = await Promise.all([
+    equipmentIds.length > 0
+      ? supabase.from('equipment').select('id, name').in('id', equipmentIds)
+      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    renterIds.length > 0
+      ? supabase.from('user_profiles').select('id, name').in('id', renterIds)
+      : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+    bookingIds.length > 0
+      ? supabase
+          .from('payments')
+          .select('booking_id, status')
+          .in('booking_id', bookingIds)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as { booking_id: string; status: string }[] }),
+  ]);
+
+  const equipMap = new Map<string, string>(
+    (equipRes.data || []).map((e: { id: string; name: string }) => [e.id, e.name])
+  );
+  const renterMap = new Map<string, string>(
+    (renterRes.data || []).map((u: { id: string; name: string }) => [u.id, u.name])
+  );
+  // Take the most recent payment status per booking
+  const paymentMap = new Map<string, string>();
+  (paymentRes.data || []).forEach((p: { booking_id: string; status: string }) => {
+    if (!paymentMap.has(p.booking_id)) {
+      paymentMap.set(p.booking_id, p.status);
+    }
+  });
+
+  for (let i = 0; i < bookings.length; i += BATCH_SIZE) {
+    const batch = bookings.slice(i, i + BATCH_SIZE);
+
+    for (const booking of batch) {
+      try {
+        const equipmentName = equipMap.get(booking.equipment_id) ?? null;
+        const renterName = renterMap.get(booking.renter_id) ?? null;
+        const paymentStatus = paymentMap.get(booking.id) ?? null;
+
+        const content = formatBookingContent({
+          equipment_name: equipmentName,
+          renter_name: renterName,
+          status: booking.status,
+          start_date: booking.start_date,
+          end_date: booking.end_date,
+          total_days: booking.total_days,
+          total_amount: booking.total_amount,
+          payment_status: paymentStatus,
+        });
+
+        const embeddingResult = await generateEmbedding(content);
+
+        if (!embeddingResult.success || embeddingResult.embedding.length === 0) {
+          errors.push(
+            `Failed to generate embedding for booking ${booking.id}: ${embeddingResult.error}`
+          );
+          continue;
+        }
+
+        const entry: KnowledgeEntry = {
+          source_type: 'booking',
+          source_id: booking.id,
+          content,
+          metadata: {
+            id: booking.id,
+            equipment_id: booking.equipment_id,
+            equipment_name: equipmentName,
+            renter_id: booking.renter_id,
+            renter_name: renterName,
+            status: booking.status,
+            start_date: booking.start_date,
+            end_date: booking.end_date,
+            total_days: booking.total_days,
+            total_amount: booking.total_amount,
+            payment_status: paymentStatus,
+          },
+        };
+
+        await upsertEmbedding(entry, embeddingResult.embedding);
+        synced++;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        errors.push(`Error syncing booking ${booking.id}: ${errorMsg}`);
+      }
+    }
+  }
+
+  return { synced, errors };
+}
+
 export async function syncAllKnowledge(): Promise<{
   equipment: { synced: number; errors: string[] };
   users: { synced: number; errors: string[] };
   labour: { synced: number; errors: string[] };
   reviews: { synced: number; errors: string[] };
+  bookings: { synced: number; errors: string[] };
 }> {
-  const [equipment, users, labour, reviews] = await Promise.all([
+  const [equipment, users, labour, reviews, bookings] = await Promise.all([
     syncEquipment(),
     syncUsers(),
     syncLabour(),
     syncReviews(),
+    syncBookings(),
   ]);
 
-  return { equipment, users, labour, reviews };
+  return { equipment, users, labour, reviews, bookings };
 }
 
 export async function searchKnowledge(

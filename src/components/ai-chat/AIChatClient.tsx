@@ -194,7 +194,7 @@ const Example = () => {
       const errors = await selectFiles(files);
       // Errors are shown inline via ChatMediaChip status — no separate toast needed
       if (errors.length > 0) {
-        console.warn('[AIChatClient] File validation errors:', errors);
+        console.warn('AIChatClient file validation errors:', errors);
       }
     },
     [selectFiles]

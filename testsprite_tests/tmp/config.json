@@ -8,9 +8,7 @@
   "executionArgs": {
     "projectName": "Agrkserve",
     "projectPath": "/home/pk/Projects/Agrkserve",
-    "testIds": [
-      "TC000"
-    ],
+    "testIds": ["TC000"],
     "additionalInstruction": "Run only landing page test case at root route (/).",
     "envs": {
       "API_KEY": "sk-user-2DOgJifuMzKAfbXriM54IKM_VLO0AB4Flthl-kRDHob-3aR8R1ppaZPhmFCo2kYzGkPsJCC523-JPrO0GDAc-O01k8xR7ilmrvzzhXtHP_p_gr9GhoswSkG73Xsdvy0A_i8"

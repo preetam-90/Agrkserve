@@ -5,17 +5,18 @@
  */
 
 import imageCompression from 'browser-image-compression';
+import { getVideoMetadata, getImageDimensions } from './media-utils';
 
 // Constants
-export const MAX_IMAGE_SIZE_MB = 7;
-export const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+const MAX_IMAGE_SIZE_MB = 7;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
-export const MAX_VIDEO_SIZE_MB = 30;
-export const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
+const MAX_VIDEO_SIZE_MB = 30;
+const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
 export const MAX_VIDEO_DURATION_SECONDS = 30;
 
 // Supported formats
-export const SUPPORTED_IMAGE_FORMATS = [
+const SUPPORTED_IMAGE_FORMATS = [
   'image/jpeg',
   'image/jpg',
   'image/png',
@@ -23,9 +24,9 @@ export const SUPPORTED_IMAGE_FORMATS = [
   'image/gif',
   'image/avif',
 ];
-export const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/webm', 'video/quicktime'];
+const SUPPORTED_VIDEO_FORMATS = ['video/mp4', 'video/webm', 'video/quicktime'];
 
-export interface MediaValidationResult {
+interface MediaValidationResult {
   valid: boolean;
   error?: string;
   file?: File;
@@ -256,56 +257,6 @@ export async function compressVideo(
   });
 
   return file;
-}
-
-/**
- * Get image dimensions
- */
-function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.width, height: img.height });
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
-    };
-
-    img.src = url;
-  });
-}
-
-/**
- * Get video metadata (duration, dimensions)
- */
-function getVideoMetadata(
-  file: File
-): Promise<{ duration: number; width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    const url = URL.createObjectURL(file);
-
-    video.onloadedmetadata = () => {
-      URL.revokeObjectURL(url);
-      resolve({
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-      });
-    };
-
-    video.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Failed to load video'));
-    };
-
-    video.src = url;
-  });
 }
 
 /**

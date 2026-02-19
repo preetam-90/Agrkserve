@@ -1,6 +1,7 @@
 # Admin Settings Page - Functional Implementation
 
 ## Overview
+
 Fully functional admin settings page with system management, maintenance mode, contact information, and session management capabilities.
 
 ## Implemented Features
@@ -8,12 +9,14 @@ Fully functional admin settings page with system management, maintenance mode, c
 ### 1. System Tab ✅
 
 #### Platform Information
+
 - **Platform Name**: AgriServe (from database)
 - **Version**: 1.0.0 (from database)
 - **Environment**: Production/Development status with live indicator
 - **Database**: Supabase connection status
 
 #### System Health Metrics (Real-time)
+
 - **API Response Time**: Measured in milliseconds with visual progress bar
 - **Database Load**: Calculated based on record counts and response times
 - **Storage Usage**: Percentage based on total records
@@ -23,9 +26,10 @@ Fully functional admin settings page with system management, maintenance mode, c
 - **Logging**: All metrics logged to `system_health_logs` table
 
 #### Maintenance Mode
+
 - **Toggle On/Off**: Enable/disable maintenance mode instantly
 - **Custom Message**: Editable maintenance message shown to users
-- **Scheduled Maintenance**: 
+- **Scheduled Maintenance**:
   - Set scheduled start time
   - Set scheduled end time
 - **IP Whitelist**:
@@ -38,6 +42,7 @@ Fully functional admin settings page with system management, maintenance mode, c
 ### 2. General Tab ✅
 
 #### Contact Information (Editable)
+
 - **Support Email**: Email for customer support
 - **Support Phone**: Phone number for support
 - **Business Address**: Full business address (multi-line)
@@ -50,24 +55,28 @@ Fully functional admin settings page with system management, maintenance mode, c
 - **Save Functionality**: Persist changes to database
 
 #### Platform Stats (Read-only)
+
 - Total Users count
 - Equipment count
 - Bookings count
 - Labour profiles count
 
 #### Quick Actions
+
 - Links to all major admin sections
 - Visual icons with hover effects
 
 ### 3. Security Tab ✅
 
 #### Session Management
+
 - **Session Timeout Configuration**:
   - Set timeout duration in seconds
   - Visual display in minutes
   - Range: 5 minutes to 24 hours
 
 #### Active Sessions Viewer
+
 - **Real-time Session List**:
   - User name and email
   - IP address
@@ -82,11 +91,14 @@ Fully functional admin settings page with system management, maintenance mode, c
 - **Auto-refresh**: Updates when tab is activated
 
 #### Access Control
+
 - Display admin permissions
 - Show active session count
 
 ### 4. Notifications Tab ✅
+
 (Existing functionality maintained)
+
 - Broadcast notifications to all users
 - Preview before sending
 - Recent broadcasts history
@@ -96,6 +108,7 @@ Fully functional admin settings page with system management, maintenance mode, c
 ### New Tables Created
 
 #### `system_settings`
+
 ```sql
 - id: UUID (primary key)
 - key: TEXT (unique)
@@ -106,6 +119,7 @@ Fully functional admin settings page with system management, maintenance mode, c
 ```
 
 #### `maintenance_mode`
+
 ```sql
 - id: UUID (primary key)
 - is_enabled: BOOLEAN
@@ -119,6 +133,7 @@ Fully functional admin settings page with system management, maintenance mode, c
 ```
 
 #### `user_sessions`
+
 ```sql
 - id: UUID (primary key)
 - user_id: UUID (references auth.users)
@@ -131,6 +146,7 @@ Fully functional admin settings page with system management, maintenance mode, c
 ```
 
 #### `system_health_logs`
+
 ```sql
 - id: UUID (primary key)
 - metric_name: TEXT
@@ -142,20 +158,24 @@ Fully functional admin settings page with system management, maintenance mode, c
 ## RPC Functions
 
 ### System Settings
+
 - `get_system_settings(p_category)` - Get settings by category
 - `update_system_setting(p_key, p_value)` - Update a setting
 
 ### Maintenance Mode
+
 - `get_maintenance_mode()` - Get current maintenance status
 - `update_maintenance_mode(...)` - Update maintenance settings
 
 ### Session Management
+
 - `get_active_sessions()` - Get all active sessions with user info
 - `revoke_session(p_session_id)` - Revoke a specific session
 - `revoke_user_sessions(p_user_id)` - Revoke all sessions for a user
 - `force_logout_all_users()` - Force logout all users
 
 ### Health Monitoring
+
 - `log_system_health(...)` - Log health metrics
 - `get_system_health_metrics(...)` - Retrieve health metrics
 - `cleanup_expired_sessions()` - Clean up expired sessions
@@ -163,14 +183,17 @@ Fully functional admin settings page with system management, maintenance mode, c
 ## API Routes
 
 ### `/api/admin/settings`
+
 - **GET**: Fetch system settings (optionally by category)
 - **PUT**: Update a system setting
 
 ### `/api/admin/maintenance`
+
 - **GET**: Get maintenance mode status
 - **PUT**: Update maintenance mode settings
 
 ### `/api/admin/sessions`
+
 - **GET**: Get all active sessions
 - **DELETE**: Revoke session(s)
   - `?session_id=<id>` - Revoke specific session
@@ -178,18 +201,22 @@ Fully functional admin settings page with system management, maintenance mode, c
   - `?force_all=true` - Force logout all users
 
 ### `/api/admin/health`
+
 - **GET**: Get real-time system health metrics
 
 ## Security
 
 ### Row Level Security (RLS)
+
 - All tables have RLS enabled
 - Admin-only access enforced via policies
 - Users can only view their own sessions
 - System can insert health logs without authentication
 
 ### Admin Verification
+
 All RPC functions verify admin role:
+
 ```sql
 IF NOT EXISTS (
   SELECT 1 FROM user_profiles
@@ -212,6 +239,7 @@ src/app/admin/settings/
 ## Usage
 
 ### Enable Maintenance Mode
+
 1. Go to Settings → System tab
 2. Click "Enable" button
 3. Optionally edit maintenance message
@@ -220,18 +248,21 @@ src/app/admin/settings/
 6. Click "Save Maintenance Settings"
 
 ### Manage Sessions
+
 1. Go to Settings → Security tab
 2. View all active sessions
 3. Click trash icon to revoke individual session
 4. Click "Force Logout All" to logout all users
 
 ### Update Contact Information
+
 1. Go to Settings → General tab
 2. Click "Edit" button
 3. Modify email, phone, address, social links
 4. Click "Save" button
 
 ### Monitor System Health
+
 1. Go to Settings → System tab
 2. View real-time metrics
 3. Click refresh icon to update
@@ -240,6 +271,7 @@ src/app/admin/settings/
 ## Success Notifications
 
 All actions show success toast notifications:
+
 - Settings saved
 - Maintenance mode toggled
 - IP whitelist updated
@@ -262,11 +294,13 @@ All actions show success toast notifications:
 To test the implementation:
 
 1. **Run Migration**:
+
    ```bash
    # Apply the migration in Supabase dashboard or CLI
    ```
 
 2. **Access Settings**:
+
    ```
    http://localhost:3001/admin/settings
    ```

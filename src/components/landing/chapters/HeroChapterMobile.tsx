@@ -1,6 +1,6 @@
 /**
  * Mobile-Optimized Hero Chapter
- * 
+ *
  * A simplified, performance-focused version of the hero section for mobile devices
  * Provides the same core messaging with reduced visual complexity
  */
@@ -32,7 +32,11 @@ if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const HEADLINE_LINES = ["INDIA'S AGRI", 'OPERATING SYSTEM', 'Built for Scale. Built to Win.'] as const;
+const HEADLINE_LINES = [
+  "INDIA'S AGRI",
+  'OPERATING SYSTEM',
+  'Built for Scale. Built to Win.',
+] as const;
 
 const TELEMETRY_CHIPS = [
   {
@@ -145,7 +149,7 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
   const reduceMotion = Boolean(prefersReducedMotion || runtime?.prefersReducedMotion);
   const lowTier = runtime?.tier === 'low';
   const enableRichFx = !reduceMotion && !lowTier;
-  
+
   // Device capabilities for adaptive rendering
   const deviceCapabilities = useDeviceCapabilities();
   const accessibility = useAccessibility();
@@ -165,8 +169,12 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
 
     const context = gsap.context(() => {
       // Mobile-optimized animation durations
-      const baseDuration = deviceCapabilities.isLowEnd ? 1.8 : deviceCapabilities.isHighEnd ? 0.6 : 1.2;
-      
+      const baseDuration = deviceCapabilities.isLowEnd
+        ? 1.8
+        : deviceCapabilities.isHighEnd
+          ? 0.6
+          : 1.2;
+
       const intro = gsap.timeline({ delay: 0.1 }); // Reduced delay for mobile
 
       intro.from('.hero-kicker', {
@@ -292,7 +300,14 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
     return () => {
       safeGsapRevert(context);
     };
-  }, [enableRichFx, reduceMotion, accessibility.prefersReducedMotion, deviceCapabilities.isLowEnd, deviceCapabilities.isHighEnd, enableScrollParallax]);
+  }, [
+    enableRichFx,
+    reduceMotion,
+    accessibility.prefersReducedMotion,
+    deviceCapabilities.isLowEnd,
+    deviceCapabilities.isHighEnd,
+    enableScrollParallax,
+  ]);
 
   return (
     <section
@@ -346,7 +361,7 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
                       ? 'text-[clamp(1.8rem,8vw,4rem)] font-black tracking-[-0.035em] text-white'
                       : index === 1
                         ? 'bg-[linear-gradient(96deg,#d9f99d_0%,#34d399_45%,#2dd4bf_100%)] bg-clip-text text-[clamp(1.8rem,7.5vw,3.5rem)] font-black tracking-[-0.035em] text-transparent'
-                        : 'text-[clamp(1rem,2.5vw,1.6rem)] font-semibold tracking-[0.18em] text-white/82'
+                        : 'text-white/82 text-[clamp(1rem,2.5vw,1.6rem)] font-semibold tracking-[0.18em]'
                   }`}
                 >
                   {line}
@@ -356,7 +371,8 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
           </h1>
 
           <p className="hero-subcopy mb-6 max-w-xl text-sm leading-relaxed text-white/80">
-            The command network for modern agriculture: instant equipment access, real-time provider matching, and nationwide dispatch intelligence.
+            The command network for modern agriculture: instant equipment access, real-time provider
+            matching, and nationwide dispatch intelligence.
           </p>
 
           <div className="hero-actions mb-8 flex flex-col gap-3">
@@ -365,7 +381,7 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
                 href="/equipment"
                 magnetic="off"
                 strength={0.25}
-                className="landing-touch border-emerald-100/15 bg-gradient-to-r from-emerald-400 via-lime-300 to-teal-200 px-6 py-3 text-sm font-black tracking-[0.12em] text-[#052818] shadow-[0_16px_60px_rgba(74,222,128,0.3)] w-full justify-center"
+                className="landing-touch w-full justify-center border-emerald-100/15 bg-gradient-to-r from-emerald-400 via-lime-300 to-teal-200 px-6 py-3 text-sm font-black tracking-[0.12em] text-[#052818] shadow-[0_16px_60px_rgba(74,222,128,0.3)]"
               >
                 <span className="flex items-center gap-2">
                   <Tractor className="h-3 w-3" />
@@ -380,7 +396,7 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
                 href="/provider/equipment"
                 magnetic="off"
                 strength={0.2}
-                className="landing-touch border-emerald-100/30 bg-black/35 px-6 py-3 text-sm font-semibold tracking-[0.14em] text-white hover:border-emerald-200/55 hover:bg-emerald-300/10 w-full justify-center"
+                className="landing-touch w-full justify-center border-emerald-100/30 bg-black/35 px-6 py-3 text-sm font-semibold tracking-[0.14em] text-white hover:border-emerald-200/55 hover:bg-emerald-300/10"
               >
                 <span className="flex items-center gap-2">
                   <Wrench className="h-3 w-3 text-emerald-200" />
@@ -394,7 +410,7 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
                 href="/labour"
                 magnetic="off"
                 strength={0.2}
-                className="landing-touch border-cyan-100/30 bg-black/35 px-6 py-3 text-sm font-semibold tracking-[0.14em] text-white hover:border-cyan-200/65 hover:bg-cyan-300/10 w-full justify-center"
+                className="landing-touch w-full justify-center border-cyan-100/30 bg-black/35 px-6 py-3 text-sm font-semibold tracking-[0.14em] text-white hover:border-cyan-200/65 hover:bg-cyan-300/10"
               >
                 <span className="flex items-center gap-2">
                   <Users className="h-3 w-3 text-cyan-200" />
@@ -433,16 +449,14 @@ export function HeroChapterMobile({ runtime }: HeroChapterProps) {
       <div ref={scrollIndicatorRef} className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2">
         <motion.div
           animate={reduceMotion || accessibility.prefersReducedMotion ? {} : { y: [0, 6, 0] }}
-          transition={{ 
-            duration: deviceCapabilities.isLowEnd ? 2.0 : 1.2, 
-            repeat: Infinity, 
-            ease: 'easeInOut' 
+          transition={{
+            duration: deviceCapabilities.isLowEnd ? 2.0 : 1.2,
+            repeat: Infinity,
+            ease: 'easeInOut',
           }}
           className="flex flex-col items-center gap-1"
         >
-          <span className="text-xs uppercase tracking-[0.16em] text-white/40">
-            Scroll
-          </span>
+          <span className="text-xs uppercase tracking-[0.16em] text-white/40">Scroll</span>
           <ChevronDown className="h-4 w-4 text-white/40" />
         </motion.div>
       </div>

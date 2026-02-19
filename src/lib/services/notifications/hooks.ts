@@ -90,26 +90,23 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
   }, [user]);
 
   // Mark as read
-  const markAsRead = useCallback(
-    async (id: string) => {
-      try {
-        await notificationService.markAsRead(id);
+  const markAsRead = useCallback(async (id: string) => {
+    try {
+      await notificationService.markAsRead(id);
 
-        // Update local state
-        setNotifications((prev) =>
-          prev.map((n) =>
-            n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
-          )
-        );
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
+        )
+      );
 
-        setUnreadCount((prev) => Math.max(0, prev - 1));
-      } catch (err) {
-        console.error('Error marking as read:', err);
-        throw err;
-      }
-    },
-    []
-  );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error('Error marking as read:', err);
+      throw err;
+    }
+  }, []);
 
   // Mark all as read
   const markAllAsRead = useCallback(async () => {
@@ -176,7 +173,7 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
   useEffect(() => {
     // Don't fetch until auth is resolved
     if (authLoading) return;
-    
+
     if (user) {
       fetchNotifications(true);
       fetchUnreadCount();
@@ -186,25 +183,22 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
       setNotifications([]);
       setUnreadCount(0);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [user, authLoading, filters]);
 
   // Real-time subscription
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = notificationService.subscribeToNotifications(
-      user.id,
-      (newNotification) => {
-        // Add to beginning of list
-        setNotifications((prev) => [newNotification, ...prev]);
+    const unsubscribe = notificationService.subscribeToNotifications(user.id, (newNotification) => {
+      // Add to beginning of list
+      setNotifications((prev) => [newNotification, ...prev]);
 
-        // Update unread count if not read
-        if (!newNotification.is_read) {
-          setUnreadCount((prev) => prev + 1);
-        }
+      // Update unread count if not read
+      if (!newNotification.is_read) {
+        setUnreadCount((prev) => prev + 1);
       }
-    );
+    });
 
     return () => {
       unsubscribe();
@@ -293,7 +287,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
   // Initial load
   useEffect(() => {
     if (authLoading) return;
-    
+
     if (user) {
       fetchPreferences();
     } else {
@@ -361,7 +355,7 @@ export function useNotificationStats() {
 
   useEffect(() => {
     if (authLoading) return;
-    
+
     if (user) {
       fetchStats();
     } else {

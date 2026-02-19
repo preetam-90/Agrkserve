@@ -24,13 +24,16 @@ export function ImageCropper({ open, imageFile, onCrop, onCancel }: ImageCropper
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CroppedAreaPixels | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [imageUrl, _setImageUrl] = useState<string>(() => URL.createObjectURL(imageFile));
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const onCropComplete = useCallback((_croppedArea: unknown, croppedAreaPixels: CroppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (_croppedArea: unknown, croppedAreaPixels: CroppedAreaPixels) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
 
   const createCroppedImage = async () => {
     if (!croppedAreaPixels) return;
@@ -55,12 +58,12 @@ export function ImageCropper({ open, imageFile, onCrop, onCancel }: ImageCropper
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
       <DialogContent className="max-w-2xl p-0">
-        <DialogHeader className="px-6 py-4 border-b">
+        <DialogHeader className="border-b px-6 py-4">
           <DialogTitle>Crop Image to Square</DialogTitle>
           <p className="text-sm text-gray-500">Adjust the crop area to create a square image</p>
         </DialogHeader>
-        
-        <div className="flex flex-col h-[600px]">
+
+        <div className="flex h-[600px] flex-col">
           {/* Cropper */}
           <div className="relative flex-1 bg-gray-900">
             <Cropper
@@ -75,7 +78,7 @@ export function ImageCropper({ open, imageFile, onCrop, onCancel }: ImageCropper
           </div>
 
           {/* Zoom Control */}
-          <div className="px-6 py-4 border-t border-b bg-gray-50">
+          <div className="border-b border-t bg-gray-50 px-6 py-4">
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-gray-700">Zoom</span>
               <Slider
@@ -90,20 +93,11 @@ export function ImageCropper({ open, imageFile, onCrop, onCancel }: ImageCropper
           </div>
 
           {/* Actions */}
-          <div className="px-6 py-4 flex gap-3 justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isProcessing}
-            >
+          <div className="flex justify-end gap-3 px-6 py-4">
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isProcessing}>
               Cancel
             </Button>
-            <Button
-              type="button"
-              onClick={createCroppedImage}
-              disabled={isProcessing}
-            >
+            <Button type="button" onClick={createCroppedImage} disabled={isProcessing}>
               {isProcessing ? 'Cropping...' : 'Crop & Upload'}
             </Button>
           </div>

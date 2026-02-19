@@ -93,7 +93,7 @@ export function addNetworkListeners(onOnline: () => void, onOffline: () => void)
 /**
  * Implements exponential backoff for retries
  */
-export function exponentialBackoff(
+function exponentialBackoff(
   attempt: number,
   baseDelay: number = 1000,
   maxDelay: number = 30000

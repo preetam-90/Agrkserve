@@ -40,7 +40,7 @@ export interface KlipyMedia {
   };
 }
 
-export interface MediaSize {
+interface MediaSize {
   url: string;
   width: number;
   height: number;
@@ -66,7 +66,7 @@ export interface KlipyCategory {
   count?: number;
 }
 
-export interface KlipyAutocompleteResult {
+interface KlipyAutocompleteResult {
   query: string;
   suggestions: string[];
 }

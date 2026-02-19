@@ -120,7 +120,7 @@ export function LazyThreeScene({
 /**
  * HOC to make any Three.js component lazy-loaded
  */
-export function withLazyThree<P extends object>(
+function withLazyThree<P extends object>(
   Component: ComponentType<P>,
   options?: {
     loadingFallback?: ReactNode;
@@ -146,18 +146,15 @@ export function withLazyThree<P extends object>(
 /**
  * Canvas wrapper with performance optimizations
  */
-export const OptimizedCanvas = dynamic(
-  () => import('@react-three/fiber').then((mod) => mod.Canvas),
-  {
-    loading: () => <ThreeLoadingFallback />,
-    ssr: false,
-  }
-);
+const OptimizedCanvas = dynamic(() => import('@react-three/fiber').then((mod) => mod.Canvas), {
+  loading: () => <ThreeLoadingFallback />,
+  ssr: false,
+});
 
 /**
  * Get Three.js quality settings based on device
  */
-export function getThreeQualitySettings(capability: 'low' | 'medium' | 'high') {
+function getThreeQualitySettings(capability: 'low' | 'medium' | 'high') {
   switch (capability) {
     case 'high':
       return {

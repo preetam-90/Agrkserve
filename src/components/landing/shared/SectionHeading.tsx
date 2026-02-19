@@ -7,7 +7,7 @@ interface SectionHeadingProps {
   align?: 'left' | 'center';
 }
 
-export function SectionHeading({ kicker, title, subtitle, align = 'center' }: SectionHeadingProps) {
+function SectionHeading({ kicker, title, subtitle, align = 'center' }: SectionHeadingProps) {
   const isCenter = align === 'center';
 
   return (
@@ -22,7 +22,9 @@ export function SectionHeading({ kicker, title, subtitle, align = 'center' }: Se
       <h2 className="text-[clamp(2.8rem,6.5vw,5.2rem)] font-semibold leading-[0.92] tracking-[-0.02em] text-white">
         {title}
       </h2>
-      <p className={`mt-5 text-base text-zinc-300 md:text-xl ${isCenter ? 'mx-auto max-w-2xl' : 'max-w-2xl'}`}>
+      <p
+        className={`mt-5 text-base text-zinc-300 md:text-xl ${isCenter ? 'mx-auto max-w-2xl' : 'max-w-2xl'}`}
+      >
         {subtitle}
       </p>
     </motion.div>

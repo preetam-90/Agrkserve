@@ -68,10 +68,7 @@ export const notificationService = {
 
   // Delete notification
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('notifications').delete().eq('id', id);
 
     if (error) throw error;
   },
@@ -106,10 +103,7 @@ export const notificationService = {
   },
 
   // Subscribe to new notifications
-  subscribeToNotifications(
-    userId: string,
-    onNotification: (notification: Notification) => void
-  ) {
+  subscribeToNotifications(userId: string, onNotification: (notification: Notification) => void) {
     return supabase
       .channel(`notifications:${userId}`)
       .on(

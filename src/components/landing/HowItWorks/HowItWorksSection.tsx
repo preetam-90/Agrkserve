@@ -9,7 +9,10 @@ gsap.registerPlugin(ScrollTrigger);
 const steps = [
   { title: 'Discover', text: 'Browse equipment and labour by location and reliability score.' },
   { title: 'Book', text: 'Lock machine slots and skilled workers in one coordinated timeline.' },
-  { title: 'Execute', text: 'Run operations with transparent fulfilment and live status visibility.' },
+  {
+    title: 'Execute',
+    text: 'Run operations with transparent fulfilment and live status visibility.',
+  },
 ];
 
 export function HowItWorksSection() {
@@ -74,9 +77,14 @@ export function HowItWorksSection() {
 
           <div className="how-steps space-y-5">
             {steps.map((step, i) => (
-              <article key={step.title} className="how-item rounded-3xl border border-white/10 bg-white/8 p-7 backdrop-blur-2xl md:p-9">
+              <article
+                key={step.title}
+                className="how-item bg-white/8 rounded-3xl border border-white/10 p-7 backdrop-blur-2xl md:p-9"
+              >
                 <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Phase 0{i + 1}</p>
-                <h3 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-white">{step.title}</h3>
+                <h3 className="mt-3 text-3xl font-semibold tracking-[-0.02em] text-white">
+                  {step.title}
+                </h3>
                 <p className="mt-3 max-w-3xl text-zinc-300 md:text-lg">{step.text}</p>
               </article>
             ))}

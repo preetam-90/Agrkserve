@@ -6,9 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import SearchFilterBar from '@/components/admin/SearchFilterBar';
-import Link from 'next/link';
-import { Eye, Ban, CheckCircle, Loader2, Users, UserPlus } from 'lucide-react';
+import { Eye, Ban, CheckCircle, Users, UserPlus } from 'lucide-react';
 import { ITEMS_PER_PAGE } from '@/lib/utils/admin-constants';
 import DataTable from '@/components/admin/DataTable';
 import CreateUserModal from '@/components/admin/CreateUserModal';
@@ -17,7 +15,6 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -53,7 +50,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [search, roleFilter, currentPage]);
+  }, [search, currentPage]);
 
   const isUserActive = (userRoles: any[]) => {
     return userRoles?.some((r) => r.is_active);

@@ -237,7 +237,7 @@ export default function SettingsPage() {
     if (activeTab === 'security') {
       fetchActiveSessions();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [activeTab]);
 
   const fetchStats = async () => {

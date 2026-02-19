@@ -8,7 +8,6 @@
   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=10B981&center=true&vCenter=true&width=600&lines=Empowering+Farmers+%F0%9F%8C%BE;Connecting+Communities+%F0%9F%A4%9D;Building+Sustainable+Agriculture+%F0%9F%8C%B1;Smart+Rentals%2C+Better+Harvests+%F0%9F%9A%9C" alt="Typing SVG" />
 </p>
 
-
 <p align="center">
   <a href="https://agrirental.vercel.app/"><img src="https://img.shields.io/website?url=https%3A%2F%2Fagrirental.vercel.app&up_message=🟢%20ONLINE&up_color=00C853&down_message=🔴%20OFFLINE&down_color=D32F2F&style=for-the-badge&logo=vercel&logoColor=white&labelColor=000000" alt="Website Status"></a>
   <img src="https://img.shields.io/badge/version-1.0.0-FF6B6B?style=for-the-badge&logo=semantic-release&logoColor=white&labelColor=2C3E50" alt="Version">
@@ -36,7 +35,6 @@
 
 </div>
 
-
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
 ## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Seedling.png" alt="Seedling" width="35" height="35" /> About Agrirental
@@ -48,6 +46,7 @@
 ### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Symbols/Question%20Mark.png" alt="Question" width="25" height="25" /> Why Agrirental Exists
 
 Indian farmers face critical challenges:
+
 - 💰 **High Equipment Costs**: Purchasing machinery is unaffordable for small-scale farmers
 - 👷 **Unreliable Labor Access**: Difficulty finding and hiring skilled agricultural workers
 - 📉 **Inefficient Rental Markets**: Fragmented, offline processes lead to wasted time and resources
@@ -56,11 +55,11 @@ Indian farmers face critical challenges:
 ### <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Glowing%20Star.png" alt="Star" width="25" height="25" /> Real-World Impact
 
 Agrirental solves these problems by:
+
 - 📈 **Boosting Productivity**: Instant access to modern equipment increases farm output
 - 🌍 **Promoting Sustainability**: Shared equipment reduces waste and environmental impact
 - 💵 **Increasing Income**: Providers earn from idle equipment; farmers save on ownership costs
 - 🤝 **Building Community**: Connecting rural stakeholders in a trusted digital ecosystem
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
@@ -68,25 +67,24 @@ Agrirental solves these problems by:
 
 <div align="center">
 
-| 🎯 **Feature** | 📝 **Description** |
-|:---------------|:-------------------|
+| 🎯 **Feature**                      | 📝 **Description**                                                                                       |
+| :---------------------------------- | :------------------------------------------------------------------------------------------------------- |
 | 🚜 **Equipment Rental Marketplace** | Browse, search, and rent tractors, harvesters, tillers, trucks, and trailers with real-time availability |
-| 👨‍🌾 **Labor Hiring Platform** | Find and hire skilled agricultural workers, operators, and service providers |
-| 🔍 **Advanced Search & Filters** | Filter by location, equipment type, price range, ratings, and availability dates |
-| ⚡ **Instant Bookings** | Reserve equipment and labor with one-click booking and automated confirmations |
-| 🔐 **Multi-Auth Support** | Sign in via email/password, Google OAuth, or phone verification (OTP for Indian numbers) |
-| 🔔 **Real-Time Notifications** | Get instant updates on bookings, messages, and availability via Supabase Realtime |
-| 💬 **In-App Chat** | Direct messaging between renters and providers for seamless communication |
-| ⭐ **Reviews & Ratings** | Build trust with verified user reviews and 5-star rating system |
-| 👤 **Role-Based Dashboards** | Customized interfaces for renters, providers, laborers, and administrators |
-| 📊 **Analytics Insights** | Track platform usage and user behavior with privacy-focused Umami analytics |
-| 🖼️ **Secure Media Uploads** | Cloud-based storage via Supabase and Cloudinary for equipment photos and documents |
-| 📱 **Mobile-First Design** | Fully responsive UI optimized for smartphones and tablets |
-| 🗺️ **Geospatial Search** | Location-based equipment discovery powered by PostGIS |
-| 🌙 **Dark Mode Support** | Eye-friendly dark theme for comfortable browsing |
+| 👨‍🌾 **Labor Hiring Platform**        | Find and hire skilled agricultural workers, operators, and service providers                             |
+| 🔍 **Advanced Search & Filters**    | Filter by location, equipment type, price range, ratings, and availability dates                         |
+| ⚡ **Instant Bookings**             | Reserve equipment and labor with one-click booking and automated confirmations                           |
+| 🔐 **Multi-Auth Support**           | Sign in via email/password, Google OAuth, or phone verification (OTP for Indian numbers)                 |
+| 🔔 **Real-Time Notifications**      | Get instant updates on bookings, messages, and availability via Supabase Realtime                        |
+| 💬 **In-App Chat**                  | Direct messaging between renters and providers for seamless communication                                |
+| ⭐ **Reviews & Ratings**            | Build trust with verified user reviews and 5-star rating system                                          |
+| 👤 **Role-Based Dashboards**        | Customized interfaces for renters, providers, laborers, and administrators                               |
+| 📊 **Analytics Insights**           | Track platform usage and user behavior with privacy-focused Umami analytics                              |
+| 🖼️ **Secure Media Uploads**         | Cloud-based storage via Supabase and Cloudinary for equipment photos and documents                       |
+| 📱 **Mobile-First Design**          | Fully responsive UI optimized for smartphones and tablets                                                |
+| 🗺️ **Geospatial Search**            | Location-based equipment discovery powered by PostGIS                                                    |
+| 🌙 **Dark Mode Support**            | Eye-friendly dark theme for comfortable browsing                                                         |
 
 </div>
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
@@ -118,7 +116,6 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 - ♿ **Accessibility-First**: Built with Radix UI primitives for keyboard navigation and screen reader support
 - 🎭 **Animated Components**: Dynamic equipment cards, smooth modal transitions, and engaging call-to-action buttons
 
-
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
 ## <img src="https://user-images.githubusercontent.com/74038190/212257454-16e3712e-945a-4ca2-b238-408ad0bf87e6.gif" width="35" height="35"> Tech Stack
@@ -126,6 +123,7 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 <div align="center">
 
 ### 🎯 Frontend Technologies
+
 <p>
   <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React">
@@ -142,6 +140,7 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 ---
 
 ### 🗄️ Backend & Database
+
 <p>
   <img src="https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
   <img src="https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
@@ -152,6 +151,7 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 ---
 
 ### 📊 Analytics & Deployment
+
 <p>
   <img src="https://img.shields.io/badge/Umami-Analytics-FF6600?style=for-the-badge&logo=google-analytics&logoColor=white" alt="Umami">
   <img src="https://img.shields.io/badge/Vercel-Hosting-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
@@ -161,6 +161,7 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 ---
 
 ### 🛠️ Development Tools
+
 <p>
   <img src="https://img.shields.io/badge/Bun-Runtime-FBF0DF?style=for-the-badge&logo=bun&logoColor=black" alt="Bun">
   <img src="https://img.shields.io/badge/Git-Version_Control-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git">
@@ -168,7 +169,6 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 </p>
 
 </div>
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
@@ -222,7 +222,6 @@ Agrirental features a **modern, colorful, and highly interactive** user interfac
 
 </details>
 
-
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
 ## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Gear.png" alt="Gear" width="35" height="35" /> Installation & Setup
@@ -273,10 +272,12 @@ bun install
 Create a new project on [Supabase](https://supabase.com/) and run database migrations:
 
 **Option A: Via Supabase Dashboard**
-- Copy SQL from `supabase/migrations/` 
+
+- Copy SQL from `supabase/migrations/`
 - Execute in SQL Editor
 
 **Option B: Via Supabase CLI** (Recommended)
+
 ```bash
 npx supabase link --project-ref your-project-ref
 npx supabase db push
@@ -302,7 +303,6 @@ bun dev
 🎉 Open [http://localhost:3000](http://localhost:3000) in your browser!
 
 </details>
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
@@ -337,7 +337,6 @@ CLOUDINARY_API_SECRET=your-api-secret
 </table>
 
 > **⚠️ Important**: Never commit `.env.local` to version control. Use `.env.example` as a template.
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
@@ -385,7 +384,6 @@ bun dev
 </tr>
 </table>
 
-
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
 ## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Camera%20with%20Flash.png" alt="Camera" width="35" height="35" /> Screenshots & Demo
@@ -406,15 +404,17 @@ bun dev
 <td width="50%">
 
 ### 🏠 Homepage
+
 ![Homepage](https://i.postimg.cc/mrpdSsyg/image.png)
-*Beautiful landing page with hero section and featured equipment*
+_Beautiful landing page with hero section and featured equipment_
 
 </td>
 <td width="50%">
 
 ### 🔐 Authentication
+
 ![Authentication](https://i.postimg.cc/DZWxjMxQ/image.png)
-*Secure login with multiple authentication options*
+_Secure login with multiple authentication options_
 
 </td>
 </tr>
@@ -423,15 +423,17 @@ bun dev
 <td width="50%">
 
 ### 📋 Equipment Listings
+
 ![Equipment Listings](https://i.postimg.cc/wvS0SQrS/image.png)
-*Browse and filter agricultural equipment with advanced search*
+_Browse and filter agricultural equipment with advanced search_
 
 </td>
 <td width="50%">
 
 ### 📊 Dashboard
+
 ![Dashboard](https://i.postimg.cc/5yLn1Fdb/image.png)
-*Interactive provider dashboard with real-time analytics*
+_Interactive provider dashboard with real-time analytics_
 
 </td>
 </tr>
@@ -440,15 +442,17 @@ bun dev
 <td width="50%">
 
 ### 🚜 Equipment Details
+
 ![Equipment Details](https://i.postimg.cc/xjzsLBkF/image.png)
-*Detailed equipment information with booking options*
+_Detailed equipment information with booking options_
 
 </td>
 <td width="50%">
 
 ### 📱 Mobile Experience
+
 ![Mobile View](https://i.postimg.cc/dtc56nrF/image.png)
-*Fully responsive mobile interface for farmers on the go*
+_Fully responsive mobile interface for farmers on the go_
 
 </td>
 </tr>
@@ -477,6 +481,7 @@ bun dev
 Agrirental uses **Umami**, a privacy-focused, open-source analytics platform that respects user privacy while providing valuable insights.
 
 **Benefits:**
+
 - ✅ **Privacy-First**: No cookies, GDPR/CCPA compliant
 - ✅ **Self-Hosted**: Full data ownership on Railway
 - ✅ **Lightweight**: Minimal performance impact
@@ -509,7 +514,6 @@ Agrirental uses **Umami**, a privacy-focused, open-source analytics platform tha
 window.umami?.track('equipment_booked', { type: 'tractor' });
 ```
 
-
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
 ## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Globe%20Showing%20Asia-Australia.png" alt="Globe" width="35" height="35" /> Deployment
@@ -530,6 +534,7 @@ window.umami?.track('equipment_booked', { type: 'tractor' });
 <td width="95%">
 
 **Push to GitHub**
+
 ```bash
 git add .
 git commit -m "Initial commit"
@@ -543,6 +548,7 @@ git push origin main
 <td>
 
 **Import to Vercel**
+
 - Go to [Vercel Dashboard](https://vercel.com/dashboard)
 - Click **"New Project"**
 - Import your GitHub repository
@@ -554,6 +560,7 @@ git push origin main
 <td>
 
 **Configure Environment Variables**
+
 - Add all variables from `.env.local` in Vercel project settings
 - Navigate to **Settings → Environment Variables**
 
@@ -564,6 +571,7 @@ git push origin main
 <td>
 
 **Deploy**
+
 - Click **"Deploy"**
 - Vercel will automatically build and deploy your application
 - Future commits to `main` will trigger automatic deployments
@@ -597,7 +605,6 @@ git push origin main
 
 ---
 
-
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
 ## <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Railway%20Track.png" alt="Railway" width="35" height="35" /> Roadmap
@@ -613,6 +620,7 @@ git push origin main
 <td width="50%">
 
 ### 🚀 Phase 1: Enhanced Features
+
 - 💬 **Real-Time Chat Enhancement**
   - WebRTC-powered video calls
   - Equipment demonstration capabilities
@@ -627,6 +635,7 @@ git push origin main
 <td width="50%">
 
 ### 🌟 Phase 2: Expansion
+
 - 📍 **Advanced Geospatial Search**
   - PostGIS-powered radius search
   - Route optimization for delivery
@@ -643,6 +652,7 @@ git push origin main
 <td colspan="2">
 
 ### 🎯 Phase 3: Growth & Innovation
+
 - 🏆 **Gamification System**
   - Loyalty rewards program
   - Provider rankings & achievements
@@ -656,7 +666,6 @@ git push origin main
 </td>
 </tr>
 </table>
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 
@@ -679,6 +688,7 @@ git push origin main
 <td width="95%">
 
 **Fork the Repository**
+
 ```bash
 git clone https://github.com/your-username/agrkserve.git
 cd agrkserve
@@ -691,6 +701,7 @@ cd agrkserve
 <td>
 
 **Create a Feature Branch**
+
 ```bash
 git checkout -b feat/your-feature-name
 ```
@@ -702,6 +713,7 @@ git checkout -b feat/your-feature-name
 <td>
 
 **Make Your Changes**
+
 - Follow the existing code style
 - Write meaningful commit messages using [Conventional Commits](https://www.conventionalcommits.org/):
   - ✨ `feat: add geolocation search`
@@ -715,6 +727,7 @@ git checkout -b feat/your-feature-name
 <td>
 
 **Test Your Changes**
+
 ```bash
 bun dev
 bun lint          # Run linting
@@ -728,6 +741,7 @@ bun type-check    # TypeScript validation
 <td>
 
 **Submit a Pull Request**
+
 - Push your branch to GitHub
 - Open a pull request with a clear description
 - Reference any related issues
@@ -756,7 +770,6 @@ bun type-check    # TypeScript validation
 <td>Respect the project's <b>code of conduct</b></td>
 </tr>
 </table>
-
 
 <img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="900">
 

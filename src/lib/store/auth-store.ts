@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User } from '@supabase/supabase-js';
+import type { User, AuthSession } from '@supabase/supabase-js';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
@@ -27,6 +27,7 @@ interface AuthActions {
   switchRole: (role: UserRole) => void;
   signOut: () => Promise<void>;
   reset: () => void;
+  subscribeToAuthChanges: () => void;
 }
 
 const initialState: AuthState = {
@@ -51,28 +52,25 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       setInitialized: (isInitialized) => set({ isInitialized }),
 
       initialize: async () => {
-        // Skip if already initialized (e.g. seeded by SSR data)
-        if (get().isInitialized && get().user) return;
+        if (get().isInitialized) return;
 
         const supabase = createClient();
 
         try {
           set({ isLoading: true });
 
-          // Use getSession() first — it reads from local storage (instant, no network)
+          get().subscribeToAuthChanges();
+
           const {
             data: { session },
           } = await supabase.auth.getSession();
 
           if (session?.user) {
             set({ user: session.user });
-            // Fetch profile and roles in parallel
             await Promise.all([get().fetchProfile(), get().fetchRoles()]);
           }
-          // No session = not logged in, skip silently
         } catch (error) {
           console.error('Failed to initialize auth:', error);
-          // On error, still mark as initialized so the UI can proceed
         } finally {
           set({ isLoading: false, isInitialized: true });
         }
@@ -190,6 +188,39 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       },
 
       reset: () => set(initialState),
+
+      subscribeToAuthChanges: () => {
+        const supabase = createClient();
+
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+
+          switch (event) {
+            case 'SIGNED_IN':
+            case 'TOKEN_REFRESHED':
+              if (session?.user) {
+                set({ user: session.user, isLoading: false });
+                await Promise.all([get().fetchProfile(), get().fetchRoles()]);
+              }
+              break;
+
+            case 'SIGNED_OUT':
+              set({ user: null, profile: null, roles: [], activeRole: null });
+              break;
+
+            case 'PASSWORD_RECOVERY':
+            case 'USER_UPDATED':
+              if (session?.user) {
+                set({ user: session.user });
+                await get().fetchProfile();
+              }
+              break;
+          }
+        });
+
+        return subscription;
+      },
     }),
     {
       name: 'agri-serve-auth',

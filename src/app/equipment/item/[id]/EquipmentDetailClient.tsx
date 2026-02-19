@@ -65,7 +65,7 @@ export default function EquipmentDetailPage() {
 
   useEffect(() => {
     loadEquipmentDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [equipmentId]);
 
   const loadEquipmentDetails = async () => {

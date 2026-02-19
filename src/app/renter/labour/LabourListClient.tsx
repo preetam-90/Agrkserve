@@ -98,7 +98,7 @@ function LabourListPageContent() {
 
   useEffect(() => {
     loadLabourProfiles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [selectedSkills, sortBy, page, userLocation, minRating]);
 
   const loadLabourProfiles = async () => {
@@ -326,7 +326,9 @@ function LabourListPageContent() {
               {labourProfiles.map((labour) => {
                 const availabilityStyle = getAvailabilityStyle(labour.availability);
                 const displayRating =
-                  labour.rating && labour.rating > 0 ? labour.rating.toFixed(1) : 'New';
+                  labour.average_rating && labour.average_rating > 0
+                    ? labour.average_rating.toFixed(1)
+                    : 'New';
 
                 return (
                   <Card

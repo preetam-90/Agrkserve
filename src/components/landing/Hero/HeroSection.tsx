@@ -29,16 +29,34 @@ export function HeroSection() {
         .timeline()
         .fromTo('.hero-black', { opacity: 1 }, { opacity: 0, duration: 1.3, ease: 'power2.out' })
         .fromTo('.hero-grain', { opacity: 0 }, { opacity: 0.42, duration: 1 }, '-=1')
-        .fromTo('.hero-word', { opacity: 0, y: 40 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.8 }, '-=0.7')
-        .fromTo('.hero-subcopy', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.45')
-        .fromTo('.hero-cta', { opacity: 0, scale: 0.92 }, { opacity: 1, scale: 1, stagger: 0.1, duration: 0.6 }, '-=0.35');
+        .fromTo(
+          '.hero-word',
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, stagger: 0.08, duration: 0.8 },
+          '-=0.7'
+        )
+        .fromTo(
+          '.hero-subcopy',
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.8 },
+          '-=0.45'
+        )
+        .fromTo(
+          '.hero-cta',
+          { opacity: 0, scale: 0.92 },
+          { opacity: 1, scale: 1, stagger: 0.1, duration: 0.6 },
+          '-=0.35'
+        );
     }, rootRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={rootRef} className="hero-scene relative flex min-h-screen items-center overflow-hidden px-5 pb-16 pt-28 md:px-8">
+    <section
+      ref={rootRef}
+      className="hero-scene relative flex min-h-screen items-center overflow-hidden px-5 pb-16 pt-28 md:px-8"
+    >
       <HeroVisual />
 
       <div className="hero-grain pointer-events-none absolute inset-0 opacity-0 [background-image:radial-gradient(circle,rgba(255,255,255,0.07)_1px,transparent_1px)] [background-size:4px_4px]" />
@@ -56,7 +74,8 @@ export function HeroSection() {
           </h1>
 
           <p className="hero-subcopy mt-8 max-w-2xl text-base text-zinc-200/85 md:text-xl">
-            From machine access to workforce deployment, one unified operating layer for modern farming.
+            From machine access to workforce deployment, one unified operating layer for modern
+            farming.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -64,7 +83,7 @@ export function HeroSection() {
               <Link href="/equipment">Book Equipment</Link>
             </MagneticButton>
 
-            <MagneticButton className="hero-cta rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-medium uppercase tracking-[0.08em] text-white backdrop-blur-xl transition hover:bg-white/18">
+            <MagneticButton className="hero-cta hover:bg-white/18 rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-medium uppercase tracking-[0.08em] text-white backdrop-blur-xl transition">
               <Link href="/auth/register?role=provider">List Equipment</Link>
             </MagneticButton>
 

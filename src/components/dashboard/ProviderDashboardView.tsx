@@ -36,7 +36,7 @@ interface ProviderDashboardProps {
 export const ProviderDashboardView = React.memo(function ProviderDashboardView({
   initialData,
 }: ProviderDashboardProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const { sidebarOpen } = useAppStore();
 
   // Seed state from SSR data if available
@@ -175,7 +175,7 @@ export const ProviderDashboardView = React.memo(function ProviderDashboardView({
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const loadDashboardData = async () => {

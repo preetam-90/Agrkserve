@@ -130,7 +130,7 @@ export function InteractiveTractorModel({
     // Simple loader without Draco - the model is not Draco-compressed
     const loadTimeout = setTimeout(() => {
       if (mounted && !externalModel) {
-        console.warn('[TractorModel] Loading timeout, using procedural fallback');
+        console.warn('TractorModel loading timeout, using procedural fallback');
         onLoadedChange(true); // Mark as "loaded" with fallback
       }
     }, 10000); // 10 second timeout
@@ -144,7 +144,7 @@ export function InteractiveTractorModel({
         return;
       }
 
-      console.log(`[TractorModel] Attempting to load: ${MODEL_PATHS[index]}`);
+      console.log(`TractorModel attempting to load: ${MODEL_PATHS[index]}`);
 
       loader.load(
         MODEL_PATHS[index],
@@ -152,7 +152,7 @@ export function InteractiveTractorModel({
           if (!mounted) return;
           clearTimeout(loadTimeout);
 
-          console.log('[TractorModel] Model loaded successfully');
+          console.log('TractorModel model loaded successfully');
 
           const model = gltf.scene.clone(true);
           model.traverse((object) => {
@@ -177,11 +177,11 @@ export function InteractiveTractorModel({
         (progress) => {
           if (progress.total > 0) {
             const percent = Math.round((progress.loaded / progress.total) * 100);
-            console.log(`[TractorModel] Loading: ${percent}%`);
+            console.log(`TractorModel loading: ${percent}%`);
           }
         },
         (error) => {
-          console.error(`[TractorModel] Failed to load ${MODEL_PATHS[index]}:`, error);
+          console.error(`TractorModel failed to load ${MODEL_PATHS[index]}:`, error);
           tryLoadModel(index + 1);
         }
       );

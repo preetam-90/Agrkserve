@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { MagneticButton } from '../shared/MagneticButton';
 
-export function FinalCTA() {
+function FinalCTA() {
   return (
     <section className="relative overflow-hidden bg-[#040805] px-5 pb-32 pt-20 md:px-8 md:pb-40 md:pt-28">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(34,197,94,0.34),transparent_38%),radial-gradient(circle_at_78%_72%,rgba(6,182,212,0.28),transparent_50%)]" />

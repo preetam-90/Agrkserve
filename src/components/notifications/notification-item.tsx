@@ -109,17 +109,20 @@ export function NotificationItem({
     }
   }, [notification, onMarkRead, onClose, router]);
 
-  const handleDelete = useCallback(async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsDeleting(true);
+  const handleDelete = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setIsDeleting(true);
 
-    try {
-      await onDelete(notification.id);
-    } catch (err) {
-      console.error('Failed to delete notification:', err);
-      setIsDeleting(false);
-    }
-  }, [notification.id, onDelete]);
+      try {
+        await onDelete(notification.id);
+      } catch (err) {
+        console.error('Failed to delete notification:', err);
+        setIsDeleting(false);
+      }
+    },
+    [notification.id, onDelete]
+  );
 
   // Keyboard navigation
   useEffect(() => {
@@ -154,8 +157,8 @@ export function NotificationItem({
       aria-describedby={`notification-desc-${notification.id}`}
       className={cn(
         'group relative flex cursor-pointer gap-3 p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900',
-        notification.is_read 
-          ? 'bg-background hover:bg-muted/50' 
+        notification.is_read
+          ? 'bg-background hover:bg-muted/50'
           : 'bg-primary/5 hover:bg-primary/10',
         priorityStyle.bg,
         isDeleting && 'pointer-events-none scale-95 opacity-0',
@@ -189,7 +192,7 @@ export function NotificationItem({
 
           {/* Unread indicator */}
           {!notification.is_read && (
-            <div 
+            <div
               className={cn('mt-1 h-2 w-2 flex-shrink-0 rounded-full', priorityStyle.dot)}
               aria-label="Unread notification"
             />
@@ -207,7 +210,7 @@ export function NotificationItem({
         </p>
 
         <div className="flex items-center justify-between gap-2 pt-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
             <Clock className="h-3 w-3" aria-hidden="true" />
             <span>
               {formatDistanceToNow(new Date(notification.created_at), {
@@ -217,7 +220,7 @@ export function NotificationItem({
           </div>
 
           {notification.action_url && notification.action_label && (
-            <span className="flex items-center gap-1 text-xs font-medium text-primary group-hover:underline">
+            <span className="text-primary flex items-center gap-1 text-xs font-medium group-hover:underline">
               {notification.action_label}
               <ArrowRight className="h-3 w-3" aria-hidden="true" />
             </span>
@@ -229,7 +232,7 @@ export function NotificationItem({
       <Button
         variant="ghost"
         size="icon"
-        className="h-7 w-7 flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100"
+        className="h-7 w-7 flex-shrink-0 opacity-0 transition-opacity focus:opacity-100 group-hover:opacity-100"
         onClick={handleDelete}
         disabled={isDeleting}
         title="Delete notification"

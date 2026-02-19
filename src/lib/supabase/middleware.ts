@@ -15,9 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
             request,
           });
@@ -29,53 +27,31 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refreshing the auth token
+  // IMPORTANT: This call refreshes the auth session cookie.
+  // Do NOT remove this - it is required for the Supabase SSR auth pattern.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Define protected routes
-  const protectedRoutes = ['/dashboard', '/provider', '/renter', '/admin', '/profile', '/settings', '/bookings', '/equipment/new', '/messages'];
-  const authRoutes = ['/login', '/verify'];
-  const setupRoutes = ['/phone-setup', '/onboarding'];
-  
   const pathname = request.nextUrl.pathname;
 
-  // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
-  const isSetupRoute = setupRoutes.some(route => pathname.startsWith(route));
+  const protectedRoutes = [
+    '/dashboard',
+    '/provider',
+    '/renter',
+    '/admin',
+    '/profile',
+    '/settings',
+    '/bookings',
+    '/equipment/new',
+    '/messages',
+  ];
+  const authRoutes = ['/login', '/verify'];
 
-  // For authenticated users, check if they need to complete phone setup
-  if (user && !isSetupRoute && !isAuthRoute) {
-    // Check if user has phone number
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('phone, is_profile_complete')
-      .eq('id', user.id)
-      .single();
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-    // Redirect to phone setup if no phone number
-    if (!profile?.phone && pathname !== '/phone-setup') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/phone-setup';
-      return NextResponse.redirect(url);
-    }
-
-    // Redirect to onboarding if profile is not complete (but has phone)
-    if (profile?.phone && !profile?.is_profile_complete && pathname !== '/onboarding' && !isProtectedRoute) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/onboarding';
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Allow setup routes for authenticated users
-  if (isSetupRoute && user) {
-    return supabaseResponse;
-  }
-
-  // Redirect unauthenticated users from protected routes
+  // Redirect unauthenticated users away from protected routes
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -83,7 +59,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users from auth routes
+  // Redirect authenticated users away from auth routes
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
     const redirect = request.nextUrl.searchParams.get('redirect') || '/dashboard';

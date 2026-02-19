@@ -14,7 +14,7 @@ import type {
 } from '@/lib/types/cloudinary-admin';
 
 // Query keys
-export const cloudinaryKeys = {
+const cloudinaryKeys = {
   all: ['cloudinary'] as const,
   assets: (filters: MediaFilters) => [...cloudinaryKeys.all, 'assets', filters] as const,
   asset: (publicId: string) => [...cloudinaryKeys.all, 'asset', publicId] as const,
@@ -236,7 +236,7 @@ export function useCloudinaryAssets(filters: MediaFilters) {
   });
 }
 
-export function useCloudinaryUsers() {
+function useCloudinaryUsers() {
   return useQuery({
     queryKey: cloudinaryKeys.users(),
     queryFn: fetchUsersWithMedia,
@@ -252,7 +252,7 @@ export function useCloudinaryAnalytics() {
   });
 }
 
-export function useCloudinaryAuditLogs(filters?: Record<string, unknown>) {
+function useCloudinaryAuditLogs(filters?: Record<string, unknown>) {
   return useQuery({
     queryKey: cloudinaryKeys.auditLogs(filters),
     queryFn: () => fetchAuditLogs(filters),

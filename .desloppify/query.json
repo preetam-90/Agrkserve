@@ -1,0 +1,615 @@
+{
+  "command": "show",
+  "query": "single_use",
+  "status_filter": "open",
+  "total": 10,
+  "summary": {
+    "by_tier": {
+      "T3": 10
+    },
+    "by_detector": {
+      "single_use": 10
+    },
+    "files": 10
+  },
+  "by_file": {
+    "src/components/admin/RevenueDetailsModal.tsx": [
+      {
+        "id": "single_use::src/components/admin/RevenueDetailsModal.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (277 LOC): only imported by src/app/admin/analytics/AnalyticsClient.tsx",
+        "detail": {
+          "loc": 277,
+          "sole_importer": "src/app/admin/analytics/AnalyticsClient.tsx"
+        }
+      }
+    ],
+    "src/components/admin/media/MediaAnalyticsDashboard.tsx": [
+      {
+        "id": "single_use::src/components/admin/media/MediaAnalyticsDashboard.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (227 LOC): only imported by src/app/admin/media/cloudinary/MediaClient.tsx",
+        "detail": {
+          "loc": 227,
+          "sole_importer": "src/app/admin/media/cloudinary/MediaClient.tsx"
+        }
+      }
+    ],
+    "src/components/admin/media/MediaFiltersBar.tsx": [
+      {
+        "id": "single_use::src/components/admin/media/MediaFiltersBar.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (217 LOC): only imported by src/app/admin/media/cloudinary/MediaClient.tsx",
+        "detail": {
+          "loc": 217,
+          "sole_importer": "src/app/admin/media/cloudinary/MediaClient.tsx"
+        }
+      }
+    ],
+    "src/components/admin/media/MediaGrid.tsx": [
+      {
+        "id": "single_use::src/components/admin/media/MediaGrid.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (244 LOC): only imported by src/app/admin/media/cloudinary/MediaClient.tsx",
+        "detail": {
+          "loc": 244,
+          "sole_importer": "src/app/admin/media/cloudinary/MediaClient.tsx"
+        }
+      }
+    ],
+    "src/components/admin/media/ReplaceAssetModal.tsx": [
+      {
+        "id": "single_use::src/components/admin/media/ReplaceAssetModal.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (295 LOC): only imported by src/app/admin/media/cloudinary/MediaClient.tsx",
+        "detail": {
+          "loc": 295,
+          "sole_importer": "src/app/admin/media/cloudinary/MediaClient.tsx"
+        }
+      }
+    ],
+    "src/components/blog/ArticleSidebar.tsx": [
+      {
+        "id": "single_use::src/components/blog/ArticleSidebar.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (215 LOC): only imported by src/app/blog/[id]/BlogPostContent.tsx",
+        "detail": {
+          "loc": 215,
+          "sole_importer": "src/app/blog/[id]/BlogPostContent.tsx"
+        }
+      }
+    ],
+    "src/components/landing/CriticalCSS.tsx": [
+      {
+        "id": "single_use::src/components/landing/CriticalCSS.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (267 LOC): only imported by src/app/page.tsx",
+        "detail": {
+          "loc": 267,
+          "sole_importer": "src/app/page.tsx"
+        }
+      }
+    ],
+    "src/components/profile-picture-upload.tsx": [
+      {
+        "id": "single_use::src/components/profile-picture-upload.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (283 LOC): only imported by src/app/phone-setup/PhoneSetupClient.tsx",
+        "detail": {
+          "loc": 283,
+          "sole_importer": "src/app/phone-setup/PhoneSetupClient.tsx"
+        }
+      }
+    ],
+    "src/components/skeletons/EquipmentDetailSkeleton.tsx": [
+      {
+        "id": "single_use::src/components/skeletons/EquipmentDetailSkeleton.tsx",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (227 LOC): only imported by src/app/equipment/item/[id]/loading.tsx",
+        "detail": {
+          "loc": 227,
+          "sole_importer": "src/app/equipment/item/[id]/loading.tsx"
+        }
+      }
+    ],
+    "src/hooks/useMediaQuery.ts": [
+      {
+        "id": "single_use::src/hooks/useMediaQuery.ts",
+        "tier": 3,
+        "confidence": "medium",
+        "summary": "Single-use (27 LOC): only imported by src/components/landing/LandingPageRedesigned.tsx",
+        "detail": {
+          "loc": 27,
+          "sole_importer": "src/components/landing/LandingPageRedesigned.tsx"
+        }
+      }
+    ]
+  },
+  "total_matching": 13,
+  "hidden": {
+    "by_detector": {
+      "single_use": 3
+    },
+    "total": 3
+  },
+  "noise_budget": 10,
+  "noise_global_budget": 0,
+  "narrative": {
+    "phase": "stagnation",
+    "headline": "Score plateaued at 91.5 for 5 scans. Duplication (24.4%) is where the breakthrough is. 3 wontfix items may also be worth revisiting.",
+    "dimensions": {
+      "lowest_dimensions": [
+        {
+          "name": "Duplication",
+          "strict": 24.4,
+          "issues": 1682,
+          "impact": 0.0
+        },
+        {
+          "name": "Test health",
+          "strict": 78.1,
+          "issues": 500,
+          "impact": 0.0
+        },
+        {
+          "name": "Code quality",
+          "strict": 89.8,
+          "issues": 610,
+          "impact": 0.0
+        }
+      ],
+      "biggest_gap_dimensions": [],
+      "stagnant_dimensions": [
+        {
+          "name": "File health",
+          "strict": 90.2,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Code quality",
+          "strict": 89.8,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Test health",
+          "strict": 78.1,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Security",
+          "strict": 99.9,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Naming Quality",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Logic Clarity",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Type Safety",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Contracts",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Error Consistency",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Abstraction Fit",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "AI Generated Debt",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "High Elegance",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Mid Elegance",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Low Elegance",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Cross-Module Arch",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Init Coupling",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Convention Drift",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Dep Health",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Test Strategy",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "API Coherence",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Auth Consistency",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Stale Migration",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Structure Nav",
+          "strict": 100.0,
+          "stuck_scans": 5
+        }
+      ]
+    },
+    "actions": [
+      {
+        "type": "auto_fix",
+        "detector": "unused",
+        "count": 158,
+        "description": "158 unused findings \u2014 run `desloppify fix unused-imports --dry-run` to preview, then apply",
+        "command": "desloppify fix unused-imports --dry-run",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 1,
+        "lane": "cleanup"
+      },
+      {
+        "type": "auto_fix",
+        "detector": "smells",
+        "count": 212,
+        "description": "212 smells findings \u2014 run `desloppify fix dead-useeffect --dry-run` to preview, then apply",
+        "command": "desloppify fix dead-useeffect --dry-run",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 2,
+        "lane": "cleanup"
+      },
+      {
+        "type": "reorganize",
+        "detector": "orphaned",
+        "count": 203,
+        "description": "203 orphaned findings \u2014 delete dead files or relocate with `desloppify move`",
+        "command": "desloppify show orphaned --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 3,
+        "lane": "restructure"
+      },
+      {
+        "type": "reorganize",
+        "detector": "flat_dirs",
+        "count": 3,
+        "description": "3 flat_dirs findings \u2014 create subdirectories and use `desloppify move`",
+        "command": "desloppify show flat_dirs --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 4,
+        "lane": "restructure"
+      },
+      {
+        "type": "reorganize",
+        "detector": "naming",
+        "count": 3,
+        "description": "3 naming findings \u2014 rename files with `desloppify move` to fix conventions",
+        "command": "desloppify show naming --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 5,
+        "lane": "restructure"
+      },
+      {
+        "type": "reorganize",
+        "detector": "single_use",
+        "count": 13,
+        "description": "13 single_use findings \u2014 inline or relocate with `desloppify move`",
+        "command": "desloppify show single_use --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 6,
+        "lane": "restructure"
+      },
+      {
+        "type": "reorganize",
+        "detector": "facade",
+        "count": 4,
+        "description": "4 facade findings \u2014 flatten re-export facades or consolidate barrel files",
+        "command": "desloppify show facade --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 7,
+        "lane": "restructure"
+      },
+      {
+        "type": "refactor",
+        "detector": "structural",
+        "count": 77,
+        "description": "77 structural findings \u2014 decompose large files \u2014 extract logic into focused modules",
+        "command": "desloppify show structural --status open",
+        "impact": 0.0,
+        "dimension": "File health",
+        "priority": 8,
+        "lane": "refactor"
+      },
+      {
+        "type": "refactor",
+        "detector": "props",
+        "count": 1,
+        "description": "1 props findings \u2014 split bloated components, extract sub-components",
+        "command": "desloppify show props --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 9,
+        "lane": "refactor"
+      },
+      {
+        "type": "refactor",
+        "detector": "react",
+        "count": 14,
+        "description": "14 react findings \u2014 refactor React antipatterns (state sync, provider nesting, hook bloat)",
+        "command": "desloppify show react --status open",
+        "impact": 0.0,
+        "dimension": "Code quality",
+        "priority": 10,
+        "lane": "refactor"
+      },
+      {
+        "type": "refactor",
+        "detector": "dupes",
+        "count": 6,
+        "description": "6 dupes findings \u2014 extract shared utility or consolidate duplicates",
+        "command": "desloppify show dupes --status open",
+        "impact": 0.0,
+        "dimension": "Duplication",
+        "priority": 11,
+        "lane": "refactor"
+      },
+      {
+        "type": "refactor",
+        "detector": "test_coverage",
+        "count": 50,
+        "description": "50 test_coverage findings \u2014 add tests for untested production modules \u2014 prioritize by import count",
+        "command": "desloppify show test_coverage --status open",
+        "impact": 0.0,
+        "dimension": "Test health",
+        "priority": 12,
+        "lane": "test_coverage"
+      },
+      {
+        "type": "refactor",
+        "detector": "boilerplate_duplication",
+        "count": 1676,
+        "description": "1676 boilerplate_duplication findings \u2014 extract shared boilerplate into reusable helpers or base classes",
+        "command": "desloppify show boilerplate_duplication --status open",
+        "impact": 0.0,
+        "dimension": "Duplication",
+        "priority": 13,
+        "lane": "refactor"
+      },
+      {
+        "type": "manual_fix",
+        "detector": "subjective_review",
+        "count": 450,
+        "description": "450 files need design review \u2014 run design review with dimension templates",
+        "command": "desloppify fix review",
+        "impact": 0.0,
+        "dimension": "Test health",
+        "priority": 14,
+        "lane": "refactor"
+      }
+    ],
+    "strategy": {
+      "fixer_leverage": {
+        "auto_fixable_count": 370,
+        "total_count": 2870,
+        "coverage": 0.129,
+        "impact_ratio": 0.0,
+        "recommendation": "moderate"
+      },
+      "lanes": {
+        "cleanup": {
+          "actions": [
+            2,
+            1
+          ],
+          "file_count": 195,
+          "total_impact": 0.0,
+          "automation": "full",
+          "run_first": true
+        },
+        "restructure": {
+          "actions": [
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "file_count": 225,
+          "total_impact": 0.0,
+          "automation": "manual",
+          "run_first": false
+        },
+        "refactor": {
+          "actions": [
+            8,
+            9,
+            10,
+            11,
+            13,
+            14
+          ],
+          "file_count": 458,
+          "total_impact": 0.0,
+          "automation": "manual",
+          "run_first": false
+        },
+        "test_coverage": {
+          "actions": [
+            12
+          ],
+          "file_count": 50,
+          "total_impact": 0.0,
+          "automation": "manual",
+          "run_first": false
+        }
+      },
+      "can_parallelize": true,
+      "hint": "3 independent workstreams, safe to parallelize. Rescan after each phase to verify."
+    },
+    "tools": {
+      "fixers": [
+        {
+          "name": "unused-imports",
+          "detector": "unused",
+          "open_count": 158,
+          "command": "desloppify fix unused-imports --dry-run"
+        },
+        {
+          "name": "unused-vars",
+          "detector": "unused",
+          "open_count": 158,
+          "command": "desloppify fix unused-vars --dry-run"
+        },
+        {
+          "name": "unused-params",
+          "detector": "unused",
+          "open_count": 158,
+          "command": "desloppify fix unused-params --dry-run"
+        },
+        {
+          "name": "dead-useeffect",
+          "detector": "smells",
+          "open_count": 212,
+          "command": "desloppify fix dead-useeffect --dry-run"
+        },
+        {
+          "name": "empty-if-chain",
+          "detector": "smells",
+          "open_count": 212,
+          "command": "desloppify fix empty-if-chain --dry-run"
+        }
+      ],
+      "move": {
+        "available": true,
+        "relevant": true,
+        "reason": "203 orphaned files + 13 single-use files + 3 flat directories + 3 naming issues",
+        "usage": "desloppify move <source> <dest> [--dry-run]"
+      },
+      "plan": {
+        "command": "desloppify plan",
+        "description": "Generate prioritized markdown cleanup plan"
+      },
+      "badge": {
+        "generated": true,
+        "in_readme": true,
+        "path": "scorecard.png",
+        "recommendation": null
+      }
+    },
+    "debt": {
+      "overall_gap": 0.0,
+      "wontfix_count": 3,
+      "worst_dimension": "Code quality",
+      "worst_gap": 0.1,
+      "trend": "stable"
+    },
+    "milestone": null,
+    "primary_action": {
+      "command": "desloppify fix unused-imports --dry-run",
+      "description": "158 unused findings \u2014 run `desloppify fix unused-imports --dry-run` to preview, then apply"
+    },
+    "why_now": "3 independent workstreams, safe to parallelize. Rescan after each phase to verify.",
+    "verification_step": {
+      "command": "desloppify scan",
+      "reason": "revalidate after changes"
+    },
+    "risk_flags": [
+      {
+        "type": "wontfix_gap",
+        "severity": "medium",
+        "message": "Strict/lenient gap is 0.0 pts with 3 wontfix findings"
+      }
+    ],
+    "strict_target": {
+      "target": 95.0,
+      "current": 91.5,
+      "gap": 3.5,
+      "state": "below",
+      "warning": null
+    },
+    "reminders": [],
+    "reminder_history": {
+      "report_scores": 25,
+      "auto_fixers_available": 3,
+      "dry_run_first": 3,
+      "zone_classification": 3,
+      "feedback_nudge": 3,
+      "stagnant_nudge": 11,
+      "fp_calibration_security_production": 3,
+      "badge_recommendation": 3,
+      "review_not_run": 3
+    }
+  },
+  "config": {
+    "target_strict_score": 95,
+    "review_max_age_days": 30,
+    "holistic_max_age_days": 30,
+    "generate_scorecard": true,
+    "badge_path": "scorecard.png",
+    "exclude": [],
+    "ignore": [],
+    "ignore_metadata": {},
+    "zone_overrides": {},
+    "review_dimensions": [],
+    "large_files_threshold": 0,
+    "props_threshold": 0,
+    "finding_noise_budget": 10,
+    "finding_noise_global_budget": 0,
+    "languages": {}
+  }
+}

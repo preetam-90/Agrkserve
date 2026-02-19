@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 interface MagneticButtonProps {
@@ -12,7 +12,11 @@ interface MagneticButtonProps {
   magnetic?: 'auto' | 'on' | 'off';
 }
 
-function ButtonInner({ href, children, className }: Pick<MagneticButtonProps, 'href' | 'children' | 'className'>) {
+function ButtonInner({
+  href,
+  children,
+  className,
+}: Pick<MagneticButtonProps, 'href' | 'children' | 'className'>) {
   if (href) {
     return (
       <Link
@@ -33,7 +37,8 @@ function MagneticContainer({
   children,
   className,
   strength,
-}: Required<Pick<MagneticButtonProps, 'strength'>> & Pick<MagneticButtonProps, 'href' | 'children' | 'className'>) {
+}: Required<Pick<MagneticButtonProps, 'strength'>> &
+  Pick<MagneticButtonProps, 'href' | 'children' | 'className'>) {
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const x = useSpring(mx, { stiffness: 220, damping: 22, mass: 0.3 });
@@ -75,29 +80,33 @@ export function MagneticButton({
   strength = 0.24,
   magnetic = 'auto',
 }: MagneticButtonProps) {
-  const canUseMagnetic = useMemo(() => {
+  const [canUseMagnetic, setCanUseMagnetic] = React.useState(false);
+
+  React.useEffect(() => {
+    let shouldUseMagnetic = false;
+
     if (magnetic === 'on') {
-      return true;
+      shouldUseMagnetic = true;
+    } else if (magnetic === 'auto') {
+      const finePointer = window.matchMedia('(pointer: fine)').matches;
+      const hoverCapable = window.matchMedia('(hover: hover)').matches;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const lowCpu =
+        typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4;
+      const lowMemory =
+        'deviceMemory' in navigator &&
+        typeof (navigator as Navigator & { deviceMemory?: number }).deviceMemory === 'number' &&
+        ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4;
+
+      shouldUseMagnetic = finePointer && hoverCapable && !reducedMotion && !lowCpu && !lowMemory;
     }
 
-    if (magnetic === 'off' || typeof window === 'undefined') {
-      return false;
-    }
-
-    const finePointer = window.matchMedia('(pointer: fine)').matches;
-    const hoverCapable = window.matchMedia('(hover: hover)').matches;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const lowCpu =
-      typeof navigator.hardwareConcurrency === 'number' && navigator.hardwareConcurrency <= 4;
-    const lowMemory =
-      'deviceMemory' in navigator &&
-      typeof (navigator as Navigator & { deviceMemory?: number }).deviceMemory === 'number' &&
-      ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4;
-
-    return finePointer && hoverCapable && !reducedMotion && !lowCpu && !lowMemory;
+    setCanUseMagnetic(shouldUseMagnetic);
   }, [magnetic]);
 
-  if (!canUseMagnetic) {
+  // Render the same static HTML on server and initial client render to avoid hydration mismatch
+  const isStaticRender = typeof window === 'undefined';
+  if (isStaticRender || !canUseMagnetic) {
     return (
       <div className="inline-block">
         <ButtonInner href={href} className={className}>

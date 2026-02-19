@@ -29,13 +29,11 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Upload to Supabase Storage
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, buffer, {
-        contentType: file.type,
-        cacheControl: '3600',
-        upsert: true,
-      });
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, buffer, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: true,
+    });
 
     if (uploadError) {
       console.error('Supabase upload error:', uploadError);

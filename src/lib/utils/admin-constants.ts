@@ -1,4 +1,4 @@
-export const ADMIN_ROUTES = {
+const ADMIN_ROUTES = {
   DASHBOARD: '/admin',
   USERS: '/admin/users',
   EQUIPMENT: '/admin/equipment',
@@ -18,7 +18,7 @@ export const BOOKING_STATUS_OPTIONS = [
   { label: 'Cancelled', value: 'cancelled' },
 ] as const;
 
-export const EQUIPMENT_CATEGORY_OPTIONS = [
+const EQUIPMENT_CATEGORY_OPTIONS = [
   { label: 'All', value: '' },
   { label: 'Tractor', value: 'tractor' },
   { label: 'Harvester', value: 'harvester' },
@@ -54,7 +54,7 @@ export const PAYMENT_STATUS_OPTIONS = [
   { label: 'Refunded', value: 'refunded' },
 ];
 
-export const USER_ROLE_OPTIONS = [
+const USER_ROLE_OPTIONS = [
   { label: 'Renter', value: 'renter' },
   { label: 'Provider', value: 'provider' },
   { label: 'Labour', value: 'labour' },

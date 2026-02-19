@@ -174,7 +174,7 @@ export function ScrollTransitions({ reducedMotion = false }: ScrollTransitionsPr
                 }
               } catch (error) {
                 // Prevent rare DOM race crashes during lazy mount/hydration churn.
-                console.warn('[Landing ScrollTransitions] Skipped refresh after DOM race:', error);
+                console.warn('Landing ScrollTransitions skipped refresh after DOM race:', error);
               }
             });
           }, 72);

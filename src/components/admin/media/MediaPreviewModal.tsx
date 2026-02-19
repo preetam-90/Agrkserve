@@ -122,7 +122,11 @@ export function MediaPreviewModal({
               return;
             }
 
-            if (countJson && (countJson as AuditLogCountResponse).success && (countJson as AuditLogCountResponse).data) {
+            if (
+              countJson &&
+              (countJson as AuditLogCountResponse).success &&
+              (countJson as AuditLogCountResponse).data
+            ) {
               if (!mounted) return;
               setAuditCount(Number((countJson as AuditLogCountResponse).data.total || 0));
             } else if (countJson && !(countJson as AuditLogCountResponse).success) {
@@ -267,8 +271,6 @@ export function MediaPreviewModal({
                       onLoadedData={() => setIsLoading(false)}
                     />
                   ) : (
-                     
-
                     <Image
                       src={asset.secure_url}
                       alt={asset.public_id}

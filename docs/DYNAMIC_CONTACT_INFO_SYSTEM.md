@@ -1,24 +1,30 @@
 # Dynamic Contact Information System
 
 ## Overview
+
 The contact information (email, phone, address, social media links) is now centrally managed in the admin panel and automatically updated across the entire platform.
 
 ## How It Works
 
 ### 1. Central Database Storage
+
 All contact information is stored in the `system_settings` table in Supabase:
+
 - `support_email`
 - `support_phone`
 - `business_address`
 - `social_links` (Facebook, Twitter, LinkedIn, Instagram)
 
 ### 2. Admin Panel Management
+
 Admins can update contact information at:
+
 ```
 http://localhost:3001/admin/settings
 ```
 
 **Steps to update:**
+
 1. Go to Settings → General tab
 2. Click "Edit" button in Contact Information section
 3. Modify email, phone, address, or social media links
@@ -30,17 +36,21 @@ http://localhost:3001/admin/settings
 The contact information is automatically displayed in:
 
 #### ✅ Footer Component
+
 - **Location**: `src/components/landing/PremiumFooter.tsx`
 - **Updates**: Email, phone, address, social media links
 - **Refresh**: Automatically fetches on page load
 
 #### ✅ Contact Page
+
 - **Location**: `src/app/contact/page.tsx`
 - **Updates**: Email, phone, address (used for WhatsApp link too)
 - **Refresh**: Automatically fetches on page load
 
 #### 🔄 Future Integration Points
+
 You can easily add dynamic contact info to:
+
 - Header/Navigation
 - About page
 - Help/Support pages
@@ -50,6 +60,7 @@ You can easily add dynamic contact info to:
 ## Technical Implementation
 
 ### Service Layer
+
 **File**: `src/lib/services/settings.ts`
 
 ```typescript
@@ -61,6 +72,7 @@ const contactInfo = await getContactInfo();
 ```
 
 **Features:**
+
 - **Caching**: Settings are cached for 5 minutes to reduce database calls
 - **Fallback**: Returns default values if database is unavailable
 - **Type-safe**: Full TypeScript support
@@ -68,16 +80,20 @@ const contactInfo = await getContactInfo();
 ### API Endpoints
 
 #### Public Endpoint (No Auth Required)
+
 ```
 GET /api/settings
 ```
+
 Returns contact and general settings accessible to everyone.
 
 #### Admin Endpoint (Auth Required)
+
 ```
 GET /api/admin/settings
 PUT /api/admin/settings
 ```
+
 Full access to all settings for admins only.
 
 ### Database Schema
@@ -95,6 +111,7 @@ CREATE TABLE system_settings (
 ```
 
 **Default Values:**
+
 ```sql
 INSERT INTO system_settings (key, value, category) VALUES
   ('support_email', '"support@agriServe.com"', 'contact'),
@@ -106,6 +123,7 @@ INSERT INTO system_settings (key, value, category) VALUES
 ### Security
 
 #### Row Level Security (RLS)
+
 - **Public Read**: Anyone can read `general` and `contact` category settings
 - **Admin Only**: Only admins can update settings
 - **Secure**: All other categories require admin authentication
@@ -171,11 +189,14 @@ console.log(data.settings.support_email);
 ## Cache Management
 
 ### Automatic Cache Clearing
+
 The cache is automatically cleared when:
+
 - Admin saves settings in the admin panel
 - 5 minutes have passed since last fetch
 
 ### Manual Cache Clearing
+
 ```typescript
 import { clearSettingsCache } from '@/lib/services/settings';
 
@@ -188,6 +209,7 @@ clearSettingsCache();
 ### Apply Database Migrations
 
 1. **Create settings tables** (if not already done):
+
    ```bash
    # Apply migration 023
    ```
@@ -202,11 +224,13 @@ clearSettingsCache();
 To add dynamic contact info to any component:
 
 1. Import the service:
+
    ```typescript
    import { getContactInfo } from '@/lib/services/settings';
    ```
 
 2. Fetch in useEffect:
+
    ```typescript
    useEffect(() => {
      getContactInfo().then((info) => {
@@ -220,21 +244,25 @@ To add dynamic contact info to any component:
 ## Benefits
 
 ### ✅ Single Source of Truth
+
 - Update once in admin panel
 - Changes reflect everywhere automatically
 - No need to update multiple files
 
 ### ✅ No Code Deployment Required
+
 - Change contact info without touching code
 - Non-technical staff can update information
 - Instant updates without rebuilding
 
 ### ✅ Consistent Branding
+
 - Same contact info across all pages
 - No risk of outdated information
 - Professional appearance
 
 ### ✅ Performance Optimized
+
 - Caching reduces database calls
 - Fast page loads
 - Minimal overhead
@@ -269,6 +297,7 @@ To add dynamic contact info to any component:
 **Problem**: Changes in admin panel don't appear on frontend
 
 **Solutions**:
+
 1. Check if migration 024 is applied (public read access)
 2. Clear browser cache
 3. Check browser console for API errors
@@ -279,6 +308,7 @@ To add dynamic contact info to any component:
 **Problem**: Shows default values instead of database values
 
 **Solutions**:
+
 1. Check if settings exist in database
 2. Run default insert SQL from migration 023
 3. Check API endpoint `/api/settings` in browser
@@ -289,6 +319,7 @@ To add dynamic contact info to any component:
 **Problem**: Old values persist after update
 
 **Solutions**:
+
 1. Verify `clearSettingsCache()` is called after save
 2. Wait 5 minutes for automatic cache expiry
 3. Hard refresh browser (Ctrl+Shift+R)
@@ -296,6 +327,7 @@ To add dynamic contact info to any component:
 ## Future Enhancements
 
 ### Planned Features
+
 - [ ] Real-time updates using Supabase Realtime
 - [ ] Multi-language support for contact info
 - [ ] Contact form integration
@@ -305,6 +337,7 @@ To add dynamic contact info to any component:
 - [ ] Setting versioning and rollback
 
 ### Integration Ideas
+
 - Use in email notifications
 - Display in mobile app
 - Show in PDF invoices
@@ -314,11 +347,13 @@ To add dynamic contact info to any component:
 ## Files Modified
 
 ### New Files
+
 - `src/lib/services/settings.ts` - Settings service with caching
 - `src/app/api/settings/route.ts` - Public API endpoint
 - `supabase/migrations/024_public_settings_access.sql` - Public read access
 
 ### Modified Files
+
 - `src/components/landing/PremiumFooter.tsx` - Dynamic contact info
 - `src/app/contact/page.tsx` - Dynamic contact info
 - `src/app/admin/settings/page.tsx` - Cache clearing on save
@@ -328,6 +363,7 @@ To add dynamic contact info to any component:
 The dynamic contact information system provides a centralized, admin-manageable way to update contact details across your entire platform. Changes made in the admin panel are automatically reflected in the footer, contact page, and any other component that uses the settings service.
 
 **Key Points:**
+
 - ✅ Update once, reflect everywhere
 - ✅ No code changes needed
 - ✅ Performance optimized with caching

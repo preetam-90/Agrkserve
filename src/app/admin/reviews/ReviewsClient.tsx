@@ -86,7 +86,7 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [search, ratingFilter, currentPage]);
 
   const handleDeleteReview = async (reviewId: string) => {
@@ -236,7 +236,10 @@ export default function ReviewsPage() {
                         {review.images && review.images.length > 0 && (
                           <div className="mt-3 flex gap-2">
                             {review.images.slice(0, 4).map((img: string, idx: number) => (
-                              <div key={idx} className="relative h-16 w-16 cursor-pointer overflow-hidden rounded hover:opacity-80">
+                              <div
+                                key={idx}
+                                className="relative h-16 w-16 cursor-pointer overflow-hidden rounded hover:opacity-80"
+                              >
                                 <Image
                                   src={img}
                                   alt={`Review ${idx + 1}`}

@@ -162,7 +162,7 @@ export interface LabourProfile {
   bio: string | null;
   certifications: string[] | null;
   availability: LabourAvailability;
-  rating: number | null;
+  average_rating: number | null;
   review_count: number | null;
   total_jobs: number | null;
   is_active: boolean;
@@ -190,6 +190,17 @@ export interface LabourBooking {
   employer?: UserProfile;
 }
 
+interface LabourReview {
+  id: string;
+  labour_booking_id: string;
+  labour_id: string;
+  reviewer_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // User Profile (minimal for joins)
 export interface UserProfileMinimal {
   id: string;
@@ -198,7 +209,7 @@ export interface UserProfileMinimal {
 }
 
 // Direct Message
-export type MessageType = 'text' | 'image' | 'video' | 'gif' | 'sticker' | 'location' | 'link';
+type MessageType = 'text' | 'image' | 'video' | 'gif' | 'sticker' | 'location' | 'link';
 
 export interface DirectMessage {
   id: string;
@@ -289,7 +300,7 @@ export interface Conversation {
 }
 
 // AI Chat Message
-export interface AIChatMessage {
+interface AIChatMessage {
   id: string;
   conversation_id?: string | null;
   role: 'user' | 'assistant' | 'system';
@@ -343,7 +354,7 @@ export interface PaginatedResponse<T> {
 }
 
 // Search filters
-export interface EquipmentFilters {
+interface EquipmentFilters {
   search?: string;
   category?: EquipmentCategory;
   minPrice?: number;
@@ -367,12 +378,15 @@ export interface LabourFilters {
   radiusKm?: number;
   minRating?: number;
   availability?: LabourAvailability;
+  minExperience?: number;
+  sortBy?: 'rating' | 'experience' | 'daily_rate' | 'total_jobs' | 'created_at';
+  sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
 }
 
 // Admin types
-export interface AdminStats {
+interface AdminStats {
   totalUsers: number;
   totalEquipment: number;
   totalBookings: number;
@@ -396,7 +410,7 @@ export interface PlatformAnalytics {
   date: string;
 }
 
-export interface DashboardChartData {
+interface DashboardChartData {
   label: string;
   value: number;
 }

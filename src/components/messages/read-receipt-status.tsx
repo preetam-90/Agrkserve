@@ -2,7 +2,7 @@ import React from 'react';
 import { Check, CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function ReadReceiptStatus() {
+function ReadReceiptStatus() {
   const statuses = [
     {
       status: 'sent',

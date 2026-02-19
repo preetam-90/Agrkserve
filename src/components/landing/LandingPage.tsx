@@ -10,7 +10,7 @@ import { AmbientBackdrop } from './shared/AmbientBackdrop';
 
 const HeroChapter = dynamic(() => import('./chapters/HeroChapter').then((mod) => mod.HeroChapter), {
   ssr: false,
-  loading: () => <ChapterFallback title="Initializing cinematic launch..." />, 
+  loading: () => <ChapterFallback title="Initializing cinematic launch..." />,
 });
 
 const ProblemChapter = dynamic(
@@ -22,8 +22,7 @@ const ProblemChapter = dynamic(
 );
 
 const InteractiveTractorChapter = dynamic(
-  () =>
-    import('./chapters/InteractiveTractorChapter').then((mod) => mod.InteractiveTractorChapter),
+  () => import('./chapters/InteractiveTractorChapter').then((mod) => mod.InteractiveTractorChapter),
   {
     ssr: false,
     loading: () => <ChapterFallback title="Loading chapter: Interactive Tractor Bay" />,
@@ -31,8 +30,7 @@ const InteractiveTractorChapter = dynamic(
 );
 
 const EquipmentUniverseChapter = dynamic(
-  () =>
-    import('./chapters/EquipmentUniverseChapter').then((mod) => mod.EquipmentUniverseChapter),
+  () => import('./chapters/EquipmentUniverseChapter').then((mod) => mod.EquipmentUniverseChapter),
   {
     ssr: false,
     loading: () => <ChapterFallback title="Loading chapter: Equipment Universe" />,
@@ -167,7 +165,7 @@ function LandingFooter() {
   );
 }
 
-export function LandingPage({ fontClassName = '' }: LandingPageProps) {
+function LandingPage({ fontClassName = '' }: LandingPageProps) {
   const runtime = useLandingPerformance();
 
   return (

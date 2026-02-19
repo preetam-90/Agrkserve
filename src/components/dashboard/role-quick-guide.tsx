@@ -6,18 +6,10 @@ import { useAuthStore } from '@/lib/store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  X, 
-  Tractor, 
-  Briefcase, 
-  ArrowRight, 
-  Sparkles,
-  RefreshCw,
-  Plus
-} from 'lucide-react';
+import { X, Tractor, Briefcase, ArrowRight, Sparkles, RefreshCw, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function RoleQuickGuide() {
+function RoleQuickGuide() {
   const router = useRouter();
   const { roles } = useAuthStore();
   const [isDismissed, setIsDismissed] = useState(() => {
@@ -49,9 +41,13 @@ export function RoleQuickGuide() {
 
   const hasMultipleRoles = roles.length > 1;
   const availableRoles = [];
-  
+
   if (!roles.includes('provider')) {
-    availableRoles.push({ name: 'Provider', icon: Tractor, description: 'List equipment for rent' });
+    availableRoles.push({
+      name: 'Provider',
+      icon: Tractor,
+      description: 'List equipment for rent',
+    });
   }
   if (!roles.includes('labour')) {
     availableRoles.push({ name: 'Labour', icon: Briefcase, description: 'Offer your services' });
@@ -95,12 +91,16 @@ export function RoleQuickGuide() {
                 <div className="mb-3 flex items-center gap-2">
                   <RefreshCw className="h-5 w-5 text-blue-400" />
                   <h3 className="font-semibold text-white">Switch Roles</h3>
-                  <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-400">
+                  <Badge
+                    variant="outline"
+                    className="border-blue-500/30 bg-blue-500/10 text-blue-400"
+                  >
                     {roles.length} roles
                   </Badge>
                 </div>
                 <p className="mb-3 text-sm text-slate-400">
-                  You have multiple roles! Click the role button in the header (top right) to switch between them.
+                  You have multiple roles! Click the role button in the header (top right) to switch
+                  between them.
                 </p>
                 <Button
                   size="sm"

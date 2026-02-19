@@ -3,7 +3,7 @@
 import { Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export function SpeechInput({
+function SpeechInput({
   onTranscriptionChange,
   className,
 }: {

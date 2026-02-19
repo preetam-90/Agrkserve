@@ -9,7 +9,7 @@
 import { useRef } from 'react';
 import { useGSAPAnimation } from '@/lib/animations/gsap-context';
 
-export function GSAPScrollExample() {
+function GSAPScrollExample() {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // GSAP scroll-triggered animation

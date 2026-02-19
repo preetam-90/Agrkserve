@@ -9,6 +9,7 @@ This document outlines the structure, conventions, and best practices for the Ag
 ## 🏗️ Architecture
 
 ### Tech Stack
+
 - **Frontend Framework:** Next.js 16 (App Router)
 - **Language:** TypeScript 5
 - **Styling:** Tailwind CSS 4
@@ -18,6 +19,7 @@ This document outlines the structure, conventions, and best practices for the Ag
 - **Package Manager:** pnpm (enforced)
 
 ### Design Patterns
+
 - **Service Layer Pattern:** All API calls through service classes
 - **Repository Pattern:** Data access abstraction via Supabase client
 - **Custom Hooks:** Reusable logic extraction
@@ -100,6 +102,7 @@ agri-serve-web/
 ### TypeScript
 
 #### Types & Interfaces
+
 ```typescript
 // ✅ DO: Define interfaces for props
 interface ButtonProps {
@@ -119,6 +122,7 @@ const data: User | null = fetchData();
 ```
 
 #### Functions
+
 ```typescript
 // ✅ DO: Type parameters and return types
 function calculatePrice(hours: number, rate: number): number {
@@ -137,7 +141,7 @@ async function fetchUser(id: string): Promise<User> {
     .select()
     .eq('id', id)
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -146,6 +150,7 @@ async function fetchUser(id: string): Promise<User> {
 ### React Components
 
 #### File Structure
+
 ```typescript
 // 1. Imports (grouped)
 import { useState, useEffect } from 'react';
@@ -161,23 +166,24 @@ export default function Component({ title }: ComponentProps) {
   // 4. Hooks
   const [state, setState] = useState('');
   const router = useRouter();
-  
+
   // 5. Effects
   useEffect(() => {
     // effect logic
   }, []);
-  
+
   // 6. Handlers
   const handleClick = () => {
     // handler logic
   };
-  
+
   // 7. Render
   return <div>{title}</div>;
 }
 ```
 
 #### Component Guidelines
+
 ```typescript
 // ✅ DO: Server Components by default
 export default function Page() {
@@ -208,28 +214,28 @@ function useAuth() {
 
 ```typescript
 // Files
-page.tsx              // Page components
-layout.tsx            // Layout components
-loading.tsx           // Loading states
-error.tsx             // Error boundaries
-button.tsx            // UI components (lowercase)
-auth-service.ts       // Services (kebab-case)
+page.tsx; // Page components
+layout.tsx; // Layout components
+loading.tsx; // Loading states
+error.tsx; // Error boundaries
+button.tsx; // UI components (lowercase)
+auth - service.ts; // Services (kebab-case)
 
 // Components
-export function UserProfile() {}     // PascalCase
-export function EquipmentCard() {}   // PascalCase
+export function UserProfile() {} // PascalCase
+export function EquipmentCard() {} // PascalCase
 
 // Functions
-function calculateTotal() {}         // camelCase
-async function fetchUserData() {}    // camelCase
+function calculateTotal() {} // camelCase
+async function fetchUserData() {} // camelCase
 
 // Variables
-const userName = 'John';            // camelCase
-const MAX_ITEMS = 100;              // UPPER_SNAKE_CASE for constants
+const userName = 'John'; // camelCase
+const MAX_ITEMS = 100; // UPPER_SNAKE_CASE for constants
 
 // Types/Interfaces
-interface User {}                    // PascalCase
-type UserRole = string;             // PascalCase
+interface User {} // PascalCase
+type UserRole = string; // PascalCase
 ```
 
 ### CSS/Styling
@@ -243,10 +249,10 @@ type UserRole = string;             // PascalCase
 
 // ✅ DO: Group related classes
 <button className="
-  px-4 py-2 
-  text-white bg-blue-500 
-  rounded-md 
-  hover:bg-blue-600 
+  px-4 py-2
+  text-white bg-blue-500
+  rounded-md
+  hover:bg-blue-600
   focus:outline-none focus:ring-2 focus:ring-blue-500
 ">
 
@@ -259,6 +265,7 @@ const buttonStyles = "px-4 py-2 rounded-md font-medium";
 ## 🔄 Git Workflow
 
 ### Branch Naming
+
 ```bash
 feature/user-authentication      # New features
 fix/booking-date-bug            # Bug fixes
@@ -269,6 +276,7 @@ chore/update-dependencies       # Maintenance
 ```
 
 ### Commit Messages (Conventional Commits)
+
 ```bash
 # Format: type(scope): subject
 
@@ -282,6 +290,7 @@ chore(deps): update next.js to 16.1.3
 ```
 
 ### Commit Types
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -297,6 +306,7 @@ chore(deps): update next.js to 16.1.3
 ## 🧪 Testing Strategy (To Be Implemented)
 
 ### Unit Tests
+
 ```typescript
 // Test utilities and pure functions
 import { formatPrice } from '@/lib/utils';
@@ -309,6 +319,7 @@ describe('formatPrice', () => {
 ```
 
 ### Integration Tests
+
 ```typescript
 // Test component interactions
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -323,6 +334,7 @@ describe('LoginForm', () => {
 ```
 
 ### E2E Tests (Future)
+
 ```typescript
 // Test complete user flows with Playwright/Cypress
 test('user can complete booking flow', async ({ page }) => {
@@ -336,37 +348,28 @@ test('user can complete booking flow', async ({ page }) => {
 ## 📦 Services Layer
 
 ### Service Structure
+
 ```typescript
 // lib/services/[feature]-service.ts
 
 class EquipmentService {
   async getAll() {
-    const { data, error } = await supabase
-      .from('equipment')
-      .select('*');
-    
+    const { data, error } = await supabase.from('equipment').select('*');
+
     if (error) throw error;
     return data;
   }
-  
+
   async getById(id: string) {
-    const { data, error } = await supabase
-      .from('equipment')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
+    const { data, error } = await supabase.from('equipment').select('*').eq('id', id).single();
+
     if (error) throw error;
     return data;
   }
-  
+
   async create(equipment: NewEquipment) {
-    const { data, error } = await supabase
-      .from('equipment')
-      .insert(equipment)
-      .select()
-      .single();
-    
+    const { data, error } = await supabase.from('equipment').insert(equipment).select().single();
+
     if (error) throw error;
     return data;
   }
@@ -419,7 +422,7 @@ import { useTranslations } from 'next-intl';
 
 export default function Component() {
   const t = useTranslations('common');
-  
+
   return <h1>{t('welcome')}</h1>;
 }
 ```

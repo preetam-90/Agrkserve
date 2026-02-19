@@ -1,6 +1,6 @@
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://agriserve.in';
 
-export interface BlogAuthor {
+interface BlogAuthor {
   name: string;
   jobTitle?: string;
   description?: string;
@@ -24,24 +24,24 @@ export interface BlogPost {
   inLanguage?: 'en-IN' | 'hi-IN';
 }
 
-export interface FAQItem {
+interface FAQItem {
   question: string;
   answer: string;
 }
 
-export interface HowToStep {
+interface HowToStep {
   name: string;
   text: string;
   image?: string;
   url?: string;
 }
 
-export interface HowToSupply {
+interface HowToSupply {
   name: string;
   image?: string;
 }
 
-export interface HowToTool {
+interface HowToTool {
   name: string;
   image?: string;
 }
@@ -113,7 +113,7 @@ export function createBlogPostingSchema(post: BlogPost) {
   };
 }
 
-export function createArticleSchema(post: BlogPost) {
+function createArticleSchema(post: BlogPost) {
   const wordCount =
     post.wordCount || (post.articleBody ? post.articleBody.split(/\s+/).length : undefined);
 
@@ -193,7 +193,7 @@ export function createBlogBreadcrumbSchema(post: BlogPost) {
   };
 }
 
-export function createFAQSchema(questions: FAQItem[]) {
+function createFAQSchema(questions: FAQItem[]) {
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -208,7 +208,7 @@ export function createFAQSchema(questions: FAQItem[]) {
   };
 }
 
-export function createHowToSchema(
+function createHowToSchema(
   steps: HowToStep[],
   title: string,
   options?: {
@@ -261,7 +261,7 @@ export function createHowToSchema(
   };
 }
 
-export function createBlogPageSchema(post: BlogPost) {
+function createBlogPageSchema(post: BlogPost) {
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -294,7 +294,7 @@ export function createBlogPageSchema(post: BlogPost) {
   };
 }
 
-export function createAuthorPageSchema(author: BlogAuthor, posts: BlogPost[]) {
+function createAuthorPageSchema(author: BlogAuthor, posts: BlogPost[]) {
   return {
     '@context': 'https://schema.org',
     '@graph': [

@@ -49,12 +49,12 @@ async function safeDeleteResource(
   return new Promise((resolve) => {
     cloudinary.uploader.destroy(publicId, { resource_type: resourceType }, (error, result) => {
       if (error) {
-        console.error(`[chat/media/delete] Failed to delete "${publicId}":`, error.message);
+        console.error(`chat/media/delete failed to delete "${publicId}":`, error.message);
         resolve({ publicId, success: false });
       } else {
         const ok = result?.result === 'ok' || result?.result === 'not found';
         if (!ok) {
-          console.warn(`[chat/media/delete] Unexpected result for "${publicId}":`, result?.result);
+          console.warn(`chat/media/delete unexpected result for "${publicId}":`, result?.result);
         }
         resolve({ publicId, success: ok });
       }

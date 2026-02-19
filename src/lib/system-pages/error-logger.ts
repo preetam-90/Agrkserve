@@ -3,7 +3,7 @@
  * Logs errors without exposing stack traces to users
  */
 
-export interface ErrorLogEntry {
+interface ErrorLogEntry {
   timestamp: Date;
   errorCode: string;
   errorMessage: string;
@@ -111,7 +111,7 @@ function getSessionId(): string {
   let sessionId = sessionStorage.getItem('agriServeSessionId');
 
   if (!sessionId) {
-    sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    sessionId = `session-${crypto.randomUUID()}`;
     sessionStorage.setItem('agriServeSessionId', sessionId);
   }
 
@@ -149,7 +149,7 @@ export function logError(
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Error Logger]', errorLog);
+      console.log('Error Logger', errorLog);
     }
 
     // In production, send to external logging service
@@ -170,7 +170,7 @@ export function logError(
 /**
  * Sanitizes error message to remove technical details
  */
-export function sanitizeErrorMessage(error: Error | string): string {
+function sanitizeErrorMessage(error: Error | string): string {
   const message = typeof error === 'string' ? error : error.message;
 
   // Remove file paths, line numbers, and stack traces

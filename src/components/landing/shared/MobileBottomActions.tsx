@@ -62,7 +62,7 @@ export function MobileBottomActions() {
   }, []);
 
   const toggleExpand = useCallback(() => {
-    setIsExpanded(prev => !prev);
+    setIsExpanded((prev) => !prev);
   }, []);
 
   return (
@@ -72,7 +72,9 @@ export function MobileBottomActions() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', damping: 25, stiffness: 300 }}
+          transition={
+            prefersReducedMotion ? { duration: 0 } : { type: 'spring', damping: 25, stiffness: 300 }
+          }
           className="pointer-events-none fixed inset-x-0 bottom-0 z-[120] px-3 pb-[env(safe-area-inset-bottom)] md:hidden"
         >
           <AnimatePresence mode="wait">
@@ -83,12 +85,16 @@ export function MobileBottomActions() {
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
-                transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', damping: 30, stiffness: 400 }}
-                className="pointer-events-auto w-full overflow-hidden rounded-t-2xl border-t border-white/10 bg-[#0a0f0c]/98 backdrop-blur-2xl"
+                transition={
+                  prefersReducedMotion
+                    ? { duration: 0 }
+                    : { type: 'spring', damping: 30, stiffness: 400 }
+                }
+                className="bg-[#0a0f0c]/98 pointer-events-auto w-full overflow-hidden rounded-t-2xl border-t border-white/10 backdrop-blur-2xl"
               >
                 {/* Handle & Close */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-                  <div className="flex flex-col items-center gap-1 flex-1">
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                  <div className="flex flex-1 flex-col items-center gap-1">
                     <div className="h-1 w-10 rounded-full bg-white/20" />
                   </div>
                   <button
@@ -110,10 +116,12 @@ export function MobileBottomActions() {
                         href={action.href}
                         className="group flex flex-col items-center gap-2 rounded-xl p-3 transition-colors hover:bg-white/5"
                       >
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${action.color} text-white transition-transform group-hover:scale-110`}>
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center rounded-xl ${action.color} text-white transition-transform group-hover:scale-110`}
+                        >
                           <ActionIcon className="h-6 w-6" />
                         </div>
-                        <span className="text-xs font-medium text-white/80 text-center leading-tight">
+                        <span className="text-center text-xs font-medium leading-tight text-white/80">
                           {action.label}
                         </span>
                       </Link>
@@ -125,7 +133,7 @@ export function MobileBottomActions() {
                 <div className="px-4 pb-4">
                   <a
                     href="tel:+911234567890"
-                    className="flex items-center justify-center gap-2 w-full rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-emerald-300 transition-colors hover:bg-emerald-500/20"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3 text-emerald-300 transition-colors hover:bg-emerald-500/20"
                   >
                     <Phone className="h-4 w-4" />
                     <span className="font-medium">Call Support</span>
@@ -139,7 +147,7 @@ export function MobileBottomActions() {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 20, opacity: 0 }}
-                className="pointer-events-auto flex items-center gap-2 overflow-x-auto rounded-full border border-white/10 bg-[#0a0f0c]/90 px-2 py-1.5 backdrop-blur-xl scrollbar-hide"
+                className="scrollbar-hide pointer-events-auto flex items-center gap-2 overflow-x-auto rounded-full border border-white/10 bg-[#0a0f0c]/90 px-2 py-1.5 backdrop-blur-xl"
               >
                 {/* Expand Button */}
                 <button

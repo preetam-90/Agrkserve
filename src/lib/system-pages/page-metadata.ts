@@ -5,7 +5,7 @@
 
 import { Metadata } from 'next';
 
-export interface SystemPageMetadata {
+interface SystemPageMetadata {
   title: string;
   description: string;
   keywords: string[];
@@ -19,11 +19,9 @@ export interface SystemPageMetadata {
 /**
  * Generates metadata for system pages
  */
-export function generateSystemPageMetadata(
-  config: SystemPageMetadata
-): Metadata {
+export function generateSystemPageMetadata(config: SystemPageMetadata): Metadata {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://agriServe.com';
-  
+
   return {
     title: config.title,
     description: config.description,
@@ -55,7 +53,8 @@ export const metadataConfigs = {
   // Error pages
   error400: {
     title: 'गलत अनुरोध - AgriServe | Bad Request - AgriServe',
-    description: 'आपका अनुरोध सही नहीं है। कृपया पुनः प्रयास करें। | Your request is invalid. Please try again.',
+    description:
+      'आपका अनुरोध सही नहीं है। कृपया पुनः प्रयास करें। | Your request is invalid. Please try again.',
     keywords: ['error', 'bad request', 'त्रुटि'],
     ogTitle: 'गलत अनुरोध | Bad Request',
     ogDescription: 'कृपया पुनः प्रयास करें | Please try again',
@@ -71,7 +70,8 @@ export const metadataConfigs = {
   },
   error403: {
     title: 'पहुंच अस्वीकृत - AgriServe | Access Denied - AgriServe',
-    description: 'आपको इस पृष्ठ तक पहुंचने की अनुमति नहीं है। | You do not have permission to access this page.',
+    description:
+      'आपको इस पृष्ठ तक पहुंचने की अनुमति नहीं है। | You do not have permission to access this page.',
     keywords: ['forbidden', 'access denied', 'अस्वीकृत'],
     ogTitle: 'पहुंच अस्वीकृत | Access Denied',
     ogDescription: 'आपको यह करने की अनुमति नहीं है | You are not authorized',
@@ -79,7 +79,8 @@ export const metadataConfigs = {
   },
   error404: {
     title: 'पृष्ठ नहीं मिला - AgriServe | Page Not Found - AgriServe',
-    description: 'यह पृष्ठ मौजूद नहीं है। उपकरण खोजें या होम पर जाएं। | This page does not exist. Search equipment or go home.',
+    description:
+      'यह पृष्ठ मौजूद नहीं है। उपकरण खोजें या होम पर जाएं। | This page does not exist. Search equipment or go home.',
     keywords: ['not found', 'missing page', 'नहीं मिला'],
     ogTitle: 'पृष्ठ नहीं मिला | Page Not Found',
     ogDescription: 'यह पृष्ठ मौजूद नहीं है | This page does not exist',
@@ -87,7 +88,8 @@ export const metadataConfigs = {
   },
   error408: {
     title: 'समय समाप्त - AgriServe | Request Timeout - AgriServe',
-    description: 'आपका कनेक्शन धीमा है। कृपया पुनः प्रयास करें। | Your connection is slow. Please try again.',
+    description:
+      'आपका कनेक्शन धीमा है। कृपया पुनः प्रयास करें। | Your connection is slow. Please try again.',
     keywords: ['timeout', 'slow connection', 'समय समाप्त'],
     ogTitle: 'समय समाप्त | Request Timeout',
     ogDescription: 'कृपया पुनः प्रयास करें | Please try again',
@@ -101,24 +103,26 @@ export const metadataConfigs = {
     ogDescription: 'हम इसे ठीक कर रहे हैं | We are fixing it',
     noindex: true,
   },
-  
+
   // Network pages
   offline: {
     title: 'ऑफ़लाइन - AgriServe | Offline - AgriServe',
-    description: 'आप ऑफ़लाइन हैं। कृपया अपना इंटरनेट कनेक्शन जांचें। | You are offline. Please check your internet connection.',
+    description:
+      'आप ऑफ़लाइन हैं। कृपया अपना इंटरनेट कनेक्शन जांचें। | You are offline. Please check your internet connection.',
     keywords: ['offline', 'no internet', 'ऑफ़लाइन'],
     ogTitle: 'ऑफ़लाइन | Offline',
     ogDescription: 'इंटरनेट कनेक्शन जांचें | Check internet connection',
     noindex: true,
   },
-  
+
   // Legal pages
   about: {
     title: 'हमारे बारे में - AgriServe | About Us - AgriServe',
-    description: 'AgriServe भारत का अग्रणी कृषि उपकरण किराया मंच है। | AgriServe is India\'s leading agricultural equipment rental platform.',
+    description:
+      "AgriServe भारत का अग्रणी कृषि उपकरण किराया मंच है। | AgriServe is India's leading agricultural equipment rental platform.",
     keywords: ['about', 'company', 'mission', 'हमारे बारे में'],
     ogTitle: 'हमारे बारे में | About Us',
-    ogDescription: 'भारत का अग्रणी कृषि मंच | India\'s leading agri platform',
+    ogDescription: "भारत का अग्रणी कृषि मंच | India's leading agri platform",
     canonical: '/about',
   },
   contact: {

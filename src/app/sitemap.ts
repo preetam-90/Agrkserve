@@ -128,7 +128,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   } catch {
     // Silently fail if DB is unavailable during build
-    console.warn('[Sitemap] Could not fetch equipment from database');
+    console.warn('Sitemap could not fetch equipment from database');
   }
 
   // ─── Dynamic: Individual labour pages from database ──────────────
@@ -157,7 +157,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   } catch {
-    console.warn('[Sitemap] Could not fetch labour from database');
+    console.warn('Sitemap could not fetch labour from database');
   }
 
   // ─── Dynamic: Individual user profile pages ──────────────────────
@@ -180,7 +180,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }));
     }
   } catch {
-    console.warn('[Sitemap] Could not fetch user profiles from database');
+    console.warn('Sitemap could not fetch user profiles from database');
   }
 
   // ─── Blog posts (from local content) ────────────────────────────
@@ -194,7 +194,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
   } catch (err) {
-    console.warn('[Sitemap] Could not load blog posts', err);
+    console.warn('Sitemap could not load blog posts', err);
   }
 
   // ─── Video / landing page entry (include thumbnail) ────────────
@@ -207,7 +207,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     });
   } catch (err) {
-    console.warn('[Sitemap] Could not create video entry', err);
+    console.warn('Sitemap could not create video entry', err);
   }
 
   // combine all routes; cast to MetadataRoute.Sitemap to satisfy return type

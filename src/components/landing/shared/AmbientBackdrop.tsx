@@ -18,13 +18,13 @@ const particles = Array.from({ length: 18 }).map((_, index) => ({
 
 export function AmbientBackdrop({ reducedMotion = false }: AmbientBackdropProps) {
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     // Detect mobile viewport - critical for performance
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -36,9 +36,9 @@ export function AmbientBackdrop({ reducedMotion = false }: AmbientBackdropProps)
       <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
         {/* Static gradient - no particles, no animations */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_22%,rgba(34,197,94,0.12),transparent_34%),radial-gradient(circle_at_80%_18%,rgba(6,182,212,0.1),transparent_36%),linear-gradient(180deg,#030705_0%,#010201_48%,#000000_100%)]" />
-        
+
         {/* Minimal grid */}
-        <div className="absolute inset-0 opacity-20 [background:linear-gradient(rgba(20,46,34,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(20,46,34,0.2)_1px,transparent_1px)] [background-size:60px_60px] [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
+        <div className="absolute inset-0 opacity-20 [background-size:60px_60px] [background:linear-gradient(rgba(20,46,34,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(20,46,34,0.2)_1px,transparent_1px)] [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
       </div>
     );
   }
@@ -48,7 +48,7 @@ export function AmbientBackdrop({ reducedMotion = false }: AmbientBackdropProps)
     <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_22%,rgba(34,197,94,0.15),transparent_34%),radial-gradient(circle_at_80%_18%,rgba(6,182,212,0.14),transparent_36%),radial-gradient(circle_at_50%_78%,rgba(120,53,15,0.16),transparent_48%),linear-gradient(180deg,#030705_0%,#010201_48%,#000000_100%)]" />
 
-      <div className="absolute inset-0 opacity-35 [background:linear-gradient(rgba(20,46,34,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(20,46,34,0.42)_1px,transparent_1px)] [background-size:84px_84px] [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
+      <div className="absolute inset-0 opacity-35 [background-size:84px_84px] [background:linear-gradient(rgba(20,46,34,0.55)_1px,transparent_1px),linear-gradient(90deg,rgba(20,46,34,0.42)_1px,transparent_1px)] [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]" />
 
       {!reducedMotion && (
         <>
@@ -65,7 +65,7 @@ export function AmbientBackdrop({ reducedMotion = false }: AmbientBackdropProps)
           />
 
           <motion.div
-            className="absolute left-[26%] bottom-[-16%] h-[42vh] w-[42vh] rounded-full bg-amber-700/15 blur-[150px]"
+            className="absolute bottom-[-16%] left-[26%] h-[42vh] w-[42vh] rounded-full bg-amber-700/15 blur-[150px]"
             animate={{ x: [0, 20, -30, 0], y: [0, -20, 15, 0] }}
             transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut' }}
           />

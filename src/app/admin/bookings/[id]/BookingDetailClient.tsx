@@ -21,8 +21,6 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     fetchBookingDetails();
-
-     
   }, [resolvedParams.id]);
 
   const fetchBookingDetails = async () => {

@@ -94,7 +94,7 @@ export default function LabourPage() {
 
   useEffect(() => {
     fetchLabourProfiles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [search, availabilityFilter, currentPage]);
 
   const formatCurrency = (amount: number) => {

@@ -48,7 +48,9 @@ const features = [
   },
 ] as const;
 
-export function FeaturesChapterRedesigned({ reducedMotion = false }: FeaturesChapterRedesignedProps) {
+export function FeaturesChapterRedesigned({
+  reducedMotion = false,
+}: FeaturesChapterRedesignedProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
@@ -133,30 +135,41 @@ export function FeaturesChapterRedesigned({ reducedMotion = false }: FeaturesCha
       className="bg-[linear-gradient(180deg,#020503_0%,#041009_45%,#020705_100%)]"
       aria-label="Platform features"
     >
-      <div data-feature-bg className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(16,185,129,0.12),transparent_40%),radial-gradient(circle_at_70%_70%,rgba(6,182,212,0.1),transparent_38%)]" />
+      <div
+        data-feature-bg
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(16,185,129,0.12),transparent_40%),radial-gradient(circle_at_70%_70%,rgba(6,182,212,0.1),transparent_38%)]"
+      />
 
-      <div className="mx-auto max-w-3xl text-center relative z-10">
+      <div className="relative z-10 mx-auto max-w-3xl text-center">
         <p className="text-[11px] uppercase tracking-[0.32em] text-emerald-200/75">
           Chapter 06 // Features
         </p>
-        <h2 data-feature-heading className="landing-fluid-title mt-4 font-semibold uppercase text-white">
+        <h2
+          data-feature-heading
+          className="landing-fluid-title mt-4 font-semibold uppercase text-white"
+        >
           Built Like A Mission-Critical
           <span className="block bg-gradient-to-r from-emerald-200 to-cyan-200 bg-clip-text text-transparent">
             Agri Intelligence Platform
           </span>
         </h2>
-        <p className="landing-fluid-subtitle mx-auto mt-5 max-w-2xl text-white/72">
+        <p className="landing-fluid-subtitle text-white/72 mx-auto mt-5 max-w-2xl">
           Every workflow is responsive by design across mobile, tablet, and desktop surfaces with
           premium clarity and performance.
         </p>
       </div>
 
-      <ResponsiveGrid data-feature-grid cols={3} className="mt-10 md:mt-14 relative z-10" style={{ perspective: '1000px' }}>
+      <ResponsiveGrid
+        data-feature-grid
+        cols={3}
+        className="relative z-10 mt-10 md:mt-14"
+        style={{ perspective: '1000px' }}
+      >
         {features.map((feature) => (
           <article
             key={feature.title}
             data-feature-card
-            className="group rounded-3xl border border-white/12 bg-black/35 p-5 backdrop-blur-xl md:p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-300/25 hover:shadow-[0_8px_40px_rgba(16,185,129,0.12)]"
+            className="border-white/12 group rounded-3xl border bg-black/35 p-5 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-300/25 hover:shadow-[0_8px_40px_rgba(16,185,129,0.12)] md:p-6"
             style={{ willChange: 'transform, opacity' }}
           >
             <div

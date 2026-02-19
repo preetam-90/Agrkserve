@@ -33,8 +33,8 @@ interface LabourDashboardProps {
 }
 
 export function LabourDashboardView({ initialData }: LabourDashboardProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { sidebarOpen } = useAppStore();
+  // sidebarOpen intentionally destructured but unused - kept for future sidebar toggle feature
+  const { sidebarOpen: _sidebarOpen } = useAppStore();
   const { profile } = useAuthStore();
 
   // Seed state from SSR data if available
@@ -48,8 +48,8 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     }
     return [];
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [upcomingJobs, setUpcomingJobs] = useState<LabourBooking[]>(() => {
+   
+  const [_upcomingJobs, setUpcomingJobs] = useState<LabourBooking[]>(() => {
     if (hasSSRData) {
       return (initialData.labourBookings || [])
         .filter((b: LabourBooking) => ['confirmed', 'in_progress'].includes(b.status))
@@ -57,7 +57,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     }
     return [];
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [_completedJobs, setCompletedJobs] = useState<unknown[]>(() => {
     if (hasSSRData) {
       return (initialData.labourBookings || [])
@@ -66,7 +66,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     }
     return [];
   });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [_labourProfile, setLabourProfile] = useState<unknown>(
     hasSSRData ? initialData.labourProfile : null
   );
@@ -81,7 +81,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
         (sum: number, b: LabourBooking) => sum + (b.total_amount || 0),
         0
       );
-      const avgRating = initialData.labourProfile?.rating || 0;
+      const avgRating = initialData.labourProfile?.average_rating || 0;
       return {
         totalJobs: jobs.length,
         totalEarnings,
@@ -135,7 +135,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const loadDashboardData = async () => {
@@ -169,7 +169,7 @@ export function LabourDashboardView({ initialData }: LabourDashboardProps) {
 
       const totalEarnings = completed.reduce((sum, b) => sum + b.total_amount, 0);
 
-      const avgRating = profileData?.rating || 0;
+      const avgRating = profileData?.average_rating || 0;
 
       setStats({
         totalJobs: jobsResult.length,

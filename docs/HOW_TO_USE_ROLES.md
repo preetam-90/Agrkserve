@@ -3,18 +3,23 @@
 ## 🔄 Switching Between Roles (If You Have Multiple Roles)
 
 ### Step 1: Find the Role Switcher
+
 Look at the **top right of your screen** in the header, next to the notifications bell 🔔 and messages 💬.
 
 You'll see a button showing your current role:
+
 - 🔵 **Renter** (blue)
-- 🟢 **Provider** (green) 
+- 🟢 **Provider** (green)
 - 🟡 **Labour** (yellow)
 
 ### Step 2: Click the Role Switcher
+
 Click on the role button. A dropdown menu will appear showing all your enabled roles.
 
 ### Step 3: Select a Role
+
 Click on any role to switch to it. You'll be automatically redirected to that role's dashboard:
+
 - **Renter** → `/dashboard` (rent equipment, hire labour)
 - **Provider** → `/provider/dashboard` (manage your equipment)
 - **Labour** → `/dashboard` (view job opportunities)
@@ -28,6 +33,7 @@ Click on any role to switch to it. You'll be automatically redirected to that ro
 ### Method 1: Using the Banner (Easiest)
 
 If you see a **green banner** at the top of the page saying:
+
 > "Unlock More Features! Register as Provider or Labour"
 
 1. Click the **"Register Now"** button
@@ -37,38 +43,47 @@ If you see a **green banner** at the top of the page saying:
 ### Method 2: Through Settings
 
 #### Step 1: Go to Settings
+
 1. Click your **profile picture** in the top right
 2. Click **"Settings"** from the dropdown menu
 3. Or go directly to: `/settings`
 
 #### Step 2: Navigate to Manage Roles
+
 1. Look for **"Manage Roles"** in the settings menu
 2. Or go directly to: `/settings/roles`
 
 #### Step 3: View Available Roles
+
 You'll see cards for all roles:
+
 - ✅ **Enabled roles** - Roles you currently have
 - 🆕 **Available roles** - Roles you can register for (with "Available" badge)
 
 #### Step 4: Enable a New Role
+
 1. Find the role you want (Provider or Labour)
 2. **Toggle the switch ON** (it will turn green)
 3. You'll see a **"New!"** badge appear
 4. If the role requires setup, you'll see a yellow info box with details
 
 #### Step 5: Save Changes
+
 1. Click the **"Save Changes"** button at the bottom
 2. Wait for the success message: "Roles updated successfully!"
 
 #### Step 6: Complete Onboarding (Automatic)
+
 After saving, you'll be **automatically redirected** to set up your new role:
 
 **For Provider:**
+
 - You'll see a welcome screen with steps to add equipment
 - You can follow the guide or click "I'll Do This Later"
 - Go to `/provider/equipment` to add your first equipment
 
 **For Labour:**
+
 - You'll see a profile setup form
 - Fill in:
   - ✅ **Skills** - Select from common agricultural skills
@@ -80,6 +95,7 @@ After saving, you'll be **automatically redirected** to set up your new role:
 - Or click "I'll Do This Later" to skip
 
 #### Step 7: Start Using Your New Role
+
 - The **role switcher** will now appear in the header (if you have 2+ roles)
 - You can switch between your roles anytime
 - Each role has its own dashboard and features
@@ -89,16 +105,19 @@ After saving, you'll be **automatically redirected** to set up your new role:
 ## 📱 Quick Access Paths
 
 ### To Switch Roles:
+
 ```
 Header → Role Switcher Button → Select Role
 ```
 
 ### To Register for New Role:
+
 ```
 Profile Menu → Settings → Manage Roles → Toggle Role ON → Save Changes
 ```
 
 Or directly:
+
 ```
 /settings/roles
 ```
@@ -145,6 +164,7 @@ Or directly:
 ## 🎨 Visual Guide
 
 ### Role Switcher Location:
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  Logo    Home  Equipment  Labour        🔔 💬 👤│
@@ -153,6 +173,7 @@ Or directly:
 ```
 
 ### Role Management Page:
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  ← Back                                         │
@@ -211,6 +232,7 @@ A: Yes, you can update your profile anytime from your dashboard.
 ## 🆘 Need Help?
 
 If you're having trouble:
+
 1. Check the browser console for errors (F12)
 2. Make sure you're logged in
 3. Try refreshing the page
@@ -222,6 +244,7 @@ If you're having trouble:
 ## 🎉 You're All Set!
 
 Now you know how to:
+
 - ✅ Switch between your roles
 - ✅ Register for new roles
 - ✅ Complete role onboarding

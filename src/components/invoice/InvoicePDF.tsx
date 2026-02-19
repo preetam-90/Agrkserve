@@ -18,7 +18,7 @@ interface InvoicePDFProps {
 const BRAND_PRIMARY = '#059669';
 const BRAND_SECONDARY = '#047857';
 const BRAND_ACCENT = '#f59e0b';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const _BRAND_LIGHT = '#ecfdf5';
 const PAGE_BG = '#ffffff';
 const SECTION_BG = '#f8fafc';
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 function HeaderSection({ booking: _booking }: { booking: InvoicePDFProps['booking'] }) {
   return (
     <View style={styles.headerContainer}>
@@ -577,9 +577,7 @@ function FooterSection({ contactInfo }: { contactInfo?: InvoicePDFProps['contact
           Need help? Contact {contactInfo?.email || 'support@agriserve.com'}
         </Text>
         <Text style={styles.supportText}>|</Text>
-        <Text style={styles.supportText}>
-          Call: {contactInfo?.phone || '+91-1800-AGR-SERVE'}
-        </Text>
+        <Text style={styles.supportText}>Call: {contactInfo?.phone || '+91-1800-AGR-SERVE'}</Text>
       </View>
 
       <Text style={styles.footerNote}>

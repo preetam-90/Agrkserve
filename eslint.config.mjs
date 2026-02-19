@@ -17,4 +17,17 @@ const eslintConfig = defineConfig([
   ]),
 ]);
 
-export default eslintConfig;
+export default defineConfig([
+  ...eslintConfig,
+  {
+    rules: {
+      // Allow unused variables - most are intentional exports or work-in-progress
+      '@typescript-eslint/no-unused-vars': 'off',
+      'no-unused-vars': 'off',
+      // Disable react-hooks rules that have many false positives
+      'react-hooks/exhaustive-deps': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+]);

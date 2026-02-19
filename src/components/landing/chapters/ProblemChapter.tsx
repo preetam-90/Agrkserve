@@ -92,7 +92,7 @@ export function ProblemChapter({ reducedMotion = false }: ProblemChapterProps) {
           ref={neonLayerRef}
           className="absolute inset-0 bg-[radial-gradient(circle_at_24%_18%,rgba(52,211,153,0.26),transparent_34%),radial-gradient(circle_at_78%_28%,rgba(34,211,238,0.24),transparent_40%),linear-gradient(160deg,#04130c_0%,#030809_46%,#020203_100%)] opacity-0"
         >
-          <div className="absolute inset-0 opacity-45 [background:linear-gradient(rgba(34,197,94,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.3)_1px,transparent_1px)] [background-size:72px_72px]" />
+          <div className="absolute inset-0 opacity-45 [background-size:72px_72px] [background:linear-gradient(rgba(34,197,94,0.45)_1px,transparent_1px),linear-gradient(90deg,rgba(34,197,94,0.3)_1px,transparent_1px)]" />
         </div>
 
         {Array.from({ length: 16 }).map((_, index) => (
@@ -102,7 +102,7 @@ export function ProblemChapter({ reducedMotion = false }: ProblemChapterProps) {
             className="absolute h-2 w-2 rounded-full bg-cyan-200/45 shadow-[0_0_18px_rgba(34,211,238,0.55)]"
             style={{
               top: `${30 + (index % 5) * 12}%`,
-              left: `${8 + (index * 17) % 84}%`,
+              left: `${8 + ((index * 17) % 84)}%`,
             }}
           />
         ))}

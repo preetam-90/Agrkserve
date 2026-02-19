@@ -7,9 +7,11 @@ Real-time system health monitoring for the admin analytics dashboard.
 ## 📁 Files Created/Modified
 
 ### 1. Health Check API Endpoint
+
 **File:** `src/app/api/admin/health/route.ts`
 
 **What it does:**
+
 - Measures actual API response time
 - Tests database connection and measures DB response time
 - Calculates server load based on performance
@@ -17,6 +19,7 @@ Real-time system health monitoring for the admin analytics dashboard.
 - Returns health status (operational/degraded/error)
 
 **Metrics Provided:**
+
 - `apiResponseTime` - Time to complete the health check (ms)
 - `dbResponseTime` - Time for database query (ms)
 - `serverLoad` - Estimated server load percentage
@@ -24,17 +27,21 @@ Real-time system health monitoring for the admin analytics dashboard.
 - `uptime` - System uptime percentage (currently static 99.9%)
 
 ### 2. Admin Service Method
+
 **File:** `src/lib/services/admin-service.ts`
 
 **Added:** `getSystemHealth()` method
+
 - Fetches health data from the API endpoint
 - Returns structured health metrics
 - Handles errors gracefully with fallback data
 
 ### 3. Analytics Page Updates
+
 **File:** `src/app/admin/analytics/page.tsx`
 
 **Changes:**
+
 - Added `systemHealth` state
 - Fetches health data on component mount
 - Updates System Health card with real data
@@ -46,16 +53,19 @@ Real-time system health monitoring for the admin analytics dashboard.
 ## 🎨 Visual Indicators
 
 ### API Response Time
+
 - **< 100ms**: Green (Excellent)
 - **100-300ms**: Amber (Acceptable)
 - **> 300ms**: Red (Slow)
 
 ### Server/Database Load
+
 - **< 50%**: Blue/Violet (Healthy)
 - **50-80%**: Amber (Warning)
 - **> 80%**: Red (Critical)
 
 ### Status Badge
+
 - **Operational**: Green background
 - **Degraded**: Amber background
 - **Error**: Red background
@@ -71,18 +81,22 @@ Real-time system health monitoring for the admin analytics dashboard.
 ## 📊 Current Metrics
 
 ### Real Metrics
+
 - ✅ API Response Time (measured)
 - ✅ Database Response Time (measured)
 - ✅ Server Load (estimated from response time)
 - ✅ Database Load (estimated from query time)
 
 ### Static Metrics (To Be Enhanced)
+
 - ⚠️ Uptime (currently hardcoded to 99.9%)
 
 ## 🚀 Future Enhancements
 
 ### 1. Persistent Uptime Tracking
+
 Store uptime data in database or cache:
+
 ```sql
 CREATE TABLE system_uptime (
   id UUID PRIMARY KEY,
@@ -93,18 +107,23 @@ CREATE TABLE system_uptime (
 ```
 
 ### 2. Historical Metrics
+
 Track metrics over time for trends:
+
 - Average response times
 - Peak load times
 - Downtime incidents
 
 ### 3. Alerting
+
 Send notifications when:
+
 - Response time > 500ms
 - Load > 80%
 - Database errors detected
 
 ### 4. More Detailed Metrics
+
 - Memory usage
 - CPU usage
 - Active connections
@@ -114,11 +133,13 @@ Send notifications when:
 ## 🧪 Testing
 
 ### Test the Health Endpoint
+
 ```bash
 curl http://localhost:3001/api/admin/health
 ```
 
 **Expected Response:**
+
 ```json
 {
   "status": "operational",
@@ -138,6 +159,7 @@ curl http://localhost:3001/api/admin/health
 ```
 
 ### View in Dashboard
+
 1. Go to: http://localhost:3001/admin/analytics
 2. Scroll to "System Health" card
 3. See real-time metrics with color indicators
@@ -153,16 +175,20 @@ curl http://localhost:3001/api/admin/health
 ## 🔧 Customization
 
 ### Adjust Thresholds
+
 Edit the color logic in `src/app/admin/analytics/page.tsx`:
 
 ```typescript
 // Example: Make API response threshold stricter
-systemHealth.metrics.apiResponseTime < 50 ? 'text-emerald-400' : // was 100
-systemHealth.metrics.apiResponseTime < 200 ? 'text-amber-400' :  // was 300
-'text-red-400'
+systemHealth.metrics.apiResponseTime < 50
+  ? 'text-emerald-400' // was 100
+  : systemHealth.metrics.apiResponseTime < 200
+    ? 'text-amber-400' // was 300
+    : 'text-red-400';
 ```
 
 ### Add More Metrics
+
 1. Update health API to measure new metrics
 2. Add to return type in admin service
 3. Display in System Health card

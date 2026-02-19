@@ -14,45 +14,44 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
-    
-    console.log('[AuthProvider] Initializing auth...');
-    
+
+    console.log('AuthProvider Initializing auth...');
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AuthProvider] Session loaded:', session?.user?.id || 'No user');
-      setUser(session?.user ?? null);
-      setLoading(false);
-      console.log('[AuthProvider] Loading set to false');
-    }).catch((err) => {
-      console.error('[AuthProvider] Error getting session:', err);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        console.log('AuthProvider Session loaded:', session?.user?.id || 'No user');
+        setUser(session?.user ?? null);
+        setLoading(false);
+        console.log('AuthProvider Loading set to false');
+      })
+      .catch((err) => {
+        console.error('AuthProvider Error getting session:', err);
+        setLoading(false);
+      });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log('[AuthProvider] Auth state changed:', _event, session?.user?.id || 'No user');
+      console.log('AuthProvider Auth state changed:', _event, session?.user?.id || 'No user');
       setUser(session?.user ?? null);
     });
 
     return () => {
-      console.log('[AuthProvider] Cleaning up subscription');
+      console.log('AuthProvider Cleaning up subscription');
       subscription.unsubscribe();
     };
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
 }
 
 export function useUser() {

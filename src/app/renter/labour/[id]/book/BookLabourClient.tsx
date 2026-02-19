@@ -57,12 +57,12 @@ export default function BookLabourPage() {
       return;
     }
     loadLabourProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [labourId, user]);
 
   useEffect(() => {
     calculatePricing();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [formData.startDate, formData.endDate, labour]);
 
   useEffect(() => {

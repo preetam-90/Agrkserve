@@ -17,14 +17,14 @@ export default function Unauthorized401Page() {
         errorCode="401"
         title="लॉगिन आवश्यक | Login Required"
         description="इस पृष्ठ को देखने के लिए आपको लॉगिन करना होगा। कृपया लॉगिन करें या नया खाता बनाएं। | You need to login to access this page. Please login or create a new account."
-        illustration={<ErrorIllustration className="w-full h-full" />}
+        illustration={<ErrorIllustration className="h-full w-full" />}
         primaryAction={{
-          label: "लॉगिन करें | Login",
-          href: "/login",
+          label: 'लॉगिन करें | Login',
+          href: '/login',
         }}
         secondaryAction={{
-          label: "रजिस्टर करें | Register",
-          href: "/login",
+          label: 'रजिस्टर करें | Register',
+          href: '/login',
         }}
       />
     </SystemPageLayout>

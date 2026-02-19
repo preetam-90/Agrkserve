@@ -6,7 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Bell, Mail, MessageSquare, Moon, RefreshCw, CheckCircle, Smartphone, Clock, Zap, Shield, Volume2, LucideIcon } from 'lucide-react';
+import {
+  Bell,
+  Mail,
+  MessageSquare,
+  Moon,
+  RefreshCw,
+  CheckCircle,
+  Smartphone,
+  Clock,
+  Zap,
+  Shield,
+  Volume2,
+  LucideIcon,
+} from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -16,28 +29,29 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const PREFERENCE_LABELS: Record<string, { label: string; description: string; icon: LucideIcon }> = {
-  booking_notifications: {
-    label: 'Booking Updates',
-    description: 'Get notified about booking status changes and confirmations',
-    icon: Bell,
-  },
-  message_notifications: {
-    label: 'Messages',
-    description: 'Receive instant notifications for new messages and replies',
-    icon: MessageSquare,
-  },
-  payment_notifications: {
-    label: 'Payment Reminders',
-    description: 'Stay informed about upcoming and overdue payments',
-    icon: Zap,
-  },
-  review_notifications: {
-    label: 'Reviews & Ratings',
-    description: 'Get notified when someone leaves a review for your services',
-    icon: Shield,
-  },
-};
+const PREFERENCE_LABELS: Record<string, { label: string; description: string; icon: LucideIcon }> =
+  {
+    booking_notifications: {
+      label: 'Booking Updates',
+      description: 'Get notified about booking status changes and confirmations',
+      icon: Bell,
+    },
+    message_notifications: {
+      label: 'Messages',
+      description: 'Receive instant notifications for new messages and replies',
+      icon: MessageSquare,
+    },
+    payment_notifications: {
+      label: 'Payment Reminders',
+      description: 'Stay informed about upcoming and overdue payments',
+      icon: Zap,
+    },
+    review_notifications: {
+      label: 'Reviews & Ratings',
+      description: 'Get notified when someone leaves a review for your services',
+      icon: Shield,
+    },
+  };
 
 export function NotificationPreferencesPage() {
   const { preferences, loading, updatePreferences, resetToDefaults } = useNotificationPreferences();
@@ -144,7 +158,10 @@ export function NotificationPreferencesPage() {
                   <div>
                     <p className="text-xs text-[#64748B]">Active Channels</p>
                     <p className="text-lg font-bold text-[#F8FAFC]">
-                      {[preferences.in_app_enabled, preferences.email_enabled].filter(Boolean).length}
+                      {
+                        [preferences.in_app_enabled, preferences.email_enabled].filter(Boolean)
+                          .length
+                      }
                     </p>
                   </div>
                 </div>
@@ -160,9 +177,11 @@ export function NotificationPreferencesPage() {
                   <div>
                     <p className="text-xs text-[#64748B]">Categories</p>
                     <p className="text-lg font-bold text-[#F8FAFC]">
-                      {Object.keys(PREFERENCE_LABELS).filter(
-                        (key) => preferences[key as keyof typeof preferences]
-                      ).length}
+                      {
+                        Object.keys(PREFERENCE_LABELS).filter(
+                          (key) => preferences[key as keyof typeof preferences]
+                        ).length
+                      }
                     </p>
                   </div>
                 </div>
@@ -211,7 +230,10 @@ export function NotificationPreferencesPage() {
                     <Icon className="h-4 w-4 text-[#22C55E]" />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <Label htmlFor={key} className="cursor-pointer text-base font-semibold text-[#F8FAFC]">
+                    <Label
+                      htmlFor={key}
+                      className="cursor-pointer text-base font-semibold text-[#F8FAFC]"
+                    >
                       {label}
                     </Label>
                     <p className="text-sm text-[#94A3B8]">{description}</p>
@@ -251,7 +273,10 @@ export function NotificationPreferencesPage() {
                   <Bell className="h-4 w-4 text-[#60A5FA]" />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label htmlFor="in_app_enabled" className="cursor-pointer text-base font-semibold text-[#F8FAFC]">
+                  <Label
+                    htmlFor="in_app_enabled"
+                    className="cursor-pointer text-base font-semibold text-[#F8FAFC]"
+                  >
                     In-App Notifications
                   </Label>
                   <p className="text-sm text-[#94A3B8]">
@@ -274,7 +299,10 @@ export function NotificationPreferencesPage() {
                   <Mail className="h-4 w-4 text-[#60A5FA]" />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label htmlFor="email_enabled" className="cursor-pointer text-base font-semibold text-[#F8FAFC]">
+                  <Label
+                    htmlFor="email_enabled"
+                    className="cursor-pointer text-base font-semibold text-[#F8FAFC]"
+                  >
                     Email Notifications
                   </Label>
                   <p className="text-sm text-[#94A3B8]">Receive notifications via email</p>
@@ -301,9 +329,7 @@ export function NotificationPreferencesPage() {
                       Coming Soon
                     </span>
                   </Label>
-                  <p className="text-sm text-[#64748B]">
-                    Receive notifications via SMS
-                  </p>
+                  <p className="text-sm text-[#64748B]">Receive notifications via SMS</p>
                 </div>
               </div>
               <Switch
@@ -361,7 +387,10 @@ export function NotificationPreferencesPage() {
                   <Moon className="h-4 w-4 text-[#818CF8]" />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label htmlFor="quiet_hours_enabled" className="cursor-pointer text-base font-semibold text-[#F8FAFC]">
+                  <Label
+                    htmlFor="quiet_hours_enabled"
+                    className="cursor-pointer text-base font-semibold text-[#F8FAFC]"
+                  >
                     Enable Quiet Hours
                   </Label>
                   <p className="text-sm text-[#94A3B8]">
@@ -382,7 +411,10 @@ export function NotificationPreferencesPage() {
               <div className="space-y-4 rounded-lg border border-[#818CF8]/20 bg-[#818CF8]/5 p-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="quiet_hours_start" className="flex items-center gap-2 text-[#F8FAFC]">
+                    <Label
+                      htmlFor="quiet_hours_start"
+                      className="flex items-center gap-2 text-[#F8FAFC]"
+                    >
                       <Clock className="h-4 w-4 text-[#818CF8]" />
                       Start Time
                     </Label>
@@ -397,7 +429,10 @@ export function NotificationPreferencesPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="quiet_hours_end" className="flex items-center gap-2 text-[#F8FAFC]">
+                    <Label
+                      htmlFor="quiet_hours_end"
+                      className="flex items-center gap-2 text-[#F8FAFC]"
+                    >
                       <Clock className="h-4 w-4 text-[#818CF8]" />
                       End Time
                     </Label>
@@ -418,7 +453,10 @@ export function NotificationPreferencesPage() {
                       <Shield className="h-4 w-4 text-[#EF4444]" />
                     </div>
                     <div className="flex-1 space-y-1">
-                      <Label htmlFor="allow_critical_during_quiet" className="cursor-pointer text-sm font-semibold text-[#F8FAFC]">
+                      <Label
+                        htmlFor="allow_critical_during_quiet"
+                        className="cursor-pointer text-sm font-semibold text-[#F8FAFC]"
+                      >
                         Allow Critical Notifications
                       </Label>
                       <p className="text-xs text-[#94A3B8]">
@@ -461,7 +499,10 @@ export function NotificationPreferencesPage() {
                   <MessageSquare className="h-4 w-4 text-[#FCD34D]" />
                 </div>
                 <div className="flex-1 space-y-1">
-                  <Label htmlFor="digest_mode" className="cursor-pointer text-base font-semibold text-[#F8FAFC]">
+                  <Label
+                    htmlFor="digest_mode"
+                    className="cursor-pointer text-base font-semibold text-[#F8FAFC]"
+                  >
                     Digest Mode
                   </Label>
                   <p className="text-sm text-[#94A3B8]">
@@ -481,7 +522,10 @@ export function NotificationPreferencesPage() {
             {preferences.digest_mode && (
               <div className="space-y-3 rounded-lg border border-[#FCD34D]/20 bg-[#FCD34D]/5 p-4">
                 <div className="space-y-2">
-                  <Label htmlFor="digest_frequency" className="flex items-center gap-2 text-[#F8FAFC]">
+                  <Label
+                    htmlFor="digest_frequency"
+                    className="flex items-center gap-2 text-[#F8FAFC]"
+                  >
                     <Clock className="h-4 w-4 text-[#FCD34D]" />
                     Digest Frequency
                   </Label>
@@ -494,17 +538,23 @@ export function NotificationPreferencesPage() {
                     }
                     disabled={saving}
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       id="digest_frequency"
                       className="border-[#1E293B] bg-[#0F172A] text-[#F8FAFC] focus:border-[#22C55E]/50 focus:ring-[#22C55E]/20"
                     >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="border-[#1E293B] bg-[#0F172A]">
-                      <SelectItem value="hourly" className="text-[#F8FAFC] focus:bg-[#1E293B] focus:text-[#F8FAFC]">
+                      <SelectItem
+                        value="hourly"
+                        className="text-[#F8FAFC] focus:bg-[#1E293B] focus:text-[#F8FAFC]"
+                      >
                         Every Hour
                       </SelectItem>
-                      <SelectItem value="daily" className="text-[#F8FAFC] focus:bg-[#1E293B] focus:text-[#F8FAFC]">
+                      <SelectItem
+                        value="daily"
+                        className="text-[#F8FAFC] focus:bg-[#1E293B] focus:text-[#F8FAFC]"
+                      >
                         Daily Summary
                       </SelectItem>
                     </SelectContent>
@@ -524,9 +574,9 @@ export function NotificationPreferencesPage() {
             <p className="text-sm font-medium text-[#F8FAFC]">Need to start fresh?</p>
             <p className="text-xs text-[#64748B]">Reset all preferences to their default values</p>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={handleReset} 
+          <Button
+            variant="outline"
+            onClick={handleReset}
             disabled={saving}
             className="border-[#EF4444]/30 bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20 hover:text-[#EF4444]"
           >
@@ -539,7 +589,8 @@ export function NotificationPreferencesPage() {
         <div className="flex items-center justify-center gap-2 rounded-lg border border-[#22C55E]/20 bg-[#22C55E]/5 p-4">
           <CheckCircle className="h-4 w-4 text-[#22C55E]" />
           <p className="text-sm text-[#94A3B8]">
-            All changes are <span className="font-semibold text-[#22C55E]">saved automatically</span>
+            All changes are{' '}
+            <span className="font-semibold text-[#22C55E]">saved automatically</span>
           </p>
         </div>
       </div>

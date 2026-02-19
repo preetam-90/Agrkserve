@@ -128,7 +128,7 @@ export function InteractiveTractorChapter({
         }
       );
 
-      // Headline — clip-path left wipe reveal 
+      // Headline — clip-path left wipe reveal
       gsap.fromTo(
         '[data-headline]',
         { clipPath: 'inset(0 100% 0 0)', opacity: 0 },
@@ -223,7 +223,10 @@ export function InteractiveTractorChapter({
       className="relative overflow-hidden bg-[#030705] px-5 py-20 md:px-8 md:py-32"
     >
       {/* Background */}
-      <div data-tractor-bg className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(16,185,129,0.12),transparent_40%)]" />
+      <div
+        data-tractor-bg
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,rgba(16,185,129,0.12),transparent_40%)]"
+      />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,rgba(6,182,212,0.08),transparent_35%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(16,185,129,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.06)_1px,transparent_1px)] [background-size:50px_50px]" />
 

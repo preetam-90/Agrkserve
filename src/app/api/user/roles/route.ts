@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { UserRole } from '@/lib/types';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     const {
       data: { user },
       error: authError,
@@ -27,8 +27,8 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch roles' }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      roles: roles?.filter(r => r.is_active).map(r => r.role) || [] 
+    return NextResponse.json({
+      roles: roles?.filter((r) => r.is_active).map((r) => r.role) || [],
     });
   } catch (error) {
     console.error('Error in GET /api/user/roles:', error);
@@ -39,7 +39,7 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     const {
       data: { user },
       error: authError,
@@ -53,16 +53,13 @@ export async function POST(request: NextRequest) {
     const { roles } = body as { roles: UserRole[] };
 
     if (!roles || !Array.isArray(roles) || roles.length === 0) {
-      return NextResponse.json(
-        { error: 'At least one role must be provided' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'At least one role must be provided' }, { status: 400 });
     }
 
     // Validate roles
     const validRoles: UserRole[] = ['renter', 'provider', 'labour', 'admin'];
-    const invalidRoles = roles.filter(r => !validRoles.includes(r));
-    
+    const invalidRoles = roles.filter((r) => !validRoles.includes(r));
+
     if (invalidRoles.length > 0) {
       return NextResponse.json(
         { error: `Invalid roles: ${invalidRoles.join(', ')}` },
@@ -81,24 +78,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch existing roles' }, { status: 500 });
     }
 
-    const existingRoleNames = existingRoles?.map(r => r.role) || [];
+    const existingRoleNames = existingRoles?.map((r) => r.role) || [];
 
     // Determine which roles to add and which to deactivate
-    const rolesToAdd = roles.filter(r => !existingRoleNames.includes(r));
-    const rolesToActivate = roles.filter(r => existingRoleNames.includes(r));
-    const rolesToDeactivate = existingRoleNames.filter(r => !roles.includes(r));
+    const rolesToAdd = roles.filter((r) => !existingRoleNames.includes(r));
+    const rolesToActivate = roles.filter((r) => existingRoleNames.includes(r));
+    const rolesToDeactivate = existingRoleNames.filter((r) => !roles.includes(r));
 
     // Insert new roles
     if (rolesToAdd.length > 0) {
-      const { error: insertError } = await supabase
-        .from('user_roles')
-        .insert(
-          rolesToAdd.map(role => ({
-            user_id: user.id,
-            role,
-            is_active: true,
-          }))
-        );
+      const { error: insertError } = await supabase.from('user_roles').insert(
+        rolesToAdd.map((role) => ({
+          user_id: user.id,
+          role,
+          is_active: true,
+        }))
+      );
 
       if (insertError) {
         console.error('Error inserting roles:', insertError);
@@ -134,10 +129,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'Roles updated successfully',
-      roles 
+      roles,
     });
   } catch (error) {
     console.error('Error in POST /api/user/roles:', error);

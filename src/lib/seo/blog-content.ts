@@ -1,4 +1,4 @@
-export type LocalizedTitle = { en: string; hi: string };
+type LocalizedTitle = { en: string; hi: string };
 
 export type Author = {
   name: string;
@@ -2922,7 +2922,7 @@ function expandBlogPost(post: BlogPost): BlogPost {
   };
 }
 
-export const BLOG_POSTS: BlogPost[] = RAW_BLOG_POSTS.map(expandBlogPost);
+const BLOG_POSTS: BlogPost[] = RAW_BLOG_POSTS.map(expandBlogPost);
 
 export function getAllBlogPosts(): BlogPost[] {
   return BLOG_POSTS.slice().sort((a, b) => {

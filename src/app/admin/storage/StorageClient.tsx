@@ -132,13 +132,13 @@ export default function StoragePage() {
 
   useEffect(() => {
     fetchBuckets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   useEffect(() => {
     fetchFiles();
     setSelectedFiles(new Set());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [selectedBucket, path]);
 
   const formatSize = (bytes: number) => {

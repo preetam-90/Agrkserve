@@ -2,21 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Database,
-  Table,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Search,
-  RefreshCw,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Code,
-  Database as DbIcon,
-  Shield,
-  Zap,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Play,
-} from 'lucide-react';
+import { Table, RefreshCw, Shield, Zap, Database } from 'lucide-react';
 import DataTable from '@/components/admin/DataTable';
 
 export default function DatabasePage() {
@@ -60,12 +46,12 @@ export default function DatabasePage() {
 
   useEffect(() => {
     fetchTables();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   useEffect(() => {
     fetchTableData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [selectedTable]);
 
   const columns =
@@ -144,7 +130,7 @@ export default function DatabasePage() {
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-900/20">
-                  <DbIcon className="h-5 w-5" />
+                  <Database className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="font-bold capitalize text-slate-900 dark:text-white">

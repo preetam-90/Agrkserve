@@ -25,7 +25,12 @@ function normalizeKlipyItem(item: KlipyApiItem, type: KlipyMediaType): KlipyMedi
 
   // Require gif format for all media types
   if (!primaryMedia?.gif) {
-      console.warn('[KLIPY] Skipping item without valid media:', item.slug, '- file structure:', Object.keys(item.file || {}));
+    console.warn(
+      'KLIPY Skipping item without valid media:',
+      item.slug,
+      '- file structure:',
+      Object.keys(item.file || {})
+    );
     return null;
   }
 
@@ -90,7 +95,7 @@ export const klipyService = {
     try {
       // Validate API key
       if (!KLIPY_API_KEY) {
-        console.warn('[KLIPY] API key not configured, using mock data');
+        console.warn('KLIPY API key not configured, using mock data');
         return { data: this.filterMockData(query, type, perPage) };
       }
 
@@ -105,40 +110,40 @@ export const klipyService = {
 
       const response = await fetch(`${BASE_URL}/${pluralType}/search?${params}`);
 
-      console.log(`[KLIPY] Search URL: ${BASE_URL}/${pluralType}/search`);
+      console.log(`KLIPY Search URL: ${BASE_URL}/${pluralType}/search`);
 
       if (!response.ok) {
-        console.warn(`[KLIPY] API error: ${response.status} - ${response.statusText}`);
+        console.warn(`KLIPY API error: ${response.status} - ${response.statusText}`);
         return { data: this.filterMockData(query, type, perPage) };
       }
 
       const json = await response.json();
-      console.log(`[KLIPY] API response keys:`, Object.keys(json));
+      console.log(`KLIPY API response keys:`, Object.keys(json));
 
       // Handle different API response structures
       let rawItems: KlipyApiItem[] = [];
 
       if (json.data?.data && Array.isArray(json.data.data)) {
         rawItems = json.data.data;
-        console.log(`[KLIPY] Using json.data.data structure, found ${rawItems.length} items`);
+        console.log(`KLIPY Using json.data.data structure, found ${rawItems.length} items`);
       } else if (json.data?.items && Array.isArray(json.data.items)) {
         rawItems = json.data.items;
-        console.log(`[KLIPY] Using json.data.items structure, found ${rawItems.length} items`);
+        console.log(`KLIPY Using json.data.items structure, found ${rawItems.length} items`);
       } else if (json.items && Array.isArray(json.items)) {
         rawItems = json.items;
-        console.log(`[KLIPY] Using json.items structure, found ${rawItems.length} items`);
+        console.log(`KLIPY Using json.items structure, found ${rawItems.length} items`);
       } else if (json.data && Array.isArray(json.data)) {
         rawItems = json.data;
-        console.log(`[KLIPY] Using json.data structure, found ${rawItems.length} items`);
+        console.log(`KLIPY Using json.data structure, found ${rawItems.length} items`);
       } else if (json.result && Array.isArray(json.result)) {
         rawItems = json.result;
-        console.log(`[KLIPY] Using json.result structure, found ${rawItems.length} items`);
+        console.log(`KLIPY Using json.result structure, found ${rawItems.length} items`);
       } else if (Array.isArray(json)) {
         rawItems = json;
-        console.log(`[KLIPY] Using direct array structure, found ${rawItems.length} items`);
+        console.log(`KLIPY Using direct array structure, found ${rawItems.length} items`);
       } else {
-        console.warn('[KLIPY] Unknown API response structure, using mock data');
-        console.log('[KLIPY] Response sample:', JSON.stringify(json).substring(0, 500));
+        console.warn('KLIPY Unknown API response structure, using mock data');
+        console.log('KLIPY Response sample:', JSON.stringify(json).substring(0, 500));
         return { data: this.filterMockData(query, type, perPage) };
       }
 
@@ -147,16 +152,19 @@ export const klipyService = {
         .map((item: KlipyApiItem) => normalizeKlipyItem(item, type))
         .filter((item): item is KlipyMedia => item !== null);
 
-      console.log(`[KLIPY] Normalized ${normalized.length} items from ${rawItems.length} raw items`);
+      console.log(`KLIPY Normalized ${normalized.length} items from ${rawItems.length} raw items`);
 
       if (normalized.length === 0 && rawItems.length > 0) {
-        console.warn('[KLIPY] All items filtered out. Check file structure in API response.');
-        console.log('[KLIPY] First item sample:', JSON.stringify(rawItems[0], null, 2).substring(0, 800));
+        console.warn('KLIPY All items filtered out. Check file structure in API response.');
+        console.log(
+          'KLIPY First item sample:',
+          JSON.stringify(rawItems[0], null, 2).substring(0, 800)
+        );
       }
 
       return { data: normalized };
     } catch (error) {
-      console.error('[KLIPY] Search error:', error);
+      console.error('KLIPY Search error:', error);
       return { data: this.filterMockData(query, type, perPage) };
     }
   },
@@ -178,7 +186,7 @@ export const klipyService = {
       const json = await response.json();
       return json.data?.categories || [];
     } catch (error) {
-      console.error('[KLIPY] Categories error:', error);
+      console.error('KLIPY Categories error:', error);
       return [];
     }
   },
@@ -190,7 +198,7 @@ export const klipyService = {
     try {
       // Validate API key
       if (!KLIPY_API_KEY) {
-        console.warn('[KLIPY] API key not configured for trending, using mock data');
+        console.warn('KLIPY API key not configured for trending, using mock data');
         return this.getMockTrendingData(type, limit);
       }
 
@@ -203,12 +211,12 @@ export const klipyService = {
       const response = await fetch(`${BASE_URL}/${pluralType}/trending?${params}`);
 
       if (!response.ok) {
-        console.warn(`[KLIPY] Trending API error: ${response.status} - ${response.statusText}`);
+        console.warn(`KLIPY Trending API error: ${response.status} - ${response.statusText}`);
         return this.getMockTrendingData(type, limit);
       }
 
       const json = await response.json();
-      console.log(`[KLIPY] Trending API response keys:`, Object.keys(json));
+      console.log(`KLIPY Trending API response keys:`, Object.keys(json));
 
       // Handle different API response structures
       let rawItems: KlipyApiItem[] = [];
@@ -226,21 +234,21 @@ export const klipyService = {
       } else if (Array.isArray(json)) {
         rawItems = json;
       } else {
-        console.warn('[KLIPY] Unknown trending API response structure, using mock data');
+        console.warn('KLIPY Unknown trending API response structure, using mock data');
         return this.getMockTrendingData(type, limit);
       }
 
-      console.log(`[KLIPY] Trending found ${rawItems.length} raw items`);
+      console.log(`KLIPY Trending found ${rawItems.length} raw items`);
 
       const normalized: KlipyMedia[] = rawItems
         .map((item) => normalizeKlipyItem(item, type))
         .filter((item): item is KlipyMedia => item !== null);
 
-      console.log(`[KLIPY] Trending normalized ${normalized.length} items`);
+      console.log(`KLIPY Trending normalized ${normalized.length} items`);
 
       return normalized;
     } catch (error) {
-      console.error('[KLIPY] Trending error:', error);
+      console.error('KLIPY Trending error:', error);
       return this.getMockTrendingData(type, limit);
     }
   },
@@ -267,7 +275,7 @@ export const klipyService = {
       const json = await response.json();
       return json.data || [];
     } catch (error) {
-      console.error('[KLIPY] Autocomplete error:', error);
+      console.error('KLIPY Autocomplete error:', error);
       return [];
     }
   },
@@ -290,7 +298,7 @@ export const klipyService = {
       const json = await response.json();
       return json.data?.data || this.getLocalRecent(type);
     } catch (error) {
-      console.error('[KLIPY] Recent error:', error);
+      console.error('KLIPY Recent error:', error);
       return this.getLocalRecent(type);
     }
   },
@@ -309,13 +317,13 @@ export const klipyService = {
       });
 
       if (!response.ok) {
-        console.warn('[KLIPY] Share tracking failed:', response.status);
+        console.warn('KLIPY Share tracking failed:', response.status);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('[KLIPY] Share error:', error);
+      console.error('KLIPY Share error:', error);
       return false;
     }
   },

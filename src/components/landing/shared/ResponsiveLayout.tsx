@@ -31,7 +31,9 @@ export const ResponsiveSection = forwardRef<HTMLElement, ResponsiveSectionProps>
         )}
         {...props}
       >
-        <div className={joinClasses('landing-container relative z-10', contentClassName)}>{children}</div>
+        <div className={joinClasses('landing-container relative z-10', contentClassName)}>
+          {children}
+        </div>
       </section>
     );
   }
@@ -42,7 +44,7 @@ interface ResponsiveContainerProps extends HTMLAttributes<HTMLDivElement> {
   narrow?: boolean;
 }
 
-export function ResponsiveContainer({
+function ResponsiveContainer({
   children,
   className,
   narrow = false,

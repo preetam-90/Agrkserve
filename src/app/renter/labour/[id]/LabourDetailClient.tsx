@@ -29,6 +29,7 @@ import {
 
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/layout';
+import ServiceLocationMap from '@/components/ServiceLocationMap';
 import {
   Button,
   Card,
@@ -56,7 +57,7 @@ export default function LabourDetailClient() {
 
   useEffect(() => {
     loadLabourProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [labourId]);
 
   const loadLabourProfile = async () => {
@@ -105,6 +106,14 @@ export default function LabourDetailClient() {
     }
   };
 
+  const handleSendMessage = () => {
+    if (!user || !labour?.user_id) {
+      router.push(`/login?redirect=/messages`);
+      return;
+    }
+    router.push(`/messages?user=${labour.user_id}`);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-950">
@@ -126,7 +135,7 @@ export default function LabourDetailClient() {
   const displayImage = userData?.profile_image || '/images/default-avatar.png';
   const isVerified = userData?.is_verified || false;
   const specialization = labour.skills?.slice(0, 2).join(' & ') || 'Agricultural Worker';
-  const displayRating = labour.rating || 0;
+  const displayRating = labour.average_rating || 0;
   const displayReviews = labour.review_count || 0;
   const displayLocation = labour.location_name || labour.city || 'Location not specified';
 
@@ -427,12 +436,25 @@ export default function LabourDetailClient() {
               {/* Service Location Section */}
               <section>
                 <h2 className="mb-4 text-xl font-bold text-white">Service Location</h2>
-                <div className="flex h-64 flex-col items-center justify-center rounded-xl bg-slate-800">
-                  <MapPin className="mb-2 h-10 w-10 text-slate-600" />
-                  <p className="text-slate-500">
-                    {labour.service_radius_km}km service radius from {labour.city}
-                  </p>
-                </div>
+                {labour.latitude && labour.longitude ? (
+                  <div className="overflow-hidden rounded-xl">
+                    <ServiceLocationMap
+                      latitude={labour.latitude}
+                      longitude={labour.longitude}
+                      radius={(labour.service_radius_km || 50) * 1000}
+                    />
+                    <p className="mt-2 text-sm text-slate-400">
+                      {labour.service_radius_km}km service radius from {labour.city}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex h-64 flex-col items-center justify-center rounded-xl bg-slate-800">
+                    <MapPin className="mb-2 h-10 w-10 text-slate-600" />
+                    <p className="text-slate-500">
+                      {labour.service_radius_km}km service radius from {labour.city}
+                    </p>
+                  </div>
+                )}
               </section>
 
               {/* Action Buttons */}
@@ -440,7 +462,7 @@ export default function LabourDetailClient() {
                 <Button
                   variant="outline"
                   className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
-                  onClick={() => toast.success('Message feature coming soon!')}
+                  onClick={handleSendMessage}
                 >
                   <MessageCircle className="mr-2 h-4 w-4" />
                   Send Message

@@ -61,11 +61,11 @@ export function MessageBranchContent({ children }: { children: ReactNode }) {
   return <>{nodes[ctx.page] ?? null}</>;
 }
 
-export function MessageBranchSelector({ children }: { children: ReactNode }) {
+function MessageBranchSelector({ children }: { children: ReactNode }) {
   return <div className="mt-2 flex items-center justify-end gap-1.5">{children}</div>;
 }
 
-export function MessageBranchPrevious() {
+function MessageBranchPrevious() {
   const ctx = useContext(BranchContext);
   if (!ctx) return null;
 
@@ -80,7 +80,7 @@ export function MessageBranchPrevious() {
   );
 }
 
-export function MessageBranchPage() {
+function MessageBranchPage() {
   const ctx = useContext(BranchContext);
   if (!ctx) return null;
 
@@ -91,7 +91,7 @@ export function MessageBranchPage() {
   );
 }
 
-export function MessageBranchNext() {
+function MessageBranchNext() {
   const ctx = useContext(BranchContext);
   if (!ctx) return null;
 

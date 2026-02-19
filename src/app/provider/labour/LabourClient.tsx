@@ -40,7 +40,6 @@ import { labourKeys } from '@/lib/hooks/query-keys';
 import toast from 'react-hot-toast';
 
 export default function ProviderLabourPage() {
-   
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -226,7 +225,7 @@ export default function ProviderLabourPage() {
                       <div className="flex items-center gap-2">
                         <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
                         <span className="text-xl font-semibold text-white">
-                          {labourProfile.rating?.toFixed(1) || '0.0'}
+                          {labourProfile.average_rating?.toFixed(1) || '0.0'}
                         </span>
                         <span className="text-sm text-slate-400">
                           ({labourProfile.review_count || 0} reviews)

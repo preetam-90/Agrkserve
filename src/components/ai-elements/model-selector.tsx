@@ -19,7 +19,7 @@ type ModelSelectorCtx = {
 
 const ModelSelectorContext = createContext<ModelSelectorCtx | null>(null);
 
-export function ModelSelector({
+function ModelSelector({
   children,
   open,
   onOpenChange,
@@ -37,13 +37,7 @@ export function ModelSelector({
   return <ModelSelectorContext.Provider value={value}>{children}</ModelSelectorContext.Provider>;
 }
 
-export function ModelSelectorTrigger({
-  children,
-  asChild,
-}: {
-  children: ReactNode;
-  asChild?: boolean;
-}) {
+function ModelSelectorTrigger({ children, asChild }: { children: ReactNode; asChild?: boolean }) {
   const ctx = useContext(ModelSelectorContext);
   if (!ctx) return <>{children}</>;
 
@@ -68,7 +62,7 @@ export function ModelSelectorTrigger({
   );
 }
 
-export function ModelSelectorContent({ children }: { children: ReactNode }) {
+function ModelSelectorContent({ children }: { children: ReactNode }) {
   const ctx = useContext(ModelSelectorContext);
   if (!ctx?.open) return null;
 
@@ -79,7 +73,7 @@ export function ModelSelectorContent({ children }: { children: ReactNode }) {
   );
 }
 
-export function ModelSelectorInput({ placeholder }: { placeholder?: string }) {
+function ModelSelectorInput({ placeholder }: { placeholder?: string }) {
   const ctx = useContext(ModelSelectorContext);
   if (!ctx) return null;
 
@@ -93,7 +87,7 @@ export function ModelSelectorInput({ placeholder }: { placeholder?: string }) {
   );
 }
 
-export function ModelSelectorList({ children }: { children: ReactNode }) {
+function ModelSelectorList({ children }: { children: ReactNode }) {
   return (
     <div className="max-h-72 space-y-2 overflow-y-auto pr-1" data-allow-native-scroll="true">
       {children}
@@ -101,11 +95,11 @@ export function ModelSelectorList({ children }: { children: ReactNode }) {
   );
 }
 
-export function ModelSelectorEmpty({ children }: { children: ReactNode }) {
+function ModelSelectorEmpty({ children }: { children: ReactNode }) {
   return <div className="px-2 py-2 text-sm text-white/55">{children}</div>;
 }
 
-export function ModelSelectorGroup({ children, heading }: { children: ReactNode; heading: string }) {
+function ModelSelectorGroup({ children, heading }: { children: ReactNode; heading: string }) {
   return (
     <section>
       <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-300/70">
@@ -116,7 +110,7 @@ export function ModelSelectorGroup({ children, heading }: { children: ReactNode;
   );
 }
 
-export function ModelSelectorItem({
+function ModelSelectorItem({
   children,
   onSelect,
   value,
@@ -141,7 +135,7 @@ export function ModelSelectorItem({
   );
 }
 
-export function ModelSelectorLogo({ provider }: { provider: string }) {
+function ModelSelectorLogo({ provider }: { provider: string }) {
   return (
     <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border border-emerald-300/35 bg-emerald-400/10 text-[10px] font-semibold uppercase text-emerald-100">
       {provider.slice(0, 1)}
@@ -149,10 +143,10 @@ export function ModelSelectorLogo({ provider }: { provider: string }) {
   );
 }
 
-export function ModelSelectorLogoGroup({ children }: { children: ReactNode }) {
+function ModelSelectorLogoGroup({ children }: { children: ReactNode }) {
   return <span className="ml-auto inline-flex items-center gap-1">{children}</span>;
 }
 
-export function ModelSelectorName({ children }: { children: ReactNode }) {
+function ModelSelectorName({ children }: { children: ReactNode }) {
   return <span className="truncate text-sm text-white/95">{children}</span>;
 }

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Search, Loader2, TrendingUp, Clock, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import type { KlipyMedia } from '@/lib/types/klipy';import { klipyService } from '@/lib/services/klipy-service';
+import type { KlipyMedia } from '@/lib/types/klipy';
+import { klipyService } from '@/lib/services/klipy-service';
 import { KlipyMediaGrid } from './klipy-media-grid';
 import { useAuthStore } from '@/lib/store';
 
@@ -23,7 +24,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
 
 type ViewMode = 'trending' | 'recent' | 'search';
 
-export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
+function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabId>('gif');
   const [viewMode, setViewMode] = useState<ViewMode>('trending');
@@ -68,7 +69,7 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
         }
 
         // Reduce console noise
-        // console.log(`[MediaDrawer] Setting items. Count: ${newData.length}`, newData.map(i => i.title));
+        // console.log(`media drawer: setting items. Count: ${newData.length}`, newData.map(i => i.title));
 
         if (loadMore) {
           setItems((prev) => [...prev, ...newData.slice(prev.length)]);
@@ -86,7 +87,7 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
         setLoading(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [activeTab, viewMode, debouncedQuery, user?.id, page]
   );
 
@@ -95,7 +96,7 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
     if (isOpen) {
       loadContent(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [isOpen, activeTab, viewMode, debouncedQuery]);
 
   // Infinite scroll handler
@@ -285,7 +286,9 @@ export function MediaDrawer({ isOpen, onClose, onSelect }: MediaDrawerProps) {
 
           {/* No More Items */}
           {!loading && !hasMore && items.length > 0 && (
-            <div className="py-4 text-center text-xs text-gray-500">That&apos;s all for now! 🎉</div>
+            <div className="py-4 text-center text-xs text-gray-500">
+              That&apos;s all for now! 🎉
+            </div>
           )}
         </div>
 

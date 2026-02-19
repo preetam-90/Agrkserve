@@ -11,7 +11,7 @@ interface LabourSectionProps {
   };
 }
 
-export function LabourSection({ stats }: LabourSectionProps) {
+function LabourSection({ stats }: LabourSectionProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowRight, Sparkles, CheckCircle } from 'lucide-react';
 import { MagneticButton } from '@/components/ui/MagneticButton';
 
-export function FinalCTASection() {
+function FinalCTASection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
@@ -98,8 +98,8 @@ export function FinalCTASection() {
               transition={{ delay: 0.4 }}
               className="mx-auto mb-12 max-w-3xl text-xl text-gray-300 md:text-2xl"
             >
-              Start renting premium equipment and hiring skilled workers today. India&apos;s most trusted
-              agricultural marketplace.
+              Start renting premium equipment and hiring skilled workers today. India&apos;s most
+              trusted agricultural marketplace.
             </motion.p>
 
             {/* CTAs */}

@@ -144,7 +144,7 @@ export interface MediaAnalytics {
   storageByUser: UserStorageData[];
 }
 
-export interface MonthlyUploadData {
+interface MonthlyUploadData {
   month: string;
   year: number;
   imageCount: number;
@@ -152,7 +152,7 @@ export interface MonthlyUploadData {
   totalBytes: number;
 }
 
-export interface UserStorageData {
+interface UserStorageData {
   userId: string;
   userName?: string;
   totalBytes: number;
@@ -197,7 +197,7 @@ export interface PaginatedMediaResponse {
   hasMore: boolean;
 }
 
-export interface MediaActionResponse {
+interface MediaActionResponse {
   success: boolean;
   message: string;
   data?: unknown;
@@ -210,7 +210,7 @@ export interface BulkDeleteRequest {
   reason?: string;
 }
 
-export interface BulkDeleteResponse {
+interface BulkDeleteResponse {
   success: boolean;
   deleted: string[];
   failed: { publicId: string; error: string }[];
@@ -225,20 +225,20 @@ export interface RenameAssetRequest {
   reason: string;
 }
 
-export interface ReplaceAssetRequest {
+interface ReplaceAssetRequest {
   publicId: string;
   file: File;
   reason: string;
 }
 
 // Moderation
-export interface FlagMediaRequest {
+interface FlagMediaRequest {
   publicId: string;
   reason: string;
   notes?: string;
 }
 
-export interface ModerationStatusUpdate {
+interface ModerationStatusUpdate {
   publicId: string;
   status: MediaStatus;
   notes?: string;
@@ -265,7 +265,7 @@ export interface CloudinaryUsageResponse {
   media_limits?: Record<string, number>;
 }
 
-export interface UsageMetric {
+interface UsageMetric {
   usage: number;
   credits_usage?: number;
   used: number;

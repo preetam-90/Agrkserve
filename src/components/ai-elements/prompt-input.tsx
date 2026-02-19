@@ -37,8 +37,8 @@ import { ChatMediaChip } from '@/components/ai-elements/attachments';
 
 // ─── Legacy types (kept for backward compatibility) ───────────────────────────
 
-export type PromptInputAttachment = { id: string; name: string; type: string; url: string };
-export type PromptInputMessage = { text?: string; files?: PromptInputAttachment[] };
+type PromptInputAttachment = { id: string; name: string; type: string; url: string };
+type PromptInputMessage = { text?: string; files?: PromptInputAttachment[] };
 
 // ─── Legacy PromptInput context ───────────────────────────────────────────────
 
@@ -117,7 +117,7 @@ export function PromptInput({
   );
 }
 
-export function usePromptInputAttachments() {
+function usePromptInputAttachments() {
   const ctx = useContext(PromptInputContext);
   if (!ctx) return { files: [], remove: () => undefined };
   return { files: ctx.files, remove: ctx.remove };
@@ -125,7 +125,7 @@ export function usePromptInputAttachments() {
 
 // ─── Layout primitives ────────────────────────────────────────────────────────
 
-export function PromptInputHeader({ children }: { children: ReactNode }) {
+function PromptInputHeader({ children }: { children: ReactNode }) {
   return <div className="border-b border-white/10 px-3 py-2">{children}</div>;
 }
 
@@ -166,7 +166,7 @@ export function PromptInputTextarea(props: React.TextareaHTMLAttributes<HTMLText
 
 // ─── Buttons ──────────────────────────────────────────────────────────────────
 
-export function PromptInputTools({ children }: { children: ReactNode }) {
+function PromptInputTools({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-center gap-1.5">{children}</div>;
 }
 
@@ -214,7 +214,7 @@ export function PromptInputSubmit({
 
 const MenuContext = createContext<{ open: boolean; setOpen: (open: boolean) => void } | null>(null);
 
-export function PromptInputActionMenu({ children }: { children: ReactNode }) {
+function PromptInputActionMenu({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <MenuContext.Provider value={{ open, setOpen }}>
@@ -223,7 +223,7 @@ export function PromptInputActionMenu({ children }: { children: ReactNode }) {
   );
 }
 
-export function PromptInputActionMenuTrigger() {
+function PromptInputActionMenuTrigger() {
   const ctx = useContext(MenuContext);
   if (!ctx) return null;
   return (
@@ -239,7 +239,7 @@ export function PromptInputActionMenuTrigger() {
   );
 }
 
-export function PromptInputActionMenuContent({ children }: { children: ReactNode }) {
+function PromptInputActionMenuContent({ children }: { children: ReactNode }) {
   const ctx = useContext(MenuContext);
   if (!ctx?.open) return null;
   return (
@@ -251,7 +251,7 @@ export function PromptInputActionMenuContent({ children }: { children: ReactNode
 
 // ─── Legacy attachment (kept for backward compat) ─────────────────────────────
 
-export function PromptInputActionAddAttachments() {
+function PromptInputActionAddAttachments() {
   const ctx = useContext(PromptInputContext);
   const inputRef = useRef<HTMLInputElement>(null);
 

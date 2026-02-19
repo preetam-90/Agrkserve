@@ -18,7 +18,7 @@
 // Agent Definition and Utility Types
 // ============================================================================
 
-export interface AgentDefinition {
+interface AgentDefinition {
   /** Unique identifier for this agent. Must contain only lowercase letters, numbers, and hyphens, e.g. 'code-reviewer' */
   id: string;
 
@@ -263,7 +263,7 @@ export interface AgentDefinition {
 // Supporting Types
 // ============================================================================
 
-export interface AgentState {
+interface AgentState {
   agentId: string;
   runId: string;
   parentId: string | undefined;
@@ -293,20 +293,20 @@ export interface AgentState {
 /**
  * Context provided to handleSteps generator function
  */
-export interface AgentStepContext {
+interface AgentStepContext {
   agentState: AgentState;
   prompt?: string;
   params?: Record<string, unknown>;
   logger: Logger;
 }
 
-export type StepText = { type: 'STEP_TEXT'; text: string };
-export type GenerateN = { type: 'GENERATE_N'; n: number };
+type StepText = { type: 'STEP_TEXT'; text: string };
+type GenerateN = { type: 'GENERATE_N'; n: number };
 
 /**
  * Tool call object for handleSteps generator
  */
-export type ToolCall<T extends ToolName = ToolName> = {
+type ToolCall<T extends ToolName = ToolName> = {
   [K in T]: {
     toolName: K;
     input: GetToolParams<K>;
@@ -321,32 +321,32 @@ export type ToolCall<T extends ToolName = ToolName> = {
 /**
  * File operation tools
  */
-export type FileEditingTools = 'read_files' | 'write_file' | 'str_replace';
+type FileEditingTools = 'read_files' | 'write_file' | 'str_replace';
 
 /**
  * Code analysis tools
  */
-export type CodeAnalysisTools = 'code_search' | 'find_files' | 'read_files';
+type CodeAnalysisTools = 'code_search' | 'find_files' | 'read_files';
 
 /**
  * Terminal and system tools
  */
-export type TerminalTools = 'run_terminal_command' | 'code_search';
+type TerminalTools = 'run_terminal_command' | 'code_search';
 
 /**
  * Web and browser tools
  */
-export type WebTools = 'web_search' | 'read_docs';
+type WebTools = 'web_search' | 'read_docs';
 
 /**
  * Agent management tools
  */
-export type AgentTools = 'spawn_agents';
+type AgentTools = 'spawn_agents';
 
 /**
  * Output and control tools
  */
-export type OutputTools = 'set_output';
+type OutputTools = 'set_output';
 
 // ============================================================================
 // Available Models (see: https://console.groq.com/docs/models)
@@ -357,7 +357,7 @@ export type OutputTools = 'set_output';
  *
  * See available models at https://console.groq.com/docs/models
  */
-export type ModelName =
+type ModelName =
   // Recommended Models
 
   // OpenAI
