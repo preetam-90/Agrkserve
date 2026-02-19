@@ -70,7 +70,6 @@ export function RootAppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <LandingEntryLoader />
       <NetworkStatus />
       <GSAPProvider>
         <EnhancedSmoothScroll>
