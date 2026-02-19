@@ -53,7 +53,7 @@ export default function BookLabourPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push(`/login?redirect=/renter/labour/${labourId}/book`);
+      router.push(`/login?redirect=/labour/${labourId}/book`);
       return;
     }
     loadLabourProfile();
@@ -75,7 +75,7 @@ export default function BookLabourPage() {
       const data = await labourService.getById(labourId);
       if (!data) {
         toast.error('Labour profile not found');
-        router.push('/renter/labour');
+        router.push('/labour');
         return;
       }
       setLabour(data);
@@ -187,14 +187,14 @@ export default function BookLabourPage() {
   const today = new Date().toISOString().split('T')[0];
 
   return (
-    <div 
+    <div
       className="flex min-h-screen flex-col"
-      style={{ 
+      style={{
         background: 'var(--bg-base)',
         backgroundImage: `
           radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.15), transparent),
           radial-gradient(ellipse 60% 40% at 100% 50%, rgba(6, 182, 212, 0.08), transparent)
-        `
+        `,
       }}
     >
       <Header />
@@ -202,7 +202,7 @@ export default function BookLabourPage() {
       <main className="container mx-auto max-w-5xl flex-1 px-4 pb-12 pt-28">
         {/* Back Button */}
         <Link
-          href={`/renter/labour/${labourId}`}
+          href={`/labour/${labourId}`}
           className="group mb-6 inline-flex items-center text-sm font-medium transition-all duration-300 hover:translate-x-[-4px]"
           style={{ color: 'var(--text-secondary)' }}
         >
@@ -211,14 +211,14 @@ export default function BookLabourPage() {
         </Link>
 
         {/* Page Header */}
-        <div 
-          className={`mb-8 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        <div
+          className={`mb-8 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
         >
-          <h1 
+          <h1
             className="mb-2 text-3xl font-bold"
-            style={{ 
+            style={{
               color: 'var(--text-primary)',
-              textShadow: '0 0 40px rgba(16, 185, 129, 0.3)'
+              textShadow: '0 0 40px rgba(16, 185, 129, 0.3)',
             }}
           >
             Book Labour
@@ -233,40 +233,38 @@ export default function BookLabourPage() {
           <div className="lg:col-span-3">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Worker Info Card */}
-              <div 
-                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              <div
+                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
                 style={{ transitionDelay: '100ms' }}
               >
                 <div className="flex items-start gap-5">
                   {/* Avatar */}
-                  <div 
+                  <div
                     className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2))',
-                      border: '1px solid rgba(16, 185, 129, 0.3)'
+                      background:
+                        'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2))',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
                     }}
                   >
                     <User className="h-10 w-10" style={{ color: '#34d399' }} />
-                    <div 
+                    <div
                       className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full"
                       style={{
                         background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-                        boxShadow: '0 0 12px rgba(16, 185, 129, 0.5)'
+                        boxShadow: '0 0 12px rgba(16, 185, 129, 0.5)',
                       }}
                     >
                       <Star className="h-3 w-3 fill-white text-white" />
                     </div>
                   </div>
-                  
+
                   <div className="flex-1">
-                    <h3 
-                      className="text-xl font-semibold"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
+                    <h3 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
                       {labour.user?.name || 'Farm Worker'}
                     </h3>
                     {labour.location_name && (
-                      <div 
+                      <div
                         className="mt-1 flex items-center text-sm"
                         style={{ color: 'var(--text-tertiary)' }}
                       >
@@ -276,13 +274,13 @@ export default function BookLabourPage() {
                     )}
                     <div className="mt-3 flex flex-wrap gap-2">
                       {labour.skills.slice(0, 4).map((skill, idx) => (
-                        <span 
-                          key={idx} 
+                        <span
+                          key={idx}
                           className="rounded-full px-3 py-1 text-xs font-medium"
                           style={{
                             background: 'rgba(16, 185, 129, 0.1)',
                             color: '#34d399',
-                            border: '1px solid rgba(16, 185, 129, 0.2)'
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
                           }}
                         >
                           {skill}
@@ -290,31 +288,34 @@ export default function BookLabourPage() {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
-                    <div 
+                    <div
                       className="flex items-center text-3xl font-bold"
                       style={{ color: '#34d399' }}
                     >
                       <IndianRupee className="h-6 w-6" />
                       {labour.daily_rate}
                     </div>
-                    <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>per day</div>
+                    <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                      per day
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Booking Dates Card */}
-              <div 
-                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              <div
+                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
                 style={{ transitionDelay: '200ms' }}
               >
                 <div className="mb-5 flex items-center gap-3">
-                  <div 
+                  <div
                     className="flex h-10 w-10 items-center justify-center rounded-xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1))',
-                      border: '1px solid rgba(245, 158, 11, 0.3)'
+                      background:
+                        'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1))',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
                     }}
                   >
                     <Calendar className="h-5 w-5" style={{ color: '#fbbf24' }} />
@@ -333,7 +334,10 @@ export default function BookLabourPage() {
                       Start Date *
                     </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform" style={{ color: 'var(--text-tertiary)' }} />
+                      <Calendar
+                        className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform"
+                        style={{ color: 'var(--text-tertiary)' }}
+                      />
                       <Input
                         type="date"
                         id="startDate"
@@ -346,7 +350,7 @@ export default function BookLabourPage() {
                         style={{
                           background: 'rgba(255, 255, 255, 0.05)',
                           border: '1px solid var(--border-default)',
-                          color: 'var(--text-primary)'
+                          color: 'var(--text-primary)',
                         }}
                       />
                     </div>
@@ -360,7 +364,10 @@ export default function BookLabourPage() {
                       End Date *
                     </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform" style={{ color: 'var(--text-tertiary)' }} />
+                      <Calendar
+                        className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform"
+                        style={{ color: 'var(--text-tertiary)' }}
+                      />
                       <Input
                         type="date"
                         id="endDate"
@@ -373,7 +380,7 @@ export default function BookLabourPage() {
                         style={{
                           background: 'rgba(255, 255, 255, 0.05)',
                           border: '1px solid var(--border-default)',
-                          color: 'var(--text-primary)'
+                          color: 'var(--text-primary)',
                         }}
                       />
                     </div>
@@ -382,16 +389,17 @@ export default function BookLabourPage() {
               </div>
 
               {/* Working Hours Card */}
-              <div 
-                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              <div
+                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
                 style={{ transitionDelay: '300ms' }}
               >
                 <div className="mb-5 flex items-center gap-3">
-                  <div 
+                  <div
                     className="flex h-10 w-10 items-center justify-center rounded-xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1))',
-                      border: '1px solid rgba(139, 92, 246, 0.3)'
+                      background:
+                        'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1))',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
                     }}
                   >
                     <Clock className="h-5 w-5" style={{ color: '#a78bfa' }} />
@@ -410,7 +418,10 @@ export default function BookLabourPage() {
                       Start Time
                     </label>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform" style={{ color: 'var(--text-tertiary)' }} />
+                      <Clock
+                        className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform"
+                        style={{ color: 'var(--text-tertiary)' }}
+                      />
                       <Input
                         type="time"
                         id="startTime"
@@ -421,7 +432,7 @@ export default function BookLabourPage() {
                         style={{
                           background: 'rgba(255, 255, 255, 0.05)',
                           border: '1px solid var(--border-default)',
-                          color: 'var(--text-primary)'
+                          color: 'var(--text-primary)',
                         }}
                       />
                     </div>
@@ -435,7 +446,10 @@ export default function BookLabourPage() {
                       End Time
                     </label>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform" style={{ color: 'var(--text-tertiary)' }} />
+                      <Clock
+                        className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform"
+                        style={{ color: 'var(--text-tertiary)' }}
+                      />
                       <Input
                         type="time"
                         id="endTime"
@@ -446,7 +460,7 @@ export default function BookLabourPage() {
                         style={{
                           background: 'rgba(255, 255, 255, 0.05)',
                           border: '1px solid var(--border-default)',
-                          color: 'var(--text-primary)'
+                          color: 'var(--text-primary)',
                         }}
                       />
                     </div>
@@ -455,16 +469,17 @@ export default function BookLabourPage() {
               </div>
 
               {/* Work Location Card */}
-              <div 
-                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              <div
+                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
                 style={{ transitionDelay: '400ms' }}
               >
                 <div className="mb-5 flex items-center gap-3">
-                  <div 
+                  <div
                     className="flex h-10 w-10 items-center justify-center rounded-xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(34, 211, 238, 0.1))',
-                      border: '1px solid rgba(34, 211, 238, 0.3)'
+                      background:
+                        'linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(34, 211, 238, 0.1))',
+                      border: '1px solid rgba(34, 211, 238, 0.3)',
                     }}
                   >
                     <MapPin className="h-5 w-5" style={{ color: '#22d3ee' }} />
@@ -474,7 +489,10 @@ export default function BookLabourPage() {
                   </h2>
                 </div>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-5 w-5" style={{ color: 'var(--text-tertiary)' }} />
+                  <MapPin
+                    className="absolute left-3 top-3 h-5 w-5"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  />
                   <Textarea
                     id="workLocation"
                     name="workLocation"
@@ -487,15 +505,15 @@ export default function BookLabourPage() {
                     style={{
                       background: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid var(--border-default)',
-                      color: 'var(--text-primary)'
+                      color: 'var(--text-primary)',
                     }}
                   />
                 </div>
               </div>
 
               {/* Additional Notes Card */}
-              <div 
-                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              <div
+                className={`card-glass p-6 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
                 style={{ transitionDelay: '500ms' }}
               >
                 <h2 className="mb-4 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -511,43 +529,56 @@ export default function BookLabourPage() {
                   style={{
                     background: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid var(--border-default)',
-                    color: 'var(--text-primary)'
+                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
 
               {/* Important Information */}
-              <div 
-                className={`rounded-2xl p-5 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                style={{ 
-                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.05))',
+              <div
+                className={`rounded-2xl p-5 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+                style={{
+                  background:
+                    'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.05))',
                   border: '1px solid rgba(59, 130, 246, 0.2)',
-                  transitionDelay: '600ms'
+                  transitionDelay: '600ms',
                 }}
               >
                 <div className="flex items-start gap-4">
-                  <div 
+                  <div
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2))',
-                      border: '1px solid rgba(59, 130, 246, 0.3)'
+                      background:
+                        'linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2))',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
                     }}
                   >
                     <AlertCircle className="h-5 w-5" style={{ color: '#60a5fa' }} />
                   </div>
                   <div>
-                    <p className="mb-2 font-semibold" style={{ color: 'var(--text-primary)' }}>Important Information:</p>
+                    <p className="mb-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      Important Information:
+                    </p>
                     <ul className="space-y-1.5 text-sm" style={{ color: 'var(--text-tertiary)' }}>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: '#34d399' }} />
+                        <CheckCircle
+                          className="mt-0.5 h-4 w-4 shrink-0"
+                          style={{ color: '#34d399' }}
+                        />
                         <span>Payment will be processed after worker confirmation</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: '#34d399' }} />
+                        <CheckCircle
+                          className="mt-0.5 h-4 w-4 shrink-0"
+                          style={{ color: '#34d399' }}
+                        />
                         <span>You can cancel up to 24 hours before the start date</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: '#34d399' }} />
+                        <CheckCircle
+                          className="mt-0.5 h-4 w-4 shrink-0"
+                          style={{ color: '#34d399' }}
+                        />
                         <span>The worker will be notified of your booking request</span>
                       </li>
                     </ul>
@@ -562,19 +593,19 @@ export default function BookLabourPage() {
                 className="group relative w-full overflow-hidden rounded-2xl py-4 text-lg font-semibold transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(16,185,129,0.4)] disabled:opacity-50 disabled:hover:scale-100"
                 style={{
                   background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white'
+                  color: 'white',
                 }}
               >
-                <div 
+                <div
                   className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   style={{
-                    background: 'linear-gradient(135deg, #34d399, #10b981)'
+                    background: 'linear-gradient(135deg, #34d399, #10b981)',
                   }}
                 ></div>
                 <span className="relative flex items-center justify-center gap-2">
                   {isSubmitting ? (
                     <>
-                      <div className="h-5-spin rounded-full border w-5 animate-2 border-white border-t-transparent"></div>
+                      <div className="h-5-spin animate-2 w-5 rounded-full border border-white border-t-transparent"></div>
                       Processing...
                     </>
                   ) : (
@@ -590,30 +621,32 @@ export default function BookLabourPage() {
 
           {/* Pricing Summary Sidebar */}
           <div className="lg:col-span-2">
-            <div 
-              className={`sticky top-28 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+            <div
+              className={`sticky top-28 transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
               style={{ transitionDelay: '300ms' }}
             >
-              <div 
+              <div
                 className="card-glass overflow-hidden rounded-2xl"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.05))'
+                  background:
+                    'linear-gradient(180deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.05))',
                 }}
               >
                 {/* Card Header */}
-                <div 
+                <div
                   className="px-6 py-5"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1))',
-                    borderBottom: '1px solid var(--border-default)'
+                    background:
+                      'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 182, 212, 0.1))',
+                    borderBottom: '1px solid var(--border-default)',
                   }}
                 >
                   <div className="flex items-center gap-3">
-                    <div 
+                    <div
                       className="flex h-10 w-10 items-center justify-center rounded-xl"
                       style={{
                         background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-                        boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)'
+                        boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
                       }}
                     >
                       <Clock3 className="h-5 w-5 text-white" />
@@ -632,7 +665,8 @@ export default function BookLabourPage() {
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span style={{ color: 'var(--text-secondary)' }}>
-                            ₹{labour.daily_rate} × {pricing.days} {pricing.days === 1 ? 'day' : 'days'}
+                            ₹{labour.daily_rate} × {pricing.days}{' '}
+                            {pricing.days === 1 ? 'day' : 'days'}
                           </span>
                           <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
                             ₹{pricing.baseAmount.toLocaleString()}
@@ -647,60 +681,90 @@ export default function BookLabourPage() {
                       </div>
 
                       {/* Divider */}
-                      <div 
+                      <div
                         className="h-px w-full"
                         style={{
-                          background: 'linear-gradient(90deg, transparent, var(--border-default), transparent)'
+                          background:
+                            'linear-gradient(90deg, transparent, var(--border-default), transparent)',
                         }}
                       ></div>
 
                       {/* Total */}
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Total</span>
-                        <div className="flex items-center text-3xl font-bold" style={{ color: '#34d399' }}>
+                        <span
+                          className="text-lg font-semibold"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
+                          Total
+                        </span>
+                        <div
+                          className="flex items-center text-3xl font-bold"
+                          style={{ color: '#34d399' }}
+                        >
                           <IndianRupee className="h-7 w-7" />
                           {pricing.total.toLocaleString()}
                         </div>
                       </div>
 
                       {/* Features */}
-                      <div 
+                      <div
                         className="space-y-3 rounded-xl p-4"
                         style={{ background: 'rgba(0, 0, 0, 0.2)' }}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
+                          <div
+                            className="flex h-6 w-6 items-center justify-center rounded-full"
+                            style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                          >
                             <CheckCircle className="h-3.5 w-3.5" style={{ color: '#34d399' }} />
                           </div>
-                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Secure payment</span>
+                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            Secure payment
+                          </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
+                          <div
+                            className="flex h-6 w-6 items-center justify-center rounded-full"
+                            style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                          >
                             <CheckCircle className="h-3.5 w-3.5" style={{ color: '#34d399' }} />
                           </div>
-                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Free cancellation</span>
+                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            Free cancellation
+                          </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
+                          <div
+                            className="flex h-6 w-6 items-center justify-center rounded-full"
+                            style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                          >
                             <CheckCircle className="h-3.5 w-3.5" style={{ color: '#34d399' }} />
                           </div>
-                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>24/7 support</span>
+                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            24/7 support
+                          </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
+                          <div
+                            className="flex h-6 w-6 items-center justify-center rounded-full"
+                            style={{ background: 'rgba(16, 185, 129, 0.2)' }}
+                          >
                             <Shield className="h-3.5 w-3.5" style={{ color: '#34d399' }} />
                           </div>
-                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Insurance included</span>
+                          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            Insurance included
+                          </span>
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div className="py-10 text-center">
-                      <div 
+                      <div
                         className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))',
-                          border: '1px solid var(--border-default)'
+                          background:
+                            'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1))',
+                          border: '1px solid var(--border-default)',
                         }}
                       >
                         <Calendar className="h-8 w-8" style={{ color: 'var(--text-tertiary)' }} />
@@ -712,12 +776,17 @@ export default function BookLabourPage() {
               </div>
 
               {/* Trust Badge */}
-              <div 
+              <div
                 className="mt-4 flex items-center justify-center gap-2 rounded-xl p-3"
-                style={{ background: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-default)' }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--border-default)',
+                }}
               >
                 <Shield className="h-4 w-4" style={{ color: '#34d399' }} />
-                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>100% Safe & Secure Booking</span>
+                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                  100% Safe & Secure Booking
+                </span>
               </div>
             </div>
           </div>

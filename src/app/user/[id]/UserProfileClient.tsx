@@ -345,7 +345,7 @@ export default function PublicUserProfilePage() {
             {/* Labour Tab */}
             {hasLabourProfile && labourProfile && (
               <TabsContent value="labour">
-                <Link href={`/renter/labour/${labourProfile.id}`}>
+                <Link href={`/labour/${labourProfile.id}`}>
                   <Card className="transition-shadow hover:shadow-lg">
                     <CardContent className="p-6">
                       <div className="flex flex-col gap-6 md:flex-row">

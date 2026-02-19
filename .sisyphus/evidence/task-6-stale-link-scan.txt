@@ -1,0 +1,36 @@
+# Stale Link Scan Results
+
+Date: 2026-02-19
+
+## Remaining /renter/labour References
+
+### Approved Residuals (Booking Routes - Correctly Preserved)
+1. src/lib/navigation.ts:166 - Labour Bookings nav link
+2. src/app/labour/LabourClient.tsx:807 - Post-booking redirect to booking detail
+3. src/app/renter/labour/bookings/[id]/LabourBookingDetailClient.tsx:136 - Back to bookings link
+4. src/app/renter/labour/bookings/[id]/LabourBookingDetailClient.tsx:159 - Breadcrumb link
+5. src/app/renter/labour/bookings/LabourBookingsClient.tsx:257 - Booking detail links
+6. src/app/renter/dashboard/DashboardClient.tsx:320 - Dashboard bookings link
+7. src/app/renter/dashboard/DashboardClient.tsx:328 - Dashboard recent booking link
+8. src/app/renter/labour/[id]/book/BookLabourClient.tsx:160 - Post-booking redirect
+9. src/app/renter/bookings/[id]/page.tsx:67 - Booking redirect
+10. src/components/dashboard/RenterDashboardView.tsx:425 - Dashboard bookings link
+11. src/components/dashboard/RenterDashboardView.tsx:440 - Dashboard recent booking link
+
+### Deprecated File References (OK - These redirect to /labour)
+12. src/app/renter/labour/LabourListClient.tsx:337 - Old listing (deprecated)
+13. src/app/renter/labour/LabourListClient.tsx:370 - Old listing (deprecated)
+14. src/app/renter/labour/LabourListClient.tsx:436 - Old listing (deprecated)
+15. src/app/renter/labour/LabourListClient.tsx:444 - Old listing (deprecated)
+
+### Booking Flow References (Correct - Booking stays in renter namespace)
+16. src/app/renter/labour/[id]/LabourDetailClient.tsx:86 - Book button (keeps user in renter flow)
+
+## Summary
+
+All references fall into expected categories:
+- Booking management routes preserved ✓
+- Deprecated listing page (now redirects) ✓
+- Booking flow continuity maintained ✓
+
+No unexpected stale links found.

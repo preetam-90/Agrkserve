@@ -83,7 +83,7 @@ export default function LabourBookingDetailClient() {
         const message = err instanceof Error ? err.message : 'Failed to load labour booking';
 
         if (message.toLowerCase().includes('not authenticated')) {
-          router.push(`/login?redirect=/renter/labour/bookings/${bookingId}`);
+          router.push(`/login?redirect=/labour/bookings/${bookingId}`);
           return;
         }
 
@@ -136,7 +136,7 @@ export default function LabourBookingDetailClient() {
                   <Link href="/renter/labour/bookings">Back to Labour Bookings</Link>
                 </Button>
                 <Button asChild className="bg-emerald-600 text-white hover:bg-emerald-500">
-                  <Link href="/renter/labour">Hire Labour</Link>
+                  <Link href="/labour">Hire Labour</Link>
                 </Button>
               </div>
             </CardContent>
@@ -205,7 +205,7 @@ export default function LabourBookingDetailClient() {
                   </div>
 
                   <Button asChild variant="outline" className="border-slate-700 text-slate-300">
-                    <Link href={`/renter/labour/${booking.labour_id}`}>View Worker Profile</Link>
+                    <Link href={`/labour/${booking.labour_id}`}>View Worker Profile</Link>
                   </Button>
                 </div>
 
@@ -233,7 +233,9 @@ export default function LabourBookingDetailClient() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                    <p className="mb-1 text-xs uppercase tracking-wider text-slate-500">Start Date</p>
+                    <p className="mb-1 text-xs uppercase tracking-wider text-slate-500">
+                      Start Date
+                    </p>
                     <p className="font-semibold text-white">{formatDate(booking.start_date)}</p>
                   </div>
                   <div className="rounded-xl border border-slate-800 bg-slate-900 p-4">
@@ -324,4 +326,3 @@ export default function LabourBookingDetailClient() {
     </div>
   );
 }
-

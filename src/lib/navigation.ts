@@ -157,7 +157,7 @@ const renterNavItems: NavItem[] = [
     requiredRoles: ['renter'],
   },
   {
-    href: '/renter/labour',
+    href: '/labour',
     label: 'Find Labour',
     icon: Users,
     excludedRoles: ['admin'],
@@ -213,7 +213,7 @@ const adminNavItems: NavItem[] = [
 /**
  * Filter navigation items based on user roles
  */
-export function filterNavItems(
+function filterNavItems(
   items: NavItem[],
   userRoles: UserRole[],
   activeRole?: UserRole | null
@@ -265,7 +265,7 @@ export function filterNavItems(
 /**
  * Get navigation items for sidebar based on user roles
  */
-export function getSidebarNavItems(userRoles: UserRole[], activeRole?: UserRole | null): NavItem[] {
+function getSidebarNavItems(userRoles: UserRole[], activeRole?: UserRole | null): NavItem[] {
   const allItems = [
     ...universalNavItems,
     ...equipmentProviderNavItems,
@@ -283,7 +283,7 @@ export function getSidebarNavItems(userRoles: UserRole[], activeRole?: UserRole 
 /**
  * Get grouped navigation items for organized sidebar
  */
-export function getGroupedNavItems(
+function getGroupedNavItems(
   userRoles: UserRole[],
   activeRole?: UserRole | null
 ): { section: string; items: NavItem[] }[] {
@@ -338,7 +338,7 @@ export function getGroupedNavItems(
 /**
  * Check if user has access to a specific route
  */
-export function hasAccessToRoute(
+function hasAccessToRoute(
   href: string,
   userRoles: UserRole[],
   activeRole?: UserRole | null

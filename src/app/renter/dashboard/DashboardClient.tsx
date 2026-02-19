@@ -239,7 +239,7 @@ export default function RenterDashboard() {
                   </CardContent>
                 </Card>
               </Link>
-              <Link href="/renter/labour">
+              <Link href="/labour">
                 <Card className="cursor-pointer transition-all hover:border-teal-500 hover:shadow-lg">
                   <CardContent className="flex items-center gap-4 p-6">
                     <div className="rounded-lg bg-blue-100 p-3">

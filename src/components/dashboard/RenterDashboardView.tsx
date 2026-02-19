@@ -26,7 +26,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
-export function RenterDashboardView() {
+function RenterDashboardView() {
   const { profile } = useAuthStore();
   const { userLocation } = useAppStore();
 
@@ -298,7 +298,7 @@ export function RenterDashboardView() {
               </CardContent>
             </Card>
           </Link>
-          <Link href="/renter/labour">
+          <Link href="/labour">
             <Card className="group cursor-pointer overflow-hidden border-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/20">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
               <CardContent className="flex items-center gap-4 p-6">

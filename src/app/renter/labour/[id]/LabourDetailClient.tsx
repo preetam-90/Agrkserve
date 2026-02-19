@@ -65,14 +65,14 @@ export default function LabourDetailClient() {
       const data = await labourService.getById(labourId);
       if (!data) {
         toast.error('Labour profile not found');
-        router.push('/renter/labour');
+        router.push('/labour');
         return;
       }
       setLabour(data);
     } catch (err) {
       console.error('Failed to load labour profile:', err);
       toast.error('Failed to load labour details');
-      router.push('/renter/labour');
+      router.push('/labour');
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +80,7 @@ export default function LabourDetailClient() {
 
   const handleBookNow = () => {
     if (!user) {
-      router.push(`/login?redirect=/renter/labour/${labourId}`);
+      router.push(`/login?redirect=/labour/${labourId}`);
       return;
     }
     router.push(`/renter/labour/${labourId}/book`);
@@ -170,7 +170,7 @@ export default function LabourDetailClient() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Back Link */}
           <Link
-            href="/renter/labour"
+            href="/labour"
             className="mb-6 inline-flex items-center text-slate-400 transition-colors hover:text-white"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />

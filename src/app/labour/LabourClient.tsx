@@ -115,11 +115,22 @@ const EXPERIENCE_OPTIONS = [
   { value: '10', label: '10+ Years' },
 ];
 
-// Cache configuration
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
 const cache = new Map<string, { data: LabourProfile[]; count: number; timestamp: number }>();
 
-// Labour Card Component - Redesigned to match reference
+function OrganicBackground() {
+  return (
+    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <div className="absolute left-1/4 top-0 h-[800px] w-[800px] animate-pulse rounded-full bg-emerald-500/5 blur-[120px]" />
+      <div
+        className="absolute bottom-0 right-1/4 h-[600px] w-[600px] animate-pulse rounded-full bg-teal-500/5 blur-[100px]"
+        style={{ animationDelay: '2s' }}
+      />
+      <div className="bg-green-500/3 absolute left-1/2 top-1/2 h-[1000px] w-[1000px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[150px]" />
+    </div>
+  );
+}
+
 function LabourCard({
   labour,
   onMessage,
@@ -848,6 +859,7 @@ function LabourPageContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
+      <OrganicBackground />
       <Header />
 
       <main className="mx-auto max-w-[1400px] px-4 pb-16 pt-24">
