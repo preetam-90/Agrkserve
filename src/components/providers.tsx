@@ -2,27 +2,14 @@
 
 import dynamic from 'next/dynamic';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { useAuthStore } from '@/lib/store';
+import { AuthInitializer } from '@/components/auth/AuthInitializer';
 
 const ReactQueryDevtools = dynamic(
   () => import('@tanstack/react-query-devtools').then((mod) => mod.ReactQueryDevtools),
   { ssr: false }
 );
-
-function AuthInitializer({ children }: { children: React.ReactNode }) {
-  const { initialize, isInitialized, user } = useAuthStore();
-
-  useEffect(() => {
-    // Skip if already initialized (e.g. seeded by SSR data from DashboardClient)
-    if (!isInitialized && !user) {
-      initialize();
-    }
-  }, [initialize, isInitialized, user]);
-
-  return <>{children}</>;
-}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

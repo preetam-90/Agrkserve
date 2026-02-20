@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ChevronDown,
   LogOut,
@@ -51,7 +51,7 @@ const publicNav = [
 ];
 
 // Magnetic button hook for desktop
- 
+
 function useMagneticButton(strength: number = 0.3) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -81,6 +81,7 @@ function useMagneticButton(strength: number = 0.3) {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showOnlinePulse, setShowOnlinePulse] = useState(false);
@@ -140,7 +141,6 @@ export function Header() {
   }, [mouseX, mouseY]);
 
   useEffect(() => {
-     
     setMobileMenuOpen(false);
   }, [pathname]);
 
@@ -553,7 +553,15 @@ export function Header() {
                       <DropdownMenuSeparator className="my-2 bg-white/10" />
 
                       <DropdownMenuItem
-                        onClick={() => signOut()}
+                        onClick={async () => {
+                          try {
+                            await signOut();
+                            router.push('/login');
+                            router.refresh();
+                          } catch (error) {
+                            console.error('Sign out failed:', error);
+                          }
+                        }}
                         className="mx-1 my-1 cursor-pointer rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 focus:bg-red-500/10 focus:text-red-300"
                       >
                         <LogOut className="mr-3 h-4 w-4" />

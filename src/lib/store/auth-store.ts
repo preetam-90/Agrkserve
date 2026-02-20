@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { User, AuthSession } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import type { UserProfile, UserRole } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
 
@@ -183,8 +183,32 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
       signOut: async () => {
         const supabase = createClient();
-        await supabase.auth.signOut();
+
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('agri-serve-auth');
+        }
         get().reset();
+
+        void (async () => {
+          const [clientResult, serverResult] = await Promise.allSettled([
+            supabase.auth.signOut(),
+            fetch('/auth/signout', { method: 'POST', keepalive: true }),
+          ]);
+
+          const clientError =
+            clientResult.status === 'fulfilled' ? clientResult.value.error : clientResult.reason;
+
+          const serverError =
+            serverResult.status === 'fulfilled' && !serverResult.value.ok
+              ? new Error(`Server sign out failed (${serverResult.value.status})`)
+              : serverResult.status === 'rejected'
+                ? serverResult.reason
+                : null;
+
+          if (clientError || serverError) {
+            console.error('Sign out errors:', { clientError, serverError });
+          }
+        })();
       },
 
       reset: () => set(initialState),
@@ -195,7 +219,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         const {
           data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
-
           switch (event) {
             case 'SIGNED_IN':
             case 'TOKEN_REFRESHED':

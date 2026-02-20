@@ -60,7 +60,7 @@ export async function buildRAGContext(
   }
 ): Promise<ContextBuilderResult> {
   const maxTokens = options?.maxTokens ?? 2000;
-  const threshold = options?.threshold ?? 0.5;
+  const threshold = options?.threshold ?? 0.75;
   const maxResults = options?.maxResults ?? 10;
   const sourceTypes = options?.sourceTypes;
 
@@ -146,17 +146,17 @@ function formatEquipmentSection(contexts: RetrievedContext[]): string {
     const meta = ctx.metadata;
     const name = String(meta.name ?? 'Unknown Equipment');
     const category = String(meta.category ?? 'Unknown');
-    // price_per_day is the correct field (NOT daily_rate)
     const price = meta.price_per_day != null ? `₹${meta.price_per_day}/day` : 'Price on request';
-    // rating is the correct field (NOT avg_rating)
     const rating = meta.rating != null ? `${Number(meta.rating).toFixed(1)}/5` : 'No rating';
-    // location_name is the correct field (NOT location)
     const location = String(meta.location_name ?? 'Location not specified');
     const available = meta.is_available === true ? 'Yes' : 'No';
-    // Description is not in metadata; use the embedded content text
     const description = ctx.content;
+    const similarity = `${(ctx.similarity * 100).toFixed(1)}%`;
+    const sourceTag = `(DB: equipment.id=${ctx.sourceId})`;
 
-    lines.push(`[${name}] (${category}, ${price}, Rating: ${rating})`);
+    lines.push(
+      `[${name}] (${category}, ${price}, Rating: ${rating}) ${sourceTag} [Similarity: ${similarity}]`
+    );
     if (description) lines.push(description);
     lines.push(`Location: ${location} | Available: ${available}`);
     lines.push('');
@@ -178,18 +178,16 @@ function formatLabourSection(contexts: RetrievedContext[]): string {
     const skills = Array.isArray(meta.skills)
       ? meta.skills.join(', ')
       : String(meta.skills ?? 'No skills listed');
-    // daily_rate is correct for labour (same field name as in DB)
     const rate = meta.daily_rate != null ? `₹${meta.daily_rate}/day` : 'Rate on request';
-    // location_name is the correct field (NOT city or location)
     const location = String(meta.location_name ?? 'Location not specified');
     const availability = String(meta.availability ?? 'Unknown');
     const rating = meta.rating != null ? `${Number(meta.rating).toFixed(1)}/5` : 'No rating';
+    const similarity = `${(ctx.similarity * 100).toFixed(1)}%`;
+    const sourceTag = `(DB: labour_profiles.id=${ctx.sourceId})`;
 
-    // Name is embedded in the content text (first segment before ' - ')
-    lines.push(`[Skills: ${skills}]`);
+    lines.push(`[Skills: ${skills}] ${sourceTag} [Similarity: ${similarity}]`);
     lines.push(`Rate: ${rate} | Location: ${location}`);
     lines.push(`Availability: ${availability} | Rating: ${rating}`);
-    // Include the full content for name + bio context
     if (ctx.content) lines.push(ctx.content.slice(0, 250));
     lines.push('');
   }
@@ -210,10 +208,11 @@ function formatUserSection(contexts: RetrievedContext[]): string {
     const roles = Array.isArray(meta.roles)
       ? meta.roles.join(', ')
       : String(meta.roles ?? 'No roles');
-    // address is the correct field (NOT location)
     const address = String(meta.address ?? 'Location not specified');
+    const similarity = `${(ctx.similarity * 100).toFixed(1)}%`;
+    const sourceTag = `(DB: user_profiles.id=${ctx.sourceId})`;
 
-    lines.push(`[${name}] (${roles})`);
+    lines.push(`[${name}] (${roles}) ${sourceTag} [Similarity: ${similarity}]`);
     lines.push(`Location: ${address}`);
     if (ctx.content) lines.push(ctx.content.slice(0, 200));
     lines.push('');
@@ -235,8 +234,12 @@ function formatReviewSection(contexts: RetrievedContext[]): string {
     const reviewerName = String(meta.reviewer_name ?? 'Anonymous');
     const rating = meta.rating != null ? `${meta.rating}/5` : 'No rating';
     const comment = ctx.content;
+    const similarity = `${(ctx.similarity * 100).toFixed(1)}%`;
+    const sourceTag = `(DB: reviews.id=${ctx.sourceId})`;
 
-    lines.push(`Review for ${equipmentName} by ${reviewerName}: ${rating}`);
+    lines.push(
+      `Review for ${equipmentName} by ${reviewerName}: ${rating} ${sourceTag} [Similarity: ${similarity}]`
+    );
     if (comment) lines.push(comment);
     lines.push('');
   }
@@ -262,8 +265,12 @@ function formatBookingSection(contexts: RetrievedContext[]): string {
     const days = meta.total_days != null ? `${meta.total_days} day(s)` : '';
     const amount = meta.total_amount != null ? `₹${meta.total_amount}` : 'N/A';
     const paymentStatus = String(meta.payment_status ?? 'N/A');
+    const similarity = `${(ctx.similarity * 100).toFixed(1)}%`;
+    const sourceTag = `(DB: bookings.id=${ctx.sourceId})`;
 
-    lines.push(`[Booking: ${equipment} rented by ${renter}]`);
+    lines.push(
+      `[Booking: ${equipment} rented by ${renter}] ${sourceTag} [Similarity: ${similarity}]`
+    );
     lines.push(`Status: ${status} | Dates: ${startDate} → ${endDate}${days ? ` (${days})` : ''}`);
     lines.push(`Amount: ${amount} | Payment: ${paymentStatus}`);
     lines.push('');

@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateEmbedding, EMBEDDING_DIMENSIONS } from './embedding-service';
+import { scrubPII } from '@/lib/rag/pii-scrubber';
 
 interface KnowledgeEntry {
   source_type: 'equipment' | 'user' | 'labour' | 'review' | 'booking';
@@ -150,7 +151,10 @@ export async function syncEquipment(since?: Date): Promise<{ synced: number; err
 
     for (const item of batch) {
       try {
-        const content = formatEquipmentContent(item);
+        const rawContent = formatEquipmentContent(item);
+        const { scrubbed: content, detected } = scrubPII(rawContent);
+        if (detected.length > 0)
+          console.warn(`[knowledge-service] PII scrubbed from equipment ${item.id}:`, detected);
         const embeddingResult = await generateEmbedding(content);
 
         if (!embeddingResult.success || embeddingResult.embedding.length === 0) {
@@ -217,7 +221,10 @@ export async function syncUsers(since?: Date): Promise<{ synced: number; errors:
 
     for (const user of batch) {
       try {
-        const content = formatUserContent(user);
+        const rawContent = formatUserContent(user);
+        const { scrubbed: content, detected } = scrubPII(rawContent);
+        if (detected.length > 0)
+          console.warn(`[knowledge-service] PII scrubbed from user ${user.id}:`, detected);
         const embeddingResult = await generateEmbedding(content);
 
         if (!embeddingResult.success || embeddingResult.embedding.length === 0) {
@@ -292,7 +299,7 @@ export async function syncLabour(since?: Date): Promise<{ synced: number; errors
           | { name: string | null }[]
           | null;
         const userProfile = Array.isArray(userProfileArray) ? userProfileArray[0] : null;
-        const content = formatLabourContent({
+        const rawContent = formatLabourContent({
           user: { name: userProfile?.name || null },
           skills: labour.skills,
           bio: labour.bio,
@@ -300,6 +307,9 @@ export async function syncLabour(since?: Date): Promise<{ synced: number; errors
           location_name: labour.location_name,
           experience_years: labour.experience_years,
         });
+        const { scrubbed: content, detected } = scrubPII(rawContent);
+        if (detected.length > 0)
+          console.warn(`[knowledge-service] PII scrubbed from labour ${labour.id}:`, detected);
 
         const embeddingResult = await generateEmbedding(content);
 
@@ -384,12 +394,15 @@ export async function syncReviews(since?: Date): Promise<{ synced: number; error
           .eq('id', review.reviewer_id)
           .single();
 
-        const content = formatReviewContent({
+        const rawContent = formatReviewContent({
           equipment: { name: equipmentData?.name || null },
           reviewer: { name: reviewerData?.name || null },
           comment: review.comment,
           rating: review.rating,
         });
+        const { scrubbed: content, detected } = scrubPII(rawContent);
+        if (detected.length > 0)
+          console.warn(`[knowledge-service] PII scrubbed from review ${review.id}:`, detected);
 
         const embeddingResult = await generateEmbedding(content);
 
@@ -506,7 +519,7 @@ export async function syncBookings(since?: Date): Promise<{ synced: number; erro
         const renterName = renterMap.get(booking.renter_id) ?? null;
         const paymentStatus = paymentMap.get(booking.id) ?? null;
 
-        const content = formatBookingContent({
+        const rawContent = formatBookingContent({
           equipment_name: equipmentName,
           renter_name: renterName,
           status: booking.status,
@@ -516,6 +529,9 @@ export async function syncBookings(since?: Date): Promise<{ synced: number; erro
           total_amount: booking.total_amount,
           payment_status: paymentStatus,
         });
+        const { scrubbed: content, detected } = scrubPII(rawContent);
+        if (detected.length > 0)
+          console.warn(`[knowledge-service] PII scrubbed from booking ${booking.id}:`, detected);
 
         const embeddingResult = await generateEmbedding(content);
 

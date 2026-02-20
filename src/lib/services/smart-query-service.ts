@@ -2,35 +2,18 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { generateEmbedding } from '@/lib/services/embedding-service';
 import { searchKnowledge } from '@/lib/services/knowledge-service';
 import { formatContextForPrompt } from '@/lib/rag/context-builder';
-
-/**
- * In-memory cache for query embeddings.
- * Avoids redundant Cloudflare AI API calls for the same query within a server instance.
- * Key: normalized query string  Value: { embedding, timestamp }
- * TTL: 5 minutes — embeddings are deterministic so cache can be fairly long-lived.
- */
-const EMBEDDING_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-const embeddingCache = new Map<string, { embedding: number[]; timestamp: number }>();
+import { embeddingCache } from '@/lib/rag/query-cache';
+import { scrubPII } from '@/lib/rag/pii-scrubber';
+import { canQueryTable, type AIRequestContext, type AIRole } from '@/lib/rag/rbac';
+import { logAuditEvent } from '@/lib/rag/audit-logger';
+import { findNearbyEquipment, formatGeoContext } from '@/lib/rag/geospatial-retrieval';
 
 function getCachedEmbedding(query: string): number[] | null {
-  const key = query.trim().toLowerCase();
-  const cached = embeddingCache.get(key);
-  if (!cached) return null;
-  if (Date.now() - cached.timestamp > EMBEDDING_CACHE_TTL_MS) {
-    embeddingCache.delete(key);
-    return null;
-  }
-  return cached.embedding;
+  return embeddingCache.get(query.trim().toLowerCase());
 }
 
 function setCachedEmbedding(query: string, embedding: number[]): void {
-  const key = query.trim().toLowerCase();
-  // Prevent unbounded growth: evict oldest entry if cache exceeds 200 entries
-  if (embeddingCache.size >= 200) {
-    const oldest = embeddingCache.keys().next().value;
-    if (oldest) embeddingCache.delete(oldest);
-  }
-  embeddingCache.set(key, { embedding, timestamp: Date.now() });
+  embeddingCache.set(query.trim().toLowerCase(), embedding);
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -50,6 +33,8 @@ export interface SmartQueryUserContext {
   roles?: string[];
   activeRole?: string;
   isAdmin?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 type IntentType =
@@ -62,6 +47,7 @@ type IntentType =
   | 'count_labour'
   | 'list_labour'
   | 'available_labour'
+  | 'search_labour'
   | 'count_providers'
   | 'list_providers'
   | 'count_users'
@@ -82,6 +68,11 @@ type IntentType =
   | 'analytics_revenue'
   | 'analytics_idle_equipment'
   | 'analytics_overview'
+  | 'my_payments'
+  | 'my_upcoming_bookings'
+  | 'equipment_availability'
+  | 'labour_availability'
+  | 'my_messages'
   | 'vector_search';
 
 interface DetectedIntent {
@@ -89,6 +80,7 @@ interface DetectedIntent {
   category?: string;
   searchTerm?: string;
   status?: string;
+  equipmentName?: string;
 }
 
 const EQUIPMENT_CATEGORIES = [
@@ -270,6 +262,26 @@ function detectIntent(message: string): DetectedIntent {
     }
   }
 
+  // ── Search labour by skill / name ──
+  const labourSearchMatch = msg.match(
+    /\b(?:find|search|show|get|who|labour|labou?r|workers?)\b.{0,30}\b(?:with|having|skilled?\s+in|who\s+(?:can|knows?|does?|has)|specializ(?:e|ing)\s+in)\b\s+(.+?)(?:\s+labour|\s+worker|\s+available)?$/
+  );
+  if (labourSearchMatch) {
+    const skill = labourSearchMatch[1].trim();
+    if (skill && !/\b(equipment|machine|tractor|booking|review)\b/.test(skill)) {
+      return { type: 'search_labour', searchTerm: skill };
+    }
+  }
+  const labourSkillDirect = msg.match(
+    /\b(?:labour|labou?r|workers?)\s+(?:for|doing|who\s+do|that\s+do)\s+(.+?)$/
+  );
+  if (labourSkillDirect) {
+    const skill = labourSkillDirect[1].trim();
+    if (skill && !/\b(equipment|machine|tractor|booking|review)\b/.test(skill)) {
+      return { type: 'search_labour', searchTerm: skill };
+    }
+  }
+
   // ── Labour / Workers ──
 
   // "how many labours are available [give me detail]" → full available list (not just count)
@@ -416,6 +428,82 @@ function detectIntent(message: string): DetectedIntent {
     return { type: 'list_bookings' };
   }
 
+  // ── My payments ──
+  if (
+    /\b(my|mine)\b/.test(msg) &&
+    /\b(payment|payments?|transaction|transactions?|paid|pay)\b/.test(msg)
+  ) {
+    return { type: 'my_payments' };
+  }
+  if (
+    /\b(payment\s+history|payment\s+status|did\s+(?:my|i)\s+pay|have\s+i\s+paid|payments?\s+(?:have\s+i|did\s+i)|what\s+payments)\b/.test(
+      msg
+    )
+  ) {
+    return { type: 'my_payments' };
+  }
+
+  // ── Upcoming / active bookings ──
+  if (
+    /\b(my|mine)\b/.test(msg) &&
+    /\b(upcoming|scheduled|future|next|soon|coming\s+up)\b/.test(msg) &&
+    /\b(booking|reservation|rental|order)\b/.test(msg)
+  ) {
+    return { type: 'my_upcoming_bookings' };
+  }
+  if (
+    /\b(what(?:'s|\s+is|\s+are)?\s+(?:my\s+)?upcoming|bookings?\s+(?:coming\s+up|next|scheduled|soon)|what\s+bookings|bookings?\s+(?:do\s+)?i\s+have\s+(?:coming\s+up|upcoming|scheduled|next))\b/.test(
+      msg
+    ) ||
+    /\b(when\s+(?:is|are)\s+(?:my\s+)?(?:next|upcoming))\b/.test(msg)
+  ) {
+    return { type: 'my_upcoming_bookings' };
+  }
+
+  // ── Equipment availability calendar ──
+  const equipAvailMatch = msg.match(
+    /\b(?:is|check|show|when\s+is)\s+(?:the\s+)?(.+?)\s+(?:available|availability|free|booked|calendar)\b/
+  );
+  if (equipAvailMatch && !/\b(labour|labor|worker)\b/.test(equipAvailMatch[1])) {
+    return { type: 'equipment_availability', equipmentName: equipAvailMatch[1].trim() };
+  }
+  if (
+    /\b(availability\s+(?:of|for)\s+(?:the\s+)?equipment|equipment\s+(?:calendar|availability|schedule)|availability\s+calendar\s+for\s+(?:my\s+)?equipment|my\s+equipment\s+(?:availability|calendar))\b/.test(
+      msg
+    )
+  ) {
+    return { type: 'equipment_availability' };
+  }
+
+  // ── Labour availability calendar ──
+  const labourAvailCalMatch = msg.match(
+    /\b(?:is|check|when\s+is)\s+(?:the\s+)?(.+?)\s+(?:labour\s+)?(?:available|availability|free|calendar)\b/
+  );
+  if (labourAvailCalMatch && /\b(labour|labor|worker)\b/.test(msg)) {
+    return { type: 'labour_availability', searchTerm: labourAvailCalMatch[1].trim() };
+  }
+  if (
+    /\b(labour|labor|worker)\s+(?:availability|calendar|schedule)\b/.test(msg) ||
+    /\b(available\s+(?:labour|labor|workers?)\s+(?:on|for|in))\b/.test(msg)
+  ) {
+    return { type: 'labour_availability' };
+  }
+
+  // ── My messages ──
+  if (
+    /\b(my|mine)\b/.test(msg) &&
+    /\b(message|messages?|chat|conversation|inbox|unread)\b/.test(msg)
+  ) {
+    return { type: 'my_messages' };
+  }
+  if (
+    /\b(do\s+i\s+have\s+(?:any\s+)?(?:new\s+)?messages?|check\s+(?:my\s+)?(?:messages?|inbox)|unread\s+messages?|new\s+messages?)\b/.test(
+      msg
+    )
+  ) {
+    return { type: 'my_messages' };
+  }
+
   // ── Fallback: vector similarity search ──
   return { type: 'vector_search' };
 }
@@ -544,7 +632,7 @@ function makeAuthRequiredResult(dataType: string): SmartQueryResult {
   return buildResult(
     `⚠️ You need to be logged in to view your ${dataType}. Please sign in first.`,
     [],
-    false,
+    true,
     `my_${dataType}`,
     'real-time'
   );
@@ -836,9 +924,10 @@ async function handleAvailableEquipment(): Promise<SmartQueryResult> {
 
   const { data, count, error } = await supabase
     .from('equipment')
-    .select('id, name, category, brand, price_per_day, location_name, rating, review_count', {
-      count: 'exact',
-    })
+    .select(
+      'id, name, category, brand, model, year, horsepower, fuel_type, price_per_day, price_per_hour, location_name, rating, review_count, features, description',
+      { count: 'exact' }
+    )
     .eq('is_available', true)
     .order('rating', { ascending: false, nullsFirst: false })
     .limit(30);
@@ -858,19 +947,26 @@ async function handleAvailableEquipment(): Promise<SmartQueryResult> {
 
   if (data && data.length > 0) {
     lines.push('');
-    lines.push('| # | Name | Category | Brand | Price/Day | Location | Rating |');
-    lines.push('|---|------|----------|-------|-----------|----------|--------|');
 
     data.forEach((item, idx) => {
-      lines.push(
-        `| ${idx + 1} | ${item.name || 'N/A'} | ${item.category || 'N/A'} | ${item.brand || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${truncate(item.location_name, 20)} | ${formatRating(item.rating)} |`
-      );
+      lines.push(`--- Equipment ${idx + 1} ---`);
+      lines.push(`  Name: ${item.name || 'N/A'}`);
+      lines.push(`  Category: ${item.category || 'N/A'}`);
+      lines.push(`  Brand: ${item.brand || 'N/A'}`);
+      lines.push(`  Model: ${item.model || 'N/A'}`);
+      lines.push(`  Year: ${item.year ?? 'N/A'}`);
+      lines.push(`  Horsepower: ${item.horsepower != null ? `${item.horsepower} HP` : 'N/A'}`);
+      lines.push(`  Fuel Type: ${item.fuel_type || 'N/A'}`);
+      lines.push(`  Price/Day: ${formatCurrency(item.price_per_day)}`);
+      lines.push(`  Price/Hour: ${formatCurrency(item.price_per_hour)}`);
+      lines.push(`  Location: ${item.location_name || 'N/A'}`);
+      lines.push(`  Rating: ${formatRating(item.rating)} (${item.review_count ?? 0} reviews)`);
+      lines.push(`  Features: ${item.features?.join(', ') || 'N/A'}`);
+      if (item.description) {
+        lines.push(`  Description: ${truncate(item.description, 120)}`);
+      }
+      lines.push(`  [END OF PROVIDER DATA — do not add any other specs not listed above]`);
     });
-
-    lines.push('');
-    lines.push(
-      '> ⚠️ Only the columns above are stored. Do NOT add any specs (HP, fuel, dimensions, weight, etc.) not shown here.'
-    );
 
     if ((count ?? 0) > 30) {
       lines.push('');
@@ -965,8 +1061,6 @@ async function handleListLabour(): Promise<SmartQueryResult> {
 
   if (data && data.length > 0) {
     lines.push('');
-    lines.push('| # | Name | Skills | Experience | Daily Rate | Location | Rating | Status |');
-    lines.push('|---|------|--------|------------|------------|----------|--------|--------|');
 
     data.forEach((item, idx) => {
       const userProfile = item.user_profiles as unknown as
@@ -974,11 +1068,19 @@ async function handleListLabour(): Promise<SmartQueryResult> {
         | { name: string | null; profile_image: string | null }[]
         | null;
       const name = Array.isArray(userProfile) ? userProfile[0]?.name : userProfile?.name;
-      const skillsStr = item.skills?.slice(0, 3).join(', ') || 'N/A';
 
+      lines.push(`--- Labour Profile ${idx + 1} ---`);
+      lines.push(`  Name: ${name || 'N/A'}`);
+      lines.push(`  Skills: ${item.skills?.join(', ') || 'N/A'}`);
+      lines.push(`  Experience: ${item.experience_years ?? 0} years`);
+      lines.push(`  Daily Rate: ${formatCurrency(item.daily_rate)}`);
+      lines.push(`  Hourly Rate: ${formatCurrency(item.hourly_rate)}`);
+      lines.push(`  Location: ${item.location_name || 'N/A'}`);
       lines.push(
-        `| ${idx + 1} | ${name || 'N/A'} | ${truncate(skillsStr, 25)} | ${item.experience_years ?? 0} yrs | ${formatCurrency(item.daily_rate)} | ${truncate(item.location_name, 18)} | ${formatRating(item.average_rating)} | ${item.availability || 'N/A'} |`
+        `  Rating: ${formatRating(item.average_rating)} (${item.review_count ?? 0} reviews)`
       );
+      lines.push(`  Availability: ${item.availability || 'N/A'}`);
+      lines.push(`  Active: ${item.is_active ? 'Yes' : 'No'}`);
     });
 
     if ((count ?? 0) > 25) {
@@ -1032,8 +1134,6 @@ async function handleAvailableLabour(): Promise<SmartQueryResult> {
 
   if (data && data.length > 0) {
     lines.push('');
-    lines.push('| # | Name | Skills | Experience | Daily Rate | Hourly Rate | Location | Rating |');
-    lines.push('|---|------|--------|------------|------------|-------------|----------|--------|');
 
     data.forEach((item, idx) => {
       const userProfile = item.user_profiles as unknown as
@@ -1042,9 +1142,17 @@ async function handleAvailableLabour(): Promise<SmartQueryResult> {
         | null;
       const name = Array.isArray(userProfile) ? userProfile[0]?.name : userProfile?.name;
 
+      lines.push(`--- Available Worker ${idx + 1} ---`);
+      lines.push(`  Name: ${name || 'N/A'}`);
+      lines.push(`  Skills: ${item.skills?.join(', ') || 'N/A'}`);
+      lines.push(`  Experience: ${item.experience_years ?? 0} years`);
+      lines.push(`  Daily Rate: ${formatCurrency(item.daily_rate)}`);
+      lines.push(`  Hourly Rate: ${formatCurrency(item.hourly_rate)}`);
+      lines.push(`  Location: ${item.location_name || 'N/A'}`);
       lines.push(
-        `| ${idx + 1} | ${name || 'N/A'} | ${truncate(item.skills?.join(', '), 25)} | ${item.experience_years ?? 0} yrs | ${formatCurrency(item.daily_rate)} | ${formatCurrency(item.hourly_rate)} | ${truncate(item.location_name, 18)} | ${formatRating(item.average_rating)} |`
+        `  Rating: ${formatRating(item.average_rating)} (${item.review_count ?? 0} reviews)`
       );
+      lines.push(`  Status: Available`);
     });
 
     if ((count ?? 0) > 25) {
@@ -1064,6 +1172,88 @@ async function handleAvailableLabour(): Promise<SmartQueryResult> {
     ['labour_profiles table filtered by availability=available (real-time)'],
     (data?.length ?? 0) > 0,
     'available_labour',
+    'real-time'
+  );
+}
+
+async function handleSearchLabour(searchTerm: string): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  const { data, count, error } = await supabase
+    .from('labour_profiles')
+    .select(
+      `id, skills, experience_years, daily_rate, hourly_rate, location_name, availability, average_rating, review_count, is_active,
+      user_profiles!labour_profiles_user_id_fkey (name)`,
+      { count: 'exact' }
+    )
+    .contains('skills', [searchTerm.toLowerCase()])
+    .eq('is_active', true)
+    .order('average_rating', { ascending: false, nullsFirst: false })
+    .limit(20);
+
+  const { data: broadData, count: broadCount } =
+    !data || data.length === 0
+      ? await supabase
+          .from('labour_profiles')
+          .select(
+            `id, skills, experience_years, daily_rate, hourly_rate, location_name, availability, average_rating, review_count, is_active,
+            user_profiles!labour_profiles_user_id_fkey (name)`,
+            { count: 'exact' }
+          )
+          .ilike('skills', `%${searchTerm}%`)
+          .eq('is_active', true)
+          .order('average_rating', { ascending: false, nullsFirst: false })
+          .limit(20)
+      : { data: null, count: null };
+
+  if (error) {
+    return makeErrorResult('search_labour', `Failed to search labour: ${error.message}`);
+  }
+
+  const results = data && data.length > 0 ? data : broadData || [];
+  const totalCount = data && data.length > 0 ? count : broadCount;
+
+  const lines: string[] = [
+    '=== PLATFORM DATA (Real-time) ===',
+    '',
+    `🔍 Labour Search: "${searchTerm}" — ${totalCount ?? 0} profile(s) found`,
+  ];
+
+  if (results.length > 0) {
+    lines.push('');
+
+    results.forEach((item, idx) => {
+      const userProfile = item.user_profiles as unknown as
+        | { name: string | null }
+        | { name: string | null }[]
+        | null;
+      const name = Array.isArray(userProfile) ? userProfile[0]?.name : userProfile?.name;
+
+      lines.push(`--- Labour Profile ${idx + 1} ---`);
+      lines.push(`  Name: ${name || 'N/A'}`);
+      lines.push(`  Skills: ${item.skills?.join(', ') || 'N/A'}`);
+      lines.push(`  Experience: ${item.experience_years ?? 0} years`);
+      lines.push(`  Daily Rate: ${formatCurrency(item.daily_rate)}`);
+      lines.push(`  Hourly Rate: ${formatCurrency(item.hourly_rate)}`);
+      lines.push(`  Location: ${item.location_name || 'N/A'}`);
+      lines.push(
+        `  Rating: ${formatRating(item.average_rating)} (${item.review_count ?? 0} reviews)`
+      );
+      lines.push(`  Availability: ${item.availability || 'N/A'}`);
+    });
+  } else {
+    lines.push('');
+    lines.push(`No labour profiles found matching "${searchTerm}".`);
+  }
+
+  const stats = await fetchPlatformStats();
+  lines.push(formatPlatformStats(stats));
+
+  return buildResult(
+    lines.join('\n'),
+    [`labour_profiles table searched for skill: ${searchTerm} (real-time)`],
+    results.length > 0,
+    'search_labour',
     'real-time'
   );
 }
@@ -1971,7 +2161,8 @@ async function handleVectorSearch(userMessage: string): Promise<SmartQueryResult
     let embedding = getCachedEmbedding(userMessage);
 
     if (!embedding) {
-      const embeddingResult = await generateEmbedding(userMessage);
+      const { scrubbed: cleanMessage } = scrubPII(userMessage);
+      const embeddingResult = await generateEmbedding(cleanMessage);
 
       if (!embeddingResult.success || embeddingResult.embedding.length === 0) {
         const stats = await fetchPlatformStats();
@@ -1994,23 +2185,76 @@ async function handleVectorSearch(userMessage: string): Promise<SmartQueryResult
     }
 
     const results = await searchKnowledge(embedding, {
-      threshold: 0.5, // Raised from 0.3 — filters low-quality matches
+      threshold: 0.75,
       limit: 10,
     });
 
     if (!results || results.length === 0) {
+      // Fallback: live DB summary so the AI always has real data to answer with
+      const supabase = createAdminClient();
+      const [equipRes, labourRes, bookingRes] = await Promise.all([
+        supabase
+          .from('equipment')
+          .select(
+            'id, name, category, brand, price_per_day, location_name, rating, is_available, horsepower, fuel_type, year'
+          )
+          .eq('is_available', true)
+          .order('rating', { ascending: false, nullsFirst: false })
+          .limit(10),
+        supabase
+          .from('labour_profiles')
+          .select(
+            `id, skills, experience_years, daily_rate, hourly_rate, location_name, average_rating, availability,
+            user_profiles!labour_profiles_user_id_fkey (name)`
+          )
+          .eq('availability', 'available')
+          .eq('is_active', true)
+          .order('average_rating', { ascending: false, nullsFirst: false })
+          .limit(5),
+        supabase.from('bookings').select('id, status', { count: 'exact', head: true }),
+      ]);
+
       const stats = await fetchPlatformStats();
+      const fallbackLines: string[] = [
+        '=== PLATFORM DATA (Live Fallback) ===',
+        '',
+        'No exact knowledge base match — showing live platform snapshot:',
+        '',
+      ];
+
+      if (equipRes.data && equipRes.data.length > 0) {
+        fallbackLines.push(`🚜 Available Equipment (top ${equipRes.data.length}):`);
+        equipRes.data.forEach((e, i) => {
+          fallbackLines.push(
+            `  ${i + 1}. ${e.name} | ${e.category} | ${e.brand || 'N/A'} | ${e.horsepower != null ? `${e.horsepower} HP` : ''} ${e.fuel_type || ''} | ${formatCurrency(e.price_per_day)}/day | ${e.location_name || 'N/A'} | ⭐${formatRating(e.rating)}`
+          );
+        });
+        fallbackLines.push('');
+      }
+
+      if (labourRes.data && labourRes.data.length > 0) {
+        fallbackLines.push(`👷 Available Workers (top ${labourRes.data.length}):`);
+        labourRes.data.forEach((l, i) => {
+          const up = l.user_profiles as unknown as
+            | { name: string | null }
+            | { name: string | null }[]
+            | null;
+          const name = Array.isArray(up) ? up[0]?.name : up?.name;
+          fallbackLines.push(
+            `  ${i + 1}. ${name || 'N/A'} | Skills: ${l.skills?.join(', ') || 'N/A'} | ${l.experience_years ?? 0} yrs exp | ${formatCurrency(l.daily_rate)}/day | ${l.location_name || 'N/A'}`
+          );
+        });
+        fallbackLines.push('');
+      }
+
+      fallbackLines.push(formatPlatformStats(stats));
+
       return buildResult(
-        [
-          '=== PLATFORM DATA (Cached Knowledge Base) ===',
-          '',
-          'No matching data found in the knowledge base for this query.',
-          formatPlatformStats(stats),
-        ].join('\n'),
-        ['knowledge base search (no results)'],
-        false,
+        fallbackLines.join('\n'),
+        ['live equipment table', 'live labour_profiles table', 'platform stats (fallback)'],
+        (equipRes.data?.length ?? 0) > 0 || (labourRes.data?.length ?? 0) > 0,
         'vector_search',
-        'cached'
+        'real-time'
       );
     }
 
@@ -2077,7 +2321,7 @@ async function handleMyBookings(userId: string): Promise<SmartQueryResult> {
   let query = supabase
     .from('bookings')
     .select(
-      'id, equipment_id, renter_id, start_date, end_date, total_days, price_per_day, total_amount, status, created_at',
+      'id, equipment_id, renter_id, start_date, end_date, start_time, end_time, total_days, price_per_day, total_amount, status, delivery_address, notes, cancellation_reason, created_at',
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })
@@ -2109,23 +2353,58 @@ async function handleMyBookings(userId: string): Promise<SmartQueryResult> {
 
     const equipRes =
       equipmentIds.length > 0
-        ? await supabase.from('equipment').select('id, name').in('id', equipmentIds)
-        : { data: [] as { id: string; name: string }[] };
+        ? await supabase
+            .from('equipment')
+            .select('id, name, category, brand')
+            .in('id', equipmentIds)
+        : {
+            data: [] as {
+              id: string;
+              name: string;
+              category: string | null;
+              brand: string | null;
+            }[],
+          };
 
-    const equipMap = new Map<string, string>(
-      (equipRes.data || []).map((e: { id: string; name: string }) => [e.id, e.name])
+    const equipMap = new Map<
+      string,
+      { name: string; category: string | null; brand: string | null }
+    >(
+      (equipRes.data || []).map((e) => [
+        e.id,
+        { name: e.name, category: e.category, brand: e.brand },
+      ])
     );
 
     lines.push('');
-    lines.push('| # | Equipment | Dates | Days | Amount | Status |');
-    lines.push('|---|-----------|-------|------|--------|--------|');
 
     data.forEach((item, idx) => {
-      const equipName = equipMap.get(item.equipment_id) || 'Unknown';
-      const dates = `${item.start_date || 'N/A'} → ${item.end_date || 'N/A'}`;
+      const equip = equipMap.get(item.equipment_id);
+      const equipName = equip?.name || 'Unknown';
+      const startTime = item.start_time ? ` ${item.start_time}` : '';
+      const endTime = item.end_time ? ` ${item.end_time}` : '';
 
+      lines.push(`--- Booking ${idx + 1} ---`);
+      lines.push(`  Equipment: ${equipName}`);
+      if (equip?.category) lines.push(`  Category: ${equip.category}`);
+      if (equip?.brand) lines.push(`  Brand: ${equip.brand}`);
+      lines.push(`  From: ${item.start_date || 'N/A'}${startTime}`);
+      lines.push(`  To: ${item.end_date || 'N/A'}${endTime}`);
+      lines.push(`  Total Days: ${item.total_days ?? 'N/A'}`);
+      lines.push(`  Price/Day: ${formatCurrency(item.price_per_day)}`);
+      lines.push(`  Total Amount: ${formatCurrency(item.total_amount)}`);
+      lines.push(`  Status: ${item.status || 'N/A'}`);
+      if (item.delivery_address) {
+        lines.push(`  Delivery Address: ${item.delivery_address}`);
+      }
+      if (item.notes) {
+        lines.push(`  Notes: ${truncate(item.notes, 100)}`);
+      }
+      if (item.cancellation_reason) {
+        lines.push(`  Cancellation Reason: ${truncate(item.cancellation_reason, 100)}`);
+      }
       lines.push(
-        `| ${idx + 1} | ${truncate(equipName, 25)} | ${dates} | ${item.total_days ?? 'N/A'} | ${formatCurrency(item.total_amount)} | ${item.status || 'N/A'} |`
+        `  Booked On: ${item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : 'N/A'}`
       );
     });
 
@@ -2158,7 +2437,7 @@ async function handleMyBookingStatus(userId: string, status: string): Promise<Sm
   let query = supabase
     .from('bookings')
     .select(
-      'id, equipment_id, renter_id, start_date, end_date, total_days, price_per_day, total_amount, status, created_at',
+      'id, equipment_id, renter_id, start_date, end_date, start_time, end_time, total_days, price_per_day, total_amount, status, delivery_address, notes, cancellation_reason, created_at',
       { count: 'exact' }
     )
     .eq('status', status)
@@ -2193,23 +2472,58 @@ async function handleMyBookingStatus(userId: string, status: string): Promise<Sm
 
     const equipRes =
       equipmentIds.length > 0
-        ? await supabase.from('equipment').select('id, name').in('id', equipmentIds)
-        : { data: [] as { id: string; name: string }[] };
+        ? await supabase
+            .from('equipment')
+            .select('id, name, category, brand')
+            .in('id', equipmentIds)
+        : {
+            data: [] as {
+              id: string;
+              name: string;
+              category: string | null;
+              brand: string | null;
+            }[],
+          };
 
-    const equipMap = new Map<string, string>(
-      (equipRes.data || []).map((e: { id: string; name: string }) => [e.id, e.name])
+    const equipMap = new Map<
+      string,
+      { name: string; category: string | null; brand: string | null }
+    >(
+      (equipRes.data || []).map((e) => [
+        e.id,
+        { name: e.name, category: e.category, brand: e.brand },
+      ])
     );
 
     lines.push('');
-    lines.push('| # | Equipment | Dates | Days | Amount | Status |');
-    lines.push('|---|-----------|-------|------|--------|--------|');
 
     data.forEach((item, idx) => {
-      const equipName = equipMap.get(item.equipment_id) || 'Unknown';
-      const dates = `${item.start_date || 'N/A'} → ${item.end_date || 'N/A'}`;
+      const equip = equipMap.get(item.equipment_id);
+      const equipName = equip?.name || 'Unknown';
+      const startTime = item.start_time ? ` ${item.start_time}` : '';
+      const endTime = item.end_time ? ` ${item.end_time}` : '';
 
+      lines.push(`--- Booking ${idx + 1} ---`);
+      lines.push(`  Equipment: ${equipName}`);
+      if (equip?.category) lines.push(`  Category: ${equip.category}`);
+      if (equip?.brand) lines.push(`  Brand: ${equip.brand}`);
+      lines.push(`  From: ${item.start_date || 'N/A'}${startTime}`);
+      lines.push(`  To: ${item.end_date || 'N/A'}${endTime}`);
+      lines.push(`  Total Days: ${item.total_days ?? 'N/A'}`);
+      lines.push(`  Price/Day: ${formatCurrency(item.price_per_day)}`);
+      lines.push(`  Total Amount: ${formatCurrency(item.total_amount)}`);
+      lines.push(`  Status: ${item.status || 'N/A'}`);
+      if (item.delivery_address) {
+        lines.push(`  Delivery Address: ${item.delivery_address}`);
+      }
+      if (item.notes) {
+        lines.push(`  Notes: ${truncate(item.notes, 100)}`);
+      }
+      if (item.cancellation_reason) {
+        lines.push(`  Cancellation Reason: ${truncate(item.cancellation_reason, 100)}`);
+      }
       lines.push(
-        `| ${idx + 1} | ${truncate(equipName, 25)} | ${dates} | ${item.total_days ?? 'N/A'} | ${formatCurrency(item.total_amount)} | ${item.status || 'N/A'} |`
+        `  Booked On: ${item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : 'N/A'}`
       );
     });
 
@@ -2237,7 +2551,7 @@ async function handleMyEquipment(userId: string): Promise<SmartQueryResult> {
   const { data, count, error } = await supabase
     .from('equipment')
     .select(
-      'id, name, category, brand, price_per_day, rating, is_available, review_count, created_at',
+      'id, name, category, brand, model, year, horsepower, fuel_type, price_per_day, price_per_hour, rating, is_available, review_count, description, features, total_bookings, created_at',
       { count: 'exact' }
     )
     .eq('owner_id', userId)
@@ -2255,13 +2569,25 @@ async function handleMyEquipment(userId: string): Promise<SmartQueryResult> {
 
   if (data && data.length > 0) {
     lines.push('');
-    lines.push('| # | Name | Category | Brand | Price/Day | Rating | Reviews | Available |');
-    lines.push('|---|------|----------|-------|-----------|--------|---------|-----------|');
 
     data.forEach((item, idx) => {
-      lines.push(
-        `| ${idx + 1} | ${item.name || 'N/A'} | ${item.category || 'N/A'} | ${item.brand || 'N/A'} | ${formatCurrency(item.price_per_day)} | ${formatRating(item.rating)} | ${item.review_count ?? 0} | ${formatAvailability(item.is_available)} |`
-      );
+      lines.push(`--- Equipment ${idx + 1} ---`);
+      lines.push(`  Name: ${item.name || 'N/A'}`);
+      lines.push(`  Category: ${item.category || 'N/A'}`);
+      lines.push(`  Brand: ${item.brand || 'N/A'}`);
+      lines.push(`  Model: ${item.model || 'N/A'}`);
+      lines.push(`  Year: ${item.year ?? 'N/A'}`);
+      lines.push(`  Horsepower: ${item.horsepower != null ? `${item.horsepower} HP` : 'N/A'}`);
+      lines.push(`  Fuel Type: ${item.fuel_type || 'N/A'}`);
+      lines.push(`  Price/Day: ${formatCurrency(item.price_per_day)}`);
+      lines.push(`  Price/Hour: ${formatCurrency(item.price_per_hour)}`);
+      lines.push(`  Available: ${formatAvailability(item.is_available)}`);
+      lines.push(`  Rating: ${formatRating(item.rating)} (${item.review_count ?? 0} reviews)`);
+      lines.push(`  Total Bookings: ${item.total_bookings ?? 0}`);
+      lines.push(`  Features: ${item.features?.join(', ') || 'N/A'}`);
+      if (item.description) {
+        lines.push(`  Description: ${truncate(item.description, 120)}`);
+      }
     });
   } else {
     lines.push('');
@@ -2459,6 +2785,459 @@ async function handleMyReviews(userId: string): Promise<SmartQueryResult> {
     ['reviews table filtered by user (real-time)'],
     (writtenReviews?.length ?? 0) > 0 || receivedReviews.length > 0,
     'my_reviews',
+    'real-time'
+  );
+}
+
+// ─── Payment, Calendar, and Message Handlers ────────────────────────────────────────
+
+async function handleMyPayments(userId: string): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  // First get all equipment owned by user
+  const { data: ownedEquip } = await supabase.from('equipment').select('id').eq('owner_id', userId);
+
+  const ownedEquipIds = (ownedEquip || []).map((e) => e.id);
+
+  // Get booking IDs where user is renter or equipment owner
+  let bookingQuery = supabase.from('bookings').select('id', { count: 'exact' }).limit(100);
+
+  if (ownedEquipIds.length > 0) {
+    bookingQuery = bookingQuery.or(
+      `renter_id.eq.${userId},equipment_id.in.(${ownedEquipIds.join(',')})`
+    );
+  } else {
+    bookingQuery = bookingQuery.eq('renter_id', userId);
+  }
+
+  const { data: userBookings } = await bookingQuery;
+  const bookingIds = (userBookings || []).map((b) => b.id);
+
+  if (bookingIds.length === 0) {
+    return buildResult(
+      [
+        '=== YOUR PAYMENT HISTORY (Real-time) ===',
+        '',
+        '💳 Your Payments: 0 transactions found',
+        '',
+        'You have no payment history yet.',
+      ].join('\n'),
+      ['payments table filtered by user bookings (real-time)'],
+      true,
+      'my_payments',
+      'real-time'
+    );
+  }
+
+  // Now fetch payments for these bookings
+  const { data, count, error } = await supabase
+    .from('payments')
+    .select(
+      'id, booking_id, amount, currency, payment_method, payment_gateway, transaction_id, status, created_at',
+      { count: 'exact' }
+    )
+    .in('booking_id', bookingIds)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    return makeErrorResult('my_payments', `Failed to fetch your payment history: ${error.message}`);
+  }
+
+  const lines: string[] = [
+    '=== YOUR PAYMENT HISTORY (Real-time) ===',
+    '',
+    `💳 Your Payments: ${count ?? 0} transactions found`,
+  ];
+
+  if (data && data.length > 0) {
+    lines.push('');
+
+    data.forEach((item, idx) => {
+      lines.push(`--- Payment ${idx + 1} ---`);
+      lines.push(`  Transaction ID: ${item.transaction_id || 'N/A'}`);
+      lines.push(`  Booking ID: ${item.booking_id}`);
+      lines.push(`  Amount: ${formatCurrency(Number(item.amount))}`);
+      lines.push(`  Currency: ${item.currency || 'INR'}`);
+      lines.push(`  Method: ${item.payment_method || 'N/A'}`);
+      lines.push(`  Gateway: ${item.payment_gateway || 'N/A'}`);
+      lines.push(`  Status: ${item.status || 'N/A'}`);
+      lines.push(
+        `  Date: ${item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : 'N/A'}`
+      );
+    });
+  } else {
+    lines.push('');
+    lines.push('You have no payment history yet.');
+  }
+
+  return buildResult(
+    lines.join('\n'),
+    ['payments table filtered by user bookings (real-time)'],
+    true,
+    'my_payments',
+    'real-time'
+  );
+}
+
+async function handleMyUpcomingBookings(userId: string): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  const { data: ownedEquip } = await supabase.from('equipment').select('id').eq('owner_id', userId);
+  const ownedEquipIds = (ownedEquip || []).map((e) => e.id);
+
+  const today = new Date().toISOString().split('T')[0];
+
+  let query = supabase
+    .from('bookings')
+    .select(
+      'id, equipment_id, renter_id, start_date, end_date, start_time, end_time, total_days, price_per_day, total_amount, status, delivery_address, notes, created_at',
+      { count: 'exact' }
+    )
+    .gte('start_date', today)
+    .neq('status', 'cancelled')
+    .order('start_date', { ascending: true })
+    .limit(20);
+
+  if (ownedEquipIds.length > 0) {
+    query = query.or(`renter_id.eq.${userId},equipment_id.in.(${ownedEquipIds.join(',')})`);
+  } else {
+    query = query.eq('renter_id', userId);
+  }
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    return makeErrorResult(
+      'my_upcoming_bookings',
+      `Failed to fetch your upcoming bookings: ${error.message}`
+    );
+  }
+
+  const lines: string[] = [
+    '=== YOUR UPCOMING BOOKINGS (Real-time) ===',
+    '',
+    `📅 Your Upcoming Bookings: ${count ?? 0} reservations`,
+  ];
+
+  if (data && data.length > 0) {
+    const equipmentIds = Array.from(
+      new Set(data.map((b) => b.equipment_id).filter(Boolean))
+    ) as string[];
+
+    const equipRes =
+      equipmentIds.length > 0
+        ? await supabase
+            .from('equipment')
+            .select('id, name, category, brand')
+            .in('id', equipmentIds)
+        : {
+            data: [] as {
+              id: string;
+              name: string;
+              category: string | null;
+              brand: string | null;
+            }[],
+          };
+
+    const equipMap = new Map<
+      string,
+      { name: string; category: string | null; brand: string | null }
+    >(
+      (equipRes.data || []).map((e) => [
+        e.id,
+        { name: e.name, category: e.category, brand: e.brand },
+      ])
+    );
+
+    lines.push('');
+
+    data.forEach((item, idx) => {
+      const equip = equipMap.get(item.equipment_id);
+      const equipName = equip?.name || 'Unknown';
+      const startTime = item.start_time ? ` ${item.start_time}` : '';
+      const endTime = item.end_time ? ` ${item.end_time}` : '';
+
+      lines.push(`--- Upcoming Booking ${idx + 1} ---`);
+      lines.push(`  Equipment: ${equipName}`);
+      if (equip?.category) lines.push(`  Category: ${equip.category}`);
+      if (equip?.brand) lines.push(`  Brand: ${equip.brand}`);
+      lines.push(`  From: ${item.start_date || 'N/A'}${startTime}`);
+      lines.push(`  To: ${item.end_date || 'N/A'}${endTime}`);
+      lines.push(`  Total Days: ${item.total_days ?? 'N/A'}`);
+      lines.push(`  Price/Day: ${formatCurrency(item.price_per_day)}`);
+      lines.push(`  Total Amount: ${formatCurrency(item.total_amount)}`);
+      lines.push(`  Status: ${item.status || 'N/A'}`);
+      if (item.delivery_address) {
+        lines.push(`  Delivery Address: ${item.delivery_address}`);
+      }
+      if (item.notes) {
+        lines.push(`  Notes: ${truncate(item.notes, 100)}`);
+      }
+      lines.push(
+        `  Booked On: ${item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : 'N/A'}`
+      );
+    });
+  } else {
+    lines.push('');
+    lines.push('You have no upcoming bookings.');
+  }
+
+  return buildResult(
+    lines.join('\n'),
+    ['bookings table filtered by user and upcoming dates (real-time)'],
+    (data?.length ?? 0) > 0,
+    'my_upcoming_bookings',
+    'real-time'
+  );
+}
+
+async function handleEquipmentAvailability(
+  userId: string,
+  equipmentName?: string
+): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+  let query = supabase
+    .from('bookings')
+    .select(
+      `id, equipment_id, start_date, end_date, start_time, end_time, status,
+      equipment:equipment_id (name, category, brand, owner_id)`,
+      { count: 'exact' }
+    )
+    .neq('status', 'cancelled')
+    .order('start_date', { ascending: true });
+
+  if (equipmentName) {
+    query = query.ilike('equipment.name', `%${equipmentName}%`);
+  } else {
+    query = query.eq('equipment.owner_id', userId);
+  }
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    return makeErrorResult(
+      'equipment_availability',
+      `Failed to fetch equipment availability: ${error.message}`
+    );
+  }
+
+  const lines: string[] = [
+    '=== EQUIPMENT AVAILABILITY CALENDAR (Real-time) ===',
+    '',
+    `📅 Availability Calendar: ${count ?? 0} active bookings found`,
+  ];
+
+  if (data && data.length > 0) {
+    lines.push('');
+
+    const byEquipment = new Map<string, typeof data>();
+    data.forEach((item) => {
+      const eqInfo = (item as { equipment?: { id?: string; name?: string } }).equipment;
+      let equipmentId: string, equipmentName: string;
+
+      if (eqInfo && typeof eqInfo === 'object' && !Array.isArray(eqInfo)) {
+        equipmentId = eqInfo.id || 'unknown';
+        equipmentName = eqInfo.name || 'Unknown Equipment';
+      } else {
+        equipmentId = 'unknown';
+        equipmentName = 'Unknown Equipment';
+      }
+
+      const key = `${equipmentId}-${equipmentName}`;
+      if (!byEquipment.has(key)) {
+        byEquipment.set(key, []);
+      }
+      byEquipment.get(key)?.push(item);
+    });
+
+    let counter = 1;
+    for (const [equipKey, bookings] of byEquipment) {
+      const equipName = equipKey.split('-').slice(1).join('-');
+      lines.push(`--- Equipment: ${equipName} ---`);
+
+      const sortedBookings = [...bookings].sort(
+        (a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      );
+
+      sortedBookings.forEach((item, idx) => {
+        const startTime = item.start_time ? ` ${item.start_time}` : '';
+        const endTime = item.end_time ? ` ${item.end_time}` : '';
+
+        lines.push(
+          `  Booking ${counter}.${idx + 1}: ${item.start_date}${startTime} → ${item.end_date}${endTime} | Status: ${item.status}`
+        );
+      });
+
+      counter++;
+    }
+  } else {
+    if (equipmentName) {
+      lines.push('');
+      lines.push(
+        `No bookings found for equipment containing "${equipmentName}" or it's currently available.`
+      );
+    } else {
+      lines.push('');
+      lines.push('You have no equipment with active bookings.');
+    }
+  }
+
+  return buildResult(
+    lines.join('\n'),
+    ['bookings table with equipment join (real-time availability)'],
+    (data?.length ?? 0) > 0,
+    'equipment_availability',
+    'real-time'
+  );
+}
+
+async function handleLabourAvailability(
+  userId?: string,
+  searchTerm?: string
+): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  let query = supabase
+    .from('labour_profiles')
+    .select(
+      `id, user_id, skills, experience_years, daily_rate, hourly_rate, location_name, availability, average_rating, review_count, is_active,
+      user_profiles!labour_profiles_user_id_fkey (name, phone)`,
+      { count: 'exact' }
+    )
+    .eq('is_active', true)
+    .order('average_rating', { ascending: false, nullsFirst: false })
+    .limit(20);
+
+  if (searchTerm) {
+    query = query.contains('skills', [searchTerm.toLowerCase()]);
+  } else {
+    query = query.eq('availability', 'available');
+  }
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    return makeErrorResult(
+      'labour_availability',
+      `Failed to fetch labour availability: ${error.message}`
+    );
+  }
+
+  const lines: string[] = ['=== LABOUR AVAILABILITY CALENDAR (Real-time) ===', ''];
+
+  if (searchTerm) {
+    lines.push(`🔍 Labour Search for "${searchTerm}": ${count ?? 0} profiles found`);
+  } else {
+    lines.push(`Workers Currently Available: ${count ?? 0} profiles found`);
+  }
+
+  if (data && data.length > 0) {
+    lines.push('');
+
+    data.forEach((item, idx) => {
+      const userProfile = item.user_profiles as unknown as
+        | { name: string | null; phone: string | null }
+        | { name: string | null; phone: string | null }[]
+        | null;
+      const name = Array.isArray(userProfile) ? userProfile[0]?.name : userProfile?.name;
+      const phone = Array.isArray(userProfile) ? userProfile[0]?.phone : userProfile?.phone;
+
+      lines.push(`--- Labour Profile ${idx + 1} ---`);
+      lines.push(`  Name: ${name || 'N/A'}`);
+      lines.push(`  Phone: ${phone || 'N/A'}`);
+      lines.push(`  Skills: ${item.skills?.join(', ') || 'N/A'}`);
+      lines.push(`  Experience: ${item.experience_years ?? 0} years`);
+      lines.push(`  Daily Rate: ${formatCurrency(item.daily_rate)}`);
+      lines.push(`  Hourly Rate: ${formatCurrency(item.hourly_rate)}`);
+      lines.push(`  Location: ${item.location_name || 'N/A'}`);
+      lines.push(
+        `  Rating: ${formatRating(item.average_rating)} (${item.review_count ?? 0} reviews)`
+      );
+      lines.push(`  Current Availability: ${item.availability || 'N/A'}`);
+      lines.push(`  Active: ${item.is_active ? 'Yes' : 'No'}`);
+    });
+  } else {
+    lines.push('');
+    if (searchTerm) {
+      lines.push(`No labour profiles found matching "${searchTerm}".`);
+    } else {
+      lines.push('No labour currently available.');
+    }
+  }
+
+  return buildResult(
+    lines.join('\n'),
+    ['labour_profiles table filtered by availability (real-time)'],
+    (data?.length ?? 0) > 0,
+    'labour_availability',
+    'real-time'
+  );
+}
+
+async function handleMyMessages(userId: string): Promise<SmartQueryResult> {
+  const supabase = createAdminClient();
+
+  const { data, count, error } = await supabase
+    .from('messages')
+    .select('id, sender_id, receiver_id, booking_id, message, is_read, created_at', {
+      count: 'exact',
+    })
+    .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error) {
+    return makeErrorResult('my_messages', `Failed to fetch your messages: ${error.message}`);
+  }
+
+  const lines: string[] = [
+    '=== YOUR MESSAGES (Real-time) ===',
+    '',
+    `💬 Your Messages: ${count ?? 0} conversations`,
+  ];
+
+  if (data && data.length > 0) {
+    const userIds = Array.from(
+      new Set(data.flatMap((m) => [m.sender_id, m.receiver_id]).filter((id) => id !== userId))
+    );
+
+    const userRes =
+      userIds.length > 0
+        ? await supabase.from('user_profiles').select('id, name').in('id', userIds)
+        : { data: [] as { id: string; name: string }[] };
+
+    const userMap = new Map<string, string>(
+      (userRes.data || []).map((u) => [u.id, u.name || 'Unknown'])
+    );
+
+    lines.push('');
+
+    data.forEach((item, idx) => {
+      const otherUserId = item.sender_id === userId ? item.receiver_id : item.sender_id;
+      const otherUserName = userMap.get(otherUserId) || 'Unknown User';
+      const direction = item.sender_id === userId ? '→ Sent' : '← Received';
+      const status = item.is_read ? 'Read' : 'Unread';
+
+      lines.push(`--- Message ${idx + 1} ---`);
+      lines.push(`  ${direction} to/from: ${otherUserName}`);
+      lines.push(`  Status: ${status}`);
+      lines.push(`  Booking ID: ${item.booking_id || 'N/A'}`);
+      lines.push(`  Content: ${truncate(item.message, 100)}`);
+      lines.push(
+        `  Sent: ${item.created_at ? new Date(item.created_at).toLocaleString('en-IN') : 'N/A'}`
+      );
+    });
+  } else {
+    lines.push('');
+    lines.push('You have no messages.');
+  }
+
+  return buildResult(
+    lines.join('\n'),
+    ['messages table filtered by user (real-time)'],
+    (data?.length ?? 0) > 0,
+    'my_messages',
     'real-time'
   );
 }
@@ -2840,7 +3619,13 @@ export async function smartQuery(
   userMessage: string,
   userContext?: SmartQueryUserContext
 ): Promise<SmartQueryResult> {
-  // Handle empty or whitespace-only messages
+  console.log('[smartQuery] called with:', {
+    userMessage: userMessage?.slice(0, 50),
+    userId: userContext?.userId,
+    roles: userContext?.roles,
+    activeRole: userContext?.activeRole,
+  });
+
   if (!userMessage || userMessage.trim().length === 0) {
     return {
       context: '',
@@ -2853,108 +3638,246 @@ export async function smartQuery(
   }
 
   const intent = detectIntent(userMessage);
+  console.log('[smartQuery] detected intent:', intent.type, intent);
 
+  const rbacCtx: AIRequestContext = {
+    userId: userContext?.userId,
+    roles: (userContext?.roles ?? []) as AIRole[],
+    activeRole: (userContext?.activeRole ?? 'guest') as AIRole,
+    isAuthenticated: !!userContext?.userId,
+    requestId: crypto.randomUUID(),
+  };
+
+  const INTENT_TABLE_MAP: Partial<Record<IntentType, string>> = {
+    my_bookings: 'bookings',
+    my_booking_status: 'bookings',
+    my_equipment: 'equipment',
+    my_profile: 'user_profiles',
+    my_reviews: 'reviews',
+    my_payments: 'payments',
+    my_upcoming_bookings: 'bookings',
+    equipment_availability: 'bookings',
+    labour_availability: 'labour_profiles',
+    my_messages: 'messages',
+    list_bookings: 'bookings',
+    booking_status: 'bookings',
+    count_bookings: 'bookings',
+    analytics_revenue: 'bookings',
+  };
+
+  const tableToCheck = INTENT_TABLE_MAP[intent.type];
+  if (tableToCheck) {
+    const decision = canQueryTable(rbacCtx, tableToCheck);
+    if (!decision.allowed) {
+      void logAuditEvent({
+        actorId: rbacCtx.userId,
+        actorRole: rbacCtx.activeRole,
+        action: 'pii_denied',
+        resource: tableToCheck,
+        requestId: rbacCtx.requestId,
+      });
+      return {
+        context: `Access denied: ${decision.reason}`,
+        sources: [],
+        hasContext: false,
+        hasData: false,
+        queryType: intent.type,
+        dataFreshness: 'real-time',
+      };
+    }
+  }
+
+  const GEO_ELIGIBLE_INTENTS = new Set<IntentType>([
+    'vector_search',
+    'search_equipment',
+    'available_equipment',
+    'list_equipment',
+  ]);
+
+  let queryResult: SmartQueryResult;
   try {
     switch (intent.type) {
       case 'count_equipment':
-        return await handleCountEquipment();
+        queryResult = await handleCountEquipment();
+        break;
 
       case 'count_equipment_category':
-        return await handleCountEquipmentCategory(intent.category!);
+        queryResult = await handleCountEquipmentCategory(intent.category!);
+        break;
 
       case 'list_equipment':
-        return await handleListEquipment();
+        queryResult = await handleListEquipment();
+        break;
 
       case 'list_equipment_category':
-        return await handleListEquipmentCategory(intent.category!);
+        queryResult = await handleListEquipmentCategory(intent.category!);
+        break;
 
       case 'search_equipment':
-        return await handleSearchEquipment(intent.searchTerm!);
+        queryResult = await handleSearchEquipment(intent.searchTerm!);
+        break;
 
       case 'available_equipment':
-        return await handleAvailableEquipment();
+        queryResult = await handleAvailableEquipment();
+        break;
 
       case 'count_labour':
-        return await handleCountLabour();
+        queryResult = await handleCountLabour();
+        break;
 
       case 'list_labour':
-        return await handleListLabour();
+        queryResult = await handleListLabour();
+        break;
 
       case 'available_labour':
-        return await handleAvailableLabour();
+        queryResult = await handleAvailableLabour();
+        break;
+
+      case 'search_labour':
+        queryResult = await handleSearchLabour(intent.searchTerm || '');
+        break;
 
       case 'count_providers':
-        return await handleCountProviders();
+        queryResult = await handleCountProviders();
+        break;
 
       case 'list_providers':
-        return await handleListProviders();
+        queryResult = await handleListProviders();
+        break;
 
       case 'count_users':
-        return await handleCountUsers();
+        queryResult = await handleCountUsers();
+        break;
 
       case 'list_users':
-        return await handleListUsers(userContext);
+        queryResult = await handleListUsers(userContext);
+        break;
 
       case 'count_reviews':
-        return await handleCountReviews();
+        queryResult = await handleCountReviews();
+        break;
 
       case 'list_reviews':
-        return await handleListReviews();
+        queryResult = await handleListReviews();
+        break;
 
       case 'reviews_for_equipment':
-        return await handleReviewsForEquipment(intent.searchTerm!);
+        queryResult = await handleReviewsForEquipment(intent.searchTerm!);
+        break;
 
       case 'count_bookings':
-        return await handleCountBookings();
+        queryResult = await handleCountBookings();
+        break;
 
       case 'list_bookings':
-        return await handleListBookings(userContext);
+        queryResult = await handleListBookings(userContext);
+        break;
 
       case 'booking_status':
-        return await handleBookingStatus(intent.status!);
+        queryResult = await handleBookingStatus(intent.status!);
+        break;
 
       case 'platform_stats':
-        return await handlePlatformStats();
+        queryResult = await handlePlatformStats();
+        break;
 
       case 'my_bookings':
         if (!userContext?.userId) return makeAuthRequiredResult('bookings');
-        return await handleMyBookings(userContext.userId);
+        queryResult = await handleMyBookings(userContext.userId);
+        break;
 
       case 'my_booking_status':
         if (!userContext?.userId) return makeAuthRequiredResult('bookings');
-        return await handleMyBookingStatus(userContext.userId, intent.status!);
+        queryResult = await handleMyBookingStatus(userContext.userId, intent.status!);
+        break;
 
       case 'my_equipment':
         if (!userContext?.userId) return makeAuthRequiredResult('equipment');
-        return await handleMyEquipment(userContext.userId);
+        queryResult = await handleMyEquipment(userContext.userId);
+        break;
 
       case 'my_profile':
         if (!userContext?.userId) return makeAuthRequiredResult('profile');
-        return await handleMyProfile(userContext.userId);
+        queryResult = await handleMyProfile(userContext.userId);
+        break;
 
       case 'my_reviews':
         if (!userContext?.userId) return makeAuthRequiredResult('reviews');
-        return await handleMyReviews(userContext.userId);
+        queryResult = await handleMyReviews(userContext.userId);
+        break;
+
+      case 'my_payments':
+        if (!userContext?.userId) return makeAuthRequiredResult('payments');
+        queryResult = await handleMyPayments(userContext.userId);
+        break;
+
+      case 'my_upcoming_bookings':
+        if (!userContext?.userId) return makeAuthRequiredResult('bookings');
+        queryResult = await handleMyUpcomingBookings(userContext.userId);
+        break;
+
+      case 'equipment_availability':
+        if (!userContext?.userId) return makeAuthRequiredResult('equipment');
+        queryResult = await handleEquipmentAvailability(userContext.userId, intent.equipmentName);
+        break;
+
+      case 'labour_availability':
+        queryResult = await handleLabourAvailability(userContext?.userId, intent.searchTerm);
+        break;
+
+      case 'my_messages':
+        if (!userContext?.userId) return makeAuthRequiredResult('messages');
+        queryResult = await handleMyMessages(userContext.userId);
+        break;
 
       case 'analytics_most_rented':
-        return await handleAnalyticsMostRented();
+        queryResult = await handleAnalyticsMostRented();
+        break;
 
       case 'analytics_revenue':
-        return await handleAnalyticsRevenue();
+        queryResult = await handleAnalyticsRevenue();
+        break;
 
       case 'analytics_idle_equipment':
-        return await handleAnalyticsIdleEquipment();
+        queryResult = await handleAnalyticsIdleEquipment();
+        break;
 
       case 'analytics_overview':
-        return await handleAnalyticsOverview();
+        queryResult = await handleAnalyticsOverview();
+        break;
 
       case 'vector_search':
       default:
-        return await handleVectorSearch(userMessage);
+        queryResult = await handleVectorSearch(userMessage);
+        break;
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error(`[smart-query-service] Unhandled error for intent ${intent.type}:`, errorMsg);
     return makeErrorResult(intent.type, `Unexpected error: ${errorMsg}`);
   }
+
+  // Geo enrichment — non-fatal, appended when user supplies coordinates
+  if (
+    userContext?.latitude != null &&
+    userContext?.longitude != null &&
+    GEO_ELIGIBLE_INTENTS.has(intent.type)
+  ) {
+    try {
+      const geoResult = await findNearbyEquipment({
+        latitude: userContext.latitude,
+        longitude: userContext.longitude,
+      });
+      if (geoResult.items.length > 0) {
+        queryResult = {
+          ...queryResult,
+          context: queryResult.context + '\n\n' + formatGeoContext(geoResult),
+        };
+      }
+    } catch {
+      // geo failure is non-fatal
+    }
+  }
+
+  return queryResult;
 }

@@ -10,6 +10,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Menu,
   X,
@@ -37,6 +38,7 @@ import {
 
 function FuturisticHeader() {
   const { user, profile, isLoading, signOut } = useAuthStore();
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState<string | null>(null);
@@ -69,6 +71,16 @@ function FuturisticHeader() {
       const rect = headerRef.current.getBoundingClientRect();
       mouseX.set((e.clientX - rect.left) / rect.width);
       mouseY.set((e.clientY - rect.top) / rect.height);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Sign out failed:', error);
     }
   };
 
@@ -416,7 +428,7 @@ function FuturisticHeader() {
                     <DropdownMenuSeparator className="my-2 bg-white/10" />
 
                     <DropdownMenuItem
-                      onClick={() => signOut()}
+                      onClick={handleSignOut}
                       className="mx-1 my-1 cursor-pointer rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 focus:bg-red-500/10 focus:text-red-300"
                     >
                       <LogOut className="mr-3 h-4 w-4" />
@@ -599,7 +611,7 @@ function FuturisticHeader() {
                     </Link>
                     <button
                       onClick={() => {
-                        signOut();
+                        void handleSignOut();
                         setIsMobileMenuOpen(false);
                       }}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-red-400 transition-all hover:bg-red-500/10 hover:text-red-300"

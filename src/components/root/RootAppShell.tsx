@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { LandingEntryLoader } from '@/components/root/LandingEntryLoader';
+import { AuthInitializer } from '@/components/auth/AuthInitializer';
 
 const Analytics = dynamic(() => import('@vercel/analytics/next').then((mod) => mod.Analytics), {
   ssr: false,
@@ -60,7 +61,7 @@ export function RootAppShell({ children }: { children: React.ReactNode }) {
     return (
       <>
         <LandingEntryLoader />
-        {children}
+        <AuthInitializer>{children}</AuthInitializer>
         {analyticsEnabled && <Analytics />}
         {analyticsEnabled && <SpeedInsights />}
         {showDevPerfOverlay && <FPSMonitor show={true} />}

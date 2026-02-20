@@ -228,33 +228,40 @@ async function callTavilyAPI(query: string): Promise<TavilyAPIResponse> {
   const apiKey = process.env.TAVILY_API_KEY;
   if (!apiKey) throw new Error('TAVILY_API_KEY is not configured');
 
-  const response = await fetch(TAVILY_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      query,
-      max_results: MAX_RESULTS,
-      search_depth: 'basic',
-      include_answer: true,
-      include_domains: [],
-      exclude_domains: [],
-      language: 'en',
-      topic: 'general',
-    }),
-    signal: AbortSignal.timeout(10000), // 10s timeout
-  });
+  try {
+    const response = await fetch(TAVILY_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        query,
+        max_results: MAX_RESULTS,
+        search_depth: 'basic',
+        include_answer: true,
+        include_domains: [],
+        exclude_domains: [],
+        language: 'en',
+        topic: 'general',
+      }),
+      signal: AbortSignal.timeout(10000), // 10s timeout
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    if (response.status === 429) throw new Error('Tavily rate limit exceeded');
-    if (response.status === 401) throw new Error('Invalid Tavily API key');
-    throw new Error(`Tavily API error ${response.status}: ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      if (response.status === 429) throw new Error('Tavily rate limit exceeded');
+      if (response.status === 401) throw new Error('Invalid Tavily API key');
+      throw new Error(`Tavily API error ${response.status}: ${errorText}`);
+    }
+
+    return response.json() as Promise<TavilyAPIResponse>;
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Tavily search request timed out (10s)');
+    }
+    throw error;
   }
-
-  return response.json() as Promise<TavilyAPIResponse>;
 }
 
 // ─── Main Search Function ─────────────────────────────────────────────────────

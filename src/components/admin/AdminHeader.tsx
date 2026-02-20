@@ -31,8 +31,10 @@ export default function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
   const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    void supabase.auth.signOut();
+    void fetch('/auth/signout', { method: 'POST', keepalive: true });
     router.push('/login');
+    router.refresh();
   };
 
   return (

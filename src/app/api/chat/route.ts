@@ -30,10 +30,20 @@ import {
 } from '@/lib/utils/system-context';
 import { smartQuery, SmartQueryUserContext } from '@/lib/services/smart-query-service';
 import {
+  buildPlatformKnowledgeContext,
+  formatPlatformFactsForPrompt,
+} from '@/lib/services/platform-knowledge-service';
+import {
   detectWebSearchIntent,
   performWebSearch,
   formatWebSearchContext,
 } from '@/lib/services/tavily-search-service';
+import {
+  fetchConversationContext,
+  upsertConversationContext,
+  formatConversationMemory,
+} from '@/lib/rag/conversation-memory';
+import { checkRateLimit, rateLimitKey } from '@/lib/rag/rate-limiter';
 
 /**
  * Vision-enabled model for requests that include media attachments.
@@ -110,7 +120,10 @@ function extractLatestUserMessage(messages: UIMessage[]): string {
 function buildSystemPrompt(
   userCtx: UserContext,
   platformData?: string,
-  webSearchData?: string
+  webSearchData?: string,
+  structuredFactsJson?: string,
+  memoryText?: string,
+  platformKnowledge?: string
 ): string {
   const systemContext = formatSystemContextForPrompt();
   const userContextStr = formatUserContextForPrompt(userCtx);
@@ -129,6 +142,9 @@ ${systemContext}
 ## User Context
 ${userContextStr}
 
+## Platform Identity & Policies (AUTHORITATIVE - Never fabricate)
+${platformKnowledge || 'No platform knowledge available.'}
+
 ## Your Behaviour
 - Friendly, professional, and concise — avoid unnecessary filler
 - Address logged-in users by name on first message
@@ -138,16 +154,18 @@ ${userContextStr}
 - Always use **₹ (Indian Rupees)** for prices
 - If the user isn't logged in and asks about "my bookings / my listings", ask them to log in first
 
-## Strict Rules
-1. **Never fabricate** equipment, prices, bookings, users, or any data not present in the Platform Data section
-2. If data isn't available, say: *"I don't have that information right now."*
-3. **Never expose** sensitive details (email, phone, address) unless the user is asking about their own profile
-4. Don't volunteer information outside the provided data
+CRITICAL GROUNDING RULES (Never ignore):
+1. For platform identity questions (founder, mission, legal, policies) → Answer ONLY from PLATFORM IDENTITY section above.
+2. If platform knowledge does not contain the answer → respond exactly: "I don't have that official information in my knowledge base."
+3. NEVER guess or invent platform facts, founder details, legal terms, or policies.
+4. For equipment/booking/user questions → use Platform Data and Semantic Knowledge as usual.
+5. Always cite source: (Platform: section) or (DB: table) or (KB: embeddings).
+6. If similarity scores < 75% → acknowledge low confidence.
 
 ## Equipment Data Rules (Critical)
 - **Only show fields explicitly listed** in the Platform Data for each equipment item
-- If a field says **"Not provided"** or **"N/A"**, display it as-is — **never substitute a value from your training knowledge** (e.g. do not look up real-world HP for a John Deere model)
-- **Never invent** dimensions (height, width, length), weight, capacity, tank size, tyre size, or any other specification not present in the data
+- If a field says **"Not provided"** or **"N/A"**, display it as-is — **never substitute a value from your training knowledge**
+- **Never invent** dimensions, weight, capacity, tank size, tyre size, or any other specification not present in the data
 - The data block ends with **[END OF PROVIDER DATA]** — do not add anything beyond what appears before that marker
 - If a user asks for a spec not in the data, say: *"The provider has not shared that detail."*
 
@@ -157,8 +175,9 @@ ${userContextStr}
 - Use tables when comparing equipment, bookings, or pricing
 - Keep responses focused — no unnecessary length
 
-## Platform Data
+${memoryText ? `${memoryText}\n\n` : ''}${structuredFactsJson ? `=== STRUCTURED_FACTS_JSON ===\n${structuredFactsJson}\n=== END STRUCTURED_FACTS ===\n\n` : ''}=== SEMANTIC_KNOWLEDGE_TEXT ===
 ${platformData || 'No specific platform data available. Answer based on general AgriServe platform knowledge.'}
+=== END SEMANTIC_KNOWLEDGE ===
 ${
   webSearchData
     ? `
@@ -189,13 +208,19 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { messages, model, webSearch, mediaAttachments } = body as {
-      messages?: UIMessage[];
-      model?: string;
-      webSearch?: boolean;
-      /** Media files uploaded by the user for this message */
-      mediaAttachments?: MediaAttachment[];
-    };
+    const { messages, model, webSearch, mediaAttachments, conversationId, latitude, longitude } =
+      body as {
+        messages?: UIMessage[];
+        model?: string;
+        webSearch?: boolean;
+        mediaAttachments?: MediaAttachment[];
+        conversationId?: string;
+        latitude?: number;
+        longitude?: number;
+      };
+
+    const ip =
+      request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? undefined;
 
     console.log('chat debug: request received', {
       messageCount: messages?.length,
@@ -221,12 +246,29 @@ export async function POST(request: Request) {
     let userContext: UserContext = { isAuthenticated: false };
     let smartQueryUserContext: SmartQueryUserContext | undefined;
 
+    const earlyRateKey = rateLimitKey(undefined, ip);
+    const earlyRateCheck = checkRateLimit(earlyRateKey);
+    if (!earlyRateCheck.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Too many requests', retryAfterMs: earlyRateCheck.retryAfterMs }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(earlyRateCheck.retryAfterMs / 1000)),
+          },
+        }
+      );
+    }
+
     try {
       const supabase = await createClient();
       const {
         data: { user },
         error: authError,
       } = await supabase.auth.getUser();
+
+      console.log('[chat] auth check:', { userId: user?.id, authError: authError?.message });
 
       if (!authError && user) {
         const adminClient = createAdminClient();
@@ -242,6 +284,13 @@ export async function POST(request: Request) {
             .eq('user_id', user.id)
             .eq('is_active', true),
         ]);
+
+        if (profileRes.error) {
+          console.log('[chat] profile fetch error:', profileRes.error.message);
+        }
+        if (rolesRes.error) {
+          console.log('[chat] roles fetch error:', rolesRes.error.message);
+        }
 
         const profile = profileRes.data;
         const roles = (rolesRes.data || []).map((r: { role: string }) => r.role);
@@ -265,11 +314,42 @@ export async function POST(request: Request) {
           roles: userContext.roles,
           activeRole: userContext.activeRole,
           isAdmin: userContext.roles?.includes('admin') || false,
+          latitude: typeof latitude === 'number' ? latitude : undefined,
+          longitude: typeof longitude === 'number' ? longitude : undefined,
         };
+
+        console.log('[chat] user context set:', {
+          userId: user.id,
+          roles: userContext.roles,
+          activeRole: userContext.activeRole,
+        });
+      } else {
+        console.log('[chat] no authenticated user, continuing as guest');
       }
     } catch (e) {
-      console.warn('chat auth check failed, continuing as guest:', e);
+      console.warn('[chat] auth check failed, continuing as guest:', e);
     }
+
+    if (userContext.userId) {
+      const userRateKey = rateLimitKey(userContext.userId, ip);
+      const userRateCheck = checkRateLimit(userRateKey);
+      if (!userRateCheck.allowed) {
+        return new Response(
+          JSON.stringify({ error: 'Too many requests', retryAfterMs: userRateCheck.retryAfterMs }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': String(Math.ceil(userRateCheck.retryAfterMs / 1000)),
+            },
+          }
+        );
+      }
+    }
+
+    const convId = conversationId ?? crypto.randomUUID();
+    const conversationCtx = await fetchConversationContext(convId);
+    const memoryText = formatConversationMemory(conversationCtx);
 
     // --- Model selection ---
     // Priority: hasMedia (vision) > user-selected > default
@@ -316,11 +396,34 @@ export async function POST(request: Request) {
       }
     }
 
+    // --- Platform Knowledge (Authoritative platform facts) ---
+    let platformKnowledgeText: string | undefined;
+    if (latestUserMessage) {
+      try {
+        const platformCtx = await buildPlatformKnowledgeContext(latestUserMessage);
+        if (Object.keys(platformCtx.structuredFacts).length > 0) {
+          const formattedFacts = formatPlatformFactsForPrompt(platformCtx.structuredFacts);
+          platformKnowledgeText = `**OFFICIAL PLATFORM INFORMATION** (Authoritative source)\n\n${formattedFacts}`;
+          console.info(
+            `[chat] platform knowledge: formatted ${Object.keys(platformCtx.structuredFacts).length} categories`
+          );
+        }
+        if (platformCtx.documentMatches.length > 0) {
+          console.info(`[chat] platform documents: ${platformCtx.documentMatches.length} matches`);
+        }
+      } catch (platformError) {
+        console.warn('[chat] platform knowledge fetch failed, continuing:', platformError);
+      }
+    }
+
     // --- Build system prompt ---
     const system = buildSystemPrompt(
       userContext,
       smartResult.hasContext ? smartResult.context : undefined,
-      webSearchContext
+      webSearchContext,
+      undefined,
+      memoryText || undefined,
+      platformKnowledgeText
     );
 
     // --- Convert UI messages to model messages ---
@@ -411,20 +514,15 @@ export async function POST(request: Request) {
     let result;
 
     if (selectedModel === VISION_MODEL) {
-      /**
-       * Vision model route: use Groq SDK directly.
-       * Groq supports meta-llama/llama-4-scout-17b-16e-instruct with vision.
-       */
       result = streamText({
         model: groq(VISION_MODEL),
         system,
         messages: modelMessages,
+        onFinish: ({ text }) => {
+          void upsertConversationContext(convId, userContext.userId, latestUserMessage, text);
+        },
       });
     } else {
-      /**
-       * Standard Groq model route.
-       * Strips the 'groq/' prefix to get the bare model name.
-       */
       const modelName = selectedModel.startsWith('groq/')
         ? selectedModel.replace('groq/', '')
         : selectedModel;
@@ -433,6 +531,9 @@ export async function POST(request: Request) {
         model: groq(modelName),
         system,
         messages: modelMessages,
+        onFinish: ({ text }) => {
+          void upsertConversationContext(convId, userContext.userId, latestUserMessage, text);
+        },
       });
     }
 
