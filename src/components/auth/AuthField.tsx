@@ -1,14 +1,14 @@
 'use client';
 
-import { ReactNode, InputHTMLAttributes } from 'react';
-import { motion } from 'framer-motion';
+import { ReactNode, InputHTMLAttributes, FocusEvent, ChangeEvent } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
 /**
  * AuthField - Reusable input field component with label and optional toggle visibility
  */
-interface AuthFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'className'> {
+interface AuthFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onFocus' | 'onBlur'> {
   label: string;
   error?: string;
   showToggle?: boolean;
@@ -56,7 +56,7 @@ export function AuthField({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           whileFocus={{ scale: 1.01 }}
-          {...props}
+          {...(props as HTMLMotionProps<'input'>)}
         />
         
         {showToggle && isPassword && (
