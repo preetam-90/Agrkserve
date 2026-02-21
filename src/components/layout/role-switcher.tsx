@@ -1,56 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Tractor, Briefcase, Shield, ChevronDown, Check, Settings } from 'lucide-react';
+import { User, Tractor, Briefcase, Shield, ChevronDown, Check, Settings, X } from 'lucide-react';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const roleConfig = {
   renter: {
     label: 'Renter',
     icon: User,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/20',
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-500/20',
+    borderColor: 'border-blue-500/30',
+    hoverBg: 'hover:bg-blue-500/20',
     description: 'Rent equipment & hire labour',
     dashboard: '/dashboard',
   },
   provider: {
     label: 'Provider',
     icon: Tractor,
-    color: 'text-emerald-500',
-    bgColor: 'bg-emerald-500/10',
-    borderColor: 'border-emerald-500/20',
+    color: 'text-emerald-400',
+    bgColor: 'bg-emerald-500/20',
+    borderColor: 'border-emerald-500/30',
+    hoverBg: 'hover:bg-emerald-500/20',
     description: 'List equipment for rent',
     dashboard: '/provider/dashboard',
   },
   labour: {
     label: 'Labour',
     icon: Briefcase,
-    color: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
-    borderColor: 'border-amber-500/20',
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/20',
+    borderColor: 'border-amber-500/30',
+    hoverBg: 'hover:bg-amber-500/20',
     description: 'Offer your services',
     dashboard: '/dashboard',
   },
   admin: {
     label: 'Admin',
     icon: Shield,
-    color: 'text-red-500',
-    bgColor: 'bg-red-500/10',
-    borderColor: 'border-red-500/20',
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/20',
+    borderColor: 'border-red-500/30',
+    hoverBg: 'hover:bg-red-500/20',
     description: 'Manage platform',
     dashboard: '/admin',
   },
@@ -60,6 +57,20 @@ export function RoleSwitcher() {
   const router = useRouter();
   const { roles, activeRole, switchRole } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
 
   if (!activeRole || roles.length === 0) {
     return null;
@@ -72,12 +83,10 @@ export function RoleSwitcher() {
     switchRole(role);
     setIsOpen(false);
 
-    // Navigate to the appropriate dashboard
     const targetDashboard = roleConfig[role].dashboard;
     router.push(targetDashboard);
   };
 
-  // Don't show switcher if user only has one role
   if (roles.length === 1) {
     return (
       <Badge
@@ -96,75 +105,110 @@ export function RoleSwitcher() {
   }
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            'flex items-center gap-2 border transition-all duration-200',
-            currentRoleConfig.bgColor,
-            currentRoleConfig.borderColor,
-            'hover:shadow-lg'
-          )}
-        >
-          <CurrentIcon className={cn('h-4 w-4', currentRoleConfig.color)} />
-          <span className={cn('font-semibold', currentRoleConfig.color)}>
-            {currentRoleConfig.label}
-          </span>
-          <ChevronDown className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-64 border-slate-800 bg-slate-900/95 backdrop-blur-xl"
+    <div ref={containerRef} className="relative">
+      <Button
+        variant="outline"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          'flex items-center gap-2 border transition-all duration-200',
+          currentRoleConfig.bgColor,
+          currentRoleConfig.borderColor,
+          'hover:shadow-lg hover:shadow-black/20'
+        )}
       >
-        <DropdownMenuLabel className="text-slate-400">Switch Role</DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-slate-800" />
+        <CurrentIcon className={cn('h-4 w-4', currentRoleConfig.color)} />
+        <span className={cn('font-semibold', currentRoleConfig.color)}>
+          {currentRoleConfig.label}
+        </span>
+        <ChevronDown className={cn('h-4 w-4 text-white/60 transition-transform duration-200', isOpen && 'rotate-180')} />
+      </Button>
 
-        {roles.map((role) => {
-          const config = roleConfig[role];
-          const Icon = config.icon;
-          const isActive = role === activeRole;
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute left-0 top-full z-[100] mt-2 min-w-[300px] max-w-[85vw] w-[380px] overflow-hidden rounded-2xl border border-white/10 bg-[#0d1f15]/98 p-2 shadow-2xl backdrop-blur-xl"
+            style={{
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05)',
+            }}
+          >
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-white/40">
+                Switch Role
+              </span>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="rounded-lg p-1 text-white/30 hover:bg-white/10 hover:text-white/70"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
 
-          return (
-            <DropdownMenuItem
-              key={role}
-              onClick={() => handleRoleSwitch(role)}
-              className={cn(
-                'flex cursor-pointer items-start gap-3 p-3 transition-all',
-                isActive && config.bgColor,
-                'hover:bg-slate-800 focus:bg-slate-800'
-              )}
+            <div className="space-y-1">
+              {roles.map((role) => {
+                const config = roleConfig[role];
+                const Icon = config.icon;
+                const isActive = role === activeRole;
+
+                return (
+                  <button
+                    key={role}
+                    onClick={() => handleRoleSwitch(role)}
+                    className={cn(
+                      'flex w-full cursor-pointer items-start gap-3 rounded-xl p-3 transition-all duration-200',
+                      isActive
+                        ? 'border border-emerald-500/30 bg-gradient-to-r from-emerald-500/20 to-green-500/10'
+                        : config.hoverBg,
+                      'hover:border-white/10 hover:bg-white/5'
+                    )}
+                  >
+                    <div className={cn('flex shrink-0 items-center justify-center rounded-lg p-2', config.bgColor)}>
+                      <Icon className={cn('h-5 w-5', config.color)} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center justify-between">
+                        <span className={cn('font-semibold', isActive ? config.color : 'text-white/90')}>
+                          {config.label}
+                        </span>
+                        {isActive && (
+                          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-white/50">{config.description}</p>
+                    </div>
+                    {isActive && (
+                      <Check className={cn('h-4 w-4 shrink-0', config.color)} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="my-2 h-px bg-white/10" />
+
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                router.push('/settings/roles');
+              }}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-xl p-3 text-white/60 transition-all hover:border hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400"
             >
-              <div className={cn('rounded-lg p-2', config.bgColor)}>
-                <Icon className={cn('h-5 w-5', config.color)} />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <span className={cn('font-semibold', isActive && config.color)}>
-                    {config.label}
-                  </span>
-                  {isActive && <Check className={cn('h-4 w-4', config.color)} />}
-                </div>
-                <p className="text-xs text-slate-500">{config.description}</p>
-              </div>
-            </DropdownMenuItem>
-          );
-        })}
-
-        <DropdownMenuSeparator className="bg-slate-800" />
-
-        <DropdownMenuItem
-          onClick={() => {
-            setIsOpen(false);
-            router.push('/settings/roles');
-          }}
-          className="flex cursor-pointer items-center gap-2 text-slate-400 hover:text-slate-200"
-        >
-          <Settings className="h-4 w-4" />
-          <span>Manage Roles</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              <Settings className="h-4 w-4" />
+              <span className="font-medium">Manage Roles</span>
+              {roles.length < 3 && (
+                <span className="ml-auto rounded-full bg-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                  NEW
+                </span>
+              )}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

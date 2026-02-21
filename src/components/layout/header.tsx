@@ -176,7 +176,7 @@ export function Header() {
 
       <div
         className={cn(
-          'relative border-b transition-all duration-700 ease-out',
+          'relative border-b transition-all duration-700 ease-out overflow-visible',
           isScrolled
             ? 'border-white/10 bg-[#0a1f15]/80 shadow-2xl backdrop-blur-2xl'
             : 'border-white/5 bg-gradient-to-b from-[#0d1f15]/90 to-[#0d1f15]/60 backdrop-blur-xl'
