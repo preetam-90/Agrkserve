@@ -190,15 +190,31 @@ function LoginPageContent() {
 
         {/* Google Sign In */}
         <motion.button
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isLoading}
-          className="mb-6 flex w-full items-center justify-center gap-3 rounded-xl border border-stone-700/50 bg-stone-800/50 px-4 py-3.5 font-medium text-stone-200 transition-all duration-200 hover:border-amber-500/50 hover:bg-stone-800/80 hover:shadow-lg hover:shadow-amber-500/10"
+          className="group relative mb-6 flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 px-4 py-3.5 font-medium text-stone-200 shadow-lg transition-all duration-300 hover:border-amber-500/50 hover:bg-slate-800/80 hover:shadow-xl hover:shadow-amber-500/10"
         >
-          <Chrome className="h-5 w-5 text-blue-400" />
-          Continue with Google
+          {/* Hover Shimmer */}
+          <motion.div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100"
+            animate={{
+              x: ['-100%', '100%'],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+            }}
+          />
+          
+          <Chrome className="relative z-10 h-5 w-5 text-blue-400" />
+          <span className="relative z-10">Continue with Google</span>
         </motion.button>
 
         <AuthDivider />
@@ -295,33 +311,45 @@ function LoginPageContent() {
         </form>
 
         {/* Toggle Mode */}
-        <div className="mt-6 text-center">
+        <motion.div 
+          className="mt-6 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
           <span className="text-stone-400">
             {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
           </span>
-          <button
+          <motion.button
             type="button"
             onClick={() => {
               setMode(mode === 'signin' ? 'signup' : 'signin');
               setError('');
             }}
             className="font-semibold text-amber-400 transition-colors hover:text-amber-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {mode === 'signin' ? 'Sign Up' : 'Sign In'}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Terms */}
-        <p className="mt-6 text-center text-xs text-stone-500">
+        <motion.p 
+          className="mt-6 text-center text-xs text-stone-500"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
           By continuing, you agree to our{' '}
-          <Link href="/terms" className="text-amber-400 hover:underline">
+          <Link href="/terms" className="text-amber-400 transition-colors hover:text-amber-300 hover:underline">
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="text-amber-400 hover:underline">
+          <Link href="/privacy" className="text-amber-400 transition-colors hover:text-amber-300 hover:underline">
             Privacy Policy
           </Link>
-        </p>
+        </motion.p>
       </AuthForm>
     </AuthLayout>
   );

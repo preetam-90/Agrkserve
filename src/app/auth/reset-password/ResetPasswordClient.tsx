@@ -94,13 +94,28 @@ export default function ResetPasswordPage() {
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={() => router.push('/dashboard')}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 px-4 py-4 font-semibold text-white transition-all duration-200 hover:from-emerald-500 hover:to-emerald-600 hover:shadow-lg hover:shadow-emerald-500/20"
+                className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 px-4 py-4 font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-500 hover:shadow-xl hover:shadow-emerald-500/40"
               >
-                Go to Dashboard
+                {/* Shimmer Effect */}
+                <motion.div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100"
+                  animate={{
+                    x: ['-100%', '100%'],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'linear',
+                  }}
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                  }}
+                />
+                <span className="relative z-10">Go to Dashboard</span>
               </motion.button>
             </motion.div>
           ) : (

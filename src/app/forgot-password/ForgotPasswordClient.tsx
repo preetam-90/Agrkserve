@@ -77,13 +77,28 @@ export default function ForgotPasswordPage() {
                   Did not receive the email?
                 </p>
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={() => setEmailSent(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-700/50 bg-stone-800/50 px-4 py-3.5 font-medium text-stone-200 transition-all duration-200 hover:border-amber-500/50 hover:bg-stone-800/80 hover:shadow-lg hover:shadow-amber-500/10"
+                  className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl border border-slate-700/50 bg-slate-800/50 px-4 py-3.5 font-medium text-stone-200 shadow-lg transition-all duration-300 hover:border-amber-500/50 hover:bg-slate-800/80 hover:shadow-xl hover:shadow-amber-500/10"
                 >
-                  Try Again
+                  {/* Hover Shimmer */}
+                  <motion.div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100"
+                    animate={{
+                      x: ['-100%', '100%'],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                    style={{
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)',
+                    }}
+                  />
+                  <span className="relative z-10">Try Again</span>
                 </motion.button>
               </div>
 

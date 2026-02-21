@@ -256,20 +256,38 @@ export default function OnboardingPage() {
   const currentStepIndex = steps.indexOf(step);
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-stone-950 via-emerald-950 to-stone-900">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-900">
       <AuthBackground />
+
+      {/* Animated Grid Overlay */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f46e510_1px,transparent_1px),linear-gradient(to_bottom,#4f46e510_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_110%)]" />
+      </div>
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between p-6">
         <div className="flex items-center gap-3">
-          <motion.div whileHover={{ scale: 1.05, rotate: -5 }} className="relative">
-            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 opacity-50 blur-md transition-opacity" />
-            <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/20 bg-gradient-to-br from-stone-900 to-emerald-950">
+          <motion.div 
+            whileHover={{ scale: 1.08, rotate: -8 }} 
+            className="relative"
+          >
+            <motion.div 
+              className="absolute -inset-2 rounded-2xl bg-gradient-to-r from-amber-500 via-emerald-500 to-cyan-500 opacity-50 blur-xl"
+              animate={{
+                rotate: [0, 360],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            />
+            <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/20 bg-gradient-to-br from-slate-900 via-indigo-950/50 to-slate-900 shadow-lg shadow-amber-500/20">
               <Tractor className="h-6 w-6 text-amber-400" />
             </div>
           </motion.div>
-          <span className="text-xl font-bold tracking-tight text-stone-100">
-            Agri<span className="text-amber-500">Serve</span>
+          <span className="bg-gradient-to-r from-stone-100 via-amber-100 to-emerald-100 bg-clip-text text-xl font-bold tracking-tight text-transparent">
+            Agri<span className="bg-gradient-to-r from-amber-400 to-emerald-400 bg-clip-text">Serve</span>
           </span>
         </div>
 
@@ -285,7 +303,7 @@ export default function OnboardingPage() {
                   ? 'bg-gradient-to-r from-amber-500 to-emerald-500 shadow-lg shadow-amber-500/30'
                   : currentStepIndex > i
                     ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
-                    : 'bg-stone-700'
+                    : 'bg-slate-700'
               }`}
             />
           ))}
