@@ -41,50 +41,20 @@ export default function LabourPage() {
   const fetchLabourProfiles = async () => {
     setLoading(true);
     try {
-      let query = supabase.from('labour_profiles').select(
-        `
-          *,
-          user:user_profiles!user_id(name, email, phone, profile_image)
-        `,
-        { count: 'exact' }
-      );
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (availabilityFilter) params.append('availability', availabilityFilter);
+      params.append('page', currentPage.toString());
 
-      // Only apply availability filter in query
-      // Search will be done client-side after fetching
-      if (availabilityFilter) {
-        query = query.eq('availability', availabilityFilter);
+      const response = await fetch(`/api/admin/labour?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch labour profiles');
       }
 
-      const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(offset, offset + ITEMS_PER_PAGE - 1);
-
-      if (error) throw error;
-
-      // Client-side search filtering
-      let filteredData = data || [];
-      if (search && search.trim()) {
-        const searchLower = search.toLowerCase();
-        filteredData = filteredData.filter((profile) => {
-          const userName = profile.user?.name?.toLowerCase() || '';
-          const userEmail = profile.user?.email?.toLowerCase() || '';
-          const userPhone = profile.user?.phone?.toLowerCase() || '';
-          const skills = profile.skills?.join(' ').toLowerCase() || '';
-          const experienceYears = profile.experience_years?.toString() || '';
-
-          return (
-            userName.includes(searchLower) ||
-            userEmail.includes(searchLower) ||
-            userPhone.includes(searchLower) ||
-            skills.includes(searchLower) ||
-            experienceYears.includes(searchLower)
-          );
-        });
-      }
-
-      setLabourProfiles(filteredData);
-      setTotalCount(search ? filteredData.length : count || 0);
+      setLabourProfiles(result.data || []);
+      setTotalCount(result.count || 0);
     } catch (error) {
       console.error('Error fetching labour profiles:', error);
     } finally {

@@ -228,7 +228,7 @@ Address: [Your Company Address]
     "tags": ["privacy", "data_protection", "gdpr", "ccpa"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 
@@ -368,7 +368,7 @@ Address: [Your Company Address]
     "tags": ["terms", "tos", "legal", "contract"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 
@@ -425,7 +425,7 @@ We reserve the right to update this disclaimer at any time without notice.
     "tags": ["disclaimer", "liability", "waiver"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 
@@ -494,7 +494,7 @@ Get started at https://agrirental.vercel.app
     "tags": ["about", "mission", "platform_overview"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 
@@ -553,7 +553,7 @@ Connect: https://github.com/preetam-90
     "tags": ["founder_story", "background", "vision"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 
@@ -640,7 +640,7 @@ We review all reports within 24 hours.
     "tags": ["rules", "community_guidelines", "user_conduct"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 
@@ -737,7 +737,7 @@ This FAQ is regularly updated. Last updated: February 21, 2026.
     "tags": ["detailed_faq", "help", "user_questions"],
     "version": "1.0.0"
   }'::jsonb,
-  false,
+  true,
   '1.0.0'
 ) ON CONFLICT DO NOTHING;
 

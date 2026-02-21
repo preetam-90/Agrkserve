@@ -122,7 +122,7 @@ export async function getPlatformKnowledge(
 
   let query = supabase
     .from('platform_knowledge')
-    .select('id, category, key, data, description, version, updated_at')
+    .select('id, category, key, data, description, version, updated_at, is_active, created_at')
     .order('category, key');
 
   if (category) query = query.eq('category', category);
@@ -159,7 +159,7 @@ export async function getAllPlatformFacts(
     return {};
   }
 
-  return (data?.[0]?.get_all_platform_facts as Record<string, Record<string, unknown>>) || {};
+  return (data as Record<string, Record<string, unknown>>) || {};
 }
 
 export async function deletePlatformKnowledge(
@@ -227,7 +227,9 @@ export async function getPlatformDocuments(
 
   let query = supabase
     .from('platform_documents')
-    .select('id, document_type, title, content, chunk_index, metadata, version, created_at')
+    .select(
+      'id, document_type, title, content, chunk_index, metadata, version, created_at, is_active, updated_at'
+    )
     .order('document_type, title, chunk_index');
 
   if (documentType) query = query.eq('document_type', documentType);
@@ -338,6 +340,25 @@ export async function buildPlatformKnowledgeContext(
   return { structuredFacts, documentMatches };
 }
 
+function formatValue(value: unknown): string {
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.map((v) => `\n  - ${String(v)}`).join('');
+  if (typeof value === 'object' && value !== null) {
+    // Flatten one level deep
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => {
+        const label = k
+          .split('_')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+        return `\n  - **${label}**: ${String(v)}`;
+      })
+      .join('');
+  }
+  return String(value);
+}
+
 export function formatPlatformFactsForPrompt(
   facts: Record<string, Record<string, unknown>>
 ): string {
@@ -356,20 +377,26 @@ export function formatPlatformFactsForPrompt(
     sections.push(`### ${categoryTitle}`);
 
     for (const [key, value] of Object.entries(keys as Record<string, unknown>)) {
-      const formattedKey = key
-        .split('_')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-
-      const formattedValue =
-        typeof value === 'object' && value !== null
-          ? JSON.stringify(value, null, 2)
-          : String(value);
-
-      sections.push(`**${formattedKey}**: ${formattedValue}`);
+      // For nested objects (e.g. founder_details, platform_metadata), expand their fields directly
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        for (const [subKey, subVal] of Object.entries(value as Record<string, unknown>)) {
+          const label = subKey
+            .split('_')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+          sections.push(`**${label}**: ${formatValue(subVal)}`);
+        }
+      } else {
+        const formattedKey = key
+          .split('_')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+        sections.push(`**${formattedKey}**: ${formatValue(value)}`);
+      }
     }
     sections.push('');
   }
 
   return sections.join('\n');
 }
+

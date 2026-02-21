@@ -56,63 +56,27 @@ export default function EquipmentPage() {
   const supabase = createClient();
 
   const fetchEquipment = useCallback(async () => {
-    const supabase = createClient();
     setLoading(true);
     try {
-      // Build base query for paginated data
-      let query = supabase.from('equipment').select(
-        `
-          *,
-          owner:user_profiles!owner_id(name, email, phone)
-        `,
-        { count: 'exact' }
-      );
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (categoryFilter) params.append('category', categoryFilter);
+      params.append('page', currentPage.toString());
 
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,brand.ilike.%${search}%,model.ilike.%${search}%`);
+      const response = await fetch(`/api/admin/equipment?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch equipment');
       }
 
-      if (categoryFilter) {
-        query = query.eq('category', categoryFilter);
-      }
-
-      const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(offset, offset + ITEMS_PER_PAGE - 1);
-
-      if (error) throw error;
-
-      setEquipment(data || []);
-      setTotalCount(count || 0);
-
-      // Fetch ALL equipment for accurate stats (without pagination)
-      let statsQuery = supabase.from('equipment').select('is_available, price_per_day');
-
-      if (search) {
-        statsQuery = statsQuery.or(
-          `name.ilike.%${search}%,brand.ilike.%${search}%,model.ilike.%${search}%`
-        );
-      }
-
-      if (categoryFilter) {
-        statsQuery = statsQuery.eq('category', categoryFilter);
-      }
-
-      const { data: allEquipment, error: statsError } = await statsQuery;
-
-      if (statsError) throw statsError;
-
-      // Calculate stats from all equipment
-      const available = allEquipment?.filter((e) => e.is_available).length || 0;
-      const rented = allEquipment?.filter((e) => !e.is_available).length || 0;
-      const totalValue = allEquipment?.reduce((sum, e) => sum + (e.price_per_day || 0), 0) || 0;
-
-      setStats({
-        totalAssets: count || 0,
-        availableCount: available,
-        rentedCount: rented,
-        totalValue,
+      setEquipment(result.data || []);
+      setTotalCount(result.count || 0);
+      setStats(result.stats || {
+        totalAssets: 0,
+        availableCount: 0,
+        rentedCount: 0,
+        totalValue: 0,
       });
     } catch (error) {
       console.error('Error fetching equipment:', error);

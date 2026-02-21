@@ -24,23 +24,19 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('user_profiles')
-        .select('*, user_roles!inner(role, is_active)', { count: 'exact' });
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      params.append('page', currentPage.toString());
 
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+      const response = await fetch(`/api/admin/users?${params.toString()}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to fetch users');
       }
 
-      const offset = (currentPage - 1) * ITEMS_PER_PAGE;
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(offset, offset + ITEMS_PER_PAGE - 1);
-
-      if (error) throw error;
-
-      setUsers(data || []);
-      setTotalCount(count || 0);
+      setUsers(result.data || []);
+      setTotalCount(result.count || 0);
     } catch (error) {
       console.error('Error fetching users:', error);
     } finally {

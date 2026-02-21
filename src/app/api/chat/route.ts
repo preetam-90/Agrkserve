@@ -99,11 +99,20 @@ interface MediaAttachment {
 function extractLatestUserMessage(messages: UIMessage[]): string {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i].role === 'user') {
-      const textParts = messages[i].parts
-        .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
-        .map((part) => part.text);
-      if (textParts.length > 0) {
-        return textParts.join(' ');
+      // 1. Try to extract from parts (AI SDK 3+)
+      if (messages[i].parts && messages[i].parts.length > 0) {
+        const textParts = messages[i].parts
+          .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+          .map((part) => part.text);
+        if (textParts.length > 0) {
+          return textParts.join(' ');
+        }
+      }
+
+      // 2. Fallback to content property (traditional format)
+      const msg = messages[i] as UIMessage & { content?: string };
+      if (typeof msg.content === 'string' && msg.content.trim().length > 0) {
+        return msg.content.trim();
       }
     }
   }
@@ -153,14 +162,14 @@ ${platformKnowledge || 'No platform knowledge available.'}
 - For general agri questions → answer helpfully, note your primary focus is equipment/labour rental
 - Always use **₹ (Indian Rupees)** for prices
 - If the user isn't logged in and asks about "my bookings / my listings", ask them to log in first
+- When answering questions about the platform, founder, or policies: **present the facts in clear, friendly prose**. Do NOT dump raw field names, JSON, or source labels. Write naturally as if you know this information yourself.
 
 CRITICAL GROUNDING RULES (Never ignore):
 1. For platform identity questions (founder, mission, legal, policies) → Answer ONLY from PLATFORM IDENTITY section above.
 2. If platform knowledge does not contain the answer → respond exactly: "I don't have that official information in my knowledge base."
 3. NEVER guess or invent platform facts, founder details, legal terms, or policies.
 4. For equipment/booking/user questions → use Platform Data and Semantic Knowledge as usual.
-5. Always cite source: (Platform: section) or (DB: table) or (KB: embeddings).
-6. If similarity scores < 75% → acknowledge low confidence.
+5. Present ALL platform facts in natural, friendly prose — NEVER show raw JSON, field names, or source paths to the user.
 
 ## Equipment Data Rules (Critical)
 - **Only show fields explicitly listed** in the Platform Data for each equipment item
@@ -178,9 +187,8 @@ CRITICAL GROUNDING RULES (Never ignore):
 ${memoryText ? `${memoryText}\n\n` : ''}${structuredFactsJson ? `=== STRUCTURED_FACTS_JSON ===\n${structuredFactsJson}\n=== END STRUCTURED_FACTS ===\n\n` : ''}=== SEMANTIC_KNOWLEDGE_TEXT ===
 ${platformData || 'No specific platform data available. Answer based on general AgriServe platform knowledge.'}
 === END SEMANTIC_KNOWLEDGE ===
-${
-  webSearchData
-    ? `
+${webSearchData
+      ? `
 ## 🌐 Live Web Results (via Tavily)
 ${webSearchData}
 
@@ -189,8 +197,8 @@ ${webSearchData}
 - End with a **🌐 Sources** section listing numbered links
 - Include ₹ and approximate date for any price data
 `
-    : ''
-}`;
+      : ''
+    }`;
 
   return prompt;
 }
@@ -501,11 +509,11 @@ export async function POST(request: Request) {
         contentLength: Array.isArray(lastMsg?.content) ? lastMsg.content.length : 'N/A',
         parts: Array.isArray(lastMsg?.content)
           ? lastMsg.content.map((p: { type: string; image?: unknown; text?: string }) => ({
-              type: p.type,
-              hasImage: 'image' in p,
-              imageType: p.image ? typeof p.image : undefined,
-              textPreview: p.text ? p.text.slice(0, 50) : undefined,
-            }))
+            type: p.type,
+            hasImage: 'image' in p,
+            imageType: p.image ? typeof p.image : undefined,
+            textPreview: p.text ? p.text.slice(0, 50) : undefined,
+          }))
           : undefined,
       });
     }
