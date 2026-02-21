@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Tractor, Sparkles } from 'lucide-react';
@@ -13,8 +14,26 @@ interface AuthLayoutProps {
   children: React.ReactNode;
 }
 
+interface ParticleConfig {
+  left: string;
+  top: string;
+  duration: number;
+  delay: number;
+}
+
 export function AuthLayout({ children }: AuthLayoutProps) {
   const currentYear = new Date().getFullYear();
+
+  // Generate particles once using useState initializer
+  // The initializer function runs once during mount, not during render
+  const [particles] = useState<ParticleConfig[]>(() => {
+    return Array.from({ length: 30 }).map(() => ({
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: 3 + Math.random() * 2,
+      delay: Math.random() * 5,
+    }));
+  });
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-indigo-950/30 to-slate-900">
@@ -27,13 +46,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
       {/* Floating Particles */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        {Array.from({ length: 30 }).map((_, i) => (
+        {particles.map((particle, i) => (
           <motion.div
             key={i}
             className="absolute h-1 w-1 rounded-full bg-gradient-to-r from-amber-400/40 to-emerald-400/40"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
+              left: particle.left,
+              top: particle.top,
             }}
             animate={{
               y: [0, -30, 0],
@@ -41,9 +60,9 @@ export function AuthLayout({ children }: AuthLayoutProps) {
               scale: [0, 1.5, 0],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: particle.duration,
               repeat: Infinity,
-              delay: Math.random() * 5,
+              delay: particle.delay,
               ease: 'easeInOut',
             }}
           />
